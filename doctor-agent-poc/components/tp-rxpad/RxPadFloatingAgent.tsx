@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import {
   Activity,
   AlertTriangle,
-  AtSign,
+
   Check,
   ChevronDown,
   ChevronUp,
@@ -4056,36 +4056,30 @@ function SummaryCard({
     concernPills.push({ label: "No immediate critical alerts", tone: "success" })
   }
 
+  // Build a compact collapsed strip: "F/U · DM + HTN · Dust allergy · 7 lab flags"
+  const collapsedTokens: string[] = []
+  if (summaryData.followUpStatus === "overdue") collapsedTokens.push("F/U overdue")
+  else collapsedTokens.push("F/U")
+  if (chronicHighlights.length > 0) collapsedTokens.push(chronicHighlights.join(" + "))
+  if (allergyHighlights.length > 0) collapsedTokens.push(allergyHighlights.join(", ") + " allergy")
+  if (summaryData.labFlagCount > 0) collapsedTokens.push(`${summaryData.labFlagCount} lab flags`)
+
   if (collapsed) {
     return (
       <button
         type="button"
         onClick={onToggle}
-        className="h-[42px] w-full rounded-[12px] border-[0.5px] border-tp-slate-200 bg-white px-2.5 text-left"
+        className="h-[28px] w-full rounded-[10px] border-[0.5px] border-tp-violet-100 bg-[linear-gradient(135deg,rgba(242,77,182,0.04)_0%,rgba(150,72,254,0.03)_52%,rgba(75,74,213,0.03)_100%)] px-2.5 text-left"
       >
         <div className="flex h-full items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-1.5">
-            <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-[10px] bg-tp-violet-100 text-tp-violet-600">
-              <Stethoscope size={13} />
+            <span className="inline-flex size-[18px] shrink-0 items-center justify-center rounded-[6px] bg-tp-violet-100 text-tp-violet-600">
+              <Stethoscope size={10} />
             </span>
-            <p className="truncate text-[11px] font-semibold text-tp-slate-800">Patient Smart Summary</p>
-            {concernPills[0] ? (
-              <span
-                className={cn(
-                  "truncate rounded-full border-[0.5px] px-1.5 py-0.5 text-[9px] font-medium",
-                  concernPills[0].tone === "error"
-                    ? "border-tp-error-200 bg-tp-error-50 text-tp-error-700"
-                    : concernPills[0].tone === "warning"
-                      ? "border-tp-warning-200 bg-tp-warning-50 text-tp-warning-700"
-                      : "border-tp-success-200 bg-tp-success-50 text-tp-success-700",
-                )}
-              >
-                {concernPills[0].label}
-              </span>
-            ) : null}
+            <p className="truncate text-[10px] font-medium text-tp-slate-600">{collapsedTokens.join(" · ")}</p>
           </div>
-          <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-[8px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50 text-tp-slate-600">
-            <ChevronDown size={12} />
+          <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-[6px] text-tp-slate-400">
+            <ChevronDown size={11} />
           </span>
         </div>
       </button>
@@ -4951,23 +4945,23 @@ function SymptomCollectorCard({
   onCopy: (payload: RxPadCopyPayload, message: string) => void
   onQuickSend: (prompt: string) => void
 }) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(true)
 
   if (collapsed) {
     return (
       <button
         type="button"
         onClick={() => setCollapsed(false)}
-        className="flex h-[42px] w-full items-center justify-between rounded-[12px] border-[0.5px] border-tp-slate-200 bg-white px-2.5 text-left"
+        className="flex h-[28px] w-full items-center justify-between rounded-[10px] border-[0.5px] border-tp-violet-100 bg-[linear-gradient(135deg,rgba(242,77,182,0.04)_0%,rgba(150,72,254,0.03)_52%,rgba(75,74,213,0.03)_100%)] px-2.5 text-left"
       >
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="inline-flex size-6 items-center justify-center rounded-[8px] bg-tp-violet-100 text-tp-violet-600">
-            <Activity size={12} />
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="inline-flex size-[18px] shrink-0 items-center justify-center rounded-[6px] bg-tp-violet-100 text-tp-violet-600">
+            <Activity size={10} />
           </span>
-          <p className="truncate text-[11px] font-semibold text-tp-slate-800">Symptoms and medical history from patient</p>
+          <p className="truncate text-[10px] font-medium text-tp-slate-600">Patient-reported symptoms & history</p>
         </div>
-        <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-[8px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50 text-tp-slate-600">
-          <ChevronDown size={12} />
+        <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-[6px] text-tp-slate-400">
+          <ChevronDown size={11} />
         </span>
       </button>
     )
@@ -5209,24 +5203,110 @@ function formatMessageTime(value: string) {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 }
 
-function AgentIntroCard({
+function AgentIntroMessage({
   contextLabel,
   isPatientContext,
+  summaryData,
 }: {
   contextLabel: string
   isPatientContext: boolean
+  summaryData?: SmartSummaryData | null
 }) {
+  if (!isPatientContext) {
+    return (
+      <div className="flex items-start gap-2">
+        <span className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-[10px]" style={{ background: AI_GRADIENT_SOFT }}>
+          <AiBrandSparkIcon size={13} />
+        </span>
+        <div className="max-w-[88%] text-[11px] leading-[16px] text-tp-slate-600">
+          <p>{`Hi Doctor, you are in ${contextLabel}. I can help with operational guidance until you switch to a patient chart.`}</p>
+        </div>
+      </div>
+    )
+  }
+
+  const s = summaryData
+  // Build alert banners (safety-critical, non-dismissible)
+  const alerts: Array<{ text: string; tone: "red" | "amber" }> = []
+  if (s?.allergies?.length) {
+    alerts.push({ text: `⚠ Allergy: ${s.allergies.join(", ")}`, tone: "red" })
+  }
+  if (s?.todayVitals?.spo2) {
+    const spo2Val = Number.parseInt(s.todayVitals.spo2)
+    if (!Number.isNaN(spo2Val) && spo2Val < 90) {
+      alerts.push({ text: `⚠ SpO2 ${s.todayVitals.spo2}% — Critical`, tone: "red" })
+    }
+  }
+  if (s?.followUpStatus === "overdue") {
+    alerts.push({ text: `⏰ F/U Overdue`, tone: "amber" })
+  }
+
+  // Build context lines (3-5 compact facts)
+  const lines: string[] = []
+  if (s?.chronicConditions?.length) {
+    const meds = s.activeMeds?.length ? ` · On ${s.activeMeds.join(", ")}` : ""
+    lines.push(`**Chronic:** ${s.chronicConditions.join(", ")}${meds}`)
+  }
+  if (s?.lastVisit) {
+    lines.push(`**Last visit ${s.lastVisit.date}:** Dx: ${s.lastVisit.diagnosis} · Rx: ${s.lastVisit.medication}${s.lastVisit.investigation ? ` · Inv: ${s.lastVisit.investigation}` : ""}`)
+  }
+  if (s?.todayVitals) {
+    const v = s.todayVitals
+    lines.push(`**Today:** BP ${v.bp} · SpO2 ${v.spo2}% · Pulse ${v.pulse} · Temp ${v.temp}`)
+  }
+  if (s?.keyLabs?.length) {
+    const flagged = s.keyLabs.filter((l) => l.flag !== "normal")
+    if (flagged.length > 0) {
+      lines.push(`**Labs:** ${flagged.length} abnormal — ${flagged.slice(0, 3).map((l) => `${l.name} ${l.flag === "high" ? "↑" : "↓"}${l.value}`).join(", ")}`)
+    }
+  }
+  if (s?.symptomCollectorData?.symptoms?.length) {
+    const sx = s.symptomCollectorData.symptoms
+    lines.push(`**Patient says:** ${sx.map((x) => `${x.name}${x.duration ? ` ${x.duration}` : ""}`).join(", ")}`)
+  }
+
+  // Render inline bold text
+  function renderLine(line: string) {
+    const parts = line.split(/(\*\*[^*]+\*\*)/)
+    return parts.map((part, i) =>
+      part.startsWith("**") && part.endsWith("**")
+        ? <strong key={i} className="font-semibold text-tp-slate-800">{part.slice(2, -2)}</strong>
+        : <span key={i}>{part}</span>,
+    )
+  }
+
   return (
     <div className="flex items-start gap-2">
       <span className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-[10px]" style={{ background: AI_GRADIENT_SOFT }}>
         <AiBrandSparkIcon size={13} />
       </span>
-      <div className="max-w-[88%] text-[12px] leading-[18px] text-tp-slate-700">
-        <p>
-          {isPatientContext
-            ? "Hi Doctor, patient snapshot is ready. Ask anything and I will assist with concise support."
-            : `Hi Doctor, you are in ${contextLabel}. I can help with operational guidance until you switch to a patient chart.`}
-        </p>
+      <div className="min-w-0 max-w-[88%] space-y-1">
+        {/* Alert banners */}
+        {alerts.map((alert, i) => (
+          <div
+            key={i}
+            className={cn(
+              "rounded-[6px] px-2 py-1 text-[10px] font-semibold",
+              alert.tone === "red" ? "bg-tp-error-50 text-tp-error-700" : "bg-tp-warning-50 text-tp-warning-700",
+            )}
+          >
+            {alert.text}
+          </div>
+        ))}
+
+        {/* Context lines */}
+        {lines.length > 0 ? (
+          <div className="space-y-0.5 text-[11px] leading-[16px] text-tp-slate-600">
+            {lines.map((line, i) => (
+              <p key={i} className="flex items-baseline gap-1">
+                <span className="mt-[5px] inline-block size-[3px] shrink-0 rounded-full bg-tp-slate-400" />
+                <span>{renderLine(line)}</span>
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[11px] text-tp-slate-500 italic">First visit · No prior data. I'll assist as you consult.</p>
+        )}
       </div>
     </div>
   )
@@ -5259,8 +5339,6 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
   const [messageFeedback, setMessageFeedback] = useState<Record<string, "like" | "dislike">>({})
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [isProcessingUpload, setIsProcessingUpload] = useState(false)
-  const [showPiDropdown, setShowPiDropdown] = useState(false)
-  const [piFilter, setPiFilter] = useState("")
   const [symptomCollectorCollapsed, setSymptomCollectorCollapsed] = useState(false)
 
   const timersRef = useRef<number[]>([])
@@ -5272,7 +5350,6 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
   const staleRotationRef = useRef<number | null>(null)
   const lastHandledSignalRef = useRef<number>(0)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const piDropdownRef = useRef<HTMLDivElement | null>(null)
 
   const selectedContext = useMemo(
     () => RX_CONTEXT_OPTIONS.find((option) => option.id === selectedContextId) ?? RX_CONTEXT_OPTIONS[0],
@@ -5289,7 +5366,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
   const activeLens = lensByContext[selectedContextId] ?? "dr-agent"
   const activeSpecialty = specialtyByContext[selectedContextId] ?? "gp"
   const consultPhase = consultPhaseByContext[selectedContextId] ?? "empty"
-  const summaryCollapsed = summaryCollapsedByContext[selectedContextId] ?? false
+  const summaryCollapsed = summaryCollapsedByContext[selectedContextId] ?? true
   const activeSummaryData =
     isPatientContext
       ? SMART_SUMMARY_BY_CONTEXT[selectedContextId] ?? SMART_SUMMARY_BY_CONTEXT[CONTEXT_PATIENT_ID]
@@ -5558,33 +5635,6 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
     setPromptSuggestions(Array.from(new Map(merged.map((pill) => [pill.label, pill])).values()).slice(0, 5))
   }
 
-  // ─── PI (Patient Information) dropdown categories ───
-  const piCategories = useMemo(() => {
-    if (!isPatientContext || !activeSummaryData) return []
-    const s = activeSummaryData
-    return [
-      { id: "vitals", icon: "🩺", label: "Vitals", snippet: s.todayVitals ? `BP: ${s.todayVitals.bp}, SpO2: ${s.todayVitals.spo2}, Pulse: ${s.todayVitals.pulse}, Temp: ${s.todayVitals.temp}` : "No vitals recorded" },
-      { id: "allergies", icon: "⚠️", label: "Allergies", snippet: s.allergies?.length ? s.allergies.join(", ") : "No known allergies" },
-      { id: "conditions", icon: "🏥", label: "Chronic Conditions", snippet: s.chronicConditions?.length ? s.chronicConditions.join(", ") : "None on file" },
-      { id: "meds", icon: "💊", label: "Active Medications", snippet: s.activeMeds?.length ? s.activeMeds.join(", ") : "No active medications" },
-      { id: "last-visit", icon: "📋", label: "Last Visit", snippet: s.lastVisit ? `${s.lastVisit.date} · Dx: ${s.lastVisit.diagnosis} · Rx: ${s.lastVisit.medication}` : "No previous visits" },
-      { id: "labs", icon: "🔬", label: "Lab Results", snippet: s.keyLabs?.length ? s.keyLabs.map((l) => `${l.name}: ${l.value}${l.flag !== "normal" ? ` (${l.flag})` : ""}`).join(", ") : "No lab data" },
-      { id: "family", icon: "👨‍👩‍👧", label: "Family History", snippet: s.familyHistory?.length ? s.familyHistory.join(", ") : "No family history on file" },
-    ]
-  }, [isPatientContext, activeSummaryData])
-
-  const filteredPiCategories = useMemo(() => {
-    if (!piFilter) return piCategories
-    const q = piFilter.toLowerCase()
-    return piCategories.filter((c) => c.label.toLowerCase().includes(q) || c.snippet.toLowerCase().includes(q))
-  }, [piCategories, piFilter])
-
-  function handlePiSelect(category: (typeof piCategories)[0]) {
-    setInputValue((prev) => `${prev}[${category.label}: ${category.snippet}] `.trimStart())
-    setShowPiDropdown(false)
-    setPiFilter("")
-  }
-
   function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     if (!file) return
@@ -5641,20 +5691,6 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
     }
     setInputValue("")
   }
-
-  // Close PI dropdown on click outside
-  useEffect(() => {
-    function onClickOutside(event: MouseEvent) {
-      if (piDropdownRef.current && !piDropdownRef.current.contains(event.target as Node)) {
-        setShowPiDropdown(false)
-        setPiFilter("")
-      }
-    }
-    if (showPiDropdown) {
-      document.addEventListener("mousedown", onClickOutside)
-      return () => document.removeEventListener("mousedown", onClickOutside)
-    }
-  }, [showPiDropdown])
 
   function sendMessage(rawMessage: string, source: "typed" | "canned" | "voice" = "typed") {
     const text = rawMessage.trim()
@@ -5920,8 +5956,8 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <AgentIntroCard contextLabel={selectedContext.label} isPatientContext={isPatientContext} />
+            <div className="space-y-2">
+              <AgentIntroMessage contextLabel={selectedContext.label} isPatientContext={isPatientContext} summaryData={activeSummaryData} />
 
               {isPatientContext && activeSummaryData && (
                 <div className="space-y-2">
@@ -6113,38 +6149,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
             </div>
           )}
 
-          {/* ── PI Dropdown (above input) ── */}
-          {showPiDropdown && isPatientContext && (
-            <div ref={piDropdownRef} className="mb-2 overflow-hidden rounded-[10px] border border-tp-slate-200 bg-white shadow-lg">
-              <div className="border-b border-tp-slate-100 px-2.5 py-1.5">
-                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-tp-slate-400">
-                  <AtSign size={11} />
-                  Insert patient context
-                </div>
-              </div>
-              <div className="max-h-[200px] overflow-y-auto py-1">
-                {filteredPiCategories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => handlePiSelect(cat)}
-                    className="flex w-full items-start gap-2 px-2.5 py-2 text-left transition-colors hover:bg-tp-slate-50"
-                  >
-                    <span className="mt-0.5 text-[13px]">{cat.icon}</span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-semibold text-tp-slate-700">{cat.label}</p>
-                      <p className="truncate text-[10px] text-tp-slate-500">{cat.snippet}</p>
-                    </div>
-                  </button>
-                ))}
-                {filteredPiCategories.length === 0 && (
-                  <p className="px-2.5 py-2 text-center text-[10px] text-tp-slate-400">No matching categories</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── Input Area: [📎] [@] [input] [🎤] [➤] ── */}
+          {/* ── Input Area: [📎] [input] [🎤] [➤] ── */}
           <div className="flex items-center gap-1.5">
             {/* Upload button */}
             <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={handleFileUpload} />
@@ -6163,41 +6168,14 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
               <Paperclip size={14} strokeWidth={2} />
             </button>
 
-            {/* PI context button */}
-            {isPatientContext && (
-              <button
-                type="button"
-                onClick={() => { setShowPiDropdown((prev) => !prev); setPiFilter("") }}
-                className={cn(
-                  "inline-flex size-9 shrink-0 items-center justify-center rounded-[10px] border-[0.5px] transition-colors",
-                  showPiDropdown
-                    ? "border-tp-violet-300 bg-tp-violet-50 text-tp-violet-500"
-                    : "border-tp-slate-200 bg-white text-tp-slate-400 hover:bg-tp-slate-50 hover:text-tp-violet-500",
-                )}
-                aria-label="Insert patient info"
-                title="Insert patient data (@)"
-              >
-                <AtSign size={14} strokeWidth={2} />
-              </button>
-            )}
-
             {/* Text input */}
             <input
               value={inputValue}
-              onChange={(event) => {
-                setInputValue(event.target.value)
-                if (event.target.value.endsWith("@") && isPatientContext) {
-                  setShowPiDropdown(true)
-                  setPiFilter("")
-                }
-              }}
+              onChange={(event) => setInputValue(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
                   event.preventDefault()
                   handleSendWithUpload()
-                }
-                if (event.key === "Escape" && showPiDropdown) {
-                  setShowPiDropdown(false)
                 }
               }}
               placeholder={uploadedFile ? "Add a note about this document..." : "Type a prompt for Doctor Agent"}
