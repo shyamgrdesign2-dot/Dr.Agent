@@ -1,0 +1,1193 @@
+
+
+===== PAGE 1 =====
+
+CHAPTER	01
+The	Core	Idea	—	Why	This	Agent	Is	Different
+Every	EMR	on	the	market	can	add	a	chatbot.	WhatsApp	can	replicate	a	text-based	assistant.	The	technology	layer	is
+commodity.	What	is	
+not
+	commodity	—	and	what	we	crack	—	is	
+the	experience	of	the	agent's	response
+.
+The	system	stores	data	but	doesn't	think.	The	doctor	thinks	but	finds	it	difficult	to	access	that	data	at
+one	place.	The	agent	bridges	the	data	gap.	The	generative	UI	bridges	the	format	gap.
+This	document	specifies	how	we	bridge	both	gaps	through	three	interlocking	systems:
+AGUI
+Agentic	Generative	UI
+Agent	responses	are	not	text	—	they	are	dynamically	generated	visual	cards,	charts,	tables,	and	interactive	elements.
+State	Machine
+Canned	Message	Engine
+3–4	suggestion	pills	change	in	real-time	based	on	sidebar	tab,	Rx	section,	patient	state,	and	doctor	actions.
+Synthetic	Data
+Intelligence	Layer
+A	structured	data	layer	on	top	of	raw	patient	data	that	powers	all	summaries,	comparisons,	and	trend	analysis.
+CHAPTER	02
+Architecture	—	The	Synthetic	Data	Layer
+The	agent	doesn't	query	raw	databases	in	real-time.	A	
+synthetic	data	layer
+	sits	between	the	raw	patient	data	(EMR
+records,	uploaded	PDFs,	vitals	entries,	past	prescriptions)	and	the	agent's	response	engine.	This	layer	pre-processes,
+FEATURE-LEVEL	SOLUTION	SPECIFICATION
+Doctor	Agent	v0	—	How	It	Works
+The	companion	to	the	Research	&	Design	Process	document.	This
+specification	defines	
+how
+	every	feature	behaves,	
+where
+	it	lives	in	the	UI,
+and	
+what
+	the	doctor	experiences	—	with	emphasis	on	Agentic	Generative
+UI	(AGUI),	the	canned	message	state	machine,	and	visual	intelligence
+that	makes	this	agent	unlike	any	chatbot	on	the	market.
+TatvaPractice	·	March	2026	·	Solution	Architecture	for	Product,	Design	&	Engineering
+
+===== PAGE 2 =====
+
+structures,	and	indexes	patient	data	so	that	responses	are	instant.
+What	the	Synthetic	Layer	Pre-Computes
+DATA	SOURCE
+RAW	FORM
+SYNTHETIC	OUTPUT
+USED	BY
+Past
+Prescriptions
+Multiple	Rx	records	across	visits
+Structured	timeline:	last	Dx,	current	chronic	meds,
+last	Rx	summary,	medication	changes
+Patient	Summary
+Card,	Copy-to-Rx
+Uploaded
+Reports
+PDF/image	files
+OCR-extracted	parameters,	normal/abnormal	flags,
+delta	from	previous,	trend	data
+Report	Summary,
+Trend	Charts,	Alerts
+Lab	Results
+(structured)
+Rows	of	parameter	values	with
+dates
+Time-series	per	parameter,	trend	direction	(↑↓→),
+rate	of	change
+AGUI	Trend	Charts,
+Lab	Cards
+Medical
+History
+Allergies,	chronic	conditions,
+surgeries,	lifestyle,	comorbidities
+Priority-ranked:	allergies	(P0),	active	chronic
+conditions,	past	surgeries,	lifestyle	flags
+Allergy	Banner,
+Summary	Card	Layer
+2
+Vitals
+Per-visit	vitals	entries	(BP,	temp,
+pulse,	SpO2,	BMI...)
+Current	vs	previous	comparison,	out-of-range	flags,
+trend	per	parameter
+AGUI	Vital	Trend
+Charts,	Alert	Pills
+Specialty
+Data
+Gynec	history,	ophthalm	records,
+obstetric	records
+Specialty-specific	structured	summaries,	key
+timelines	(LMP,	EDD,	IOP	trends)
+Specialty	Sidebar
+Tabs,	AGUI	Cards
+Follow-up
+Records
+Follow-up	dates	set	in	past	Rx
+Due/overdue	status,	days	overdue,	associated	Dx,
+estimated	revenue	impact
+Follow-up	Badge,
+Dashboard,	Pills
+Past	Visits
+Full	past	Rx	records
+Visit	timeline	with	per-visit:	Sx,	Dx,	Rx,	Inv,	Advice
+summary.	Cross-visit	patterns.
+Past	Visit	Cards,
+Agent	Queries
+CHAPTER	03
+AGUI	—	Agentic	Generative	UI	Framework
+AGUI	is	the	core	differentiation.	When	the	agent	responds	to	a	query,	it	doesn't	return	a	paragraph	of	text	—	it
+dynamically	selects	and	generates	the	
+optimal	visual	format
+	for	that	specific	query	+	data	combination.	The	doctor
+sees	a	chart,	a	card,	a	table,	or	an	interactive	element	—	never	a	wall	of	text.
+The	Response	Type	Catalog
+Every	agent	response	maps	to	one	of	these	visual	formats.	The	agent's	reasoning	layer	selects	the	format	based	on
+query	intent	+	available	data:
+RESPONSE
+TYPE
+VISUAL	FORMAT
+WHEN	IT'S	USED
+EXAMPLE
+
+
+	Trend
+Card
+Mini	sparkline	chart	with	data
+points,	trend	arrow,	and	target
+zone
+Any	time-series	query:	"HbA1c
+trend",	"BP	over	last	5	visits",
+"weight	change"
+Line	chart:	6.8	→	7.0	→	7.2	with	↑	arrow,
+red	zone	>7.0
+
+
+Comparison
+Side-by-side	table	with
+parameter	/	old	/	new	/	Δ	/	flag
+"Compare	last	two	CBCs",	"What
+changed	since	last	visit?"
+CBC	table:	WBC	8.2→11.4	↑	red,	Hb
+13.1→13.0	→	green
+WHY	THIS	MATTERS
+The	synthetic	layer	is	what	makes	the	agent	feel	instant.	When	a	doctor	opens	a	patient	consultation,	the	summary	card,
+allergy	banner,	and	lab	trends	are	
+already	computed
+	—	the	agent	doesn't	need	to	"think."	This	pre-computation	is
+triggered	when	a	patient	appointment	is	booked,	updated	when	new	data	enters	the	system,	and	refreshed	on	every
+consultation	open.	The	<500ms	load	requirement	for	the	summary	card	is	only	possible	because	of	this	layer.
+
+===== PAGE 3 =====
+
+Table
+columns
+
+
+Summary
+Card
+Structured	card	with	labeled
+sections	(Sx/Dx/Rx/Inv/Adv)
+"Summarize	last	visit",	"What	was
+the	diagnosis?",	patient	summary
+Visit	card:	Dx:	Viral	Fever	|	Rx:	DOLO	650
+TDS	×	5d	|	Adv:	Rest,	fluids
+
+
+	List	Card
+Interactive	list	with	rows	+
+action	buttons	(Copy,	View,
+Select)
+"Show	past	medications",	"List	all
+investigations",	"Previous
+diagnoses"
+Med	list:	Glycomet	500	BD	[Copy]	|	Telma
+40	OD	[Copy]	|	Ecosprin	75	OD	[Copy]
+
+
+	Data	Viz
+Card
+Mini	bar/donut	chart	with
+counts	+	breakdown
+"How	many	patients	this	week?",
+"Disease	distribution",	analytics
+queries
+Donut:	42	patients	—	DM	(14)	|	HTN	(9)	|
+URI	(8)	|	Other	(11)
+
+
+	Alert
+Card
+Red-bordered	card	with	clear
+risk	statement	+	action
+buttons
+Allergy	conflict,	critical	lab	value,
+overdue	follow-up	for	high-risk
+patient
+⚠	Patient	allergic	to	Penicillin	—	Augmentin
+prescribed	[Suggest	Alt]	[Override]
+
+
+	Selection
+Card
+Multi-tier	selection	with	one-
+tap	accept	per	option
+DDX	results,	investigation
+suggestions,	medication	protocol
+suggestions
+DDX:	Can't	Miss:	Meningitis	[Accept]	|
+Likely:	Viral	Fever	[Accept]	|	Extended:
+Typhoid	[Accept]
+
+
+	Search
+Card
+Inline	search	bar	with	matching
+results	+	select	action
+When	doctor	asks	patient-specific
+query	without	patient	context
+selected
+"Search	patient"	→	typing	"Ram"	→
+Ramesh	Kumar,	45M	|	Rama	Devi,	32F
+[Select]
+	
+	
+	Report
+Card
+Structured	OCR	output	with
+visual	hierarchy:
+normal/abnormal/critical
+When	showing	extracted	report
+data,	lab	summaries,	radiology
+findings
+CBC	card:	all	parameters	with	color-coded
+values	(see	OCR	section)
+
+
+Translation
+Card
+Original	text	+	translated	text
+side-by-side	with	Copy/Print
+actions
+Vernacular	conversion	of	advice,
+instructions,	lifestyle
+recommendations
+EN:	"Take	medicine	after	food"	|	HI:	"
+खाना
+खाने
+	
+के
+	
+बाद
+	
+दवाई
+	
+लें
+"	[
+Copy]	[Print]
+
+
+	Text
+Response
+2–3	line	text	(the	fallback,	not
+the	default)
+Simple	factual	answers	that	don't
+benefit	from	visualization
+"When	was	last	visit?"	→	"12	Feb	2026	—
+Follow-up	for	DM	review"
+AGUI	in	Action	—	Example	Response	for	"Show	HbA1c	Trend"
+Dr.Agent	—	HbA1c	Trend
+6.4
+Jul'25
+6.8
+Oct'25
+7.0
+Jan'26
+7.2
+Mar'26
+↑	Rising	trend
+	—	6.4	→	7.2	over	9	months	(+12.5%)
+Target:	<7.0
+This	is	what	the	doctor	sees	—	not	"HbA1c	was	6.4	in	July	2025,	6.8	in	October	2025,	7.0	in	January	2026,	and	7.2	in	March	2026	showing
+an	increasing	trend."
+AGUI	for	CBC	Comparison	—	"Compare	Last	Two	CBCs"
+Dr.Agent	—	CBC	Comparison	(15	Jan	vs	02	Mar)
+Parameter
+15	Jan
+02	Mar
+Δ	Change
+Flag
+THE	AGUI	DECISION	RULE
+The	agent	follows	a	strict	hierarchy:	
+If	the	response	involves	data	that	can	be	visualized	→	generate	visual	card.
+If	the	response	involves	a	comparison	→	generate	comparison	table.	If	the	response	involves	a	time-series	→
+generate	trend	chart.	If	the	response	involves	a	selection	→	generate	selection	card.	Only	if	none	of	the
+above	apply	→	fall	back	to	text.
+	Text	is	the	exception,	not	the	rule.
+
+===== PAGE 4 =====
+
+Parameter
+15	Jan
+02	Mar
+Δ	Change
+Flag
+Hemoglobin
+13.2
+13.0
+-0.2	(→)
+✓
+WBC
+8,200
+11,400
++3,200	(↑39%)
+⚠
+Platelets
+2.4L
+2.2L
+-0.2L	(→)
+✓
+ESR
+12
+28
++16	(↑133%)
+⚠
+2	parameters	flagged:
+	WBC	elevated	(possible	infection),	ESR	significantly	elevated	(inflammatory	marker).	Consider
+correlating	with	clinical	presentation.
+CHAPTER	04
+Patient	Smart	Summary	—	The	First	Thing	the	Doctor	Sees
+When	a	consultation	opens	and	the	doctor	is	on	the	
+Dr.Agent
+	sidebar	tab,	the	first	thing	they	see	is	the	Patient	Smart
+Summary	card.	This	is	auto-generated	by	the	synthetic	data	layer	and	follows	the	visual	hierarchy	from	our	research
+document.
+Summary	Card	Structure	—	AGUI	Rendered
+⚠	ALLERGY:	Penicillin	(documented	12	Mar	2024)
+Rajesh	Kumar	·	M,	52y
+Follow-up	·	UHID:	TP-2024-00456	·	Last	visit:	12	Feb	2026
+F/U	Overdue	by	5	days
+CHRONIC	CONDITIONS
+Type	2	DM	(4	yrs)	·	Hypertension	(3	yrs)	·	Dyslipidemia
+LAST	VISIT	—	12	FEB	2026
+Sx:
+	Fatigue,	polyuria	·	
+Dx:
+	DM	uncontrolled	·	
+Rx:
+	Glycomet	500	BD,	Telma	40	OD,	Atorva	10	HS
+KEY	LABS
+HbA1c:
+	
+7.2	↑
+	
+(Jan'26)
+FBS:
+	
+148	↑
+Cr:
+	
+0.9	→
+Chol:
+	
+186	→
+ACTIVE	MEDICATIONS
+
+	Glycomet	500	BD
+
+	Telma	40	OD
+
+	Atorva	10	HS
+View	Detailed	Summary	↓
+Adaptive	Rendering	Rules
+PATIENT	STATE
+WHAT	SUMMARY	SHOWS
+WHY
+Returning
+patient,	rich
+data
+Full	card:	allergy	banner,	chronic	conditions,	last	visit
+summary,	key	labs	with	trends,	active	meds	with	Copy-to-Rx
+Maximum	context	for	continuity.	This	is	the
+most	common	and	most	valuable	scenario.
+Returning
+patient,
+minimal	data
+Identity	+	last	visit	summary	+	whatever	data	exists.	Empty
+sections	hidden,	not	shown	as	"No	data."
+Never	show	empty	sections.	Empty	space	=
+wasted	glance	time.
+New	patient,
+vitals	entered
+Identity	+	visit	type	"New"	+	current	vitals	summary	+	out-of-
+range	flags	if	any
+No	history	to	show.	Focus	on	what	exists:
+current	vitals	and	any	immediate	flags.
+New	patient,
+zero	data
+Identity	+	clean	state	with	contextual	pills:	"Start
+consultation"	/	"Add	medical	history"	/	"Upload	report"
+The	agent	adapts	to	empty	state	—	it	doesn't
+show	a	barren	card,	it	offers	next	steps.
+Copy-to-Rx	Mechanics
+
+===== PAGE 5 =====
+
+Where	Canned	Messages	Live
+Based	on	the	current	TatvaPractice	UI,	canned	message	pills	sit	at	the	
+bottom	of	the	sidebar
+,	above	the	chat	input
+bar	(visible	in	the	Dr.Agent	tab).	They	are	visible	across	all	sidebar	tabs	—	the	pills	change	based	on	which	tab	is
+active.	The	chat	input	("Ask	Dr.	Agent"	+	Speak	button)	is	always	available	at	the	bottom.
+The	Five	Input	Signals
+S1
+Active	Sidebar	Tab
+Dr.Agent,	Past	Visits,	Vitals,	Canvas,	History,	Ophthal,	Gynec,	Obstetric
+S2
+Active	Rx	Pad	Section
+Symptoms,	Exam,	Dx,	Meds,	Inv,	Advice,	F/U	(P&C	+	Voice	only)
+S3
+Data	Entered	So	Far
+Which	Rx	sections	have	content?	What	symptoms/meds	entered?
+S4
+Patient	State
+New	vs.	Returning,	data	richness,	follow-up	status
+S5
+Time	+	Rx	Mode
+Consultation	duration,	Voice/P&C/Snap/SmartSync/Canvas
+Pill	Priority	Stack
+HOW	IT	WORKS
+Every	data	point	in	the	summary	card	is	actionable.	The	
+
+	icon	next	to	medications	means	"Copy	to	Rx	Pad."
+Compressed	display	→	Complete	copy:
+	the	card	shows	"Glycomet	500	BD"	for	scanning,	but	the	copy	action	sends
+the	full	record	(Tab.	Glycomet	500mg,	BD,	after	food,	30	days)	to	the	Medications	section	of	the	Rx	Pad.	Each	data	type
+knows	its	routing	target:	symptom	→	Symptoms	section,	medication	→	Medications	section,	diagnosis	→	Diagnosis
+section.	In	Point	&	Click	mode,	Copy-to-Rx	fills	the	appropriate	input	field.	In	Voice	mode,	it	adds	to	the	structured
+transcript.	The	action	is	always	one	tap.
+CHAPTER	05	—	THE	PRIMARY	INTERACTION	LAYER
+Canned	Message	State	Machine
+How	the	3–4	suggestion	pills	change	across	every	sidebar	tab,	every	Rx	Pad	section,
+and	every	doctor	action.	This	is	what	makes	the	agent	discoverable	without	being
+intrusive.
+CRITICAL	RULE
+Input-field-reactive	pills	(S2:	based	on	which	Rx	Pad	section	the	doctor	is	typing	in)	are	active	only	in	Point
+&	Click	and	Voice	modes.
+	In	Snap	Rx,	Smart	Sync,	and	Drawing	Canvas	modes,	the	system	cannot	detect	which	field
+the	doctor	is	interacting	with,	so	pills	are	driven	by	S1	(sidebar	tab),	S3	(available	data),	S4	(patient	state),	and	S5
+(time/mode)	only.	The	sidebar	intelligence	and	chat	remain	identical	across	all	5	modes.
+
+===== PAGE 6 =====
+
+PRIORITY
+PILL	TYPE
+CONDITION
+EXAMPLE
+P0
+Safety	Alert
+Allergy	conflict	or	critical	flag	detected
+⚠	Allergy	conflict
+P1
+Active	Section	Context
+Doctor	is	focused	on	a	specific	Rx	section	(P&C/Voice	only)
+
+	Suggest	medications
+P2
+Sidebar	Tab	Context
+Based	on	which	sidebar	tab	is	currently	open
+
+	Vital	trends
+P3
+Patient	State
+Based	on	available	patient	data	(chronic,	labs,	follow-up)
+
+	Continue	chronic	meds
+P4
+Time-Based
+If	pills	have	been	static	for	60s+	with	active	doctor
+
+	Generate	visit	summary
+Per-Sidebar-Tab	Pill	Definitions
+Each	sidebar	tab	generates	its	own	set	of	contextual	pills.	When	a	doctor	switches	tabs,	the	pills	update	immediately
+(1.5s	debounce):
+SIDEBAR	TAB
+DEFAULT	PILLS	(PATIENT
+AVAILABLE)
+CONTEXTUAL	VARIATION
+Dr.Agent
+
+	View	summary
+	
+
+	Ask	about	patient
+	
+
+	Lab	trends
+If	symptoms	entered:	
+
+	Suggest	DDX
+.	If	meds	entered:	
+
+	Check	interactions
+	(future).	If	follow-up	overdue:	
+⏰
+	Overdue	follow-up
+Past	Visits
+
+	Summarize	last	visit
+	
+
+	Compare	visits
+	
+
+	Visit	timeline
+If	specific	visit	selected:	
+
+	Copy	Rx	from	this	visit
+.	If	chronic
+patient:	
+
+	Treatment	progression
+Vitals
+
+	Vital	trends
+	
+
+	Compare	with	last
+	
+⚠	Out-of-range	flags
+If	BP	high	today:	
+⚠	BP	180/110	flagged
+.	If	BMI	available:	
+
+	BMI	trend
+Canvas
+
+	Describe	drawing
+	
+
+	Past	canvases
+	
+
+	Related	findings
+Based	on	specialty	(e.g.,	ophthalmology	canvas	→	
+
+	Annotate	fundus
+)
+History
+
+	Full	history
+	
+
+	Chronic	medications
+	
+⚠	Allergies	&	risks
+If	chronic	conditions	exist:	
+
+	Condition	timeline
+.	If	surgeries:	
+
+	Surgical	history
+Ophthal
+
+	IOP	trend
+	
+
+	Vision	summary
+	
+
+	Refraction	history
+If	IOP	data	exists:	trend	chart	pill.	If	surgery	history:	
+
+	Surgical	history
+Gynec
+
+	Gynec	summary
+	
+
+	LMP	history
+	
+
+	Past	investigations
+If	pregnancy:	pills	shift	to	obstetric-relevant.	If	menstrual	data:	
+
+	Cycle	pattern
+Obstetric
+
+	Pregnancy	summary
+	
+
+	EDD	calculator
+	
+
+	Vaccine	schedule
+Based	on	gestational	age:	
+
+	Trimester	milestones
+.	If	high-risk:	
+⚠	High-risk	flags
+
+===== PAGE 7 =====
+
+
+	Vaccine	schedule
+Per-Rx-Section	Pill	Definitions	(Point	&	Click	+	Voice	Only)
+When	the	doctor	focuses	on	a	specific	Rx	Pad	section	(clicks	into	a	search	box	or	the	section	becomes	active	during
+voice	input),	these	pills	augment	the	sidebar-tab	pills:
+RX	SECTION
+PILLS	THAT	APPEAR
+AGUI	RESPONSE	ON	TAP
+Symptoms
+
+	Suggest	DDX
+	
+
+	Common	for	this	specialty
+DDX	→	Selection	Card	(Can't	Miss	/	Likely	/	Extended).	Common	→	List
+Card	of	frequent	symptoms	for	this	specialty.
+Examinations
+
+	Suggested	exams
+	
+
+	Exam	templates
+Based	on	symptoms	entered	→	List	Card	of	relevant	examinations.
+Templates	→	Structured	exam	form.
+Diagnosis
+
+	DDX	suggestions
+	
+
+	Past	diagnoses
+DDX	Selection	Card.	Past	→	List	Card	of	patient's	previous	diagnoses
+with	Copy.
+Medications
+
+	Protocol	meds
+	
+
+	Continue	chronic
+If	Dx	accepted	→	protocol	medication	list.	Continue	→	active	chronic
+meds	with	Copy-to-Rx.
+Investigations
+
+	Suggested	tests
+	
+
+	Past	results
+Based	on	Dx	→	recommended	investigations.	Past	→	AGUI	comparison
+table	or	trend	chart.
+Advice
+
+	Generate	advice
+	
+
+	Translate	to	vernacular
+Generate	→	structured	advice	card.	Translate	→	Translation	Card	with
+Hindi/Telugu/Tamil	options.
+Follow-up
+
+	Suggested	interval
+	
+
+	Follow-up	history
+Interval	→	based	on	Dx,	suggest	5/10/15/30	days.	History	→	past	follow-
+up	compliance	data.
+Pill	Behavior	Rules
+RULE
+SPECIFICATION
+Max	pills
+4	maximum,	2	minimum.	If	safety	alert	exists,	it	always	occupies	slot	1.
+Debounce
+1.5s	after	any	action	(tab	switch,	section	focus,	data	entry)	before	pills	update.	Prevents	flickering.
+Post-tap	cooldown
+3s	after	a	pill	is	tapped	before	new	pills	can	appear.	The	response	card	loads	first.
+Dismiss	behavior
+Swipe	to	dismiss	a	pill	→	that	specific	pill	doesn't	reappear	for	5	minutes.
+Typing	fade
+When	doctor	is	actively	typing	in	the	chat	input,	pills	fade	to	30%	opacity	to	reduce	visual	noise.
+Stale	rotation
+If	same	pills	stay	for	60s	with	an	active	doctor	(actions	detected),	rotate	to	secondary	set.
+Pill	→	Agent
+navigation
+Tapping	any	pill	on	any	sidebar	tab	auto-navigates	to	the	Dr.Agent	tab	and	shows	the	AGUI	response
+there.
+CHAPTER	06
+OCR	Intelligence	—	Visual	Representation	of	Reports
+When	a	report	is	uploaded	(PDF,	image,	or	phone	photo),	the	system	auto-processes	it	through	OCR.	No	"Click	to
+
+===== PAGE 8 =====
+
+process"	button.	The	structured	output	is	stored	in	the	synthetic	data	layer	and	rendered	as	AGUI	cards.	The	visual
+representation	differs	based	on	report	type:
+Pathology	Reports	(CBC,	LFT,	KFT,	Lipid,	Thyroid,	HbA1c,	Urine)
+CBC	Report	—	02	Mar	2026	·	Processed	automatically
+Parameter
+Value
+Reference
+Flag
+Hemoglobin
+13.1
+13.0–17.0	g/dL
+✓
+WBC
+14,200
+4,000–11,000	/µL
+↑
+RBC
+4.8
+4.5–5.5	M/µL
+✓
+Platelets
+2.4L
+1.5–4.0	L/µL
+✓
+ESR
+28
+0–20	mm/hr
+↑
+Neutrophils
+62%
+40–70%
+✓
+Lymphocytes
+30%
+20–45%
+✓
+⚠	2	abnormal
+
+	Compare	with	previous
+
+	View	original	report
+Radiology	Reports	(X-ray,	USG,	CT,	MRI,	ECG)
+USG	Abdomen	—	25	Feb	2026	·	Processed	automatically
+KEY	FINDINGS
+Hepatomegaly
+	—	Liver	16.2cm	(normal	<15cm)
+Grade	II	Fatty	Liver
+	—	increased	echogenicity
+Normal
+	—	Spleen,	Kidneys,	Gallbladder,	Pancreas
+IMPRESSION
+Hepatomegaly	with	Grade	II	fatty	liver	disease.	No	focal	lesion.	Correlate	clinically.
+
+	Previous	USG	comparison
+
+	DDX	for	fatty	liver
+
+	View	original
+CHAPTER	07
+DDX	Activation	&	Clinical	Chain
+DDX	activates	
+only	after	symptoms	are	entered
+	in	Point	&	Click	or	Voice	modes.	It	does	not	appear	proactively	—	it
+VISUAL	HIERARCHY	RULES	FOR	PATHOLOGY
+Normal	values:
+	Green	text,	✓	flag,	standard	row	background	—	de-emphasized	so	the	eye	skips	them.	
+Abnormal
+values:
+	Red	text,	↑/↓	arrow,	row	highlighted	with	red	background	tint	—	immediate	preattentive	attention.	
+Critical
+values:
+	Red	bold	text,	⚠	icon,	the	entire	row	gets	a	prominent	red	background	+	the	parameter	name	is	bolded.	The
+doctor	should	"see"	the	problem	before	they've	consciously	read	the	labels.	If	a	previous	report	exists	for	the	same	test,	a
+delta	column	appears	automatically	showing	change	direction	and	percentage.
+VISUAL	HIERARCHY	RULES	FOR	RADIOLOGY
+Radiology	reports	are	narrative,	not	tabular.	The	AGUI	extracts:	
+(1)	Key	findings
+	—	each	finding	tagged	as	Abnormal
+(red),	Notable	(amber),	or	Normal	(green)	with	the	specific	measurement	or	observation.	
+(2)	Impression
+	—	the
+radiologist's	conclusion	in	1–2	lines.	
+(3)	Actionable	pills
+	—	comparison	with	previous	if	exists,	DDX	trigger	based	on
+findings,	and	link	to	original	report.	The	doctor	gets	the	clinical	essence	in	5	seconds	without	opening	the	PDF.
+
+===== PAGE 9 =====
+
+waits	for	clinical	input.
+The	Activation	Flow
+DDX	AGUI	Response	—	Selection	Card
+Differential	Diagnosis	—	Based	on:	Fever,	Headache,	Bodyache
+CAN'T	MISS
+Dengue	Fever	✓
+Meningitis	✓
+MOST	LIKELY
+Viral	Fever	✓
+Typhoid	✓
+Malaria	✓
+EXTENDED	CONSIDERATIONS
+Leptospirosis	✓
+Chikungunya	✓
+Labeled	as	Clinical	Considerations.	Tap	✓	to	accept	and	auto-fill	Diagnosis	section.
+CHAPTER	08
+Doctor	Query	Scenarios	—	What	They'll	Ask	&	What	They'll
+See
+Based	on	the	sidebar	data	layers	(reports,	lab	results,	medical	history,	vitals,	specialty	data,	past	visits),	these	are	the
+query	patterns	doctors	will	use	—	and	the	AGUI	responses	they'll	receive:
+Queries	About	Patient	History	&	Context
+DOCTOR	QUERY
+AGUI	RESPONSE	TYPE
+WHAT	DOCTOR	SEES
+"Summarize	this	patient"
+Summary	Card
+The	full	Patient	Smart	Summary	card	with	all	layers
+rendered
+"What	happened	last	visit?"
+Summary	Card
+Last	visit	card:	date,	Sx,	Dx,	Rx,	Inv,	Advice	in	structured
+layout
+"Is	this	a	known	diabetic?"
+Text	Response	+	Card
+"Yes	—	DM	Type	2	since	2022."	+	Chronic	condition	card
+with	timeline
+"What	medications	is	he	on?"
+List	Card
+Active	medication	list	with	dose,	frequency,	duration,	+
+Copy-to-Rx	buttons
+"Any	allergies?"
+Alert	Card
+Red	alert	if	allergy	exists:	"⚠	Penicillin	allergy
+(documented	Mar	2024)".	Green	card	if	none.
+1
+Symptoms	entered
+1+	symptoms	in	Rx	Pad
+→
+2
+DDX	pill	appears
+"
+
+	Suggest	DDX"	in	pills
+→
+3
+Doctor	taps	pill
+AGUI	Selection	Card	loads
+→
+4
+Accept	Dx
+One	tap	→	Dx	fills	in	Rx
+Pad
+→
+5
+Cascade
+Auto-suggest	Rx	+	Inv	+
+Advice	+	F/U
+THE	CASCADE	EFFECT
+When	the	doctor	accepts	"Viral	Fever"	from	DDX,	the	agent	doesn't	just	fill	the	Diagnosis	field.	It	triggers	a	cascade:	
+(1)
+Rx	suggestion	pill	appears:
+	"
+
+	Protocol	meds	for	Viral	Fever"	→	tapping	shows:	DOLO	650	TDS,	Cetrizine	OD.	
+(2)
+Investigation	pill:
+	"
+
+	Suggested	tests"	→	CBC,	Dengue	NS1.	
+(3)	Advice	pill:
+	"
+
+	Generate	advice"	→	Rest,	fluids,	fever
+monitoring.	
+(4)	Follow-up	pill:
+	"
+
+	5	day	follow-up."	Each	pill	is	a	one-tap	action.	One	diagnosis	acceptance	can	cascade
+into	four	pre-filled	sections.
+
+===== PAGE 10 =====
+
+(documented	Mar	2024)".	Green	card	if	none.
+"Show	past	diagnoses"
+List	Card
+Diagnosis	history	with	dates:	Viral	Fever	(Feb'26),	DM
+review	(Dec'25),	URI	(Oct'25)
+Queries	About	Reports	&	Lab	Data
+DOCTOR	QUERY
+AGUI	RESPONSE	TYPE
+WHAT	DOCTOR	SEES
+"Show	HbA1c	trend"
+Trend	Card
+Bar/line	chart	with	data	points	over	time,	color-coded	by
+range,	trend	arrow
+"Last	CBC"
+Report	Card
+Structured	CBC	with	color-coded	values,	abnormal
+highlighting,	reference	ranges
+"Compare	last	two	CBCs"
+Comparison	Table
+Side-by-side	with	parameter	/	old	/	new	/	Δ%	/	flag
+columns
+"Report	of	25	January"
+Report	Card
+The	specific	report,	OCR-extracted,	with	visual	hierarchy
+"Any	abnormal	values?"
+Alert	Card	+	List
+Flagged	parameters	from	most	recent	reports	with	values
+and	severity
+"Creatinine	trend"
+Trend	Card
+Sparkline	chart	for	creatinine	with	reference	zone
+highlighted
+Queries	About	Vitals
+DOCTOR	QUERY
+AGUI	RESPONSE	TYPE
+WHAT	DOCTOR	SEES
+"Show	vital	trends"
+Multi-Trend	Card
+Grid	of	mini	sparklines:	BP,	Pulse,	Weight,	SpO2	—	each
+with	trend	direction
+"Compare	vitals	with	last	visit"
+Comparison	Table
+Today	vs	last	visit:	each	parameter	with	Δ	and	flag
+"BP	history"
+Trend	Card
+BP	chart	with	systolic/diastolic	lines,	normal	zone	shaded
+"Is	BMI	improving?"
+Trend	Card	+	Text
+BMI	sparkline	+	"BMI:	28.2	→	27.1	over	6	months	(↓
+improving)"
+Specialty-Specific	Queries
+DOCTOR	QUERY
+AGUI	RESPONSE	TYPE
+WHAT	DOCTOR	SEES
+"IOP	trend"	(Ophthalmology)
+Trend	Card
+IOP	sparkline	with	target	zone,	both	eyes	if	available
+"Pregnancy	summary"	(Obstetric)
+Summary	Card
+GA,	EDD,	LMP,	gravida/para,	risk	factors,	vaccine	status,
+key	milestones
+"Vaccine	schedule"	(Obstetric)
+List	Card
+Checklist:	done	✓	/	due	
+⏰
+	/	overdue	⚠	with	dates	and
+vaccine	names
+"Gynec	history"
+Summary	Card
+LMP,	cycle	regularity,	pap	smear	dates,	contraception,	key
+findings
+Operational	Queries	(Outside	Rx	Pad	/	No	Patient	Context)
+DOCTOR	QUERY
+AGUI	RESPONSE	TYPE
+WHAT	DOCTOR	SEES
+"How	many	follow-ups	this	week?"
+Data	Viz	Card
+Count	card:	total	+	breakdown	by	overdue	/	due	today	/
+upcoming
+"Show	overdue	patients"
+List	Card
+Patient	list:	name,	Dx,	days	overdue,	last	visit	date	+
+"Send	reminder"	action
+
+===== PAGE 11 =====
+
+"Send	reminder"	action
+"Today's	OPD	count"
+Data	Viz	Card
+Total	count	with	breakdown	by	visit	type	(new/follow-
+up/routine)
+"Send	reminder	to	Ramesh	Kumar"
+Confirmation	Card
+"Send	follow-up	reminder	to	Ramesh	Kumar	via
+SMS/WhatsApp?"	+	[Send]	[Cancel]
+"Show	Ramesh's	details"	(no	patient
+selected)
+Search	Card	→
+Summary
+Inline	patient	search	→	doctor	selects	→	Patient	Summary
+Card	renders
+CHAPTER	09
+Vernacular	Conversion	—	Translation	as	AGUI
+When	the	doctor	writes	advice,	instructions,	or	lifestyle	recommendations	and	needs	them	in	a	regional	language,	the
+agent	generates	a	
+Translation	Card
+:
+Vernacular	Conversion	—	Hindi
+ENGLISH	(ORIGINAL)
+Take	medicine	after	food.	Drink	3	liters	of	water	daily.	Avoid	oily	and	spicy	food.	Come	for	follow-up	after	10	days	with	CBC
+report.
+िहंदी
+	(
+HINDI)
+खाना
+	
+खाने
+	
+के
+	
+बाद
+	
+दवाई
+	
+लें।
+	
+रोज़
+	3	
+लीटर
+	
+पानी
+	
+िपएं।
+	
+तला
+	
+हुआ
+	
+और
+	
+मसालेदार
+	
+खाना
+	
+न
+	
+खाएं।
+	10	
+िदन
+	
+बाद
+	
+CBC	
+िरपोट
+	
+के
+	
+साथ
+	
+दोबारा
+	
+आएं।
+
+	Copy	Hindi
+
+	Print
+
+	Try	Telugu
+
+	Try	Tamil
+The	translation	is	clinical-aware	—	not	a	literal	Google	Translate.	It	adapts	medical	terminology	into	patient-friendly
+phrasing	while	preserving	clinical	accuracy.	Medication	names	remain	in	English	(brand	names	are	universal).
+Activation	happens	via	the	"
+
+	Translate	to	vernacular"	canned	pill	when	the	doctor	is	in	the	Advice	section,	or	through
+the	chat	input.
+CHAPTER	10
+The	Chat	Window	—	Scalable	Across	All	Screens
+The	agent	chat	lives	in	the	Dr.Agent	sidebar	tab	inside	the	Rx	Pad.	It	must	also	be	available	
+outside	the	Rx	Pad
+(homepage,	appointment	page)	for	operational	queries.	The	chat	window	is	scalable	and	adaptable	across	screens.
+Chat	Window	Components
+Dynamic	Patient	Context	Handling
+SCENARIO
+CONTEXT	STATE
+AGENT	BEHAVIOR
+Patient	Context	Selector	(Top)
+Shows	selected	patient	name	+	age/gender.	If	no	patient	selected	(homepage/appointment	page),	shows	"No	patient	selected"
+with	option	to	search.	Clicking	opens	inline	search.
+Conversation	Area	(Middle)
+AGUI	response	cards	render	here.	Scrollable.	Each	response	is	a	visual	card,	not	plain	text.	Previous	responses	persist	in	the
+conversation	for	the	duration	of	the	consultation.
+Canned	Message	Pills	(Above	Input)
+3–4	context-sensitive	pills.	Change	based	on	sidebar	tab,	Rx	section	focus,	patient	state,	and	recent	actions.
+Chat	Input	Bar	(Bottom)
+"Ask	Dr.	Agent"	text	input	+	"
+
+	Speak"	button.	Free-text	queries.	Voice	input	converts	to	text	query.	Always	visible.
+
+===== PAGE 12 =====
+
+Doctor	is	in	Rx	Pad
+Patient	auto-
+selected	(from
+consultation)
+All	queries	are	patient-contextual.	Summary	card	auto-loaded.
+Doctor	is	on	Homepage,
+asks	"Show	overdue
+patients"
+No	patient	needed
+Operational	query.	Agent	responds	with	Data	Viz	Card	/	List	Card.
+Doctor	is	on	Homepage,
+asks	"Show	Ramesh's
+vitals"
+No	patient	selected,
+but	patient-specific
+query
+Agent	generates	
+inline	Search	Card
+	within	the	chat:	"Select	a	patient:"	→
+search	bar	→	matching	patient	list.	Doctor	taps	→	patient	context	set	→	vitals
+chart	renders.
+Doctor	switches	from
+one	patient	to	another
+Context	change
+Conversation	clears.	New	patient	summary	auto-loads.	Pills	reset.
+CHAPTER	11
+Follow-Up	Intelligence	—	Dual-Persona	AGUI
+Doctor	View	(Inside	Rx	Pad)
+When	a	patient	with	a	due/overdue	follow-up	opens,	the	summary	card	shows	a	badge:	
+F/U	Overdue	by	5	days
+.	The
+canned	pill	
+⏰
+	Overdue	follow-up
+	appears.	Tapping	it	shows:
+Follow-Up	Status
+Original	follow-up:
+	10	days	after	visit	on	12	Feb	2026	(due:	22	Feb)
+Status:
+	
+Overdue	by	13	days
+Reason:
+	DM	review	—	HbA1c	was	7.2	↑,	medication	adjustment	may	be	needed
+Last	Rx:
+	Glycomet	500	BD,	Telma	40	OD
+Reception	View	(Homepage	Dashboard	—	AGUI)
+On	the	homepage,	the	Follow-up	Dashboard	shows	an	AGUI	list	of	actionable	follow-ups:
+Follow-Ups	This	Week	—	14	Due	/	8	Overdue
+Rajesh	Kumar
+	·	DM	review
+13d
+overdue
+
+	Call
+	
+
+	Remind
+Priya	Sharma
+	·	HTN	check
+3d	overdue
+
+	Call
+	
+
+	Remind
+Amit	Joshi
+	·	Post-surgery
+Due	today
+
+	Call
+	
+
+	Remind
+CHAPTER	12
+Why	This	Agent	Sets	an	International	Benchmark
+THE	DYNAMIC	UI	PRINCIPLE
+The	chat	window	never	shows	an	error	like	"No	patient	selected.	Please	select	a	patient	first."	That's	a	system	error,	not	a
+solution.	Instead,	the	agent	generates	the	
+UI	component	the	doctor	needs
+	to	resolve	the	ambiguity	—	an	inline
+search,	a	patient	list,	a	confirmation	dialog.	The	response	IS	the	resolution.	This	is	the	core	of	the	AGUI	paradigm:	the
+agent	doesn't	just	answer	questions	—	it	generates	the	interface	needed	to	complete	the	task.
+
+===== PAGE 13 =====
+
+The	system	stores	data	but	doesn't	think.	The	doctor	thinks	but	finds	it	difficult	to	access	that	data	at
+one	place.	The	agent	bridges	the	data	gap.	The	generative	UI	bridges	the	format	gap.
+Every	EMR	can	add	a	chatbot.	The	technology	is	commodity.	What	we	crack	is	the	experience	of	the	agent's	response.
+The	combination	of:
+AGUI	—	Responses	as	UI,	Not	Text
+No	EMR	agent	on	the	market	generates	dynamic	visual	responses.	Charts	for	trends,	comparison	tables	for	deltas,
+selection	cards	for	DDX,	alert	cards	for	safety,	inline	search	for	context	resolution.	The	response	format	IS	the
+competitive	advantage.
+State	Machine	—	Context-Aware	Pills
+3–4	pills	that	change	in	real-time	across	8	sidebar	tabs,	7	Rx	sections,	and	infinite	patient	states.	The	doctor	never
+needs	to	think	about	what	to	ask	—	the	pills	surface	the	right	question	at	the	right	moment.
+Silent	Partner	—	Never	Questions	the	Doctor
+The	agent	trusts	the	doctor's	clinical	expertise.	It	surfaces	historical	data,	answers	questions,	and	fills	documentation
+gaps	—	without	ever	suggesting	the	doctor	is	wrong	or	needs	correction.
+5	Rx	Modes	—	One	Intelligence	Layer
+Whether	the	doctor	writes	by	hand,	snaps	a	photo,	speaks,	clicks,	or	draws	—	the	sidebar	intelligence	is	identical.	The
+synthetic	data	layer	doesn't	care	about	input	modality.	It	cares	about	patient	data.
+TatvaPractice	Doctor	Agent	v0	—	Feature-Level	Solution	Specification
+AGUI	Framework	·	Canned	Message	State	Machine	·	OCR	Visual	Intelligence	·	DDX	Clinical	Chain	·	Vernacular	Conversion
+March	2026	·	Companion	to	UX	Research	&	Design	Process	Document
+Proprietary	specification.	For	Product,	Design	&	Engineering	teams	only.
+THE	BOTTOM	LINE
+This	isn't	a	chatbot	with	a	medical	database.	This	is	a	
+silent	agentic	partner	with	a	generative	visual	interface
+	—
+one	that	understands	context,	adapts	to	the	doctor's	flow,	responds	in	the	format	the	brain	processes	fastest,	and	never
+adds	a	single	unnecessary	interaction.	The	doctor	doesn't	use	the	agent.	The	agent	is	
+part	of	the	system
+	—	invisible	when
+routine,	visual	when	complex,	and	always	one	tap	away.

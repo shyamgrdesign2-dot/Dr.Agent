@@ -1,0 +1,1008 @@
+
+
+===== PAGE 1 =====
+
+CHAPTER	01
+The	Starting	Question
+The	Indian	outpatient	department	is	one	of	the	most	time-constrained	medical	environments	on	the	planet.	A	typical
+doctor	sees	
+40–80	patients	per	day
+,	spends	
+3–5	minutes	per	consultation
+,	and	captures	clinical	reasoning	in	a
+fraction	of	that	time.	The	question	that	shaped	every	design	decision:
+Across	five	fundamentally	different	ways	doctors	write	prescriptions	—	from	voice	dictation	to	pen-on-
+paper	to	point-and-click	—	how	do	we	build	a	silent	agentic	partner	that	surfaces	the	right	data	at	the
+right	moment,	in	the	right	visual	format,	to	help	doctors	complete	consultations	without	adding
+friction?
+The	Five	Rx	Writing	Modes	—	The	Agent	Must	Work	Across	All	of	Them
+Doctors	on	TatvaPractice	don't	follow	a	single	input	method.	Any	doctor,	at	any	time,	uses	one	of	five	distinct	Rx
+writing	modes.	The	AI	agent	must	intercept,	assist,	and	add	intelligence	across	
+every	single	one
+:
+UX	RESEARCH	&	DESIGN	PROCESS	DOCUMENTATION
+Designing	a	Silent	AI	Copilot
+for	Doctors
+From	23,299	voice	sessions	and	competitive	market	analysis	to	six
+feature	pillars	and	a	generative	UI	strategy	—	the	research-driven
+design	journey	for	the	TatvaPractice	Doctor	Agent.	This	document
+captures	
+how	we	got	here
+	and	
+why	each	decision	was	made
+.
+23,299
+VOICE	SESSIONS
+17,552
+UNIQUE
+CONSULTATIONS
+15+
+SPECIALTIES
+5
+RX	WRITING	MODES
+6
+FEATURE	PILLARS
+TatvaPractice	·	March	2026	·	Product	Design	&	Engineering	Handoff
+
+Snap	Rx
+Photo	of	handwritten	Rx	→	uploaded	to	system	→	OCR	digitizes
+
+	
+
+===== PAGE 2 =====
+
+The	agent	operates	on	two	layers	across	these	modes.	The	
+historical	intelligence	layer
+	(sidebar	with	patient
+context,	summaries,	past	data,	and	the	agent	chat)	remains	identical	across	all	five	Rx	modes	—	every	doctor	gets	the
+same	rich	patient	context	regardless	of	how	they	prescribe.	The	
+active	suggestion	layer
+	(canned	messages,	DDX
+pills,	contextual	chips	based	on	what	the	doctor	is	currently	writing	or	clicking)	is	available	only	in	
+Point	&	Click
+	and
+Voice
+	modes,	where	the	system	can	detect	which	input	field	the	doctor	is	interacting	with	in	real-time.
+RX	MODE
+HISTORICAL	INTELLIGENCE	(SIDEBAR)
+ACTIVE	SUGGESTIONS	(CANNED/DDX)
+Snap	Rx
+✓	Full	sidebar	—	patient	summary,
+past	data,	agent	chat	for	questions
+✗	Not	applicable	—	Rx	is	a	captured	image,	no	active	input	fields	to
+monitor
+Smart
+Sync
+✓	Full	sidebar	—	all	historical	data
+available	for	reference	and	questions
+✗	Not	applicable	—	handwriting	is	analog;	system	can't	track	field-
+level	interaction
+Point	&
+Click
+✓	Full	sidebar	—	patient	summary,
+past	data,	agent	chat	for	questions
+✓	Active	—	canned	messages,	DDX	pills,	and	auto-suggestions
+respond	to	which	field	the	doctor	clicks	and	what	they	type
+Voice
+✓	Full	sidebar	—	patient	summary,
+past	data,	agent	chat	for	questions
+✓	Active	—	post-dictation	DDX	suggestions,	section-based	pills
+appear	as	structured	output	is	generated
+Drawing
+Canvas
+✓	Full	sidebar	—	all	historical	data
+available	for	reference	and	questions
+✗	Not	applicable	—	freeform	canvas,	no	structured	input	fields	to
+monitor
+When	the	Agent	Delivers	Value	—	The	Timing	Model
+A	critical	insight:	the	agent's	primary	value	delivery	is	
+front-loaded
+.	There's	a	~30-second	to	1-minute	window	before
+and	at	the	very	start	of	a	consultation	when	the	doctor	is	absorbing	context.	This	is	when	the	sidebar	information	—
+patient	summary,	historical	data,	lab	trends	—	matters	most.	Mid-consultation,	the	doctor	is	in	clinical	flow	with	the
+Smart	Sync
+Smart	pen	+	pad	device	→	handwriting	auto-digitized	in	real-time
+
+	
+Point	&	Click
+Traditional	EMR	→	search	fields,	dropdowns,	info	boxes,	typed	input
+
+	
+Voice
+Conversational	or	ambient	dictation	→	NLP	parses	into	structured	Rx
+✏
+Drawing	Canvas
+iPad	freeform	canvas	→	draw,	annotate,	describe	→	saved	as	Rx
+DESIGN	PRINCIPLE
+The	Agent	Is	a	Silent	Partner,	Not	a	Second	Opinion
+The	agent	never	questions	the	doctor's	clinical	judgment.	Doctors	are	experienced	professionals	—	they	don't	need	an	AI
+to	tell	them	how	to	diagnose	or	prescribe.	What	they	need	is	a	silent	agentic	partner	that	
+surfaces	the	right	historical
+data	at	the	right	moment
+,	answers	questions	about	the	patient's	past,	structures	information	for	quick	absorption,
+and	helps	complete	the	consultation	record.	The	sidebar	gives	every	doctor	—	regardless	of	Rx	mode	—	access	to	the
+same	rich	intelligence	layer.	In	Point	&	Click	and	Voice	modes,	the	agent	goes	one	step	further	with	contextual
+suggestions	that	reduce	typing	and	improve	documentation	completeness.
+
+===== PAGE 3 =====
+
+patient;	the	sidebar	is	there	if	they	glance	at	it,	but	active	interruption	is	counterproductive.	The	sidebar's	functionality
+doesn't	change	across	these	phases	—	only	the	doctor's	attention	to	it	does.
+
+	HIGH
+Pre-consult	30s–1min
+MEDIUM
+First	30s
+
+	LOW
+Mid-consultation	(1–3	min)
+MEDIUM
+Closing	(3–4	min)
+REACTIVE
+Post-Rx
+PHASE
+DOCTOR	STATE
+SIDEBAR	VALUE
+WHY
+Pre-
+consultation
+(30s–1min)
+Reviewing	patient	name
+in	queue.	Hasn't	called
+the	patient	in	yet.	Quick
+glance	at	sidebar	or
+hover	tooltip.
+Maximum:	summary	card,	allergy	banner,
+chronic	conditions,	follow-up	badge,	key	labs
+—	all	pre-loaded	and	ready.
+This	is	the	only	window
+where	the	doctor	has
+dedicated	attention	for
+patient	context	before	the
+conversation	begins.
+Opening	(0–
+30s)
+Patient	walks	in.	Doctor
+greeting,	confirming
+identity,	quick	check	of
+sidebar.
+High:	doctor	may	reference	summary	for
+"known	case"	context,	check	last	visit	details.
+The	mental	model	is
+forming.	Historical	data
+shapes	the	clinical	lens	for
+this	visit.
+Clinical
+Flow	(30s–3
+min)
+Deep	in	conversation,
+examination,
+prescribing.	Eyes	mostly
+on	patient	or	Rx	pad.
+Low:	sidebar	is	available	but	doctor	rarely
+glances.	Only	safety	alerts	(allergy)	are
+designed	to	catch	peripheral	vision.	In
+P&C/Voice:	canned	suggestions	appear	as
+doctor	interacts	with	fields.
+The	doctor	is	in	flow.	The
+sidebar	doesn't	change
+behavior	—	it	remains
+ready	for	when	the	doctor
+looks.
+Closing	(3–4
+min)
+Wrapping	up.	Final	Rx
+review.	Quick	glance	at
+sidebar	for	anything
+missed.
+Medium:	completeness	nudges,	"Generate
+summary"	pill.	Available	but	not	pushy.
+Doctor	is	transitioning	out.
+Receptive	to	quick
+additions.
+Post-Rx
+Done.	Patient	leaving.
+Next	patient	coming.
+Reactive	only:	responds	to	explicit	questions
+or	pill	taps	in	agent	chat.
+Consultation	is	over.	Agent
+respects	the	boundary.
+CHAPTER	02
+Research	Methodology	—	How	We	Built	the	Evidence
+Base
+Our	research	combined	three	methodologies:	
+large-scale	behavioral	analysis
+	of	production	voice	data,
+competitive	and	market	analysis
+	of	existing	EMR	AI	solutions,	and	
+clinical	workflow	mapping
+	across	the
+TatvaPractice	product	surface.	The	result	is	a	complete	picture	of	doctor	behavior,	market	gaps,	and	product
+opportunities.
+The	Research	Process
+KEY	IMPLICATION
+The	sidebar's	content	and	functionality	remains	constant	throughout	the	consultation.	What	changes	is	the	doctor's
+attention.	This	means	the	
+most	critical	engineering	constraint	is	pre-computation
+:	the	summary,	labs,	and
+historical	data	must	be	fully	loaded	before	the	doctor	clicks	on	the	patient	name.	A	500ms	delay	in	the	pre-consultation
+window	costs	more	than	a	5-second	delay	during	closing.	The	sidebar	must	feel	like	it	was	always	there.
+PHASE	1
+Data	Collection →
+PHASE	2
+Behavioral	NLP →
+PHASE	3
+Clinical	Mining →
+PHASE	4
+Competitive →
+PHASE	5
+Gap	Analysis →
+PHASE	6
+UI	Mapping
+
+===== PAGE 4 =====
+
+METHOD
+WHAT	WE	DID
+WHAT	IT	REVEALED
+Behavioral
+NLP
+Classification
+Classified	every	transcription	by	dictation	style,
+opening	word	intent,	section	coverage,	cognitive
+bundles	across	12	months	of	production	data
+5	doctor	archetypes,	4	dictation	styles,
+predictable	intent	from	first	word
+Completeness
+Scoring
+Scored	each	session	0–9	across	clinical	sections:
+demographics,	vitals,	complaints,	history,	exam,
+diagnosis,	meds,	labs,	advice
+Average:	
+2.09/9
+.	Only	
+3.2%
+	clinically	complete.
+Clinical
+Pattern
+Mining
+Extracted	diagnosis	frequencies,	drug	co-
+prescription	pairs,	symptom→diagnosis	mappings,
+investigation	ordering	patterns
+50+	drug-diagnosis	mappings,	top	investigation
+bundles,	co-prescription	safety	data
+Friction	&
+Error	Analysis
+Identified	drug	name	errors,	accidental	captures,
+retry	patterns,	code-switching	frequency	across	7+
+languages
+204	drug	name	corrections,	746	noise	entries.
+Multilingual	input	is	the	norm.
+Competitive
+&	Market
+Analysis
+Evaluated	AI	capabilities	in	existing	EMR	solutions
+(domestic	and	international),	mapped	feature
+parity,	identified	whitespace	opportunities
+No	competitor	offers	generative	UI	responses,
+cross-mode	agent	intelligence,	or	real-time	DDX
+cascading.	Our	differentiation	is	clear.
+UI
+Architecture
+Audit
+Mapped	every	screen	in	TatvaPractice	across	all	5
+Rx	modes:	Appointment	Queue,	Rx	Pad,	Sidebar,
+Specialty	tabs,	Chat	surfaces
+Left	sidebar	is	the	natural	AI	home.	8
+integration	touchpoints.	Chat	window	must	be
+scalable	across	all	screens.
+CHAPTER	03
+What	We	Found	—	The	Documentation	Crisis
+The	system	demands	
+9	sections	of	documentation
+	from	a	professional	who	has	
+3	minutes	and	~33	seconds
+	of
+active	input	time.	The	math	doesn't	work	—	and	the	data	proves	it.
+96.8%
+CLINICALLY	INCOMPLETE
+2.09
+	/	9
+AVG	SECTIONS	DOCUMENTED
+23,299
+transcriptions
+→
+Archetype	mapping
+→
+Dx,	Rx,	Inv	patterns
+→
+Analysis
+Market	positioning
+→
+Completeness	audit
+→
+8	touchpoints
+RESEARCH	PHILOSOPHY
+Every	feature	decision	in	this	document	traces	back	to	a	specific	data	point	from	these	23,299	sessions	and	the
+competitive	landscape	analysis.	The	behavioral	data	tells	us	what	doctors	do.	The	competitive	analysis	tells	us	what	the
+market	lacks.	The	intersection	is	where	our	product	lives.
+
+===== PAGE 5 =====
+
+33
+	sec
+AVG	ACTIVE	INPUT	TIME
+The	Missing	Sections	—	Where	the	Gaps	Are
+Drug	Interactions
+100%
+Future	scope
+Allergies
+98.2%
+Critical
+Medical	History
+95%
+High
+Diagnosis
+85%
+Medium
+Follow-up
+82%
+Medium
+Examination
+79%
+Medium
+Advice
+62%
+Medium
+Medications
+54%
+Best
+Medications	are	documented	most	because	they're	the	primary	reason	doctors	use	the	system.
+The	Six	Root	Problems
+PROBLEM	1
+The	Completeness	Crisis
+Only	3.2%	of	sessions	are	complete.	Average	2.09/9.	The	gap	is	systematic	—	always	history,	allergies,	diagnosis,
+exam.
+PROBLEM	2
+Context	Blindness
+2,842	sessions	reference	past	visits.	Only	5%	capture	history.	Doctors	carry	context	in	their	heads	across	60+
+patients/day.
+PROBLEM	3
+Data	in	Black	Boxes
+847	sessions	reference	labs.	Uploaded	PDFs	sit	unopened.	No	extraction,	no	trends,	no	delta.	Data	exists	but	isn't
+accessible.
+PROBLEM	4
+Static	UI,	Dynamic	Workflow
+46%	focus	on	meds,	21%	symptoms,	15%	vitals	—	each	needs	different	support	but	gets	the	same	interface.
+PROBLEM	5
+Broken	Continuity
+18%	set	follow-ups	but	<40%	return.	~1,500	missed	follow-ups/year	=	incomplete	treatment	+	lost	revenue.
+PROBLEM	6
+Text-Heavy	AI	Responses
+
+===== PAGE 6 =====
+
+Every	AI	agent	on	the	market	responds	with	text.	Doctors	don't	have	time	to	read.	The	response	format	itself	is	the
+bottleneck.
+CHAPTER	04
+Research	Insights	—	How	Doctors	Actually	Work
+4.1	—	Five	Doctor	Archetypes
+Speed	Prescriber
+—	26.2%	—	Terse,	<150	chars.	Straight	to	meds.
+Structured	Dictator
+—	23.4%	—	Comma-separated	keywords.
+Thorough	Documentor
+—	13.7%	—	800+	chars.	Full	clinical	detail.
+Narrator
+—	9.0%	—	Conversational	natural	sentences.
+Editor
+—	4.5%	—	Add/remove/correct	commands.
+Other	patterns	—	23.2%
+4.2	—	Cognitive	Bundles:	Doctors	Think	in	Flows,	Not	Features
+43.9%
+	of	dictations	cover	2+	sections	simultaneously.	The	most	revealing	pattern:
+SX	→	DX	→	RX	→	FU
+648
+COMPLETE	CHAIN
+SX	→	RX	
+(skip	Dx)
+569
+EMPIRICAL	PRESCRIBING
+Multi-section
+43.9%
+OF	ALL	DICTATIONS
+The	SX	→	RX	pattern:
+	569	sessions	skip	diagnosis	entirely.	The	doctor	has	diagnosed	mentally	—	they	just	don't
+document	it.	This	is	the	DDX	agent's	biggest	opportunity:	infer	the	implicit	diagnosis	and	offer	it	for	one-tap
+documentation.
+4.3	—	The	3-Minute	Consultation	&	Agent	Engagement	Windows
+Entry	(~10s)
+Conversation	(~50s)
+Exam	(~40s)
+Input	+	Rx	(~50s)
+Wrap-up
+The	agent's	primary	value	delivery	happens	in	the	
+first	15	seconds
+.	Mid-consultation	interaction	is	minimal	—	the
+doctor	is	in	clinical	flow.	This	front-loaded	model	means	pre-computation	and	instant-load	are	non-negotiable
+engineering	requirements.
+THE	UNDERLYING	TRUTH
+These	aren't	six	separate	problems.	They're	six	symptoms	of	one	cause:	
+the	system	stores	data	but	doesn't	think.
+The	doctor	thinks	but	finds	it	difficult	to	access	that	data	at	one	place.	And	when	AI	does	respond,	it
+responds	in	the	wrong	format.
+	The	agent	bridges	the	data	gap.	The	generative	UI	bridges	the	format	gap.
+5
+TYPES
+
+===== PAGE 7 =====
+
+CHAPTER	05
+Design	Hypotheses
+IF	WE...
+THEN...
+BECAUSE	DATA	SHOWS...
+Pre-fill	patient	context
+before	the	doctor	asks
+Completeness	increases
+without	effort
+95%	miss	history;	2,842	reference	past	visits.	Context
+exists	—	it's	just	not	surfaced.
+Respond	with	dynamic	UI
+cards
+	instead	of	text
+Doctors	absorb
+information	faster	and	act
+on	it	sooner
+Doctors	have	2s	per	sidebar	glance.	Visual	formats	are
+processed	significantly	faster	than	text.	Competitive
+analysis:	no	EMR	AI	does	this.
+Adapt	suggestions	per	Rx
+mode
+	and	current	action
+Engagement	with
+suggestions	increases
+>40%
+5	Rx	modes	×	9	sections	×	5	archetypes	=	static
+suggestions	are	always	wrong	for	someone.
+Make	DDX	one-tap
+	with
+cascading	auto-fill
+Diagnosis	capture	rises
+from	15%	to	50%+
+85%	missing	diagnosis	+	symptoms	exist	=	gap	is	one
+tap.
+Match	doctor's	language
+and	provide	vernacular	output
+Trust,	adoption,	and
+patient	communication
+improve
+OD/BD/TDS	used	70%.	7+	languages	in	data.	Patients
+need	vernacular	advice.
+CHAPTER	06
+Design	Principles	—	The	Rules	That	Govern	Every
+Decision
+Our	design	principles	are	built	on	two	layers:	the	
+foundational	AI	interaction	principles	from	Microsoft's	Human-
+AI	Interaction	Guidelines
+	(HAX),	and	
+six	domain-specific	principles
+	derived	from	our	research	data.	Together,
+they	form	the	complete	design	constraint	system.
+Foundation:	Microsoft	HAX	Principles	—	Our	AI	Design	Base
+MICROSOFT	HUMAN-AI	INTERACTION	GUIDELINES	—	APPLIED	TO	DOCTOR	AGENT
+HAX	GUIDELINE
+HOW	WE	APPLY	IT
+G1:	Make	clear	what	the
+system	can	do
+Summary	card	and	pills	show	exactly	what	the	agent	offers	for	this	patient.	No
+hidden	capabilities.	The	pills	ARE	the	capability	surface.
+G2:	Make	clear	how	well
+Confidence	indicators	on	DDX	tiers	(Can't	Miss	/	Most	Likely	/	Extended).	OCR
+CORE	HYPOTHESIS
+The	Silent	Agentic	Partner	with	a	Visual	Voice
+The	best	agent	is	one	the	doctor	forgets	isn't	part	of	the	system.	It	never	questions	the	doctor's	clinical	judgment	—	it
+trusts	their	expertise.	Instead,	it	quietly	
+surfaces	the	right	historical	data	at	the	right	moment
+,	structures
+scattered	information	into	glanceable	summaries,	and	answers	questions	the	doctor	has	about	the	patient's	past.	When
+it	does	respond,	it	doesn't	respond	in	paragraphs	—	it	responds	in	
+dynamically	generated	UI	cards
+:	charts	for	trends,
+tables	for	comparisons,	structured	cards	for	summaries,	interactive	lists	for	selection.	The	agent	is	not	a	chatbot.	It's	a
+silent	contextual	intelligence	layer	with	a	generative	visual	interface
+	—	bridging	the	data	gap	and	the	format
+gap	simultaneously.
+
+===== PAGE 8 =====
+
+G2:	Make	clear	how	well
+the	system	can	do	it
+Confidence	indicators	on	DDX	tiers	(Can't	Miss	/	Most	Likely	/	Extended).	OCR
+results	marked	with	confidence	flags	when	quality	is	low.
+G4:	Show	contextually
+relevant	information
+Everything	is	context-driven:	pills	change	per	section,	per	tab,	per	patient	state.
+Nothing	static.	Nothing	irrelevant.
+G5:	Match	relevant	social
+norms
+Agent	speaks	in	OD/BD/TDS,	uses	brand	names,	respects	the	clinical	hierarchy.
+Doesn't	lecture	the	doctor.
+G6:	Mitigate	social	biases
+DDX	suggestions	weight	by	epidemiological	data,	not	stereotypes.	Drug
+suggestions	follow	evidence-based	protocols.
+G8:	Support	efficient
+dismissal
+Every	suggestion	is	dismissible	in	one	gesture.	Dismissed	pills	cool	down	for	5
+min.	No	nagging.
+G9:	Support	efficient
+correction
+Copy-to-Rx	is	undoable.	DDX	acceptance	is	reversible.	OCR	values	are	editable.
+Nothing	is	locked.
+G11:	Make	clear	why	the
+system	did	what	it	did
+DDX	shows	1-line	reasoning	per	tier.	Allergy	alerts	show	Patient	Allergy	↔
+Prescribed	Drug	→	Risk.	Transparency	without	verbosity.
+G14:	Learn	from	user
+behavior
+Archetype	detection	adapts	agent	personality	over	time.	Frequently	dismissed
+pills	deprioritize.	Doctor's	specialty	shapes	suggestion	library.
+G18:	Notify	users	about
+changes
+When	new	data	arrives	(report	uploaded,	vitals	entered),	the	summary	card
+updates	with	a	subtle	highlight	—	never	silently.
+Domain-Specific	Principles	—	From	Our	Research
+PRINCIPLE	01
+Glanceable,	Not	Scrollable
+68%	of	dictations	are	150–400	chars.	Doctors	spend	<2	seconds	per	sidebar	glance.	Every	summary	≤	3	lines.	Every
+alert	≤	1	line.	If	scrolling	is	required,	the	design	failed.
+PRINCIPLE	02
+Mirror	the	Mental	Model,	Not	the	Textbook
+Medical	textbooks:	History	→	Exam	→	Dx	→	Rx.	Real	doctors:	Meds	(46%)	→	Symptoms	(21%)	→	Vitals	(15%)	→	History
+(5%).	We	design	for	reality.	Priority	=	frequency	×	clinical	urgency.
+PRINCIPLE	03
+Zero	Extra	Clicks	—	The	Piggyback	Rule
+Every	AI	action	either	
+replaces
+	an	existing	click	(auto-fill)	or	
+piggybacks
+	on	one	the	doctor	already	makes
+(suggestions	on	section	focus).	Net	new	interactions	must	be	≤	1.
+PSYCHOLOGY
+Preattentive	processing
+	—	the	brain	processes	color,	size,	and	position	before	conscious	reading.	Red	=
+danger.	Green	=	normal.	Arrows	=	trends.	The	doctor	"knows"	the	status	before	finishing	the	label.
+PSYCHOLOGY
+Information	Foraging	Theory
+	—	doctors	follow	"scent"	like	predators.	Highest-value	information	at	the	top.
+When	scent	drops,	they	abandon.	The	summary	hierarchy	must	maintain	scent	from	top	to	bottom.
+
+===== PAGE 9 =====
+
+PRINCIPLE	04
+Safety	Is	Non-Negotiable,	Non-Dismissible
+98.2%	allergy	documentation	gap	=	patient	risk.	Allergy	banners:	always	visible,	always	red,	always	first,	never
+dismissible.	Drug-drug	interaction	checking	is	identified	as	a	critical	gap	(100%	unchecked	today)	and	is	earmarked	for
+a	future	release	—	v0	focuses	on	allergy-based	safety	as	the	highest-impact,	lowest-complexity	intervention.
+PRINCIPLE	05
+Speak	Doctor,	Not	Textbook
+OD/BD/TDS	not	"once/twice/thrice	daily."	DOLO	not	Paracetamol.	Glycomet	not	Metformin.	Brand	names	over	generic
+(70%	of	dictations).	If	a	summary	reads	like	a	discharge	note,	it's	too	long.
+PRINCIPLE	06
+Visual	First,	Text	Second	—	The	Dynamic	UI	Rule
+When	a	doctor	asks	for	vital	trends,	they	should	see	a	
+chart
+,	not	a	paragraph.	When	they	ask	about	a	lab	comparison,
+they	should	see	a	
+side-by-side	table	with	delta	arrows
+.	When	they	ask	about	patient	count	by	disease,	they	should
+see	an	
+instant	data	card
+.
+Dynamic	UI	Response	Types	—	What	the	Agent	Can	Generate
+QUERY	TYPE
+GENERATED	UI	FORMAT
+EXAMPLE
+Trend	query
+Mini	spark-line	chart	with
+data	points
+"Show	HbA1c	trend"	→	line	chart	with	4	data	points	+	target	zone
+Comparison
+query
+Side-by-side	table	with
+delta	arrows
+"Compare	last	two	CBCs"	→	parameter	/	old	/	new	/	Δ%	/	flag
+List/selection
+query
+Interactive	card	list	with
+action	buttons
+"Show	past	medications"	→	drug	rows	with	Copy-to-Rx	icons
+Summary
+query
+Structured	card	with
+sections
+"Summarize	last	visit"	→	Sx	/	Dx	/	Rx	/	Inv	/	Adv	as	visual	card
+Count/analytics
+query
+Data	visualization	card
+(bar/donut)
+"How	many	diabetic	patients	this	week?"	→	count	card	with	breakdown
+Safety	alert
+Red	alert	card	with	action
+buttons
+Allergy	conflict	→	Patient	allergic	to	Penicillin	↔	Augmentin	prescribed
++	"Suggest	Alternative"	button
+PSYCHOLOGY
+Zipf's	Principle	of	Least	Effort
+	—	humans	take	the	path	of	minimum	cognitive	load.	If	the	AI	path	has	even
+slightly	more	friction,	adoption	drops	to	zero.	The	AI	must	be	the	lazy	path.
+THE	GENERATIVE	UI	CONCEPT
+We	follow	the	
+Incremental	/	Generative	UI	(AG2	UI)
+	paradigm:	agent	responses	are	not	limited	to	text.	The
+AI	dynamically	generates	the	optimal	response	format	—	chart,	table,	structured	card,	interactive	list,
+comparison	view,	or	timeline	—	based	on	the	query	type	and	the	data	available.	Text	is	the	fallback,	not	the
+default.	This	is	our	primary	competitive	differentiator:	
+no	EMR	AI	agent	on	the	market	generates	visual	UI
+responses.
+
+===== PAGE 10 =====
+
+buttons
++	"Suggest	Alternative"	button
+DDX	result
+Tiered	selection	card
+3-tier	DDX	with	one-tap	accept	per	diagnosis
+Patient	search
+Inline	search	with	patient
+list
+No	patient	selected	+	query	→	search	UI	appears	in	chat
+Simple	factual
+answer
+2–3	line	text	(fallback)
+"When	was	the	last	visit?"	→	"12	Feb	2026	—	Dr.	Sharma"
+CHAPTER	07
+The	Six	Feature	Pillars
+Each	pillar	maps	to	root	problems,	guided	by	specific	principles,	backed	by	data,	and	designed	for	all	five	Rx	modes.
+This	section	defines	
+what,	why,	and	where
+.	The	detailed	solution	spec	(scenarios,	state	machines,	edge	cases)	is	the
+companion	document.
+P1
+RX	SUMMARY
+P2
+REPORT	OCR
+P3
+FOLLOW-UP
+P4
+DDX	+	AGENT
+P5
+CANNED	MSGS
+P6
+VERNACULAR
+Research	Evidence
+Past	visit	refs
+2,842
+sessions
+"Known	case..."
+271
+mentions
+Allergy	gap
+98.2%
+Critical
+Meds	referenced
+46%
+of	sessions
+Visual	Hierarchy	of	the	Summary	Card
+PILLAR	01	—	SOLVES:	CONTEXT	BLINDNESS
+Rx	Patient	Smart	Summary
+Auto-generated	patient	snapshot	—	Appointment	Queue	(hover),	Rx	Pad	sidebar	(card),	all
+5	Rx	modes.	The	doctor's	context	in	5	seconds.
+Layer	0	—	⚠	Allergy	Banner	(Red,	Non-Dismissible)
+Seen	first.	Missed	allergy	=	patient	death	risk.	Preattentive:	red	=	danger.
+Layer	1	—	Identity	+	Visit	Type	+	Rx	Mode
+Who,	new/follow-up,	voice/P&C/snap.	Context	frame	in	1	line.
+Layer	2	—	Chronic	Conditions
+The	lens	for	interpreting	all	current	symptoms.	DM	changes	everything.
+Layer	3	—	Last	Visit	Summary	(Sx,	Dx,	Rx)
+Continuity.	What	happened	last	time?	Copy-to-Rx	on	every	line.
+Layer	4	—	Key	Labs	with	Trend	Arrows	(↑↓)
+Decision-support.	HbA1c	7.2↑	=	a	treatment	story	in	2	characters.
+Layer	5	—	Active	Chronic	Medications
+Continue	or	adjust?	One-tap	"Continue	as-is"	or	"Copy	and	edit."
+
+===== PAGE 11 =====
+
+Top	Investigations	Ordered
+CBC
+1,517
+#1
+ECG
+960
+X-ray
+916
+HbA1c
+548
+Key	for	DM
+Follow-Up	Intervals
+10	days
+2,291
+Most	common
+5	days
+1,147
+Acute
+15	days
+591
+Subacute
+30	days
+455
+Chronic
+Layer	6	(Collapsed)	—	Full	History	On-Demand
+Only	5%	access	proactively.	Available	but	not	forced.	Progressive	disclosure.
+UX	LOGIC
+Shortened	Display	→	Full	Copy
+Summary	shows	"Glycomet	500	BD	·	Telma	40	OD"	for	scanning.	Copy	sends	the	complete	prescription	with	dose,
+frequency,	duration,	timing,	food	instructions.	Compressed	display,	complete	copy.	Works	across	all	Rx	modes	—	the
+copy	target	adapts	to	whether	the	doctor	is	in	Point-and-Click	(fills	field)	or	Voice	(adds	to	transcript)	or	Smart	Sync
+(queues	for	next	stroke).
+PILLAR	02	—	SOLVES:	BLACK	BOX	DATA
+Smart	Report	Summary	—	OCR	Intelligence
+Auto-extraction,	structuring,	flagging,	and	delta-comparison	of	every	uploaded	document.
+Generative	UI	responses	for	report	queries.
+UX	LOGIC
+Auto-Process	+	Dynamic	UI	Responses
+Upload	triggers	automatic	OCR.	No	"Click	to	process."	When	the	doctor	asks	"Show	HbA1c	trend,"	the	agent	generates	a
+mini	spark-line	chart
+	—	not	a	text	list	of	numbers.	When	they	ask	"Compare	last	two	CBCs,"	it	generates	a	
+side-by-
+side	comparison	table
+	with	delta	arrows.	Doctors	think	in	trajectories,	not	snapshots.	The	generative	UI	makes
+trajectories	visible.
+PILLAR	03	—	SOLVES:	BROKEN	CONTINUITY
+Follow-Up	Intelligence
+Homepage	dashboard	+	in-Rx	tracking	+	smart	interval	suggestions.	Dual-persona:	clinical
+(doctor)	+	operational	(reception).
+
+===== PAGE 12 =====
+
+The	DDX	Clinical	Chain
+One	tap	cascades	into	four	pre-filled	sections.
+	DDX	also	activates	from	vitals	(BP	180/110	→	crisis),	lab	results	(WBC
+14,200	→	infection),	and	uploaded	reports	(fatty	liver	→	metabolic	syndrome).
+Signal	1
+Active	sidebar	tab
+Signal	2
+Active	Rx	section
+Signal	3
+Data	entered	so	far
+UX	LOGIC
+Dual-Persona	+	Operational	Queries
+Follow-up	data	serves	two	users:	the	
+doctor
+	(clinical:	"this	DM	patient	is	overdue	for	HbA1c	review")	and	
+reception
+(operational:	"call	these	12	overdue	patients").	The	chat	interface	outside	the	Rx	Pad	enables	operational	queries:	"How
+many	follow-ups	this	week?"	→	generated	data	card	with	count	+	patient	list.	"Send	reminder	to	overdue	patients"	→
+confirmation	UI.
+PILLAR	04	—	SOLVES:	COMPLETENESS	CRISIS	+	STATIC	UI
+Conversational	Agent	&	Structured	DDX
+AI	sidebar	with	DDX	activation,	allergy	safety	checks,	investigation	suggestions,	and	open
+clinical	queries.	Generative	UI	for	every	response	type.
+1
+Symptoms
+Doctor	enters	1+
+→
+2
+DDX	Appears
+Can't	Miss	/	Likely	/	Extended
+→
+3
+Accept	Dx
+One	tap	→	Dx	fills
+→
+4
+Cascade
+Rx	+	Inv	+	Advice	+	F/U
+UX	LOGIC
+Dynamic	UI	in	Agent	Responses
+When	the	agent	shows	DDX,	it's	not	a	text	list	—	it's	a	
+tiered	selection	card
+	with	one-tap	accept.	Allergy	conflict	alerts
+are	
+red	alert	cards
+	with	"Suggest	Alternative"	and	"Override"	buttons.	Lab	comparisons	are	
+visual	tables
+.	The	chat	is
+not	a	text	chat	—	it's	a	
+generative	UI	surface
+	where	every	response	takes	the	optimal	visual	form.	Drug-drug
+interaction	checking	is	recognized	as	a	critical	future	capability	and	will	be	introduced	in	subsequent	releases.
+PILLAR	05	—	CROSS-FEATURE:	DRIVES	ALL	PILLAR	ENGAGEMENT
+Dynamic	Canned	Message	Engine
+3–4	suggestion	pills	across	every	sidebar	section	—	Dr.Agent,	Vitals,	History,	specialty	tabs.
+Adapts	in	real-time	to	every	doctor	action.
+
+===== PAGE 13 =====
+
+Signal	4
+Patient	state	(new/returning)
+Signal	5
+Time	elapsed	+	Rx	mode
+The	Language	Reality
+English
+~77%
+Primary
+Hindi
+5,139
+sessions
+Telugu	/	Tamil
+118
+combined
+Others
+50+
+Kan,	Urdu,
+Mal...
+Two	Faces	of	This	Pillar
+FACE	1:	CLINICAL	(INSIDE	RX	PAD)
+Translate	patient	advice	to	vernacular.	Generate	Hindi/Telugu/Tamil	prescriptions.	"Explain	this	to	the	patient"	pill	→
+patient-friendly	text	in	their	language.	Multilingual	input	parsing	for	doctors	who	code-switch.
+FACE	2:	OPERATIONAL	(OUTSIDE	RX	PAD)
+Operational	queries:	"How	many	follow-ups	this	week?"	"Send	reminder	to	overdue	patients."	"Show	today's	schedule."
+This	chat	exists	on	the	homepage	and	works	without	a	patient	selected.
+The	Scalable	Chat	Window	—	Complex	UX	Flows
+UX	LOGIC
+Pills	Are	Entry	Points,	Not	Outputs	—	Ambient	Intelligence
+Pills	appear	on	every	sidebar	tab	—	not	just	Dr.Agent.	Vitals	tab	shows	"
+
+	Vital	trends."	History	tab	shows	"Relevant	for
+current	symptoms."	Tapping	any	pill	auto-navigates	to	Dr.Agent	and	shows	the	
+generative	UI	response
+.	
+Important:
+action-based	pills	(that	respond	to	what	the	doctor	is	currently	typing	or	clicking)	are	active	only	in	
+Point	&	Click	and
+Voice
+	modes.	In	Snap	Rx,	Smart	Sync,	and	Canvas	modes,	the	pills	are	context-based	(patient	state,	sidebar	tab)	but	not
+input-field-reactive.	Max	4	pills,	min	2.	Hick's	Law:	3–4	options	=	<1s	decision.	6+	=	decision	fatigue.
+PILLAR	06	—	SOLVES:	COMMUNICATION	GAP	+	OPERATIONAL	EFFICIENCY
+Vernacular	Conversion	&	Operational	Chat
+Multilingual	patient	communication,	advice	translation,	and	a	scalable	chat	interface	for
+operational	queries	—	both	inside	and	outside	the	Rx	Pad.
+DYNAMIC	UI	IN	CHAT
+Patient	Context	Selector	&	Generative	Responses
+The	chat	window	must	work	across	all	screens:	homepage	(no	patient	context),	appointment	page	(patient	list	context),
+and	Rx	Pad	(active	patient	context).	Key	UX	flow:	if	no	patient	is	selected	but	the	doctor	asks	a	patient-specific	query,	the
+agent	generates	an	
+inline	patient	search	UI	within	the	chat
+	—	not	a	text	error,	but	a	search	bar	with	matching
+patients	that	the	doctor	can	tap	to	set	context.	Then	the	response	follows.	This	dynamic	UI	generation	is	core	to	the
+
+===== PAGE 14 =====
+
+CHAT	SCENARIO
+CONTEXT	AVAILABLE
+AGENT	RESPONSE	FORMAT
+"How	many	follow-ups	this
+week?"
+No	patient	needed
+Data	card:	count	+	patient	list	+	"Call	overdue"	action
+"Show	Ramesh	Kumar's
+vitals"
+No	patient	selected
+Inline	search	UI	→	doctor	taps	Ramesh	→	vitals	chart
+generated
+"Translate	advice	to	Hindi"
+Patient	+	Advice	exists
+in	Rx
+Hindi	text	card	with	"Copy"	and	"Print"	actions
+"Send	follow-up	reminder"
+Patient	selected,	follow-
+up	set
+Confirmation	card:	patient,	date,	channel	(SMS/WhatsApp)	+
+"Send"	button
+"What's	today's	OPD
+count?"
+No	patient	needed
+Analytics	mini-card:	total	count,	by	specialty,	by	status
+CHAPTER	08
+How	All	Six	Pillars	Connect
+The	six	pillars	form	a	continuous	intelligence	loop:
+A	report	upload	(P2)	updates	the	summary	(P1),	triggers	new	pills	(P5).	The	doctor	asks	follow-up	questions	(P4),	the
+agent	responds	with	generative	UI.	Advice	gets	translated	(P6).	The	system	tracks	the	patient's	return	(P3).	
+One
+intelligence	layer,	six	faces.
+CHAPTER	09
+Competitive	Differentiation	—	Why	This	Strategy	Wins
+CAPABILITY
+MARKET	STANDARD
+TATVAPRACTICE	DOCTOR	AGENT
+AI	Response
+Format
+Text-only	chat	responses
+Generative	UI:	charts,	tables,	cards,	interactive	lists
+Rx	Mode
+Support
+Voice	OR	Point-and-Click
+5	modes:	Snap,	Smart	Sync,	P&C,	Voice,	Canvas
+DDX	Integration
+Standalone	DDX	tool	(separate
+workflow)
+Cascading	DDX:	accept	Dx	→	auto-fill	Rx	+	Inv	+	Advice
++	F/U
+scalability	of	the	chat	across	surfaces.	Other	complex	flows:	the	doctor	asks	"Compare	Ramesh's	HbA1c	with	his	last
+visit"	→	agent	checks	context	→	patient	is	selected	→	generates	comparison	chart.	The	response	format	is	always	the	one
+that	requires	least	cognitive	effort	to	process.
+P1
+Summary
+Context	in
+→
+P5
+Pills
+Guide	action
+→
+P4
+DDX+Agent
+Decisions
+→
+P2
+OCR
+New	data	in
+→
+P3
+Follow-Up
+Continuity
+→
+P6
+Vernacular
+Communication
+
+===== PAGE 15 =====
+
+Context
+Awareness
+Static	patient	banner
+Adaptive	summary	with	Copy-to-Rx,	follow-up	badges,
+lab	trends
+Suggestion
+Engine
+Static	quick-replies	or	none
+State	machine:	5	signals,	real-time	adaptation,
+specialty-filtered
+Report
+Intelligence
+PDF	viewer	or	basic	OCR
+Auto-OCR	+	structured	extraction	+	delta	comparison	+
+trend	charts
+Multilingual
+English-only	or	basic	translation
+Code-switch	parsing	+	vernacular	output	+	operational
+chat
+Chat	Scalability
+Fixed	to	one	screen
+Scalable	across	all	screens	with	dynamic	patient	context
+handling
+CHAPTER	10
+From	Research	to	Solution
+THIS	DOCUMENT
+Research	Objective	→	Methodology	→	Problems	→	Insights	→	Hypotheses	→	Principles	(Microsoft	HAX	+	Domain)	→	Six
+Pillars	→	Competitive	Position
+NEXT:	FEATURE-LEVEL	SPEC
+Every	scenario	→	Copy-to-Rx	mechanics	→	Canned	state	machine	→	Agent	navigation	→	OCR	pipeline	→	Dynamic	UI
+templates	→	Edge	cases	→	All	5	Rx	mode	interactions
+The	system	stores	data	but	doesn't	think.	The	doctor	thinks	but	finds	it	difficult	to	access	that	data	at
+one	place.	The	agent	bridges	that	gap	—	silently,	visually,	and	in	the	format	the	brain	processes
+fastest.	It	appears	at	the	moment	attention	is	available.	And	then	it's	gone	—	because	the	doctor	is
+already	seeing	the	next	patient.
+TatvaPractice	Doctor	Agent	v0	—	UX	Research	&	Design	Process
+23,299	sessions	·	15+	specialties	·	5	Rx	modes	·	6	feature	pillars	·	Generative	UI	·	Microsoft	HAX	base
+March	2026	·	Product	Design	&	Engineering	Handoff
+Proprietary	research	document.	All	data	from	anonymized	clinical	sessions	and	competitive	analysis.
+STRATEGIC	POSITION
+The	combination	of	
+generative	UI	responses	+	five	Rx	mode	support	+	cascading	DDX	+	state-machine
+suggestion	engine
+	creates	a	product	that	doesn't	exist	in	the	market	today.	This	isn't	incremental	improvement	—	it's
+a	category	definition.	The	Doctor	Agent	sets	an	international	benchmark	for	what	clinical	AI	copilots	should	be.
+
+===== PAGE 16 =====
+
