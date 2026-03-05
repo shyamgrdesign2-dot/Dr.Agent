@@ -794,17 +794,17 @@ function toneChipClass(tone: PromptChip["tone"]) {
 }
 
 const AGENT_GRADIENT_CHIP_CLASS =
-  "rounded-full border-[0.5px] border-tp-violet-200/75 [background:linear-gradient(135deg,rgba(242,77,182,0.08)_0%,rgba(150,72,254,0.06)_52%,rgba(75,74,213,0.06)_100%)] px-2 py-0.5 text-[10px] font-medium text-tp-violet-700/90"
+  "rounded-full border-[0.5px] border-tp-violet-200/75 [background:linear-gradient(135deg,rgba(242,77,182,0.08)_0%,rgba(150,72,254,0.06)_52%,rgba(75,74,213,0.06)_100%)] px-2 py-1 text-[12px] font-medium text-tp-violet-700/90"
 
 const AI_OUTPUT_CARD_CLASS =
   "rounded-[12px] border-[0.5px] border-tp-slate-200 bg-[linear-gradient(180deg,rgba(245,243,255,0.52)_0%,rgba(255,255,255,0.98)_22%,#fff_100%)] p-2.5"
 const AI_INNER_SURFACE_CLASS = "overflow-hidden rounded-[10px] bg-tp-slate-50/85"
 const AI_INNER_HEADER_CLASS = "border-b border-tp-slate-100 px-2 py-1.5"
-const AI_INNER_BODY_CLASS = "space-y-1 px-2 py-1 text-[10px] text-tp-slate-600"
+const AI_INNER_BODY_CLASS = "space-y-1 px-2 py-1 text-[12px] text-tp-slate-600"
 const AI_ROW_GRID_CLASS = "group/line grid grid-cols-[9px_72px_minmax(0,1fr)_auto] items-start gap-x-1.5"
 
 const AI_INLINE_PROMPT_CLASS =
-  "rounded-full border-[0.5px] border-tp-violet-200/75 [background:linear-gradient(135deg,rgba(242,77,182,0.08)_0%,rgba(150,72,254,0.06)_52%,rgba(75,74,213,0.06)_100%)] px-2 py-0.5 text-[9px] font-medium text-tp-violet-700/90 transition-colors hover:bg-tp-violet-50/70"
+  "rounded-full border-[0.5px] border-tp-violet-200/75 [background:linear-gradient(135deg,rgba(242,77,182,0.08)_0%,rgba(150,72,254,0.06)_52%,rgba(75,74,213,0.06)_100%)] px-2 py-1 text-[12px] font-medium text-tp-violet-700/90 transition-colors hover:bg-tp-violet-50/70"
 
 const AI_CARD_ICON_WRAP_CLASS =
   "inline-flex size-6 items-center justify-center rounded-md border-[0.5px] border-tp-violet-100 text-tp-violet-600"
@@ -1936,8 +1936,8 @@ function DynamicOutputCard({
             <AiBrandSparkIcon size={14} />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-[11px] font-semibold text-tp-slate-700">{output.title}</p>
-            <p className="truncate text-[10px] text-tp-slate-500">{output.subtitle}</p>
+            <p className="truncate text-[12px] font-semibold text-tp-slate-700">{output.title}</p>
+            <p className="truncate text-[12px] text-tp-slate-500">{output.subtitle}</p>
           </div>
         </div>
         <div className="relative">
@@ -1965,7 +1965,7 @@ function DynamicOutputCard({
                   )
                   setCopyMenuOpen(false)
                 }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
+                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
                 title="Copy complete card to RxPad"
                 aria-label="Copy complete card to RxPad"
               >
@@ -1979,7 +1979,7 @@ function DynamicOutputCard({
 
       <div className="mb-2 space-y-1">
         {output.bullets.map((point) => (
-          <div key={point} className="group/point grid grid-cols-[9px_minmax(0,1fr)_auto] items-start gap-x-1.5 text-[10px] text-tp-slate-700">
+          <div key={point} className="group/point grid grid-cols-[9px_minmax(0,1fr)_auto] items-start gap-x-1.5 text-[12px] text-tp-slate-700">
             <span className="text-tp-slate-400">•</span>
             <span className="leading-4">{point}</span>
             <button
@@ -2005,7 +2005,7 @@ function DynamicOutputCard({
         <div className="mb-2 flex flex-wrap gap-1">
           {output.clickableItems.map((item) => (
             <div key={item} className="group/item inline-flex items-center gap-1">
-              <button type="button" className="rounded-full border border-tp-slate-200 bg-tp-slate-50/80 px-2 py-0.5 text-[9px] font-medium text-tp-slate-600">
+              <button type="button" className="rounded-full border border-tp-slate-200 bg-tp-slate-50/80 px-2 py-0.5 text-[12px] font-medium text-tp-slate-600">
                 {item}
               </button>
               <button
@@ -2049,9 +2049,9 @@ function LastVisitCard({
   return (
     <div className={AI_OUTPUT_CARD_CLASS}>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-[11px] font-semibold text-tp-slate-800">Last Visit Summary · {data.visitDate}</p>
+        <p className="text-[12px] font-semibold text-tp-slate-800">Last Visit Summary · {data.visitDate}</p>
         <div className="relative flex items-center gap-1.5">
-          <span className="rounded-full border border-tp-slate-200 bg-tp-slate-50 px-1.5 py-0.5 text-[9px] font-semibold text-tp-slate-600">Past Visits</span>
+          <span className="rounded-full border border-tp-slate-200 bg-tp-slate-50 px-1.5 py-0.5 text-[12px] font-semibold text-tp-slate-600">Past Visits</span>
           <button
             type="button"
             onClick={() => setCopyMenuOpen((prev) => !prev)}
@@ -2069,7 +2069,7 @@ function LastVisitCard({
                   onCopy(data.copyAllPayload, "Complete visit Rx copied to RxPad")
                   setCopyMenuOpen(false)
                 }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
+                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
                 title="Copy complete Rx to RxPad"
                 aria-label="Copy complete Rx to RxPad"
               >
@@ -2082,7 +2082,7 @@ function LastVisitCard({
                   onCopy(data.copyMedsPayload, "Medications copied to RxPad")
                   setCopyMenuOpen(false)
                 }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
+                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
                 title="Copy medications to RxPad"
                 aria-label="Copy medications to RxPad"
               >
@@ -2093,7 +2093,7 @@ function LastVisitCard({
           ) : null}
         </div>
       </div>
-      <div className="space-y-1 text-[10px] text-tp-slate-600">
+      <div className="space-y-1 text-[12px] text-tp-slate-600">
         {data.sections.map((section) => {
           const lower = section.short.toLowerCase()
           const sectionItems = section.value
@@ -2128,7 +2128,7 @@ function LastVisitCard({
             <div key={section.short} className="group/row grid grid-cols-[9px_72px_minmax(0,1fr)_auto] items-start gap-x-1.5">
               <span className="text-tp-slate-400">•</span>
               <span className="text-tp-slate-500">{section.short}</span>
-              <p className="min-w-0 leading-4 text-[10px] text-tp-slate-600">
+              <p className="min-w-0 leading-4 text-[12px] text-tp-slate-600">
                 {lower.includes("medication")
                   ? sectionItems.map((entry, index) => {
                       const med = parseMedicationEntry(entry)
@@ -2207,8 +2207,8 @@ function VisitSummarySelectorCard({
 
   return (
     <div className={AI_OUTPUT_CARD_CLASS}>
-      <p className="mb-1 text-[11px] font-semibold text-tp-slate-800">Select visit dates</p>
-      <p className="mb-2 text-[10px] text-tp-slate-500">Choose one or more dates to load visit summaries.</p>
+      <p className="mb-1 text-[12px] font-semibold text-tp-slate-800">Select visit dates</p>
+      <p className="mb-2 text-[12px] text-tp-slate-500">Choose one or more dates to load visit summaries.</p>
       <div className="mb-2 flex flex-wrap gap-1.5">
         {dates.map((date) => {
           const active = selectedDates.includes(date)
@@ -2221,7 +2221,7 @@ function VisitSummarySelectorCard({
                   active ? prev.filter((item) => item !== date) : [...prev, date],
                 )
               }
-              className={cn("rounded-full border-[0.5px] px-2 py-0.5 text-[10px] font-medium", active ? AGENT_GRADIENT_CHIP_CLASS : "border-tp-slate-200 bg-white text-tp-slate-700")}
+              className={cn("rounded-full border-[0.5px] px-2 py-0.5 text-[12px] font-medium", active ? AGENT_GRADIENT_CHIP_CLASS : "border-tp-slate-200 bg-white text-tp-slate-700")}
             >
               {date}
             </button>
@@ -2236,7 +2236,7 @@ function VisitSummarySelectorCard({
         }}
         disabled={selectedDates.length === 0}
         className={cn(
-          "rounded-full border-[0.5px] px-2 py-0.5 text-[10px] font-semibold",
+          "rounded-full border-[0.5px] px-2 py-0.5 text-[12px] font-semibold",
           selectedDates.length > 0 ? AGENT_GRADIENT_CHIP_CLASS : "border-tp-slate-200 bg-tp-slate-100 text-tp-slate-400",
         )}
       >
@@ -2281,8 +2281,8 @@ function VitalsTrendCard({
             <HeartPulse size={12} />
           </span>
           <div>
-            <p className="text-[11px] font-semibold text-tp-slate-700">Vitals Trend View</p>
-            <p className="text-[10px] text-tp-slate-500">{data.summary}</p>
+            <p className="text-[12px] font-semibold text-tp-slate-700">Vitals Trend View</p>
+            <p className="text-[12px] text-tp-slate-500">{data.summary}</p>
           </div>
         </div>
         <div className="relative">
@@ -2310,7 +2310,7 @@ function VitalsTrendCard({
                   )
                   setCopyMenuOpen(false)
                 }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
+                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
                 title="Copy all vital trends to RxPad"
                 aria-label="Copy all vital trends to RxPad"
               >
@@ -2325,11 +2325,11 @@ function VitalsTrendCard({
         {data.trends.map((trend) => (
           <div key={trend.label} className="group/trend rounded-[10px] bg-white/72 p-2">
             <div className="mb-1.5 flex items-center justify-between gap-2">
-              <p className="text-[10px] font-semibold text-tp-slate-700">{trend.label}</p>
+              <p className="text-[12px] font-semibold text-tp-slate-700">{trend.label}</p>
               <div className="flex items-center gap-1.5">
                 <span
                   className={cn(
-                    "rounded-full px-1.5 py-0.5 text-[9px] font-semibold",
+                    "rounded-full px-1.5 py-0.5 text-[12px] font-semibold",
                     trend.tone === "critical"
                       ? "border-[0.5px] border-tp-error-200 bg-tp-error-50 text-tp-error-600"
                       : trend.tone === "warn"
@@ -2390,10 +2390,10 @@ function LabPanelCard({
             <AlertTriangle size={12} />
           </span>
           <div>
-            <p className="text-[11px] font-semibold text-tp-slate-700">
+            <p className="text-[12px] font-semibold text-tp-slate-700">
               Abnormal lab results{data.panelDate ? ` · ${data.panelDate}` : ""}
             </p>
-            <p className="text-[10px] text-tp-slate-500">{data.hiddenNormalCount} normal values hidden for compact view</p>
+            <p className="text-[12px] text-tp-slate-500">{data.hiddenNormalCount} normal values hidden for compact view</p>
           </div>
         </div>
         <div className="relative">
@@ -2414,7 +2414,7 @@ function LabPanelCard({
                   onCopy(data.copyPayload, "All lab investigations copied to RxPad")
                   setCopyMenuOpen(false)
                 }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
+                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
                 title="Copy all lab investigations to RxPad"
                 aria-label="Copy all lab investigations to RxPad"
               >
@@ -2425,14 +2425,14 @@ function LabPanelCard({
           ) : null}
         </div>
       </div>
-      <div className="space-y-1 text-[10px] text-tp-slate-600">
+      <div className="space-y-1 text-[12px] text-tp-slate-600">
         {data.flagged.map((row) => (
           <div key={row.name} className="group/row grid grid-cols-[9px_minmax(0,1fr)_auto_auto] items-start gap-x-1.5">
             <span className="text-tp-slate-400">•</span>
             <p className="min-w-0 font-medium">
               <span className="text-tp-slate-500">{row.name}</span>
             </p>
-            <span className={cn("text-[10px] font-semibold", row.flag === "high" ? "text-tp-error-600" : "text-tp-warning-700")}>
+            <span className={cn("text-[12px] font-semibold", row.flag === "high" ? "text-tp-error-600" : "text-tp-warning-700")}>
               {row.flag === "high" ? "↑" : "↓"} {row.value}
             </span>
             <button
@@ -2447,7 +2447,7 @@ function LabPanelCard({
           </div>
         ))}
       </div>
-      <div className="mt-1.5 rounded-[10px] bg-white/72 px-2 py-1 text-[10px] text-tp-slate-700">{data.insight}</div>
+      <div className="mt-1.5 rounded-[10px] bg-white/72 px-2 py-1 text-[12px] text-tp-slate-700">{data.insight}</div>
       <div className="mt-2 border-t border-tp-slate-100 pt-1.5">
         <div className="overflow-x-auto pb-0.5">
           <div className="inline-flex min-w-max gap-1">
@@ -2479,14 +2479,14 @@ function VisitCompareCard({
           <AiBrandSparkIcon size={13} />
         </span>
         <div>
-          <p className="text-[11px] font-semibold text-tp-slate-700">{data.title}</p>
-          <p className="text-[10px] text-tp-slate-500">
+          <p className="text-[12px] font-semibold text-tp-slate-700">{data.title}</p>
+          <p className="text-[12px] text-tp-slate-500">
             {data.currentLabel} vs {data.previousLabel}
           </p>
         </div>
       </div>
 
-      <div className="space-y-1.5 text-[10px]">
+      <div className="space-y-1.5 text-[12px]">
         {data.rows.map((row) => {
           const active = selectedRows.includes(row.section)
           return (
@@ -2501,10 +2501,10 @@ function VisitCompareCard({
               className="w-full rounded-[9px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50/85 px-2 py-1.5 text-left"
             >
               <div className="mb-1 flex items-center justify-between gap-2">
-                <p className="text-[10px] font-semibold text-tp-slate-700">{row.section}</p>
+                <p className="text-[12px] font-semibold text-tp-slate-700">{row.section}</p>
                 <span
                   className={cn(
-                    "rounded-full border-[0.5px] px-1.5 py-0.5 text-[9px] font-medium",
+                    "rounded-full border-[0.5px] px-1.5 py-0.5 text-[12px] font-medium",
                     row.status === "worse"
                       ? "border-tp-error-200 bg-tp-error-50 text-tp-error-700"
                       : row.status === "improved"
@@ -2586,12 +2586,12 @@ function AbnormalFindingsCard({
           <AlertTriangle size={12} />
         </span>
         <div>
-          <p className="text-[11px] font-semibold text-tp-slate-700">{data.title}</p>
-          <p className="text-[10px] text-tp-slate-500">{data.subtitle}</p>
+          <p className="text-[12px] font-semibold text-tp-slate-700">{data.title}</p>
+          <p className="text-[12px] text-tp-slate-500">{data.subtitle}</p>
         </div>
       </div>
 
-      <div className="space-y-1 text-[10px]">
+      <div className="space-y-1 text-[12px]">
         {data.findings.map((item) => {
           const active = selected.includes(item.label)
           return (
@@ -2609,7 +2609,7 @@ function AbnormalFindingsCard({
                 <p className="font-semibold text-tp-slate-700">{item.label}</p>
                 <span
                   className={cn(
-                    "rounded-full border-[0.5px] px-1.5 py-0.5 text-[9px] font-medium",
+                    "rounded-full border-[0.5px] px-1.5 py-0.5 text-[12px] font-medium",
                     item.severity === "high"
                       ? "border-tp-error-200 bg-tp-error-50 text-tp-error-700"
                       : item.severity === "moderate"
@@ -2716,8 +2716,8 @@ function DdxCard({
             <AiBrandSparkIcon size={14} />
           </span>
           <div>
-            <p className="text-[11px] font-semibold text-tp-slate-700">Differential Diagnosis</p>
-            <p className="text-[10px] text-tp-slate-500">Ranked by clinical probability</p>
+            <p className="text-[12px] font-semibold text-tp-slate-700">Differential Diagnosis</p>
+            <p className="text-[12px] text-tp-slate-500">Ranked by clinical probability</p>
           </div>
         </div>
         <div className="relative">
@@ -2744,7 +2744,7 @@ function DdxCard({
                   )
                   setCopyMenuOpen(false)
                 }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
+                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
                 title="Copy all DDX options to RxPad"
                 aria-label="Copy all DDX options to RxPad"
               >
@@ -2756,14 +2756,14 @@ function DdxCard({
         </div>
       </div>
       {contextTokens.length > 0 ? (
-        <p className="mb-2 rounded-[10px] bg-tp-slate-50 px-2 py-1.5 text-[10px] leading-4 text-tp-slate-600">
+        <p className="mb-2 rounded-[10px] bg-tp-slate-50 px-2 py-1.5 text-[12px] leading-4 text-tp-slate-600">
           Generated using: <span className="font-medium text-tp-slate-700">{contextTokens.join(", ")}</span>.
         </p>
       ) : null}
       <div className="space-y-2">
         {grouped.map((group) => (
           <div key={group.id} className={cn("rounded-[10px] border-[0.5px] p-2", group.className)}>
-            <p className="mb-1 text-[10px] font-semibold tracking-wide">{group.title}</p>
+            <p className="mb-1 text-[12px] font-semibold tracking-wide">{group.title}</p>
             <div className="space-y-1">
               {group.options.map((option) => {
                 const isSelected = selected.includes(option.name)
@@ -2781,8 +2781,8 @@ function DdxCard({
                       <Check size={10} strokeWidth={2.8} />
                     </button>
                     <div className="min-w-0">
-                      <p className="text-[10px] font-semibold text-tp-slate-700">{option.name}</p>
-                      <p className="text-[9px] leading-4 text-tp-slate-500">{option.rationale}</p>
+                      <p className="text-[12px] font-semibold text-tp-slate-700">{option.name}</p>
+                      <p className="text-[12px] leading-4 text-tp-slate-500">{option.rationale}</p>
                     </div>
                     <button
                       type="button"
@@ -2875,12 +2875,12 @@ function InvestigationBundleCard({
           <AiBrandSparkIcon size={13} />
         </span>
         <div>
-          <p className="text-[11px] font-semibold text-tp-slate-700">{data.title}</p>
-          <p className="text-[10px] text-tp-slate-500">{data.subtitle}</p>
+          <p className="text-[12px] font-semibold text-tp-slate-700">{data.title}</p>
+          <p className="text-[12px] text-tp-slate-500">{data.subtitle}</p>
         </div>
       </div>
 
-      <div className="space-y-1.5 text-[10px] text-tp-slate-700">
+      <div className="space-y-1.5 text-[12px] text-tp-slate-700">
         {data.items.map((item) => {
           const isSelected = selected.includes(item.label)
           return (
@@ -2958,12 +2958,12 @@ function AdviceBundleCard({
           <AiBrandSparkIcon size={13} />
         </span>
         <div>
-          <p className="text-[11px] font-semibold text-tp-slate-700">{data.title}</p>
-          <p className="text-[10px] text-tp-slate-500">{data.subtitle}</p>
+          <p className="text-[12px] font-semibold text-tp-slate-700">{data.title}</p>
+          <p className="text-[12px] text-tp-slate-500">{data.subtitle}</p>
         </div>
       </div>
 
-      <div className="space-y-1 text-[10px] text-tp-slate-700">
+      <div className="space-y-1 text-[12px] text-tp-slate-700">
         {data.items.map((item) => {
           const isSelected = selected.includes(item.label)
           return (
@@ -3036,12 +3036,12 @@ function FollowUpBundleCard({
           <AiBrandSparkIcon size={13} />
         </span>
         <div>
-          <p className="text-[11px] font-semibold text-tp-slate-700">{data.title}</p>
-          <p className="text-[10px] text-tp-slate-500">{data.subtitle}</p>
+          <p className="text-[12px] font-semibold text-tp-slate-700">{data.title}</p>
+          <p className="text-[12px] text-tp-slate-500">{data.subtitle}</p>
         </div>
       </div>
 
-      <div className="space-y-1 text-[10px] text-tp-slate-700">
+      <div className="space-y-1 text-[12px] text-tp-slate-700">
         {data.items.map((item) => {
           const isSelected = selected.includes(item.label)
           return (
@@ -3127,8 +3127,8 @@ function CascadeCard({
             <Stethoscope size={12} />
           </span>
           <div>
-            <p className="text-[11px] font-semibold text-tp-slate-700">DDX Cascade · {data.diagnosis}</p>
-            <p className="text-[10px] text-tp-slate-500">Protocol meds + investigations + advice + follow-up</p>
+            <p className="text-[12px] font-semibold text-tp-slate-700">DDX Cascade · {data.diagnosis}</p>
+            <p className="text-[12px] text-tp-slate-500">Protocol meds + investigations + advice + follow-up</p>
           </div>
         </div>
         <div className="relative">
@@ -3149,7 +3149,7 @@ function CascadeCard({
                   onCopy(data.copyPayload, "Cascade suggestions copied to RxPad")
                   setCopyMenuOpen(false)
                 }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
+                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
                 title="Copy complete cascade to RxPad"
                 aria-label="Copy complete cascade to RxPad"
               >
@@ -3161,7 +3161,7 @@ function CascadeCard({
         </div>
       </div>
 
-      <div className="space-y-1.5 text-[10px] text-tp-slate-700">
+      <div className="space-y-1.5 text-[12px] text-tp-slate-700">
         <div className="rounded-[10px] bg-white/72 px-2 py-1.5">
           <p className="mb-1 font-semibold">Medications</p>
           <p>{data.meds.join(" · ")}</p>
@@ -3200,8 +3200,8 @@ function TranslationCard({
             <Sparkles size={12} />
           </span>
           <div>
-            <p className="text-[11px] font-semibold text-tp-slate-700">Vernacular Translation · {data.language}</p>
-            <p className="text-[10px] text-tp-slate-500">Original and translated advice</p>
+            <p className="text-[12px] font-semibold text-tp-slate-700">Vernacular Translation · {data.language}</p>
+            <p className="text-[12px] text-tp-slate-500">Original and translated advice</p>
           </div>
         </div>
         <div className="relative">
@@ -3222,7 +3222,7 @@ function TranslationCard({
                   onCopy(data.advicePayload, `${data.language} advice copied to RxPad`)
                   setCopyMenuOpen(false)
                 }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
+                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
                 title={`Copy ${data.language} advice to RxPad`}
                 aria-label={`Copy ${data.language} advice to RxPad`}
               >
@@ -3234,8 +3234,8 @@ function TranslationCard({
         </div>
       </div>
       <div className="space-y-1.5">
-        <div className="rounded-[10px] bg-white/72 px-2 py-1.5 text-[10px] text-tp-slate-600">{data.source}</div>
-        <div className="rounded-[10px] bg-white/72 px-2 py-1.5 text-[10px] text-tp-slate-700">{data.translated}</div>
+        <div className="rounded-[10px] bg-white/72 px-2 py-1.5 text-[12px] text-tp-slate-600">{data.source}</div>
+        <div className="rounded-[10px] bg-white/72 px-2 py-1.5 text-[12px] text-tp-slate-700">{data.translated}</div>
       </div>
     </div>
   )
@@ -3249,20 +3249,20 @@ function CompletenessCard({
   return (
     <div className={AI_OUTPUT_CARD_CLASS}>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-[11px] font-semibold text-tp-slate-700">Documentation Completeness</p>
-        <span className="rounded-full border border-tp-warning-200 bg-tp-warning-50 px-1.5 py-0.5 text-[9px] font-semibold text-tp-warning-700">{data.completenessPercent}%</span>
+        <p className="text-[12px] font-semibold text-tp-slate-700">Documentation Completeness</p>
+        <span className="rounded-full border border-tp-warning-200 bg-tp-warning-50 px-1.5 py-0.5 text-[12px] font-semibold text-tp-warning-700">{data.completenessPercent}%</span>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-tp-slate-200">
         <div className="h-full rounded-full bg-gradient-to-r from-[#f59e0b] to-[#d97706]" style={{ width: `${data.completenessPercent}%` }} />
       </div>
       <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
         <div className="rounded-lg border border-tp-slate-100 bg-tp-slate-50/75 p-2">
-          <p className="mb-1 text-[10px] font-semibold text-tp-success-700">Filled</p>
-          <p className="text-[10px] text-tp-success-700">{data.filled.join(" · ")}</p>
+          <p className="mb-1 text-[12px] font-semibold text-tp-success-700">Filled</p>
+          <p className="text-[12px] text-tp-success-700">{data.filled.join(" · ")}</p>
         </div>
         <div className="rounded-lg border border-tp-slate-100 bg-tp-slate-50/75 p-2">
-          <p className="mb-1 text-[10px] font-semibold text-tp-warning-700">Missing</p>
-          <p className="text-[10px] text-tp-warning-700">{data.missing.join(" · ")}</p>
+          <p className="mb-1 text-[12px] font-semibold text-tp-warning-700">Missing</p>
+          <p className="text-[12px] text-tp-warning-700">{data.missing.join(" · ")}</p>
         </div>
       </div>
     </div>
@@ -3281,7 +3281,7 @@ function MedHistoryCard({
   return (
     <div className={AI_OUTPUT_CARD_CLASS}>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-[11px] font-semibold text-tp-slate-700">Drug class history · {data.className}</p>
+        <p className="text-[12px] font-semibold text-tp-slate-700">Drug class history · {data.className}</p>
         <div className="relative">
           <button
             type="button"
@@ -3313,7 +3313,7 @@ function MedHistoryCard({
                   )
                   setCopyMenuOpen(false)
                 }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
+                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
                 title="Copy all medication history to RxPad"
                 aria-label="Copy all medication history to RxPad"
               >
@@ -3326,7 +3326,7 @@ function MedHistoryCard({
       </div>
       <div className="space-y-1.5">
         {data.matches.map((item) => (
-          <div key={`${item.date}-${item.medicine}`} className="group/row grid grid-cols-[9px_minmax(0,1fr)_auto] items-start gap-x-1.5 rounded-[10px] bg-white/72 px-2 py-1.5 text-[10px] text-tp-slate-700">
+          <div key={`${item.date}-${item.medicine}`} className="group/row grid grid-cols-[9px_minmax(0,1fr)_auto] items-start gap-x-1.5 rounded-[10px] bg-white/72 px-2 py-1.5 text-[12px] text-tp-slate-700">
             <span className="text-tp-slate-400">•</span>
             <p className="min-w-0 leading-4">
               <span className="font-semibold">{item.medicine}</span>
@@ -3378,7 +3378,7 @@ function RecurrenceCard({
   return (
     <div className={AI_OUTPUT_CARD_CLASS}>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-[11px] font-semibold text-tp-slate-700">
+        <p className="text-[12px] font-semibold text-tp-slate-700">
           Recurrence · {data.condition} ({data.occurrences} times)
         </p>
         <div className="relative">
@@ -3405,7 +3405,7 @@ function RecurrenceCard({
                   )
                   setCopyMenuOpen(false)
                 }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
+                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
                 title="Copy full recurrence timeline to RxPad"
                 aria-label="Copy full recurrence timeline to RxPad"
               >
@@ -3418,7 +3418,7 @@ function RecurrenceCard({
       </div>
       <div className="space-y-1.5">
         {data.timeline.map((row) => (
-          <div key={`${row.date}-${row.detail}`} className="group/row grid grid-cols-[9px_minmax(0,1fr)_auto] items-start gap-x-1.5 rounded-[10px] bg-white/72 px-2 py-1.5 text-[10px] text-tp-slate-700">
+          <div key={`${row.date}-${row.detail}`} className="group/row grid grid-cols-[9px_minmax(0,1fr)_auto] items-start gap-x-1.5 rounded-[10px] bg-white/72 px-2 py-1.5 text-[12px] text-tp-slate-700">
             <span className="text-tp-slate-400">•</span>
             <p className="min-w-0 leading-4">
               <span className="font-semibold">{row.date}</span>
@@ -3461,7 +3461,7 @@ function AnnualPanelCard({
   return (
     <div className={AI_OUTPUT_CARD_CLASS}>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-[11px] font-semibold text-tp-slate-700">{data.title}</p>
+        <p className="text-[12px] font-semibold text-tp-slate-700">{data.title}</p>
         <div className="relative">
           <button
             type="button"
@@ -3480,7 +3480,7 @@ function AnnualPanelCard({
                   onCopy(data.copyPayload, "Annual panel copied to RxPad (Lab Investigation)")
                   setCopyMenuOpen(false)
                 }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
+                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
                 title="Copy all annual panel investigations to RxPad"
                 aria-label="Copy all annual panel investigations to RxPad"
               >
@@ -3493,7 +3493,7 @@ function AnnualPanelCard({
       </div>
       <div className="space-y-1.5">
         {data.tests.map((item) => (
-          <div key={item.test} className="group/row grid grid-cols-[9px_minmax(0,1fr)_auto_auto] items-start gap-x-1.5 rounded-[10px] bg-white/72 px-2 py-1.5 text-[10px]">
+          <div key={item.test} className="group/row grid grid-cols-[9px_minmax(0,1fr)_auto_auto] items-start gap-x-1.5 rounded-[10px] bg-white/72 px-2 py-1.5 text-[12px]">
             <span className="text-tp-slate-400">•</span>
             <span className="font-medium text-tp-slate-700">{item.test}</span>
             <span
@@ -3553,8 +3553,8 @@ function UiShowcaseCard({
             <Sparkles size={12} />
           </span>
           <div>
-            <p className="text-[11px] font-semibold text-tp-slate-700">Dynamic UI Capability Showcase</p>
-            <p className="text-[10px] text-tp-slate-500">Reusable A2UI and AGUI patterns for TypeRx</p>
+            <p className="text-[12px] font-semibold text-tp-slate-700">Dynamic UI Capability Showcase</p>
+            <p className="text-[12px] text-tp-slate-500">Reusable A2UI and AGUI patterns for TypeRx</p>
           </div>
         </div>
         <div className="relative">
@@ -3581,7 +3581,7 @@ function UiShowcaseCard({
                   )
                   setCopyMenuOpen(false)
                 }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
+                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
                 title="Copy complete capability summary to RxPad"
                 aria-label="Copy complete capability summary to RxPad"
               >
@@ -3604,7 +3604,7 @@ function UiShowcaseCard({
             type="button"
             onClick={() => setActiveTab(tab.id as "overview" | "inputs" | "media")}
             className={cn(
-              "rounded-[8px] px-2 py-1 text-[10px] font-medium",
+              "rounded-[8px] px-2 py-1 text-[12px] font-medium",
               activeTab === tab.id ? "bg-tp-violet-100 text-tp-violet-700" : "text-tp-slate-600 hover:bg-white",
             )}
           >
@@ -3629,7 +3629,7 @@ function UiShowcaseCard({
               <span>stacked summaries for DDX, labs, protocols and visit history</span>
             </p>
             <div className="rounded-[10px] bg-white/72 px-2 py-1.5">
-              <p className="mb-1 text-[10px] font-semibold text-tp-slate-700">Mini bar trend</p>
+              <p className="mb-1 text-[12px] font-semibold text-tp-slate-700">Mini bar trend</p>
               <div className="flex items-end gap-1">
                 {[38, 52, 46, 60, 49].map((value, index) => (
                   <div key={`${value}-${index}`} className="w-4 rounded-t bg-tp-violet-200/80" style={{ height: `${value / 1.8}px` }} />
@@ -3648,22 +3648,22 @@ function UiShowcaseCard({
             <input
               disabled
               value="Text field template"
-              className="h-8 w-full rounded-[8px] border-[0.5px] border-tp-slate-200 bg-white px-2 text-[10px] text-tp-slate-500"
+              className="h-8 w-full rounded-[8px] border-[0.5px] border-tp-slate-200 bg-white px-2 text-[12px] text-tp-slate-500"
               aria-label="Text field sample"
             />
-            <div className="flex items-center gap-2 text-[10px] text-tp-slate-700">
+            <div className="flex items-center gap-2 text-[12px] text-tp-slate-700">
               <input type="checkbox" checked readOnly className="size-3 rounded border-tp-slate-300" />
               <span>Checkbox template for consent or selection</span>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] text-tp-slate-500">Slider template</p>
+              <p className="text-[12px] text-tp-slate-500">Slider template</p>
               <input type="range" min={0} max={100} value={60} readOnly className="w-full accent-[#4B4AD5]" />
             </div>
             <div className="flex items-center gap-2">
-              <input type="date" value="2026-03-05" readOnly className="h-8 rounded-[8px] border-[0.5px] border-tp-slate-200 bg-white px-2 text-[10px] text-tp-slate-600" />
+              <input type="date" value="2026-03-05" readOnly className="h-8 rounded-[8px] border-[0.5px] border-tp-slate-200 bg-white px-2 text-[12px] text-tp-slate-600" />
               <div className="flex flex-wrap gap-1">
                 {["Single", "Multi", "Urgent"].map((item) => (
-                  <span key={item} className="rounded-full bg-tp-slate-100 px-2 py-0.5 text-[9px] text-tp-slate-600">{item}</span>
+                  <span key={item} className="rounded-full bg-tp-slate-100 px-2 py-0.5 text-[12px] text-tp-slate-600">{item}</span>
                 ))}
               </div>
             </div>
@@ -3672,15 +3672,15 @@ function UiShowcaseCard({
 
         {activeTab === "media" ? (
           <div className={AI_INNER_BODY_CLASS}>
-            <div className="rounded-[10px] bg-white/72 px-2 py-1.5 text-[10px] text-tp-slate-600">
+            <div className="rounded-[10px] bg-white/72 px-2 py-1.5 text-[12px] text-tp-slate-600">
               <p className="font-medium text-tp-slate-700">Image placeholder</p>
               <div className="mt-1 h-16 rounded-[8px] border-[0.5px] border-dashed border-tp-slate-300 bg-tp-slate-50" />
             </div>
-            <div className="rounded-[10px] bg-white/72 px-2 py-1.5 text-[10px] text-tp-slate-600">
+            <div className="rounded-[10px] bg-white/72 px-2 py-1.5 text-[12px] text-tp-slate-600">
               <p className="font-medium text-tp-slate-700">Audio player template</p>
               <audio controls className="mt-1 w-full" />
             </div>
-            <div className="rounded-[10px] bg-white/72 px-2 py-1.5 text-[10px] text-tp-slate-600">
+            <div className="rounded-[10px] bg-white/72 px-2 py-1.5 text-[12px] text-tp-slate-600">
               <p className="font-medium text-tp-slate-700">Video placeholder</p>
               <div className="mt-1 h-16 rounded-[8px] border-[0.5px] border-dashed border-tp-slate-300 bg-tp-slate-50" />
             </div>
@@ -3966,881 +3966,6 @@ function vitalsTokensFromCurrent(vitals?: { bp?: string; pulse?: string; spo2?: 
   return tokens
 }
 
-function SummaryCard({
-  collapsed,
-  onToggle,
-  onCopy,
-  onQuickSend,
-  summaryData,
-  activeSpecialty,
-}: {
-  collapsed: boolean
-  onToggle: () => void
-  onCopy: (payload: RxPadCopyPayload, message: string) => void
-  onQuickSend: (prompt: string) => void
-  summaryData: SmartSummaryData
-  activeSpecialty: SpecialtyTabId
-}) {
-  const [expanded, setExpanded] = useState(false)
-  const [lastVisitCopyMenuOpen, setLastVisitCopyMenuOpen] = useState(false)
-  const [currentEssentialsCopyMenuOpen, setCurrentEssentialsCopyMenuOpen] = useState(false)
-  const [additionalHistoryCopyMenuOpen, setAdditionalHistoryCopyMenuOpen] = useState(false)
-  const [recordHighlightsCopyMenuOpen, setRecordHighlightsCopyMenuOpen] = useState(false)
-  const specialtySnapshot = useMemo(() => buildSpecialtySnapshot(activeSpecialty, summaryData), [activeSpecialty, summaryData])
-  const clinicalView = useMemo(() => buildSpecialtyClinicalView(activeSpecialty, summaryData), [activeSpecialty, summaryData])
-
-  const latestVisit = clinicalView.lastVisit
-  const showSpecialtySnapshot = activeSpecialty !== "gp"
-  const hasTodayVitals = Boolean(clinicalView.currentVitals)
-  const hasLabs = clinicalView.currentLabs.length > 0
-  const hasMeds = clinicalView.currentMedications.length > 0
-  const chronicHighlights = (summaryData.chronicConditions ?? []).slice(0, 3)
-  const allergyHighlights = (summaryData.allergies ?? []).slice(0, 2)
-  const historyLineForCopy =
-    chronicHighlights.length > 0 || allergyHighlights.length > 0
-      ? [
-          chronicHighlights.length > 0 ? `Chronic: ${chronicHighlights.join(", ")}` : null,
-          allergyHighlights.length > 0 ? `Allergies: ${allergyHighlights.join(", ")}` : null,
-        ]
-          .filter(Boolean)
-          .join(" | ")
-      : "No chronic condition or allergy documented"
-  const patientNarrative = summarizeNarrative(summaryData.patientNarrative || summaryData.receptionistIntakeNotes?.join(" "), 120)
-  const symptomHighlights = (clinicalView.currentSymptoms.length > 0 ? clinicalView.currentSymptoms : [patientNarrative]).map((item) =>
-    item.replace(/\bfev\b/gi, "Fever").replace(/\bSx\b/gi, "Symptoms"),
-  )
-  const labHighlights = clinicalView.currentLabs.slice(0, 4)
-  const lastVisitSymptomTokens = clinicalTokens(latestVisit?.symptoms, 4)
-  const currentMedicationEntries = clinicalView.currentMedications.map(parseMedicationEntry).filter((item) => item.name)
-  const lastVisitMedications = latestVisit?.medication.split(",").map((med) => med.trim()).filter(Boolean) ?? []
-  const lastVisitMedicationEntries = lastVisitMedications.map(parseMedicationEntry).filter((item) => item.name)
-  const currentVitalsTokens = vitalsTokensFromCurrent(clinicalView.currentVitals)
-  const lastVisitVitalsTokens = parseVitalsTokens(latestVisit?.vitals)
-  const currentEssentialsPayload: RxPadCopyPayload = {
-    sourceDateLabel: "Current consultation essentials",
-    symptoms: symptomHighlights.length > 0 ? symptomHighlights : undefined,
-    vitals: vitalsSeedFromVitals(clinicalView.currentVitals),
-    medications:
-      clinicalView.currentMedications.length > 0
-        ? clinicalView.currentMedications.map((med) => ({
-            medicine: med,
-            unitPerDose: "-",
-            frequency: "-",
-            when: "-",
-            duration: "-",
-            note: "",
-          }))
-        : undefined,
-    labInvestigations: labHighlights.length > 0 ? labHighlights.map((lab) => lab.name) : undefined,
-    additionalNotes: historyLineForCopy,
-  }
-  const additionalHistoryNotes = [
-    (summaryData.familyHistory?.length ?? 0) > 0 ? `Family history: ${summaryData.familyHistory!.join(", ")}` : null,
-    (summaryData.lifestyleNotes?.length ?? 0) > 0 ? `Lifestyle: ${summaryData.lifestyleNotes!.join(", ")}` : null,
-  ]
-    .filter(Boolean)
-    .join(" | ")
-  const recordHighlightNotes = (summaryData.recordAlerts ?? []).slice(0, 3).join(" | ")
-
-  const concernPills: Array<{ label: string; tone: "error" | "warning" | "success" }> = []
-  if (summaryData.followUpOverdueDays > 0) {
-    concernPills.push({ label: `Overdue: ${summaryData.followUpOverdueDays} days`, tone: "warning" })
-  }
-  if (summaryData.labFlagCount > 0) {
-    concernPills.push({ label: `${summaryData.labFlagCount} abnormal lab results`, tone: "error" })
-  }
-  if (clinicalView.dueItems.length > 0) {
-    concernPills.push({ label: `${clinicalView.dueItems.length} due items`, tone: "warning" })
-  }
-  if (concernPills.length === 0) {
-    concernPills.push({ label: "No immediate critical alerts", tone: "success" })
-  }
-
-  // Build a compact collapsed strip: "F/U · DM + HTN · Dust allergy · 7 lab flags"
-  const collapsedTokens: string[] = []
-  if (summaryData.followUpStatus === "overdue") collapsedTokens.push("F/U overdue")
-  else collapsedTokens.push("F/U")
-  if (chronicHighlights.length > 0) collapsedTokens.push(chronicHighlights.join(" + "))
-  if (allergyHighlights.length > 0) collapsedTokens.push(allergyHighlights.join(", ") + " allergy")
-  if (summaryData.labFlagCount > 0) collapsedTokens.push(`${summaryData.labFlagCount} lab flags`)
-
-  if (collapsed) {
-    return (
-      <button
-        type="button"
-        onClick={onToggle}
-        className="h-[28px] w-full rounded-[10px] border-[0.5px] border-tp-violet-100 bg-[linear-gradient(135deg,rgba(242,77,182,0.04)_0%,rgba(150,72,254,0.03)_52%,rgba(75,74,213,0.03)_100%)] px-2.5 text-left"
-      >
-        <div className="flex h-full items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-1.5">
-            <span className="inline-flex size-[18px] shrink-0 items-center justify-center rounded-[6px] bg-tp-violet-100 text-tp-violet-600">
-              <Stethoscope size={10} />
-            </span>
-            <p className="truncate text-[10px] font-medium text-tp-slate-600">{collapsedTokens.join(" · ")}</p>
-          </div>
-          <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-[6px] text-tp-slate-400">
-            <ChevronDown size={11} />
-          </span>
-        </div>
-      </button>
-    )
-  }
-
-  return (
-    <div className="overflow-hidden rounded-[12px] border-[0.5px] border-tp-slate-200 bg-[linear-gradient(180deg,rgba(245,243,255,0.45)_0%,rgba(255,255,255,0.98)_22%,#fff_100%)]">
-      <div className="sticky top-0 z-10 border-b border-tp-slate-100 bg-white px-2.5 py-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5">
-            <span className="inline-flex size-6 items-center justify-center rounded-[10px] bg-tp-violet-100 text-tp-violet-600">
-              <Stethoscope size={13} />
-            </span>
-            <p className="text-[11px] font-semibold text-tp-slate-800">Patient Smart Summary</p>
-          </div>
-          <button
-            type="button"
-            onClick={onToggle}
-            className="inline-flex size-6 items-center justify-center rounded-[8px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50 text-tp-slate-600"
-            title="Collapse card"
-            aria-label="Collapse card"
-          >
-            <ChevronUp size={12} />
-          </button>
-        </div>
-        <div className="mt-1.5 flex flex-wrap gap-1">
-          {concernPills.slice(0, 4).map((pill) => (
-            <span
-              key={pill.label}
-              className={cn(
-                "rounded-full border-[0.5px] px-2 py-0.5 text-[9px] font-medium",
-                pill.tone === "error"
-                  ? "border-tp-error-200 bg-tp-error-50 text-tp-error-700"
-                  : pill.tone === "warning"
-                    ? "border-tp-warning-200 bg-tp-warning-50 text-tp-warning-700"
-                    : "border-tp-success-200 bg-tp-success-50 text-tp-success-700",
-              )}
-            >
-              {pill.label}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-2 p-2">
-        {showSpecialtySnapshot ? (
-          <div className={AI_INNER_SURFACE_CLASS}>
-            <div className={AI_INNER_HEADER_CLASS}>
-              <p className="text-[10px] font-semibold text-tp-slate-700">{specialtySnapshot.headline}</p>
-            </div>
-            <div className={AI_INNER_BODY_CLASS}>
-              {specialtySnapshot.keyItems.slice(0, 3).map((item) => (
-                <p key={item}>
-                  <span className="text-tp-slate-400">•</span>
-                  <span className="ml-1 font-medium text-tp-slate-700">{item}</span>
-                </p>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        <div className={AI_INNER_SURFACE_CLASS}>
-          <div className={cn(AI_INNER_HEADER_CLASS, "flex items-center justify-between gap-2")}>
-            <p className="text-[10px] font-semibold text-tp-slate-700">Current consultation essentials</p>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setCurrentEssentialsCopyMenuOpen((prev) => !prev)}
-                className="inline-flex size-6 items-center justify-center rounded-[8px] border-[0.5px] border-tp-slate-200 bg-white text-tp-slate-500 hover:border-tp-blue-300 hover:text-tp-blue-600"
-                title="Copy options to RxPad"
-                aria-label="Copy options to RxPad"
-              >
-                <Copy size={11} />
-              </button>
-              {currentEssentialsCopyMenuOpen ? (
-                <div className="absolute right-0 top-[28px] z-20 w-[226px] overflow-hidden rounded-[10px] border-[0.5px] border-tp-slate-200 bg-white p-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onCopy(currentEssentialsPayload, "Current consultation essentials copied to RxPad")
-                      setCurrentEssentialsCopyMenuOpen(false)
-                    }}
-                    className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
-                    title="Copy all current consultation essentials to RxPad"
-                    aria-label="Copy all current consultation essentials to RxPad"
-                  >
-                    <ClipboardPlus size={11} className="text-tp-blue-600" />
-                    Copy all current consultation essentials to RxPad
-                  </button>
-                </div>
-              ) : null}
-            </div>
-          </div>
-          <div className={AI_INNER_BODY_CLASS}>
-            <div className={AI_ROW_GRID_CLASS}>
-              <span className="text-tp-slate-400">•</span>
-              <span className="text-tp-slate-500">Symptoms</span>
-              <p className="min-w-0 leading-4 text-[10px] text-tp-slate-600">
-                {symptomHighlights.map((item, index) => {
-                  const token = parseTokenDetail(item)
-                  return (
-                    <span key={`${token.label}-${index}`}>
-                      <span className="font-semibold text-tp-slate-700">{token.label}</span>
-                      {token.detail ? (
-                        <>
-                          <span className="text-tp-slate-400"> (</span>
-                          <span className="text-tp-slate-500">{token.detail}</span>
-                          <span className="text-tp-slate-400">)</span>
-                        </>
-                      ) : null}
-                      {index < symptomHighlights.length - 1 ? <span className="mx-1 text-tp-slate-300">|</span> : null}
-                    </span>
-                  )
-                })}
-              </p>
-              <button
-                type="button"
-                onClick={() => onCopy({ sourceDateLabel: "Current visit symptoms", symptoms: symptomHighlights }, "Symptoms copied to RxPad")}
-                className={cn("opacity-0 transition-opacity group-hover/line:opacity-100", HOVER_COPY_ICON_CLASS)}
-                title="Copy symptoms to RxPad"
-                aria-label="Copy symptoms to RxPad"
-              >
-                <Copy size={10} />
-              </button>
-            </div>
-
-            <div className={AI_ROW_GRID_CLASS}>
-              <span className="text-tp-slate-400">•</span>
-              <span className="text-tp-slate-500">Vitals</span>
-              <p className="min-w-0 leading-4 text-[10px] text-tp-slate-600">
-                {hasTodayVitals
-                  ? currentVitalsTokens.map((token, index) => {
-                      const spo2Value = token.label === "SpO2" ? Number(token.value.replace(/[^\d.]/g, "")) : Number.NaN
-                      const showLowSpo2 = token.label === "SpO2" && !Number.isNaN(spo2Value) && spo2Value < 95
-                      return (
-                        <span key={`${token.label}-${index}`}>
-                          <span className="text-tp-slate-500">{token.label}:</span>{" "}
-                          <span className="font-medium text-tp-slate-700">{token.value}</span>
-                          {showLowSpo2 ? <span className="ml-0.5 text-tp-error-600">↓</span> : null}
-                          {index < currentVitalsTokens.length - 1 ? <span className="mx-1 text-tp-slate-300">|</span> : null}
-                        </span>
-                      )
-                    })
-                  : "Not captured"}
-              </p>
-              <button
-                type="button"
-                onClick={() =>
-                  onCopy(
-                    { sourceDateLabel: "Current visit vitals", vitals: vitalsSeedFromVitals(clinicalView.currentVitals) },
-                    "Vitals copied to RxPad",
-                  )
-                }
-                disabled={!hasTodayVitals}
-                className={cn(
-                  "opacity-0 transition-opacity group-hover/line:opacity-100",
-                  HOVER_COPY_ICON_CLASS,
-                  !hasTodayVitals && "cursor-not-allowed opacity-40",
-                )}
-                title="Copy vitals to RxPad"
-                aria-label="Copy vitals to RxPad"
-              >
-                <Copy size={10} />
-              </button>
-            </div>
-
-            <div className={AI_ROW_GRID_CLASS}>
-              <span className="text-tp-slate-400">•</span>
-              <span className="text-tp-slate-500">Medical history</span>
-              <p className="min-w-0 leading-4 text-[10px] text-tp-slate-600">
-                <span className="text-tp-slate-500">Chronic:</span>{" "}
-                <span className="font-medium text-tp-slate-700">{chronicHighlights.length > 0 ? chronicHighlights.join(", ") : "None"}</span>
-                <span className="mx-1 text-tp-slate-300">|</span>
-                <span className="text-tp-slate-500">Allergies:</span>{" "}
-                <span className="font-medium text-tp-slate-700">{allergyHighlights.length > 0 ? allergyHighlights.join(", ") : "None"}</span>
-              </p>
-              <button
-                type="button"
-                onClick={() =>
-                  onCopy(
-                    {
-                      sourceDateLabel: "Medical history context",
-                      additionalNotes: historyLineForCopy,
-                    },
-                    "Medical history copied to RxPad",
-                  )
-                }
-                className={cn("opacity-0 transition-opacity group-hover/line:opacity-100", HOVER_COPY_ICON_CLASS)}
-                title="Copy medical history to RxPad"
-                aria-label="Copy medical history to RxPad"
-              >
-                <Copy size={10} />
-              </button>
-            </div>
-
-            {hasMeds ? (
-              <div className={AI_ROW_GRID_CLASS}>
-                <span className="text-tp-slate-400">•</span>
-                <span className="text-tp-slate-500">Medications</span>
-                <p className="min-w-0 leading-4 text-[10px] text-tp-slate-600">
-                  {currentMedicationEntries.map((item, index) => (
-                    <span key={`${item.name}-${index}`}>
-                      <span className="font-semibold text-tp-slate-700">{item.name}</span>
-                      {item.detail ? (
-                        <>
-                          <span className="text-tp-slate-400"> (</span>
-                          <span className="text-tp-slate-500">{item.detail}</span>
-                          <span className="text-tp-slate-400">)</span>
-                        </>
-                      ) : null}
-                      {index < currentMedicationEntries.length - 1 ? <span className="mx-1 text-tp-slate-300">|</span> : null}
-                    </span>
-                  ))}
-                </p>
-                <button
-                  type="button"
-                  onClick={() =>
-                    onCopy(
-                      {
-                        sourceDateLabel: "Current visit medications",
-                        medications: clinicalView.currentMedications.map((med) => ({
-                          medicine: med,
-                          unitPerDose: "-",
-                          frequency: "-",
-                          when: "-",
-                          duration: "-",
-                          note: "",
-                        })),
-                      },
-                      "Medications copied to RxPad",
-                    )
-                  }
-                  className={cn("opacity-0 transition-opacity group-hover/line:opacity-100", HOVER_COPY_ICON_CLASS)}
-                  title="Copy medications to RxPad"
-                  aria-label="Copy medications to RxPad"
-                >
-                  <Copy size={10} />
-                </button>
-              </div>
-            ) : null}
-
-            {hasLabs ? (
-              <div className={AI_ROW_GRID_CLASS}>
-                <span className="text-tp-slate-400">•</span>
-                <span className="text-tp-slate-500">Concerning lab results</span>
-                <p className="min-w-0 leading-4 text-[10px] text-tp-slate-600">
-                  {labHighlights.map((lab, index) => (
-                    <span key={lab.name}>
-                      <span className="text-tp-slate-500">{lab.name}:</span>{" "}
-                      <span className={cn("font-medium", lab.flag === "high" ? "text-tp-error-600" : "text-tp-warning-700")}>
-                        {lab.flag === "high" ? "↑" : "↓"} {lab.value}
-                      </span>
-                      {index < labHighlights.length - 1 ? <span className="mx-1 text-tp-slate-300">|</span> : null}
-                    </span>
-                  ))}
-                </p>
-                <button
-                  type="button"
-                  onClick={() =>
-                    onCopy(
-                      { sourceDateLabel: "Current lab highlights", labInvestigations: labHighlights.map((lab) => lab.name) },
-                      "Lab highlights copied to RxPad",
-                    )
-                  }
-                  className={cn("opacity-0 transition-opacity group-hover/line:opacity-100", HOVER_COPY_ICON_CLASS)}
-                  title="Copy lab highlights to RxPad"
-                  aria-label="Copy lab highlights to RxPad"
-                >
-                  <Copy size={10} />
-                </button>
-              </div>
-            ) : null}
-          </div>
-        </div>
-
-        <div className={AI_INNER_SURFACE_CLASS}>
-          <div className={cn(AI_INNER_HEADER_CLASS, "flex items-center justify-between gap-2")}>
-            <p className="text-[10px] font-semibold text-tp-slate-700">Last visit essentials ({latestVisit?.date ?? "No record"})</p>
-            {latestVisit ? (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setLastVisitCopyMenuOpen((prev) => !prev)}
-                  className="inline-flex size-6 items-center justify-center rounded-[8px] border-[0.5px] border-tp-slate-200 bg-white text-tp-slate-500 hover:border-tp-blue-300 hover:text-tp-blue-600"
-                  title="Copy options to RxPad"
-                  aria-label="Copy options to RxPad"
-                >
-                  <Copy size={11} />
-                </button>
-                {lastVisitCopyMenuOpen ? (
-                  <div className="absolute right-0 top-[28px] z-20 w-[210px] overflow-hidden rounded-[10px] border-[0.5px] border-tp-slate-200 bg-white p-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onCopy(
-                          {
-                            sourceDateLabel: `Last visit ${latestVisit.date}`,
-                            symptoms: lastVisitSymptomTokens,
-                            examinations: [latestVisit.examination],
-                            diagnoses: [latestVisit.diagnosis],
-                            medications: lastVisitMedications.map((med) => ({
-                              medicine: med,
-                              unitPerDose: "-",
-                              frequency: "-",
-                              when: "-",
-                              duration: "-",
-                              note: "",
-                            })),
-                            labInvestigations: latestVisit.labTestsSuggested.split(",").map((item) => item.trim()),
-                            followUp: latestVisit.followUp,
-                          },
-                          "Complete visit Rx copied to RxPad",
-                        )
-                        setLastVisitCopyMenuOpen(false)
-                      }}
-                      className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
-                      title="Copy complete Rx to RxPad"
-                      aria-label="Copy complete Rx to RxPad"
-                    >
-                      <ClipboardPlus size={11} className="text-tp-blue-600" />
-                      Copy complete Rx to RxPad
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onCopy(
-                          {
-                            sourceDateLabel: `Last visit ${latestVisit.date}`,
-                            medications: lastVisitMedications.map((med) => ({
-                              medicine: med,
-                              unitPerDose: "-",
-                              frequency: "-",
-                              when: "-",
-                              duration: "-",
-                              note: "",
-                            })),
-                          },
-                          "Medications copied to RxPad",
-                        )
-                        setLastVisitCopyMenuOpen(false)
-                      }}
-                      className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
-                      title="Copy medications to RxPad"
-                      aria-label="Copy medications to RxPad"
-                    >
-                      <Pill size={11} className="text-tp-blue-600" />
-                      Copy medications to RxPad
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-          {latestVisit ? (
-            <div className={AI_INNER_BODY_CLASS}>
-              <div className={AI_ROW_GRID_CLASS}>
-                <span className="text-tp-slate-400">•</span>
-                <span className="text-tp-slate-500">Vitals</span>
-                <p className="min-w-0 leading-4 text-[10px] text-tp-slate-600">
-                  {lastVisitVitalsTokens.length > 0
-                    ? lastVisitVitalsTokens.map((token, index) => {
-                        const spo2Value = token.label === "SpO2" ? Number(token.value.replace(/[^\d.]/g, "")) : Number.NaN
-                        const showLowSpo2 = token.label === "SpO2" && !Number.isNaN(spo2Value) && spo2Value < 95
-                        return (
-                          <span key={`${token.label}-${index}`}>
-                            <span className="text-tp-slate-500">{token.label}:</span>{" "}
-                            <span className="font-medium text-tp-slate-700">{token.value}</span>
-                            {showLowSpo2 ? <span className="ml-0.5 text-tp-error-600">↓</span> : null}
-                            {index < lastVisitVitalsTokens.length - 1 ? <span className="mx-1 text-tp-slate-300">|</span> : null}
-                          </span>
-                        )
-                      })
-                    : "Not documented"}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => onCopy({ sourceDateLabel: `Last visit ${latestVisit.date}`, additionalNotes: `Vitals: ${latestVisit.vitals}` }, "Vitals copied to RxPad")}
-                  className={cn("opacity-0 transition-opacity group-hover/line:opacity-100", HOVER_COPY_ICON_CLASS)}
-                  title="Copy last-visit vitals to RxPad"
-                  aria-label="Copy last-visit vitals to RxPad"
-                >
-                  <Copy size={10} />
-                </button>
-              </div>
-
-              <div className={AI_ROW_GRID_CLASS}>
-                <span className="text-tp-slate-400">•</span>
-                <span className="text-tp-slate-500">Medical history</span>
-                <p className="min-w-0 leading-4 text-[10px] text-tp-slate-600">
-                  <span className="text-tp-slate-500">Chronic:</span>{" "}
-                  <span className="font-medium text-tp-slate-700">{chronicHighlights.length > 0 ? chronicHighlights.join(", ") : "None"}</span>
-                  <span className="mx-1 text-tp-slate-300">|</span>
-                  <span className="text-tp-slate-500">Allergies:</span>{" "}
-                  <span className="font-medium text-tp-slate-700">{allergyHighlights.length > 0 ? allergyHighlights.join(", ") : "None"}</span>
-                </p>
-                <button
-                  type="button"
-                  onClick={() => onCopy({ sourceDateLabel: `Last visit ${latestVisit.date}`, additionalNotes: historyLineForCopy }, "Medical history copied to RxPad")}
-                  className={cn("opacity-0 transition-opacity group-hover/line:opacity-100", HOVER_COPY_ICON_CLASS)}
-                  title="Copy medical history to RxPad"
-                  aria-label="Copy medical history to RxPad"
-                >
-                  <Copy size={10} />
-                </button>
-              </div>
-
-              <div className={AI_ROW_GRID_CLASS}>
-                <span className="text-tp-slate-400">•</span>
-                <span className="text-tp-slate-500">Symptoms</span>
-                <p className="min-w-0 leading-4 text-[10px] text-tp-slate-600">
-                  {lastVisitSymptomTokens.length > 0
-                    ? lastVisitSymptomTokens.map((item, index) => {
-                        const token = parseTokenDetail(item)
-                        return (
-                          <span key={`${token.label}-${index}`}>
-                            <span className="font-semibold text-tp-slate-700">{token.label}</span>
-                            {token.detail ? (
-                              <>
-                                <span className="text-tp-slate-400"> (</span>
-                                <span className="text-tp-slate-500">{token.detail}</span>
-                                <span className="text-tp-slate-400">)</span>
-                              </>
-                            ) : null}
-                            {index < lastVisitSymptomTokens.length - 1 ? <span className="mx-1 text-tp-slate-300">|</span> : null}
-                          </span>
-                        )
-                      })
-                    : "Not documented"}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => onCopy({ sourceDateLabel: `Last visit ${latestVisit.date}`, symptoms: lastVisitSymptomTokens }, "Symptoms copied to RxPad")}
-                  className={cn("opacity-0 transition-opacity group-hover/line:opacity-100", HOVER_COPY_ICON_CLASS)}
-                  title="Copy last-visit symptoms to RxPad"
-                  aria-label="Copy last-visit symptoms to RxPad"
-                >
-                  <Copy size={10} />
-                </button>
-              </div>
-
-              <div className={AI_ROW_GRID_CLASS}>
-                <span className="text-tp-slate-400">•</span>
-                <span className="text-tp-slate-500">Examination</span>
-                <p className="min-w-0 leading-4 text-[10px] font-medium text-tp-slate-700">
-                  {latestVisit.examination}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => onCopy({ sourceDateLabel: `Last visit ${latestVisit.date}`, examinations: [latestVisit.examination] }, "Examination copied to RxPad")}
-                  className={cn("opacity-0 transition-opacity group-hover/line:opacity-100", HOVER_COPY_ICON_CLASS)}
-                  title="Copy last-visit examination to RxPad"
-                  aria-label="Copy last-visit examination to RxPad"
-                >
-                  <Copy size={10} />
-                </button>
-              </div>
-
-              <div className={AI_ROW_GRID_CLASS}>
-                <span className="text-tp-slate-400">•</span>
-                <span className="text-tp-slate-500">Diagnosis</span>
-                <p className="min-w-0 leading-4 text-[10px] font-medium text-tp-slate-800">
-                  {latestVisit.diagnosis}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => onCopy({ sourceDateLabel: `Last visit ${latestVisit.date}`, diagnoses: [latestVisit.diagnosis] }, "Diagnosis copied to RxPad")}
-                  className={cn("opacity-0 transition-opacity group-hover/line:opacity-100", HOVER_COPY_ICON_CLASS)}
-                  title="Copy last-visit diagnosis to RxPad"
-                  aria-label="Copy last-visit diagnosis to RxPad"
-                >
-                  <Copy size={10} />
-                </button>
-              </div>
-
-              <div className={AI_ROW_GRID_CLASS}>
-                <span className="text-tp-slate-400">•</span>
-                <span className="text-tp-slate-500">Medications</span>
-                <p className="min-w-0 leading-4 text-[10px] text-tp-slate-600">
-                  {lastVisitMedicationEntries.length > 0
-                    ? lastVisitMedicationEntries.map((item, index) => (
-                        <span key={`${item.name}-${index}`}>
-                          <span className="font-semibold text-tp-slate-700">{item.name}</span>
-                          {item.detail ? (
-                            <>
-                              <span className="text-tp-slate-400"> (</span>
-                              <span className="text-tp-slate-500">{item.detail}</span>
-                              <span className="text-tp-slate-400">)</span>
-                            </>
-                          ) : null}
-                          {index < lastVisitMedicationEntries.length - 1 ? <span className="mx-1 text-tp-slate-300">|</span> : null}
-                        </span>
-                      ))
-                    : "Not documented"}
-                </p>
-                <button
-                  type="button"
-                  onClick={() =>
-                    onCopy(
-                      {
-                        sourceDateLabel: `Last visit ${latestVisit.date}`,
-                        medications: lastVisitMedications.map((med) => ({
-                          medicine: med,
-                          unitPerDose: "-",
-                          frequency: "-",
-                          when: "-",
-                          duration: "-",
-                          note: "",
-                        })),
-                      },
-                      "Last-visit medications copied to RxPad",
-                    )
-                  }
-                  className={cn("opacity-0 transition-opacity group-hover/line:opacity-100", HOVER_COPY_ICON_CLASS)}
-                  title="Copy last-visit medications to RxPad"
-                  aria-label="Copy last-visit medications to RxPad"
-                >
-                  <Copy size={10} />
-                </button>
-              </div>
-
-              <div className={AI_ROW_GRID_CLASS}>
-                <span className="text-tp-slate-400">•</span>
-                <span className="text-tp-slate-500">Lab tests</span>
-                <p className="min-w-0 leading-4 text-[10px] text-tp-slate-600">
-                  <span className="font-medium text-tp-slate-700">{latestVisit.labTestsSuggested}</span>
-                </p>
-                <button
-                  type="button"
-                  onClick={() => onCopy({ sourceDateLabel: `Last visit ${latestVisit.date}`, labInvestigations: latestVisit.labTestsSuggested.split(",").map((item) => item.trim()) }, "Lab tests copied to RxPad")}
-                  className={cn("opacity-0 transition-opacity group-hover/line:opacity-100", HOVER_COPY_ICON_CLASS)}
-                  title="Copy last-visit lab tests to RxPad"
-                  aria-label="Copy last-visit lab tests to RxPad"
-                >
-                  <Copy size={10} />
-                </button>
-              </div>
-            </div>
-          ) : (
-            <p className="px-2 py-1 text-[10px] text-tp-slate-500">No previous visit summary available.</p>
-          )}
-        </div>
-
-        {activeSpecialty === "gp" && summaryData.concernTrend && summaryData.labFlagCount > 0 ? (
-          <div className={AI_INNER_SURFACE_CLASS}>
-            <div className={cn(AI_INNER_HEADER_CLASS, "flex items-center justify-between gap-2")}>
-              <p className="text-[10px] font-semibold text-tp-slate-700">{summaryData.concernTrend.label}</p>
-              <span className="rounded-full border-[0.5px] border-tp-warning-200 bg-tp-warning-50 px-1.5 py-0.5 text-[9px] font-semibold text-tp-warning-700">
-                Highlighted
-              </span>
-            </div>
-            <div className="px-2 py-1.5">
-              <MiniLineGraph
-                values={summaryData.concernTrend.values}
-                labels={summaryData.concernTrend.labels}
-                tone={summaryData.concernTrend.tone ?? "violet"}
-              />
-            </div>
-          </div>
-        ) : null}
-
-        {expanded ? (
-          <div className="space-y-2">
-            {(summaryData.familyHistory?.length ?? 0) > 0 || (summaryData.lifestyleNotes?.length ?? 0) > 0 ? (
-              <div className={AI_INNER_SURFACE_CLASS}>
-                <div className={cn(AI_INNER_HEADER_CLASS, "flex items-center justify-between gap-2")}>
-                  <p className="text-[10px] font-semibold text-tp-slate-700">Additional history context</p>
-                  {additionalHistoryNotes ? (
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => setAdditionalHistoryCopyMenuOpen((prev) => !prev)}
-                        className="inline-flex size-6 items-center justify-center rounded-[8px] border-[0.5px] border-tp-slate-200 bg-white text-tp-slate-500 hover:border-tp-blue-300 hover:text-tp-blue-600"
-                        title="Copy options to RxPad"
-                        aria-label="Copy options to RxPad"
-                      >
-                        <Copy size={11} />
-                      </button>
-                      {additionalHistoryCopyMenuOpen ? (
-                        <div className="absolute right-0 top-[28px] z-20 w-[220px] overflow-hidden rounded-[10px] border-[0.5px] border-tp-slate-200 bg-white p-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              onCopy(
-                                {
-                                  sourceDateLabel: "Additional history context",
-                                  targetSection: "history",
-                                  additionalNotes: additionalHistoryNotes,
-                                },
-                                "Additional history copied to RxPad",
-                              )
-                              setAdditionalHistoryCopyMenuOpen(false)
-                            }}
-                            className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
-                            title="Copy all additional history to RxPad"
-                            aria-label="Copy all additional history to RxPad"
-                          >
-                            <ClipboardPlus size={11} className="text-tp-blue-600" />
-                            Copy all additional history to RxPad
-                          </button>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
-                <div className={AI_INNER_BODY_CLASS}>
-                {(summaryData.familyHistory?.length ?? 0) > 0 ? (
-                    <div className="group/line grid grid-cols-[9px_minmax(0,1fr)_auto] items-start gap-x-1.5">
-                      <span className="text-tp-slate-400">•</span>
-                      <p className="leading-4 text-tp-slate-700">
-                        <span className="text-tp-slate-500">Family history</span>
-                        <span className="mx-1 text-tp-slate-300">|</span>
-                        <span className="font-medium">{summaryData.familyHistory!.join(", ")}</span>
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          onCopy(
-                            {
-                              sourceDateLabel: "Additional history context",
-                              targetSection: "history",
-                              additionalNotes: `Family history: ${summaryData.familyHistory!.join(", ")}`,
-                            },
-                            "Family history copied to RxPad",
-                          )
-                        }
-                        className={cn("opacity-0 transition-opacity group-hover/line:opacity-100", HOVER_COPY_ICON_CLASS)}
-                        title="Copy family history to RxPad"
-                        aria-label="Copy family history to RxPad"
-                      >
-                        <Copy size={10} />
-                      </button>
-                    </div>
-                ) : null}
-                {(summaryData.lifestyleNotes?.length ?? 0) > 0 ? (
-                    <div className="group/line grid grid-cols-[9px_minmax(0,1fr)_auto] items-start gap-x-1.5">
-                      <span className="text-tp-slate-400">•</span>
-                      <p className="leading-4 text-tp-slate-700">
-                        <span className="text-tp-slate-500">Lifestyle</span>
-                        <span className="mx-1 text-tp-slate-300">|</span>
-                        <span className="font-medium">{summaryData.lifestyleNotes!.join(", ")}</span>
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          onCopy(
-                            {
-                              sourceDateLabel: "Additional history context",
-                              targetSection: "history",
-                              additionalNotes: `Lifestyle: ${summaryData.lifestyleNotes!.join(", ")}`,
-                            },
-                            "Lifestyle context copied to RxPad",
-                          )
-                        }
-                        className={cn("opacity-0 transition-opacity group-hover/line:opacity-100", HOVER_COPY_ICON_CLASS)}
-                        title="Copy lifestyle context to RxPad"
-                        aria-label="Copy lifestyle context to RxPad"
-                      >
-                        <Copy size={10} />
-                      </button>
-                    </div>
-                ) : null}
-                </div>
-              </div>
-            ) : null}
-
-            {(summaryData.recordAlerts?.length ?? 0) > 0 ? (
-              <div className={AI_INNER_SURFACE_CLASS}>
-                <div className={cn(AI_INNER_HEADER_CLASS, "flex items-center justify-between gap-2")}>
-                  <p className="text-[10px] font-semibold text-tp-slate-700">Medical record highlights</p>
-                  {recordHighlightNotes ? (
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => setRecordHighlightsCopyMenuOpen((prev) => !prev)}
-                        className="inline-flex size-6 items-center justify-center rounded-[8px] border-[0.5px] border-tp-slate-200 bg-white text-tp-slate-500 hover:border-tp-blue-300 hover:text-tp-blue-600"
-                        title="Copy options to RxPad"
-                        aria-label="Copy options to RxPad"
-                      >
-                        <Copy size={11} />
-                      </button>
-                      {recordHighlightsCopyMenuOpen ? (
-                        <div className="absolute right-0 top-[28px] z-20 w-[224px] overflow-hidden rounded-[10px] border-[0.5px] border-tp-slate-200 bg-white p-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              onCopy(
-                                {
-                                  sourceDateLabel: "Medical record highlights",
-                                  targetSection: "medicalRecords",
-                                  additionalNotes: recordHighlightNotes,
-                                },
-                                "Medical record highlights copied to RxPad",
-                              )
-                              setRecordHighlightsCopyMenuOpen(false)
-                            }}
-                            className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[10px] text-tp-slate-700 hover:bg-tp-slate-50"
-                            title="Copy all medical record highlights to RxPad"
-                            aria-label="Copy all medical record highlights to RxPad"
-                          >
-                            <ClipboardPlus size={11} className="text-tp-blue-600" />
-                            Copy all medical record highlights to RxPad
-                          </button>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
-                <div className={AI_INNER_BODY_CLASS}>
-                  {summaryData.recordAlerts!.slice(0, 3).map((item) => (
-                    <div key={item} className="group/line grid grid-cols-[9px_minmax(0,1fr)_auto] items-start gap-x-1.5">
-                      <span className="text-tp-slate-400">•</span>
-                      <p className="leading-4 text-[10px] text-tp-slate-700">{item}</p>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          onCopy(
-                            {
-                              sourceDateLabel: "Medical record highlights",
-                              targetSection: "medicalRecords",
-                              additionalNotes: item,
-                            },
-                            "Medical record highlight copied to RxPad",
-                          )
-                        }
-                        className={cn("opacity-0 transition-opacity group-hover/line:opacity-100", HOVER_COPY_ICON_CLASS)}
-                        title="Copy medical record highlight to RxPad"
-                        aria-label="Copy medical record highlight to RxPad"
-                      >
-                        <Copy size={10} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
-        <button
-          type="button"
-          onClick={() => setExpanded((prev) => !prev)}
-          className="w-full rounded-[8px] border-[0.5px] border-transparent px-2 py-1 text-center text-[10px] font-semibold text-tp-blue-600 hover:border-tp-blue-200 hover:bg-tp-blue-50"
-        >
-          {expanded ? "Show less details" : "Show more details"}
-        </button>
-
-        <div className="overflow-x-auto pb-0.5">
-          <div className="inline-flex min-w-max gap-1">
-            <button type="button" onClick={() => onQuickSend("Compare last visit with current findings")} className={AI_INLINE_PROMPT_CLASS}>
-              Compare last visit
-            </button>
-            <button type="button" onClick={() => onQuickSend("Show abnormal labs and likely clinical impact")} className={AI_INLINE_PROMPT_CLASS}>
-              Review abnormal labs
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function IntakeSection({
   title,
@@ -4867,7 +3992,7 @@ function IntakeSection({
   return (
     <div className={cn("group/section", AI_INNER_SURFACE_CLASS, surfaceToneClass)}>
       <div className={cn(AI_INNER_HEADER_CLASS, "flex items-center justify-between gap-2")}>
-        <p className="text-[10px] font-semibold text-tp-slate-700">{title}</p>
+        <p className="text-[12px] font-semibold text-tp-slate-700">{title}</p>
         <button
           type="button"
           onClick={() =>
@@ -4891,7 +4016,7 @@ function IntakeSection({
         {items.map((item) => (
           <div key={item.id} className="group/row grid grid-cols-[9px_minmax(0,1fr)_auto] items-start gap-x-1.5">
             <span className="text-tp-slate-400">•</span>
-            <p className="min-w-0 leading-4 text-[10px] text-tp-slate-600">
+            <p className="min-w-0 leading-4 text-[12px] text-tp-slate-600">
               <span className={cn(title.toLowerCase().includes("symptom") ? "font-semibold text-tp-slate-700" : "text-tp-slate-500")}>{item.line}</span>
               <span className="text-tp-slate-400"> (</span>
               {item.detail.split("|").map((chunk, index, arr) => {
@@ -4952,13 +4077,13 @@ function SymptomCollectorCard({
       <button
         type="button"
         onClick={() => setCollapsed(false)}
-        className="flex h-[28px] w-full items-center justify-between rounded-[10px] border-[0.5px] border-tp-violet-100 bg-[linear-gradient(135deg,rgba(242,77,182,0.04)_0%,rgba(150,72,254,0.03)_52%,rgba(75,74,213,0.03)_100%)] px-2.5 text-left"
+        className="flex h-[32px] w-full items-center justify-between rounded-[10px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50/60 px-3 text-left"
       >
         <div className="flex min-w-0 items-center gap-1.5">
-          <span className="inline-flex size-[18px] shrink-0 items-center justify-center rounded-[6px] bg-tp-violet-100 text-tp-violet-600">
-            <Activity size={10} />
+          <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-[6px] bg-tp-violet-100 text-tp-violet-600">
+            <Activity size={12} />
           </span>
-          <p className="truncate text-[10px] font-medium text-tp-slate-600">Patient-reported symptoms & history</p>
+          <p className="truncate text-[12px] font-medium text-tp-slate-600">Patient-reported symptoms & history</p>
         </div>
         <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-[6px] text-tp-slate-400">
           <ChevronDown size={11} />
@@ -4974,7 +4099,7 @@ function SymptomCollectorCard({
           <span className="inline-flex size-6 items-center justify-center rounded-[8px] bg-tp-violet-100 text-tp-violet-600">
             <Activity size={12} />
           </span>
-          <p className="truncate text-[11px] font-semibold text-tp-slate-800">Symptoms and medical history from patient</p>
+          <p className="truncate text-[13px] font-semibold text-tp-slate-800">Symptoms and medical history from patient</p>
         </div>
         <button
           type="button"
@@ -5045,18 +4170,18 @@ function OcrReportCard({
       <div className={AI_INNER_SURFACE_CLASS}>
         <div className="flex items-center gap-1.5 border-b border-tp-slate-100 bg-gradient-to-r from-[#0d948810] to-[#0d948805] px-2.5 py-1.5">
           <span className="size-[6px] rounded-full bg-[#0D9488]" />
-          <span className="text-[10px] font-semibold text-[#0D9488]">📄 {data.title}</span>
+          <span className="text-[12px] font-semibold text-[#0D9488]">{data.title}</span>
           {flaggedCount > 0 && (
-            <span className="ml-auto text-[9px] font-semibold text-tp-error-600">{flaggedCount} flagged</span>
+            <span className="ml-auto text-[12px] font-semibold text-tp-error-600">{flaggedCount} flagged</span>
           )}
         </div>
         <div className="px-2 py-1.5">
           {/* Table header */}
           <div className="mb-1 grid grid-cols-[minmax(0,1fr)_60px_48px_20px] gap-x-1 border-b-2 border-tp-slate-100 pb-1">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-tp-slate-400">Parameter</span>
-            <span className="text-[9px] font-bold uppercase tracking-wider text-tp-slate-400">Ref</span>
-            <span className="text-right text-[9px] font-bold uppercase tracking-wider text-tp-slate-400">Value</span>
-            <span className="text-center text-[9px] font-bold uppercase tracking-wider text-tp-slate-400">⚑</span>
+            <span className="text-[12px] font-bold uppercase tracking-wider text-tp-slate-400">Parameter</span>
+            <span className="text-[12px] font-bold uppercase tracking-wider text-tp-slate-400">Ref</span>
+            <span className="text-right text-[12px] font-bold uppercase tracking-wider text-tp-slate-400">Value</span>
+            <span className="text-center text-[12px] font-bold uppercase tracking-wider text-tp-slate-400">⚑</span>
           </div>
           {/* Parameter rows */}
           {data.parameters.map((param) => (
@@ -5068,27 +4193,27 @@ function OcrReportCard({
                 param.flag === "low" && "bg-tp-warning-50/60 -mx-2 px-2",
               )}
             >
-              <span className={cn("text-[10px]", param.flag !== "normal" ? "font-semibold text-tp-slate-800" : "text-tp-slate-600")}>
+              <span className={cn("text-[12px]", param.flag !== "normal" ? "font-semibold text-tp-slate-800" : "text-tp-slate-600")}>
                 {param.name}
               </span>
-              <span className="text-[9px] text-tp-slate-400">{param.reference}</span>
+              <span className="text-[12px] text-tp-slate-400">{param.reference}</span>
               <span
                 className={cn(
-                  "text-right text-[10px] font-semibold",
+                  "text-right text-[12px] font-semibold",
                   param.flag === "high" || param.flag === "critical" ? "text-tp-error-600" : param.flag === "low" ? "text-tp-warning-600" : "text-tp-slate-700",
                 )}
               >
                 {param.flag === "high" || param.flag === "critical" ? "↑" : param.flag === "low" ? "↓" : ""}
                 {param.value}
               </span>
-              <span className={cn("text-center text-[10px]", param.flag === "normal" ? "text-tp-success-600" : "text-tp-error-600")}>
+              <span className={cn("text-center text-[12px]", param.flag === "normal" ? "text-tp-success-600" : "text-tp-error-600")}>
                 {param.flag === "normal" ? "✓" : param.flag === "high" ? "↑" : param.flag === "low" ? "↓" : "⚠"}
               </span>
             </div>
           ))}
           {/* Clinical insight */}
           {data.insight && (
-            <div className="mt-2 rounded-[6px] bg-tp-error-50 px-2 py-1.5 text-[10px] font-medium text-tp-error-700">
+            <div className="mt-2 rounded-[6px] bg-tp-error-50 px-2 py-1.5 text-[12px] font-medium text-tp-error-700">
               <strong>Alert:</strong> {data.insight}
             </div>
           )}
@@ -5097,22 +4222,22 @@ function OcrReportCard({
             <button
               type="button"
               onClick={() => onCopy(data.copyPayload, `OCR data copied to Lab Results`)}
-              className="rounded-[42px] border border-tp-success-200 bg-tp-success-50 px-2 py-0.5 text-[9px] font-semibold text-tp-success-700 transition-colors hover:bg-tp-success-100"
+              className="rounded-[42px] border border-tp-success-200 bg-tp-success-50 px-2 py-0.5 text-[12px] font-semibold text-tp-success-700 transition-colors hover:bg-tp-success-100"
             >
-              📋 Copy to Lab Results
+              Copy to Lab Results
             </button>
             <button
               type="button"
               onClick={() => onQuickSend("Compare previous CBC")}
-              className="rounded-[42px] border border-tp-blue-200 bg-tp-blue-50 px-2 py-0.5 text-[9px] font-semibold text-tp-blue-700 transition-colors hover:bg-tp-blue-100"
+              className="rounded-[42px] border border-tp-blue-200 bg-tp-blue-50 px-2 py-0.5 text-[12px] font-semibold text-tp-blue-700 transition-colors hover:bg-tp-blue-100"
             >
-              📊 Compare prev CBC
+              Compare prev CBC
             </button>
             <button
               type="button"
-              className="rounded-[42px] border border-tp-slate-200 bg-white px-2 py-0.5 text-[9px] font-semibold text-tp-slate-600 transition-colors hover:bg-tp-slate-50"
+              className="rounded-[42px] border border-tp-slate-200 bg-white px-2 py-0.5 text-[12px] font-semibold text-tp-slate-600 transition-colors hover:bg-tp-slate-50"
             >
-              📄 Original PDF
+              Original PDF
             </button>
           </div>
         </div>
@@ -5206,87 +4331,168 @@ function formatMessageTime(value: string) {
 function AgentIntroMessage({
   contextLabel,
   isPatientContext,
-  summaryData,
 }: {
   contextLabel: string
   isPatientContext: boolean
-  summaryData?: SmartSummaryData | null
 }) {
-  if (!isPatientContext) {
-    return (
-      <div className="flex items-start gap-2">
-        <span className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-[10px]" style={{ background: AI_GRADIENT_SOFT }}>
-          <AiBrandSparkIcon size={13} />
-        </span>
-        <div className="max-w-[88%] text-[11px] leading-[16px] text-tp-slate-600">
-          <p>{`Hi Doctor, you are in ${contextLabel}. I can help with operational guidance until you switch to a patient chart.`}</p>
-        </div>
-      </div>
-    )
-  }
-
-  const s = summaryData
-  // Build alert banners (safety-critical, non-dismissible)
-  const alerts: Array<{ text: string; tone: "red" | "amber" }> = []
-  if (s?.allergies?.length) {
-    alerts.push({ text: `⚠ Allergy: ${s.allergies.join(", ")}`, tone: "red" })
-  }
-  if (s?.todayVitals?.spo2) {
-    const spo2Val = Number.parseInt(s.todayVitals.spo2)
-    if (!Number.isNaN(spo2Val) && spo2Val < 90) {
-      alerts.push({ text: `⚠ SpO2 ${s.todayVitals.spo2}% — Critical`, tone: "red" })
-    }
-  }
-  if (s?.followUpStatus === "overdue") {
-    alerts.push({ text: `⏰ F/U Overdue`, tone: "amber" })
-  }
-
-  // Build context lines (3-5 compact facts)
-  const lines: string[] = []
-  if (s?.chronicConditions?.length) {
-    const meds = s.activeMeds?.length ? ` · On ${s.activeMeds.join(", ")}` : ""
-    lines.push(`**Chronic:** ${s.chronicConditions.join(", ")}${meds}`)
-  }
-  if (s?.lastVisit) {
-    lines.push(`**Last visit ${s.lastVisit.date}:** Dx: ${s.lastVisit.diagnosis} · Rx: ${s.lastVisit.medication}${s.lastVisit.investigation ? ` · Inv: ${s.lastVisit.investigation}` : ""}`)
-  }
-  if (s?.todayVitals) {
-    const v = s.todayVitals
-    lines.push(`**Today:** BP ${v.bp} · SpO2 ${v.spo2}% · Pulse ${v.pulse} · Temp ${v.temp}`)
-  }
-  if (s?.keyLabs?.length) {
-    const flagged = s.keyLabs.filter((l) => l.flag !== "normal")
-    if (flagged.length > 0) {
-      lines.push(`**Labs:** ${flagged.length} abnormal — ${flagged.slice(0, 3).map((l) => `${l.name} ${l.flag === "high" ? "↑" : "↓"}${l.value}`).join(", ")}`)
-    }
-  }
-  if (s?.symptomCollectorData?.symptoms?.length) {
-    const sx = s.symptomCollectorData.symptoms
-    lines.push(`**Patient says:** ${sx.map((x) => `${x.name}${x.duration ? ` ${x.duration}` : ""}`).join(", ")}`)
-  }
-
-  // Render inline bold text
-  function renderLine(line: string) {
-    const parts = line.split(/(\*\*[^*]+\*\*)/)
-    return parts.map((part, i) =>
-      part.startsWith("**") && part.endsWith("**")
-        ? <strong key={i} className="font-semibold text-tp-slate-800">{part.slice(2, -2)}</strong>
-        : <span key={i}>{part}</span>,
-    )
-  }
+  const patientName = contextLabel.split(" (")[0]
+  const greeting = isPatientContext
+    ? `Hi Doctor, here's ${patientName}'s summary`
+    : `Hi Doctor, you are in ${contextLabel}. I can help with operational guidance until you switch to a patient chart.`
 
   return (
     <div className="flex items-start gap-2">
       <span className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-[10px]" style={{ background: AI_GRADIENT_SOFT }}>
         <AiBrandSparkIcon size={13} />
       </span>
-      <div className="min-w-0 max-w-[88%] space-y-1">
+      <p className="max-w-[88%] text-[12px] leading-[18px] text-tp-slate-600">{greeting}</p>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  PatientSummaryCard — compact card with sidebar-style formatting   */
+/* ------------------------------------------------------------------ */
+
+function PatientSummaryCard({
+  collapsed,
+  onToggle,
+  summaryData,
+}: {
+  collapsed: boolean
+  onToggle: () => void
+  summaryData: SmartSummaryData
+}) {
+  const s = summaryData
+
+  // Build alert banners
+  const alerts: Array<{ text: string; tone: "red" | "amber" }> = []
+  if (s.allergies?.length) {
+    alerts.push({ text: `ALLERGY: ${s.allergies.join(", ")}`, tone: "red" })
+  }
+  if (s.todayVitals?.spo2) {
+    const spo2Val = Number.parseInt(s.todayVitals.spo2)
+    if (!Number.isNaN(spo2Val) && spo2Val < 90) {
+      alerts.push({ text: `SpO2 ${s.todayVitals.spo2}% — Critical`, tone: "red" })
+    }
+  }
+  if (s.followUpOverdueDays > 0) {
+    alerts.push({ text: `F/U Overdue: ${s.followUpOverdueDays} days`, tone: "amber" })
+  }
+
+  // Build context rows
+  type Row = { label: string; parts: Array<{ text: string; tone?: "error" | "muted" }> }
+  const rows: Row[] = []
+
+  if (s.chronicConditions?.length) {
+    const parts: Row["parts"] = [{ text: s.chronicConditions.join(", ") }]
+    if (s.activeMeds?.length) {
+      parts.push({ text: " | ", tone: "muted" })
+      parts.push({ text: `Meds: ${s.activeMeds.join(", ")}` })
+    }
+    rows.push({ label: "Chronic", parts })
+  }
+
+  if (s.lastVisit) {
+    const lv = s.lastVisit
+    const parts: Row["parts"] = [{ text: `Dx: ${lv.diagnosis}` }]
+    parts.push({ text: " | ", tone: "muted" })
+    parts.push({ text: `Rx: ${lv.medication}` })
+    if (lv.investigation) {
+      parts.push({ text: " | ", tone: "muted" })
+      parts.push({ text: `Inv: ${lv.investigation}` })
+    }
+    rows.push({ label: `Last visit ${lv.date}`, parts })
+  }
+
+  if (s.todayVitals) {
+    const v = s.todayVitals
+    const spo2Tone = Number.parseInt(v.spo2) < 95 ? "error" as const : undefined
+    rows.push({
+      label: "Today",
+      parts: [
+        { text: `BP ${v.bp}` },
+        { text: " | ", tone: "muted" },
+        { text: `SpO2 ${v.spo2}%`, tone: spo2Tone },
+        { text: " | ", tone: "muted" },
+        { text: `Pulse ${v.pulse}` },
+        { text: " | ", tone: "muted" },
+        { text: `Temp ${v.temp}` },
+      ],
+    })
+  }
+
+  if (s.keyLabs?.length) {
+    const flagged = s.keyLabs.filter((l) => l.flag !== "normal")
+    if (flagged.length > 0) {
+      rows.push({
+        label: "Labs",
+        parts: [
+          { text: `${flagged.length} abnormal — ` },
+          ...flagged.slice(0, 3).flatMap((l, i) => {
+            const arrow = l.flag === "high" ? "↑" : "↓"
+            const items: Row["parts"] = [{ text: `${l.name} ${arrow}${l.value}`, tone: "error" }]
+            if (i < Math.min(flagged.length, 3) - 1) items.push({ text: ", " })
+            return items
+          }),
+        ],
+      })
+    }
+  }
+
+  if (s.symptomCollectorData?.symptoms?.length) {
+    const sx = s.symptomCollectorData.symptoms
+    rows.push({
+      label: "Sx",
+      parts: [{ text: sx.map((x) => `${x.name}${x.duration ? ` ${x.duration}` : ""}`).join(", ") }],
+    })
+  }
+
+  // Collapsed tokens
+  const collapsedTokens: string[] = []
+  if (s.chronicConditions?.length) collapsedTokens.push(s.chronicConditions.join(", "))
+  if (s.followUpOverdueDays > 0) collapsedTokens.push("F/U Overdue")
+  if (s.labFlagCount > 0) collapsedTokens.push(`${s.labFlagCount} lab flags`)
+  if (s.allergies?.length) collapsedTokens.push(`${s.allergies[0]} allergy`)
+
+  if (collapsed) {
+    return (
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex h-[32px] w-full items-center justify-between rounded-[10px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50/60 px-3 text-left"
+      >
+        <p className="truncate text-[12px] font-medium text-tp-slate-600">
+          {collapsedTokens.join(" | ") || "Patient Summary"}
+        </p>
+        <ChevronDown size={12} className="shrink-0 text-tp-slate-400" />
+      </button>
+    )
+  }
+
+  return (
+    <div className="overflow-hidden rounded-[10px] border-[0.8px] border-tp-slate-200 bg-white">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2 border-b border-tp-slate-100 px-3 py-2">
+        <p className="text-[13px] font-semibold text-tp-slate-800">Patient Summary</p>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="inline-flex size-6 items-center justify-center rounded-[8px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50 text-tp-slate-600"
+          aria-label="Collapse card"
+        >
+          <ChevronUp size={12} />
+        </button>
+      </div>
+
+      {/* Body */}
+      <div className="space-y-1 px-3 py-2">
         {/* Alert banners */}
         {alerts.map((alert, i) => (
           <div
             key={i}
             className={cn(
-              "rounded-[6px] px-2 py-1 text-[10px] font-semibold",
+              "rounded-[6px] px-2 py-1 text-[12px] font-semibold",
               alert.tone === "red" ? "bg-tp-error-50 text-tp-error-700" : "bg-tp-warning-50 text-tp-warning-700",
             )}
           >
@@ -5294,18 +4500,24 @@ function AgentIntroMessage({
           </div>
         ))}
 
-        {/* Context lines */}
-        {lines.length > 0 ? (
-          <div className="space-y-0.5 text-[11px] leading-[16px] text-tp-slate-600">
-            {lines.map((line, i) => (
-              <p key={i} className="flex items-baseline gap-1">
-                <span className="mt-[5px] inline-block size-[3px] shrink-0 rounded-full bg-tp-slate-400" />
-                <span>{renderLine(line)}</span>
-              </p>
-            ))}
-          </div>
+        {/* Context rows */}
+        {rows.length > 0 ? (
+          rows.map((row, i) => (
+            <p key={i} className="text-[12px] leading-[18px] text-tp-slate-700">
+              <span className="font-semibold">{row.label}:</span>{" "}
+              {row.parts.map((part, j) =>
+                part.tone === "muted" ? (
+                  <span key={j} className="text-tp-slate-300">{part.text}</span>
+                ) : part.tone === "error" ? (
+                  <span key={j} className="font-medium text-tp-error-600">{part.text}</span>
+                ) : (
+                  <span key={j}>{part.text}</span>
+                ),
+              )}
+            </p>
+          ))
         ) : (
-          <p className="text-[11px] text-tp-slate-500 italic">First visit · No prior data. I'll assist as you consult.</p>
+          <p className="text-[12px] italic text-tp-slate-500">First visit — no prior data available.</p>
         )}
       </div>
     </div>
@@ -5830,7 +5042,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
             </span>
             <div className="min-w-0">
               <p className="truncate text-[12px] font-semibold text-tp-slate-900">Doctor Agent</p>
-              <p className="truncate text-[10px] text-tp-slate-600">TypeRx consultation</p>
+              <p className="truncate text-[12px] text-tp-slate-600">TypeRx consultation</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -5839,7 +5051,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
                 <button
                   type="button"
                   onClick={() => setSpecialtyMenuOpen((prev) => !prev)}
-                  className="inline-flex items-center gap-1 rounded-full border-[0.5px] border-tp-violet-300 bg-[linear-gradient(135deg,rgba(242,77,182,0.14)_0%,rgba(150,72,254,0.12)_52%,rgba(75,74,213,0.12)_100%)] px-2 py-0.5 text-[10px] font-medium text-tp-violet-700"
+                  className="inline-flex items-center gap-1 rounded-full border-[0.5px] border-tp-violet-300 bg-[linear-gradient(135deg,rgba(242,77,182,0.14)_0%,rgba(150,72,254,0.12)_52%,rgba(75,74,213,0.12)_100%)] px-2 py-0.5 text-[12px] font-medium text-tp-violet-700"
                 >
                   {SPECIALTY_TABS.find((item) => item.id === activeSpecialty)?.label ?? "GP"}
                   <ChevronDown size={11} className="text-tp-violet-500" />
@@ -5852,7 +5064,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
                         type="button"
                         onClick={() => applySpecialty(tab.id)}
                         className={cn(
-                          "w-full px-2 py-1.5 text-left text-[10px]",
+                          "w-full px-2 py-1.5 text-left text-[12px]",
                           tab.id === activeSpecialty ? "bg-tp-violet-50 text-tp-violet-700" : "text-tp-slate-700 hover:bg-tp-slate-50",
                         )}
                       >
@@ -5887,7 +5099,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
                   <span className="inline-flex size-4 items-center justify-center rounded-full bg-tp-slate-100 text-tp-slate-500">
                     <UserRound size={10} strokeWidth={2} />
                   </span>
-                  <span className="max-w-[160px] truncate text-[10px] font-medium text-tp-slate-600">{selectedContext.label}</span>
+                  <span className="max-w-[160px] truncate text-[12px] font-medium text-tp-slate-600">{selectedContext.label}</span>
                   <ChevronDown size={13} className="text-tp-slate-400" />
                 </button>
 
@@ -5900,14 +5112,14 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
                           value={contextSearch}
                           onChange={(event) => setContextSearch(event.target.value)}
                           placeholder="Search patient or context"
-                          className="h-8 w-full rounded-[8px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50 pl-7 pr-2.5 text-[11px] text-tp-slate-700 outline-none focus:border-tp-blue-300"
+                          className="h-8 w-full rounded-[8px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50 pl-7 pr-2.5 text-[12px] text-tp-slate-700 outline-none focus:border-tp-blue-300"
                         />
                       </div>
                       </div>
                       <div className="max-h-[250px] overflow-y-auto p-1.5">
                         {todayOptions.length > 0 && (
                           <>
-                            <p className="px-2 py-1 text-[9px] font-semibold uppercase tracking-wide text-tp-slate-400">Today's Appointments</p>
+                            <p className="px-2 py-1 text-[12px] font-semibold uppercase tracking-wide text-tp-slate-400">Today's Appointments</p>
                             {todayOptions.map((option) => (
                               <button
                                 key={option.id}
@@ -5921,15 +5133,15 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
                                   option.id === selectedContextId ? "bg-tp-blue-50" : "hover:bg-tp-slate-50",
                                 )}
                               >
-                                <p className="truncate text-[11px] font-semibold text-tp-slate-700">{option.label}</p>
-                                <p className="text-[10px] text-tp-slate-500">{option.meta}</p>
+                                <p className="truncate text-[12px] font-semibold text-tp-slate-700">{option.label}</p>
+                                <p className="text-[12px] text-tp-slate-500">{option.meta}</p>
                               </button>
                             ))}
                           </>
                         )}
                         {otherOptions.length > 0 && (
                           <>
-                            <p className="px-2 py-1 text-[9px] font-semibold uppercase tracking-wide text-tp-slate-400">Other Contexts</p>
+                            <p className="px-2 py-1 text-[12px] font-semibold uppercase tracking-wide text-tp-slate-400">Other Contexts</p>
                             {otherOptions.map((option) => (
                               <button
                                 key={option.id}
@@ -5943,8 +5155,8 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
                                   option.id === selectedContextId ? "bg-tp-blue-50" : "hover:bg-tp-slate-50",
                                 )}
                               >
-                                <p className="truncate text-[11px] font-semibold text-tp-slate-700">{option.label}</p>
-                                <p className="text-[10px] text-tp-slate-500">{option.meta}</p>
+                                <p className="truncate text-[12px] font-semibold text-tp-slate-700">{option.label}</p>
+                                <p className="text-[12px] text-tp-slate-500">{option.meta}</p>
                               </button>
                             ))}
                           </>
@@ -5957,18 +5169,15 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="space-y-2">
-              <AgentIntroMessage contextLabel={selectedContext.label} isPatientContext={isPatientContext} summaryData={activeSummaryData} />
+              <AgentIntroMessage contextLabel={selectedContext.label} isPatientContext={isPatientContext} />
 
               {isPatientContext && activeSummaryData && (
                 <div className="space-y-2">
                   <div className="ml-8 max-w-[86%]">
-                    <SummaryCard
+                    <PatientSummaryCard
                       collapsed={summaryCollapsed}
                       onToggle={() => setSummaryCollapsedByContext((prev) => ({ ...prev, [selectedContextId]: !summaryCollapsed }))}
-                      onCopy={handleCopy}
-                      onQuickSend={(prompt) => sendMessage(prompt, "canned")}
                       summaryData={activeSummaryData}
-                      activeSpecialty={activeSpecialty}
                     />
                   </div>
                   <div className="ml-8 max-w-[86%]">
@@ -5978,7 +5187,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
               )}
 
               {copyFeedback && (
-                <div className="rounded-lg border-[0.5px] border-tp-success-200 bg-tp-success-50 px-2 py-1 text-[10px] font-semibold text-tp-success-700">
+                <div className="rounded-lg border-[0.5px] border-tp-success-200 bg-tp-success-50 px-2 py-1 text-[12px] font-semibold text-tp-success-700">
                   {copyFeedback}
                 </div>
               )}
@@ -6003,7 +5212,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
                         )}
                       >
                         <p>{message.text}</p>
-                        {isUser ? <p className="mt-1 text-[9px] text-tp-slate-500">{formatMessageTime(message.createdAt)}</p> : null}
+                        {isUser ? <p className="mt-1 text-[12px] text-tp-slate-500">{formatMessageTime(message.createdAt)}</p> : null}
                       </div>
                       {isUser && (
                         <span className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-tp-slate-100 text-tp-slate-600">
@@ -6023,7 +5232,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
                       </div>
                     )}
                     {!isUser && (
-                      <div className="ml-8 flex items-center gap-1.5 text-[9px] text-tp-slate-400">
+                      <div className="ml-8 flex items-center gap-1.5 text-[12px] text-tp-slate-400">
                         <span>{formatMessageTime(message.createdAt)}</span>
                         <button
                           type="button"
@@ -6094,7 +5303,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
                       <span className="inline-flex size-6 items-center justify-center rounded-md" style={{ background: AI_GRADIENT_SOFT }}>
                         <AiBrandSparkIcon size={14} />
                       </span>
-                      <p className="text-[11px] font-semibold text-tp-slate-700">Preparing structured response</p>
+                      <p className="text-[12px] font-semibold text-tp-slate-700">Preparing structured response</p>
                     </div>
                     <div className="space-y-1.5">
                       <div className="h-2 w-[92%] rounded bg-tp-slate-100" />
@@ -6134,7 +5343,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
           {uploadedFile && (
             <div className="mb-2 inline-flex items-center gap-1.5 rounded-[8px] border border-tp-blue-200 bg-tp-blue-50 px-2.5 py-1.5">
               <FileText size={13} className="text-tp-blue-500" />
-              <span className="max-w-[200px] truncate text-[11px] font-medium text-tp-blue-700">{uploadedFile.name}</span>
+              <span className="max-w-[200px] truncate text-[12px] font-medium text-tp-blue-700">{uploadedFile.name}</span>
               <button type="button" onClick={() => setUploadedFile(null)} className="text-tp-blue-400 hover:text-tp-blue-600">
                 <X size={12} />
               </button>
@@ -6145,7 +5354,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
           {isProcessingUpload && (
             <div className="mb-2 flex items-center gap-2 rounded-[8px] bg-tp-slate-50 px-2.5 py-1.5">
               <div className="size-3 animate-spin rounded-full border-2 border-tp-violet-300 border-t-transparent" />
-              <span className="text-[11px] text-tp-slate-600">Processing document via OCR...</span>
+              <span className="text-[12px] text-tp-slate-600">Processing document via OCR...</span>
             </div>
           )}
 
@@ -6215,12 +5424,12 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* ── Footer ── */}
-          <div className="mt-2 flex items-center gap-1.5 text-[10px] text-tp-slate-500">
+          <div className="mt-2 flex items-center gap-1.5 text-[12px] text-tp-slate-500">
             <ShieldCheck size={11} className="text-tp-success-600" />
             <span>Encrypted. Patient details are stored securely and accessible only to this doctor.</span>
           </div>
 
-          {isRecording && <p className="mt-1 text-[10px] font-medium text-tp-violet-600">Recording voice prompt...</p>}
+          {isRecording && <p className="mt-1 text-[12px] font-medium text-tp-violet-600">Recording voice prompt...</p>}
         </div>
       </div>
     </aside>
