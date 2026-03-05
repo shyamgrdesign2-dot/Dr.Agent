@@ -272,6 +272,34 @@ const RX_CONTEXT_OPTIONS: RxContextOption[] = [
     },
   },
   {
+    id: "apt-priya",
+    label: "Priya Rao (F, 26y)",
+    meta: "Appointment today",
+    kind: "patient",
+    isToday: true,
+    patient: {
+      id: "apt-priya",
+      name: "Priya Rao",
+      gender: "F",
+      age: 26,
+      visitType: "Follow-up",
+    },
+  },
+  {
+    id: "apt-arjun",
+    label: "Arjun S (M, 4y)",
+    meta: "Appointment today",
+    kind: "patient",
+    isToday: true,
+    patient: {
+      id: "apt-arjun",
+      name: "Arjun S",
+      gender: "M",
+      age: 4,
+      visitType: "Follow-up",
+    },
+  },
+  {
     id: CONTEXT_COMMON_ID,
     label: "Common workspace",
     meta: "Operational and cross-patient context",
@@ -350,6 +378,67 @@ interface SmartSummaryData {
     medicalHistory?: string[]
     familyHistory?: string[]
   }
+
+  // --- Specialty-specific data blocks ---
+  gynecData?: {
+    menarche?: number
+    cycleLength?: string
+    cycleRegularity?: "Regular" | "Irregular"
+    flowDuration?: string
+    flowIntensity?: "Light" | "Moderate" | "Heavy"
+    padsPerDay?: number
+    painScore?: string
+    lmp?: string
+    lastPapSmear?: string
+    alerts?: string[]
+  }
+  ophthalData?: {
+    vaRight?: string
+    vaLeft?: string
+    nearVaRight?: string
+    nearVaLeft?: string
+    iop?: { right: string; left: string }
+    slitLamp?: string
+    fundus?: string
+    lastExamDate?: string
+    glassPrescription?: string
+    alerts?: string[]
+  }
+  obstetricData?: {
+    gravida?: number
+    para?: number
+    living?: number
+    abortion?: number
+    ectopic?: number
+    lmp?: string
+    edd?: string
+    gestationalWeeks?: number
+    presentation?: string
+    fetalMovement?: string
+    oedema?: boolean
+    fundusHeight?: string
+    amnioticFluid?: string
+    lastExamDate?: string
+    ancDue?: string[]
+    vaccineStatus?: string
+    alerts?: string[]
+  }
+  pediatricsData?: {
+    ageDisplay?: string
+    heightCm?: number
+    heightPercentile?: string
+    weightKg?: number
+    weightPercentile?: string
+    ofcCm?: number
+    bmiPercentile?: string
+    vaccinesPending?: number
+    vaccinesOverdue?: number
+    overdueVaccineNames?: string[]
+    milestoneNotes?: string[]
+    feedingNotes?: string
+    lastGrowthDate?: string
+    alerts?: string[]
+  }
 }
 
 const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
@@ -412,6 +501,16 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       medicalHistory: ["Diabetes 2 yrs (on medication, name unknown)"],
       familyHistory: ["Father: Diabetes"],
     },
+    ophthalData: {
+      vaRight: "6/9",
+      vaLeft: "6/12",
+      nearVaRight: "N6",
+      nearVaLeft: "N8",
+      slitLamp: "Mild conjunctival congestion bilateral, no corneal staining",
+      fundus: "Normal disc and macula OU",
+      lastExamDate: "12 Jan'26",
+      alerts: ["Conjunctival symptoms — allergic conjunctivitis vs viral"],
+    },
   },
   "apt-anjali": {
     specialtyTags: ["Neurology", "General Medicine"],
@@ -440,6 +539,28 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
     dueAlerts: [],
     recordAlerts: [],
     concernTrend: undefined,
+    gynecData: {
+      menarche: 13,
+      cycleLength: "28-30 days",
+      cycleRegularity: "Regular",
+      flowDuration: "4-5 days",
+      flowIntensity: "Moderate",
+      padsPerDay: 3,
+      painScore: "3/10",
+      lmp: "08 Feb'26",
+      lastPapSmear: "15 Mar'25",
+      alerts: [],
+    },
+    ophthalData: {
+      vaRight: "6/6",
+      vaLeft: "6/6",
+      nearVaRight: "N8",
+      nearVaLeft: "N8",
+      slitLamp: "No abnormality detected",
+      fundus: "Normal disc and macula OU",
+      lastExamDate: "10 Oct'24",
+      alerts: ["Digital eye strain — screen time > 8h/day, near VA slightly reduced"],
+    },
   },
   "apt-vikram": {
     specialtyTags: ["General Medicine", "Lifestyle Medicine"],
@@ -474,6 +595,176 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
     dueAlerts: ["Follow-up review overdue by 12 days"],
     recordAlerts: ["No new document uploaded in this visit yet."],
     concernTrend: undefined,
+    ophthalData: {
+      vaRight: "6/12",
+      vaLeft: "6/18",
+      nearVaRight: "N10",
+      nearVaLeft: "N12",
+      slitLamp: "Early nuclear sclerosis bilateral",
+      fundus: "Normal disc, mild arteriolar narrowing OU",
+      lastExamDate: "15 Sep'24",
+      glassPrescription: "+1.5 DS both eyes",
+      alerts: ["Presbyopia — corrective lenses recommended", "Arteriolar narrowing — correlate with BP"],
+    },
+  },
+  "apt-priya": {
+    specialtyTags: ["Obstetrics", "General Medicine"],
+    followUpOverdueDays: 0,
+    patientNarrative:
+      "I have swelling in my feet since 3 days, lower back pain since 2 days, and morning nausea. My last ANC was 2 weeks back, and I want to check if everything is normal with the baby.",
+    familyHistory: ["Mother: Gestational diabetes"],
+    lifestyleNotes: ["Walking 30 min daily", "Iron supplements regular"],
+    allergies: ["Shellfish"],
+    chronicConditions: undefined,
+    receptionistIntakeNotes: [
+      "ANC follow-up patient. Reports pedal edema and lower back pain.",
+      "Fetal movements reported as active.",
+    ],
+    lastVisit: {
+      date: "18 Feb'26",
+      vitals: "BP 126/82, Pulse 88, SpO2 98%, Temp 98.5 F",
+      symptoms: "Leg swelling, low back pain",
+      examination: "Mild pedal edema, stable fetal movements, fundal height appropriate",
+      diagnosis: "Third trimester monitoring visit",
+      medication: "Iron and Folic Acid 1-0-0, Calcium with Vitamin D 0-1-0",
+      labTestsSuggested: "CBC, Urine Routine, Thyroid Profile",
+      followUp: "1 week",
+    },
+    labFlagCount: 2,
+    todayVitals: {
+      bp: "130/85",
+      pulse: "88",
+      spo2: "98%",
+      temp: "98.6 F",
+      bmi: "23.0",
+    },
+    activeMeds: ["Iron and Folic Acid 1-0-0", "Calcium with Vitamin D 0-1-0"],
+    keyLabs: [
+      { name: "Hemoglobin", value: "11.2", flag: "low" },
+      { name: "TSH", value: "4.8", flag: "high" },
+    ],
+    dueAlerts: ["Growth scan due in 5 days", "Td/TT booster due this week"],
+    recordAlerts: ["Last ANC scan report: normal fetal growth"],
+    concernTrend: undefined,
+    symptomCollectorData: {
+      reportedAt: "Today 09:40 AM",
+      symptoms: [
+        { name: "Pedal edema", duration: "3d", severity: "Mild" },
+        { name: "Lower back pain", duration: "2d", severity: "Moderate" },
+        { name: "Morning nausea" },
+      ],
+      medicalHistory: [],
+      familyHistory: ["Mother: Gestational diabetes"],
+    },
+    gynecData: {
+      menarche: 13,
+      cycleLength: "28 days",
+      cycleRegularity: "Regular",
+      flowDuration: "4 days",
+      flowIntensity: "Moderate",
+      padsPerDay: 3,
+      painScore: "2/10",
+      lmp: "14 Jun'25",
+      lastPapSmear: "20 Jan'25",
+      alerts: ["Currently pregnant — see obstetric summary"],
+    },
+    obstetricData: {
+      gravida: 1,
+      para: 0,
+      living: 0,
+      abortion: 0,
+      ectopic: 0,
+      lmp: "14 Jun'25",
+      edd: "21 Mar'26",
+      gestationalWeeks: 37,
+      presentation: "Cephalic",
+      fetalMovement: "Active",
+      oedema: true,
+      fundusHeight: "34 cm",
+      amnioticFluid: "Normal",
+      lastExamDate: "18 Feb'26",
+      ancDue: ["Growth scan due in 5 days", "Td/TT booster due this week"],
+      vaccineStatus: "Td/TT Dose 1 given",
+      alerts: ["BP 130/85 — borderline, monitor closely", "ANC growth scan overdue"],
+    },
+    ophthalData: {
+      vaRight: "6/6",
+      vaLeft: "6/6",
+      slitLamp: "No abnormality",
+      fundus: "Normal disc and macula OU",
+      lastExamDate: "20 Jan'25",
+      alerts: [],
+    },
+  },
+  "apt-arjun": {
+    specialtyTags: ["Pediatrics", "General Medicine"],
+    followUpOverdueDays: 0,
+    patientNarrative:
+      "My son has dry cough since 3 days and is not eating well since 2 days. He had similar symptoms last month and was given syrup. We want to check if he needs further tests.",
+    familyHistory: ["Father: Asthma"],
+    lifestyleNotes: ["Playschool started 2 months ago", "Picky eater"],
+    allergies: ["Egg"],
+    chronicConditions: undefined,
+    receptionistIntakeNotes: [
+      "Parent reports dry cough and reduced appetite. Previous URTI 1 month ago.",
+      "Vaccination record shows MMR-2 pending.",
+    ],
+    lastVisit: {
+      date: "03 Feb'26",
+      vitals: "Pulse 102, SpO2 98%, Temp 99.1 F",
+      symptoms: "Nocturnal cough, throat irritation",
+      examination: "Mild pharyngeal congestion, no wheeze",
+      diagnosis: "Upper respiratory tract infection",
+      medication: "Levocetirizine syrup 2.5 ml OD, Saline nasal drops",
+      labTestsSuggested: "CBC if fever persists",
+      followUp: "5 days",
+    },
+    labFlagCount: 1,
+    todayVitals: {
+      bp: "—",
+      pulse: "104",
+      spo2: "97%",
+      temp: "99.0 F",
+      bmi: "16.2",
+    },
+    activeMeds: ["Levocetirizine syrup 2.5 ml OD", "Paracetamol syrup SOS"],
+    keyLabs: [{ name: "WBC", value: "12.5", flag: "high" }],
+    dueAlerts: ["Td/TT booster due this week", "Growth chart review due in 10 days"],
+    recordAlerts: [],
+    concernTrend: undefined,
+    symptomCollectorData: {
+      reportedAt: "Today 10:30 AM",
+      symptoms: [
+        { name: "Dry cough", duration: "3d", severity: "Mild" },
+        { name: "Reduced appetite", duration: "2d" },
+      ],
+      medicalHistory: ["URTI last month"],
+      familyHistory: ["Father: Asthma"],
+    },
+    pediatricsData: {
+      ageDisplay: "4 years",
+      heightCm: 98,
+      heightPercentile: "25th",
+      weightKg: 14,
+      weightPercentile: "15th",
+      ofcCm: 50,
+      bmiPercentile: "20th",
+      vaccinesPending: 3,
+      vaccinesOverdue: 1,
+      overdueVaccineNames: ["MMR-2"],
+      milestoneNotes: ["Speech delay noted by parent", "Fine motor skills age-appropriate"],
+      feedingNotes: "Picky eater, low appetite past 2 weeks",
+      lastGrowthDate: "03 Feb'26",
+      alerts: ["Weight below 25th percentile — nutritional review", "MMR-2 overdue"],
+    },
+    ophthalData: {
+      vaRight: "6/6",
+      vaLeft: "6/9",
+      slitLamp: "Normal anterior segment OU",
+      fundus: "Normal disc and macula OU",
+      lastExamDate: "05 Jan'26",
+      alerts: ["Mild intermittent exotropia — follow-up in 3 months"],
+    },
   },
 }
 
@@ -3732,51 +4023,55 @@ function clinicalTokens(text?: string, limit = 4) {
 }
 
 function buildSpecialtySnapshot(tab: SpecialtyTabId, summaryData: SmartSummaryData) {
-  if (tab === "gynec") {
+  if (tab === "gynec" && summaryData.gynecData) {
+    const g = summaryData.gynecData
     return {
       headline: "Specialty snapshot",
       keyItems: [
-        "LMP: 02 Jun 2025",
-        "Cycle: Regular",
-        "ANC follow-up: due in 5 days",
-      ],
-      alerts: ["Review menstrual pain trend", "Check due ANC counseling"],
+        g.lmp ? `LMP: ${g.lmp}` : "LMP: Not recorded",
+        `Cycle: ${g.cycleRegularity ?? "—"}, ${g.cycleLength ?? "—"}`,
+        g.flowIntensity ? `Flow: ${g.flowIntensity}` : null,
+      ].filter(Boolean) as string[],
+      alerts: g.alerts ?? [],
     }
   }
 
-  if (tab === "ophthal") {
+  if (tab === "ophthal" && summaryData.ophthalData) {
+    const o = summaryData.ophthalData
     return {
       headline: "Specialty snapshot",
       keyItems: [
-        "Visual strain after prolonged screens",
-        "No acute vision-loss red flag",
-        "Bilateral redness noted in intake",
-      ],
-      alerts: ["Conjunctival symptoms present"],
+        o.vaRight || o.vaLeft ? `VA: OD ${o.vaRight ?? "—"} / OS ${o.vaLeft ?? "—"}` : null,
+        o.slitLamp ? `Slit Lamp: ${o.slitLamp}` : null,
+        o.lastExamDate ? `Last exam: ${o.lastExamDate}` : null,
+      ].filter(Boolean) as string[],
+      alerts: o.alerts ?? [],
     }
   }
 
-  if (tab === "obstetric") {
+  if (tab === "obstetric" && summaryData.obstetricData) {
+    const ob = summaryData.obstetricData
     return {
       headline: "Specialty snapshot",
       keyItems: [
-        "LMP: 02 Jun 2025",
-        "EDD: 17 Mar 2026",
-        "ANC due in 5 days",
-      ],
-      alerts: ["Check ANC scheduler", "Review due immunization status"],
+        ob.lmp ? `LMP: ${ob.lmp}` : null,
+        ob.edd ? `EDD: ${ob.edd}` : null,
+        ob.ancDue?.length ? ob.ancDue[0] : "ANC on track",
+      ].filter(Boolean) as string[],
+      alerts: ob.alerts ?? [],
     }
   }
 
-  if (tab === "pediatrics") {
+  if (tab === "pediatrics" && summaryData.pediatricsData) {
+    const p = summaryData.pediatricsData
     return {
       headline: "Specialty snapshot",
       keyItems: [
-        "Weight gain slower in last month",
-        "Td/TT booster pending",
-        "Mild nocturnal cough reported",
-      ],
-      alerts: ["Vaccination due this week", "Growth review due in 10 days"],
+        p.weightPercentile ? `Weight: ${p.weightPercentile} percentile` : null,
+        p.vaccinesOverdue ? `${p.vaccinesOverdue} vaccine(s) overdue` : p.vaccinesPending ? `${p.vaccinesPending} vaccines pending` : null,
+        p.milestoneNotes?.[0] ?? null,
+      ].filter(Boolean) as string[],
+      alerts: p.alerts ?? [],
     }
   }
 
@@ -3818,104 +4113,17 @@ function vitalsSeedFromVitals(vitals?: SmartSummaryData["todayVitals"]): RxPadVi
 }
 
 function buildSpecialtyClinicalView(tab: SpecialtyTabId, summaryData: SmartSummaryData): SpecialtyClinicalView {
-  const fallbackVisit: LastVisitSummary = {
-    date: "27 Jan'26",
-    vitals: "BP 126/80 | Pulse 76 | SpO2 95% | Temperature 99.0 F",
-    symptoms: "Fever (2 days, high), eye redness (2 days, moderate)",
-    examination: "Mild conjunctival congestion, chest clear",
-    diagnosis: "Viral fever with conjunctival irritation",
-    medication: "Telma20 1-0-0-1, Metsmail 500 1-0-0-1",
-    labTestsSuggested: "CBC, LFT",
-    followUp: "2 weeks",
-  }
-
-  if (tab === "gynec") {
-    return {
-      currentSymptoms: ["Lower abdominal pain (2 days, moderate)", "Heavy flow (2 days, high)"],
-      currentVitals: { bp: "112/74", pulse: "82", spo2: "98%", temp: "98.7 F", bmi: "22.6" },
-      currentMedications: ["Tranexamic Acid 500 mg", "Mefenamic Acid 500 mg"],
-      currentLabs: [{ name: "Hemoglobin", value: "9.8", flag: "low" }, { name: "TSH", value: "5.4", flag: "high" }],
-      lastVisit: {
-        date: "05 Feb'26",
-        vitals: "BP 110/72 | Pulse 80 | SpO2 98% | Temperature 98.5 F",
-        symptoms: "Menstrual pain (3 days), heavy flow",
-        examination: "Lower abdominal tenderness",
-        diagnosis: "Dysmenorrhea with menorrhagia",
-        medication: "Tranexamic Acid 500 mg, Mefenamic Acid 500 mg",
-        labTestsSuggested: "CBC, Thyroid Profile",
-        followUp: "1 week",
-      },
-      dueItems: ["Cycle review due in 3 days"],
-    }
-  }
-
-  if (tab === "ophthal") {
-    return {
-      currentSymptoms: ["Eye redness (2 days, bilateral)", "Burning sensation (moderate)", "Blurred vision in evening"],
-      currentVitals: { bp: "124/78", pulse: "74", spo2: "98%", temp: "98.4 F", bmi: "23.2" },
-      currentMedications: ["Carboxymethylcellulose eye drops", "Olopatadine eye drops"],
-      currentLabs: [{ name: "Blood Glucose", value: "146", flag: "high" }],
-      lastVisit: {
-        date: "12 Jan'26",
-        vitals: "BP 122/76 | Pulse 72 | SpO2 98% | Temperature 98.3 F",
-        symptoms: "Dry eye, intermittent redness",
-        examination: "Conjunctival congestion with dry eye signs",
-        diagnosis: "Allergic conjunctivitis with dry eye",
-        medication: "Lubricant eye drops, Olopatadine eye drops",
-        labTestsSuggested: "Random Blood Sugar",
-        followUp: "10 days",
-      },
-      dueItems: ["Ophthal follow-up overdue by 2 days"],
-    }
-  }
-
-  if (tab === "obstetric") {
-    return {
-      currentSymptoms: ["Pedal edema (mild)", "Lower back pain (2 days)", "Nausea (morning)"],
-      currentVitals: { bp: "128/84", pulse: "90", spo2: "97%", temp: "98.6 F", bmi: "25.1" },
-      currentMedications: ["Iron and Folic Acid", "Calcium with Vitamin D"],
-      currentLabs: [{ name: "Hemoglobin", value: "10.2", flag: "low" }, { name: "TSH", value: "4.8", flag: "high" }],
-      lastVisit: {
-        date: "18 Feb'26",
-        vitals: "BP 126/82 | Pulse 88 | SpO2 98% | Temperature 98.5 F",
-        symptoms: "Leg swelling, low back pain",
-        examination: "Mild edema with stable fetal movements",
-        diagnosis: "Third trimester monitoring visit",
-        medication: "Iron and Folic Acid, Calcium supplement",
-        labTestsSuggested: "CBC, Urine Routine, Thyroid Profile",
-        followUp: "1 week",
-      },
-      dueItems: ["ANC scheduler due in 5 days", "Tetanus booster due this week"],
-    }
-  }
-
-  if (tab === "pediatrics") {
-    return {
-      currentSymptoms: ["Dry cough (3 days, mild)", "Reduced appetite (2 days)"],
-      currentVitals: { bp: "96/62", pulse: "104", spo2: "97%", temp: "99.0 F", bmi: "16.2" },
-      currentMedications: ["Levocetirizine syrup", "Paracetamol syrup"],
-      currentLabs: [{ name: "WBC", value: "12.5", flag: "high" }],
-      lastVisit: {
-        date: "03 Feb'26",
-        vitals: "Pulse 102 | SpO2 98% | Temperature 99.1 F",
-        symptoms: "Nocturnal cough, throat irritation",
-        examination: "Mild pharyngeal congestion",
-        diagnosis: "Upper respiratory tract infection",
-        medication: "Levocetirizine syrup, Saline nasal drops",
-        labTestsSuggested: "CBC if fever persists",
-        followUp: "5 days",
-      },
-      dueItems: ["Td/TT booster due this week", "Growth chart review due in 10 days"],
-    }
-  }
+  // All specialties now derive from per-patient data in summaryData
+  const symptoms = summaryData.symptomCollectorData?.symptoms?.map(
+    (sx) => `${sx.name}${sx.duration ? ` (${sx.duration}${sx.severity ? `, ${sx.severity.toLowerCase()}` : ""})` : ""}`
+  ) ?? clinicalTokens(summaryData.lastVisit?.symptoms || summaryData.patientNarrative, 4) ?? []
 
   return {
-    currentSymptoms:
-      clinicalTokens(summaryData.lastVisit?.symptoms || summaryData.patientNarrative, 4) || [],
+    currentSymptoms: symptoms,
     currentVitals: summaryData.todayVitals,
     currentMedications: summaryData.activeMeds ?? [],
     currentLabs: summaryData.keyLabs ?? [],
-    lastVisit: summaryData.lastVisit ?? fallbackVisit,
+    lastVisit: summaryData.lastVisit,
     dueItems: summaryData.dueAlerts ?? [],
   }
 }
@@ -4351,77 +4559,49 @@ function AgentIntroMessage({
 }
 
 /* ------------------------------------------------------------------ */
-/*  PatientSummaryCard — compact card with sidebar-style formatting   */
+/*  PatientSummaryCard — specialty-aware compact card                  */
 /* ------------------------------------------------------------------ */
 
-function PatientSummaryCard({
-  collapsed,
-  onToggle,
-  summaryData,
-}: {
-  collapsed: boolean
-  onToggle: () => void
-  summaryData: SmartSummaryData
-}) {
-  const s = summaryData
+type SummaryRow = { label: string; parts: Array<{ text: string; tone?: "error" | "muted" }> }
 
-  // Build alert banners
-  const alerts: Array<{ text: string; tone: "red" | "amber" }> = []
-  if (s.allergies?.length) {
-    alerts.push({ text: `ALLERGY: ${s.allergies.join(", ")}`, tone: "red" })
-  }
-  if (s.todayVitals?.spo2) {
-    const spo2Val = Number.parseInt(s.todayVitals.spo2)
-    if (!Number.isNaN(spo2Val) && spo2Val < 90) {
-      alerts.push({ text: `SpO2 ${s.todayVitals.spo2}% — Critical`, tone: "red" })
-    }
-  }
-  if (s.followUpOverdueDays > 0) {
-    alerts.push({ text: `F/U Overdue: ${s.followUpOverdueDays} days`, tone: "amber" })
-  }
+const SPECIALTY_CARD_TITLES: Record<SpecialtyTabId, string> = {
+  gp: "Patient Summary",
+  gynec: "Gynec Summary",
+  ophthal: "Ophthal Summary",
+  obstetric: "Obstetric Summary",
+  pediatrics: "Pediatric Summary",
+}
 
-  // Build context rows
-  type Row = { label: string; parts: Array<{ text: string; tone?: "error" | "muted" }> }
-  const rows: Row[] = []
-
+function buildGpRows(s: SmartSummaryData): SummaryRow[] {
+  const rows: SummaryRow[] = []
   if (s.chronicConditions?.length) {
-    const parts: Row["parts"] = [{ text: s.chronicConditions.join(", ") }]
+    const parts: SummaryRow["parts"] = [{ text: s.chronicConditions.join(", ") }]
     if (s.activeMeds?.length) {
-      parts.push({ text: " | ", tone: "muted" })
-      parts.push({ text: `Meds: ${s.activeMeds.join(", ")}` })
+      parts.push({ text: " | ", tone: "muted" }, { text: `Meds: ${s.activeMeds.join(", ")}` })
     }
     rows.push({ label: "Chronic", parts })
   }
-
   if (s.lastVisit) {
     const lv = s.lastVisit
-    const parts: Row["parts"] = [{ text: `Dx: ${lv.diagnosis}` }]
-    parts.push({ text: " | ", tone: "muted" })
-    parts.push({ text: `Rx: ${lv.medication}` })
+    const parts: SummaryRow["parts"] = [{ text: `Dx: ${lv.diagnosis}` }, { text: " | ", tone: "muted" }, { text: `Rx: ${lv.medication}` }]
     if (lv.investigation) {
-      parts.push({ text: " | ", tone: "muted" })
-      parts.push({ text: `Inv: ${lv.investigation}` })
+      parts.push({ text: " | ", tone: "muted" }, { text: `Inv: ${lv.investigation}` })
     }
     rows.push({ label: `Last visit ${lv.date}`, parts })
   }
-
   if (s.todayVitals) {
     const v = s.todayVitals
-    const spo2Tone = Number.parseInt(v.spo2) < 95 ? "error" as const : undefined
+    const spo2Tone = Number.parseInt(v.spo2) < 95 ? ("error" as const) : undefined
     rows.push({
       label: "Today",
       parts: [
-        { text: `BP ${v.bp}` },
-        { text: " | ", tone: "muted" },
-        { text: `SpO2 ${v.spo2}%`, tone: spo2Tone },
-        { text: " | ", tone: "muted" },
-        { text: `Pulse ${v.pulse}` },
-        { text: " | ", tone: "muted" },
+        { text: `BP ${v.bp}` }, { text: " | ", tone: "muted" },
+        { text: `SpO2 ${v.spo2}`, tone: spo2Tone }, { text: " | ", tone: "muted" },
+        { text: `Pulse ${v.pulse}` }, { text: " | ", tone: "muted" },
         { text: `Temp ${v.temp}` },
       ],
     })
   }
-
   if (s.keyLabs?.length) {
     const flagged = s.keyLabs.filter((l) => l.flag !== "normal")
     if (flagged.length > 0) {
@@ -4431,7 +4611,7 @@ function PatientSummaryCard({
           { text: `${flagged.length} abnormal — ` },
           ...flagged.slice(0, 3).flatMap((l, i) => {
             const arrow = l.flag === "high" ? "↑" : "↓"
-            const items: Row["parts"] = [{ text: `${l.name} ${arrow}${l.value}`, tone: "error" }]
+            const items: SummaryRow["parts"] = [{ text: `${l.name} ${arrow}${l.value}`, tone: "error" }]
             if (i < Math.min(flagged.length, 3) - 1) items.push({ text: ", " })
             return items
           }),
@@ -4439,21 +4619,351 @@ function PatientSummaryCard({
       })
     }
   }
-
   if (s.symptomCollectorData?.symptoms?.length) {
     const sx = s.symptomCollectorData.symptoms
+    rows.push({ label: "Sx", parts: [{ text: sx.map((x) => `${x.name}${x.duration ? ` ${x.duration}` : ""}`).join(", ") }] })
+  }
+  return rows
+}
+
+function buildGynecRows(s: SmartSummaryData): SummaryRow[] {
+  const g = s.gynecData
+  if (!g) return buildGpRows(s)
+  const rows: SummaryRow[] = []
+  rows.push({
+    label: "Cycle",
+    parts: [
+      { text: `${g.cycleRegularity ?? "—"}, ${g.cycleLength ?? "—"}` },
+      { text: " | ", tone: "muted" },
+      { text: `Flow: ${g.flowIntensity ?? "—"}${g.padsPerDay ? `, ${g.padsPerDay} pads/day` : ""}` },
+    ],
+  })
+  if (g.lmp) {
+    const parts: SummaryRow["parts"] = [{ text: g.lmp }]
+    if (g.painScore) { parts.push({ text: " | ", tone: "muted" }, { text: `Pain: ${g.painScore}` }) }
+    rows.push({ label: "LMP", parts })
+  }
+  if (g.lastPapSmear) {
+    rows.push({ label: "Pap Smear", parts: [{ text: g.lastPapSmear }] })
+  }
+  // Keep vitals row if available
+  if (s.todayVitals) {
+    const v = s.todayVitals
     rows.push({
-      label: "Sx",
-      parts: [{ text: sx.map((x) => `${x.name}${x.duration ? ` ${x.duration}` : ""}`).join(", ") }],
+      label: "Today",
+      parts: [
+        { text: `BP ${v.bp}` }, { text: " | ", tone: "muted" },
+        { text: `Pulse ${v.pulse}` }, { text: " | ", tone: "muted" },
+        { text: `Temp ${v.temp}` },
+      ],
     })
   }
+  // Show Hb if flagged
+  if (s.keyLabs?.length) {
+    const hb = s.keyLabs.find((l) => l.name.toLowerCase().includes("hb") || l.name.toLowerCase().includes("hemoglobin"))
+    if (hb) {
+      const arrow = hb.flag === "high" ? "↑" : "↓"
+      rows.push({ label: "Labs", parts: [{ text: `${hb.name} ${arrow}${hb.value}`, tone: "error" }] })
+    }
+  }
+  return rows
+}
 
-  // Collapsed tokens
-  const collapsedTokens: string[] = []
-  if (s.chronicConditions?.length) collapsedTokens.push(s.chronicConditions.join(", "))
-  if (s.followUpOverdueDays > 0) collapsedTokens.push("F/U Overdue")
-  if (s.labFlagCount > 0) collapsedTokens.push(`${s.labFlagCount} lab flags`)
-  if (s.allergies?.length) collapsedTokens.push(`${s.allergies[0]} allergy`)
+function buildOphthalRows(s: SmartSummaryData): SummaryRow[] {
+  const o = s.ophthalData
+  if (!o) return buildGpRows(s)
+  const rows: SummaryRow[] = []
+  if (o.vaRight || o.vaLeft) {
+    rows.push({
+      label: "VA",
+      parts: [
+        { text: `OD ${o.vaRight ?? "—"}` }, { text: " | ", tone: "muted" },
+        { text: `OS ${o.vaLeft ?? "—"}` },
+      ],
+    })
+  }
+  if (o.nearVaRight || o.nearVaLeft) {
+    rows.push({
+      label: "Near VA",
+      parts: [
+        { text: `OD ${o.nearVaRight ?? "—"}` }, { text: " | ", tone: "muted" },
+        { text: `OS ${o.nearVaLeft ?? "—"}` },
+      ],
+    })
+  }
+  if (o.iop) {
+    rows.push({
+      label: "IOP",
+      parts: [
+        { text: `OD ${o.iop.right}` }, { text: " | ", tone: "muted" },
+        { text: `OS ${o.iop.left}` },
+      ],
+    })
+  }
+  if (o.slitLamp) {
+    rows.push({ label: "Slit Lamp", parts: [{ text: o.slitLamp }] })
+  }
+  if (o.fundus) {
+    rows.push({ label: "Fundus", parts: [{ text: o.fundus }] })
+  }
+  if (o.glassPrescription) {
+    rows.push({ label: "Glass Rx", parts: [{ text: o.glassPrescription }] })
+  }
+  if (o.lastExamDate) {
+    rows.push({ label: "Last exam", parts: [{ text: o.lastExamDate }] })
+  }
+  return rows
+}
+
+function buildObstetricRows(s: SmartSummaryData): SummaryRow[] {
+  const ob = s.obstetricData
+  if (!ob) return buildGpRows(s)
+  const rows: SummaryRow[] = []
+  // GPLAE
+  if (ob.gravida != null) {
+    rows.push({
+      label: "GPLAE",
+      parts: [{ text: `G${ob.gravida} P${ob.para ?? 0} L${ob.living ?? 0} A${ob.abortion ?? 0} E${ob.ectopic ?? 0}` }],
+    })
+  }
+  // LMP / EDD / Weeks
+  const timeline: SummaryRow["parts"] = []
+  if (ob.lmp) timeline.push({ text: `LMP: ${ob.lmp}` })
+  if (ob.edd) { if (timeline.length) timeline.push({ text: " | ", tone: "muted" }); timeline.push({ text: `EDD: ${ob.edd}` }) }
+  if (ob.gestationalWeeks) { if (timeline.length) timeline.push({ text: " | ", tone: "muted" }); timeline.push({ text: `${ob.gestationalWeeks}w` }) }
+  if (timeline.length) rows.push({ label: "Timeline", parts: timeline })
+  // Presentation / FM / Oedema
+  const exam: SummaryRow["parts"] = []
+  if (ob.presentation) exam.push({ text: ob.presentation })
+  if (ob.fetalMovement) { if (exam.length) exam.push({ text: " | ", tone: "muted" }); exam.push({ text: `FM: ${ob.fetalMovement}` }) }
+  if (ob.oedema != null) { if (exam.length) exam.push({ text: " | ", tone: "muted" }); exam.push({ text: `Oedema: ${ob.oedema ? "Yes" : "No"}` }) }
+  if (exam.length) rows.push({ label: "Exam", parts: exam })
+  // Fundus / Fluid
+  const measures: SummaryRow["parts"] = []
+  if (ob.fundusHeight) measures.push({ text: `Fundus: ${ob.fundusHeight}` })
+  if (ob.amnioticFluid) { if (measures.length) measures.push({ text: " | ", tone: "muted" }); measures.push({ text: `Fluid: ${ob.amnioticFluid}` }) }
+  if (measures.length) rows.push({ label: "Measures", parts: measures })
+  // ANC Due
+  if (ob.ancDue?.length) {
+    rows.push({ label: "ANC Due", parts: [{ text: ob.ancDue.join(", "), tone: "error" }] })
+  }
+  // Vaccines
+  if (ob.vaccineStatus) {
+    rows.push({ label: "Vaccines", parts: [{ text: ob.vaccineStatus }] })
+  }
+  // Keep vitals (BP critical for obstetric)
+  if (s.todayVitals) {
+    const v = s.todayVitals
+    const bpParts = v.bp.split("/")
+    const systolic = Number.parseInt(bpParts[0] ?? "0")
+    const bpTone = systolic >= 140 ? ("error" as const) : systolic >= 130 ? ("error" as const) : undefined
+    rows.push({
+      label: "Today",
+      parts: [
+        { text: `BP ${v.bp}`, tone: bpTone }, { text: " | ", tone: "muted" },
+        { text: `Pulse ${v.pulse}` }, { text: " | ", tone: "muted" },
+        { text: `SpO2 ${v.spo2}` },
+      ],
+    })
+  }
+  return rows
+}
+
+function buildPediatricsRows(s: SmartSummaryData): SummaryRow[] {
+  const p = s.pediatricsData
+  if (!p) return buildGpRows(s)
+  const rows: SummaryRow[] = []
+  // Growth
+  const growth: SummaryRow["parts"] = []
+  if (p.heightCm != null) growth.push({ text: `Ht ${p.heightCm}cm (${p.heightPercentile ?? "—"})` })
+  if (p.weightKg != null) {
+    if (growth.length) growth.push({ text: " | ", tone: "muted" })
+    const wtTone = p.weightPercentile && Number.parseInt(p.weightPercentile) < 25 ? ("error" as const) : undefined
+    growth.push({ text: `Wt ${p.weightKg}kg (${p.weightPercentile ?? "—"})`, tone: wtTone })
+  }
+  if (p.ofcCm != null) { if (growth.length) growth.push({ text: " | ", tone: "muted" }); growth.push({ text: `OFC ${p.ofcCm}cm` }) }
+  if (growth.length) rows.push({ label: "Growth", parts: growth })
+  // BMI
+  if (p.bmiPercentile) {
+    rows.push({ label: "BMI", parts: [{ text: `${s.todayVitals?.bmi ?? "—"} (${p.bmiPercentile})` }] })
+  }
+  // Vaccines
+  if (p.vaccinesPending != null || p.vaccinesOverdue != null) {
+    const parts: SummaryRow["parts"] = []
+    if (p.vaccinesPending) parts.push({ text: `${p.vaccinesPending} pending` })
+    if (p.vaccinesOverdue) {
+      if (parts.length) parts.push({ text: ", " })
+      parts.push({ text: `${p.vaccinesOverdue} overdue`, tone: "error" })
+      if (p.overdueVaccineNames?.length) {
+        parts.push({ text: ` (${p.overdueVaccineNames.join(", ")})`, tone: "error" })
+      }
+    }
+    if (parts.length) rows.push({ label: "Vaccines", parts })
+  }
+  // Milestones
+  if (p.milestoneNotes?.length) {
+    rows.push({ label: "Milestones", parts: [{ text: p.milestoneNotes.join("; ") }] })
+  }
+  // Feeding
+  if (p.feedingNotes) {
+    rows.push({ label: "Feeding", parts: [{ text: p.feedingNotes }] })
+  }
+  // Keep vitals and labs
+  if (s.todayVitals) {
+    const v = s.todayVitals
+    const parts: SummaryRow["parts"] = [{ text: `Pulse ${v.pulse}` }, { text: " | ", tone: "muted" }, { text: `SpO2 ${v.spo2}` }, { text: " | ", tone: "muted" }, { text: `Temp ${v.temp}` }]
+    rows.push({ label: "Today", parts })
+  }
+  if (s.keyLabs?.length) {
+    const flagged = s.keyLabs.filter((l) => l.flag !== "normal")
+    if (flagged.length > 0) {
+      rows.push({
+        label: "Labs",
+        parts: flagged.slice(0, 3).flatMap((l, i) => {
+          const arrow = l.flag === "high" ? "↑" : "↓"
+          const items: SummaryRow["parts"] = [{ text: `${l.name} ${arrow}${l.value}`, tone: "error" }]
+          if (i < Math.min(flagged.length, 3) - 1) items.push({ text: ", " })
+          return items
+        }),
+      })
+    }
+  }
+  return rows
+}
+
+function buildSpecialtyAlerts(s: SmartSummaryData, specialty: SpecialtyTabId): Array<{ text: string; tone: "red" | "amber" }> {
+  const alerts: Array<{ text: string; tone: "red" | "amber" }> = []
+  // Common alerts
+  if (s.allergies?.length) alerts.push({ text: `ALLERGY: ${s.allergies.join(", ")}`, tone: "red" })
+  if (s.todayVitals?.spo2) {
+    const spo2Val = Number.parseInt(s.todayVitals.spo2)
+    if (!Number.isNaN(spo2Val) && spo2Val < 90) alerts.push({ text: `SpO2 ${s.todayVitals.spo2} — Critical`, tone: "red" })
+  }
+  if (specialty === "gp" && s.followUpOverdueDays > 0) {
+    alerts.push({ text: `F/U Overdue: ${s.followUpOverdueDays} days`, tone: "amber" })
+  }
+  // Specialty-specific alerts
+  if (specialty === "gynec" && s.gynecData?.alerts?.length) {
+    for (const a of s.gynecData.alerts) alerts.push({ text: a, tone: "amber" })
+  }
+  if (specialty === "ophthal" && s.ophthalData?.alerts?.length) {
+    for (const a of s.ophthalData.alerts) alerts.push({ text: a, tone: "amber" })
+  }
+  if (specialty === "obstetric" && s.obstetricData?.alerts?.length) {
+    for (const a of s.obstetricData.alerts) alerts.push({ text: a, tone: "red" })
+  }
+  if (specialty === "pediatrics" && s.pediatricsData?.alerts?.length) {
+    for (const a of s.pediatricsData.alerts) alerts.push({ text: a, tone: "amber" })
+  }
+  return alerts
+}
+
+function buildCollapsedTokens(s: SmartSummaryData, specialty: SpecialtyTabId): string[] {
+  if (specialty === "gynec" && s.gynecData) {
+    const g = s.gynecData
+    const tokens: string[] = []
+    if (g.cycleRegularity) tokens.push(`Cycle ${g.cycleRegularity}`)
+    if (g.lmp) tokens.push(`LMP ${g.lmp}`)
+    if (g.flowIntensity) tokens.push(`Flow ${g.flowIntensity}`)
+    return tokens
+  }
+  if (specialty === "ophthal" && s.ophthalData) {
+    const o = s.ophthalData
+    const tokens: string[] = []
+    if (o.vaRight || o.vaLeft) tokens.push(`VA OD ${o.vaRight ?? "—"} OS ${o.vaLeft ?? "—"}`)
+    if (o.slitLamp && o.slitLamp.toLowerCase() !== "no abnormality" && o.slitLamp.toLowerCase() !== "no abnormality detected" && o.slitLamp.toLowerCase() !== "normal anterior segment ou")
+      tokens.push("Slit Lamp abnormal")
+    return tokens
+  }
+  if (specialty === "obstetric" && s.obstetricData) {
+    const ob = s.obstetricData
+    const tokens: string[] = []
+    if (ob.gravida != null) tokens.push(`G${ob.gravida}P${ob.para ?? 0}`)
+    if (ob.edd) tokens.push(`EDD ${ob.edd}`)
+    if (ob.gestationalWeeks) tokens.push(`${ob.gestationalWeeks}w`)
+    if (ob.ancDue?.length) tokens.push("ANC due")
+    return tokens
+  }
+  if (specialty === "pediatrics" && s.pediatricsData) {
+    const p = s.pediatricsData
+    const tokens: string[] = []
+    if (p.ageDisplay) tokens.push(p.ageDisplay)
+    if (p.weightPercentile) tokens.push(`Wt ${p.weightPercentile}`)
+    if (p.vaccinesOverdue) tokens.push(`Vaccines: ${p.vaccinesOverdue} overdue`)
+    return tokens
+  }
+  // GP fallback
+  const tokens: string[] = []
+  if (s.chronicConditions?.length) tokens.push(s.chronicConditions.join(", "))
+  if (s.followUpOverdueDays > 0) tokens.push("F/U Overdue")
+  if (s.labFlagCount > 0) tokens.push(`${s.labFlagCount} lab flags`)
+  if (s.allergies?.length) tokens.push(`${s.allergies[0]} allergy`)
+  return tokens
+}
+
+function PatientSummaryCard({
+  collapsed,
+  onToggle,
+  summaryData,
+  activeSpecialty,
+  patientGender,
+  patientAge,
+}: {
+  collapsed: boolean
+  onToggle: () => void
+  summaryData: SmartSummaryData
+  activeSpecialty: SpecialtyTabId
+  patientGender?: string
+  patientAge?: number
+}) {
+  const s = summaryData
+
+  // N/A check
+  const isNA =
+    (activeSpecialty === "gynec" && patientGender === "M") ||
+    (activeSpecialty === "obstetric" && patientGender === "M") ||
+    (activeSpecialty === "pediatrics" && (patientAge ?? 99) >= 18)
+
+  const naMessage =
+    activeSpecialty === "gynec" ? "Gynecology not applicable for male patients" :
+    activeSpecialty === "obstetric" ? "Obstetrics not applicable for male patients" :
+    activeSpecialty === "pediatrics" ? "Pediatrics not applicable for adult patients" : ""
+
+  if (isNA) {
+    if (collapsed) {
+      return (
+        <button type="button" onClick={onToggle}
+          className="flex h-[32px] w-full items-center justify-between rounded-[10px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50/60 px-3 text-left">
+          <p className="truncate text-[12px] font-medium text-tp-slate-400 italic">Not applicable for this patient</p>
+          <ChevronDown size={12} className="shrink-0 text-tp-slate-400" />
+        </button>
+      )
+    }
+    return (
+      <div className="overflow-hidden rounded-[10px] border-[0.8px] border-tp-slate-200 bg-white">
+        <div className="flex items-center justify-between gap-2 border-b border-tp-slate-100 px-3 py-2">
+          <p className="text-[13px] font-semibold text-tp-slate-800">{SPECIALTY_CARD_TITLES[activeSpecialty]}</p>
+          <button type="button" onClick={onToggle} className="inline-flex size-6 items-center justify-center rounded-[8px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50 text-tp-slate-600" aria-label="Collapse card">
+            <ChevronUp size={12} />
+          </button>
+        </div>
+        <div className="px-3 py-3">
+          <p className="text-[12px] italic text-tp-slate-400">{naMessage}</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Build rows and alerts based on specialty
+  const alerts = buildSpecialtyAlerts(s, activeSpecialty)
+  const rows =
+    activeSpecialty === "gynec" ? buildGynecRows(s) :
+    activeSpecialty === "ophthal" ? buildOphthalRows(s) :
+    activeSpecialty === "obstetric" ? buildObstetricRows(s) :
+    activeSpecialty === "pediatrics" ? buildPediatricsRows(s) :
+    buildGpRows(s)
+
+  const collapsedTokens = buildCollapsedTokens(s, activeSpecialty)
 
   if (collapsed) {
     return (
@@ -4463,7 +4973,7 @@ function PatientSummaryCard({
         className="flex h-[32px] w-full items-center justify-between rounded-[10px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50/60 px-3 text-left"
       >
         <p className="truncate text-[12px] font-medium text-tp-slate-600">
-          {collapsedTokens.join(" | ") || "Patient Summary"}
+          {collapsedTokens.join(" | ") || SPECIALTY_CARD_TITLES[activeSpecialty]}
         </p>
         <ChevronDown size={12} className="shrink-0 text-tp-slate-400" />
       </button>
@@ -4474,7 +4984,7 @@ function PatientSummaryCard({
     <div className="overflow-hidden rounded-[10px] border-[0.8px] border-tp-slate-200 bg-white">
       {/* Header */}
       <div className="flex items-center justify-between gap-2 border-b border-tp-slate-100 px-3 py-2">
-        <p className="text-[13px] font-semibold text-tp-slate-800">Patient Summary</p>
+        <p className="text-[13px] font-semibold text-tp-slate-800">{SPECIALTY_CARD_TITLES[activeSpecialty]}</p>
         <button
           type="button"
           onClick={onToggle}
@@ -4517,7 +5027,7 @@ function PatientSummaryCard({
             </p>
           ))
         ) : (
-          <p className="text-[12px] italic text-tp-slate-500">First visit — no prior data available.</p>
+          <p className="text-[12px] italic text-tp-slate-500">No {SPECIALTY_CARD_TITLES[activeSpecialty].toLowerCase()} data available.</p>
         )}
       </div>
     </div>
@@ -5007,6 +5517,8 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
 
   function applySpecialty(tabId: SpecialtyTabId) {
     setSpecialtyByContext((prev) => ({ ...prev, [selectedContextId]: tabId }))
+    // Auto-expand PatientSummaryCard so doctor sees updated specialty content
+    setSummaryCollapsedByContext((prev) => ({ ...prev, [selectedContextId]: false }))
     setLensByContext((prev) => ({
       ...prev,
       [selectedContextId]:
@@ -5178,6 +5690,9 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
                       collapsed={summaryCollapsed}
                       onToggle={() => setSummaryCollapsedByContext((prev) => ({ ...prev, [selectedContextId]: !summaryCollapsed }))}
                       summaryData={activeSummaryData}
+                      activeSpecialty={activeSpecialty}
+                      patientGender={selectedContext.patient?.gender}
+                      patientAge={selectedContext.patient?.age}
                     />
                   </div>
                   <div className="ml-8 max-w-[86%]">
