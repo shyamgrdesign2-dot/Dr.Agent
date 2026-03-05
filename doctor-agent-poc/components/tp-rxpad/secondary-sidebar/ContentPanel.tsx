@@ -22,6 +22,7 @@ import { EmptyStateContent }        from "./content/EmptyStateContent";
 
 import type { NavItemId } from "./types";
 import { rxSidebarTokens } from "./tokens";
+import { SidebarPillBar } from "./SidebarPillBar";
 
 // ─── Section title map ────────────────────────────────────────────────────────
 
@@ -128,7 +129,11 @@ export function ContentPanel({ activeId, onClose }: Props) {
       {/* flex-[1_0_0] + min-h-px → constrains height so inner overflow-y-auto works */}
       <div className="flex-[1_0_0] min-h-px min-w-px relative w-full">
         <div className="absolute inset-0 flex flex-col">
-          <SectionContent activeId={activeId} />
+          <div className="flex-1 overflow-y-auto">
+            <SectionContent activeId={activeId} />
+          </div>
+          {/* Pill bar at bottom — not shown for drAgent (has its own pills) */}
+          {activeId !== "drAgent" && <SidebarPillBar sectionId={activeId} />}
         </div>
       </div>
     </div>

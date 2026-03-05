@@ -29,7 +29,14 @@ function RxPadPageInner() {
   )
 
   useEffect(() => {
-    if (lastSignal && !isAgentOpen) {
+    if (!lastSignal) return
+    if (lastSignal.type === "sidebar_pill_tap") {
+      // Pill tap → always open agent and clear nudge
+      if (!isAgentOpen) {
+        setIsAgentOpen(true)
+        setHasNudge(false)
+      }
+    } else if (!isAgentOpen) {
       setHasNudge(true)
     }
   }, [lastSignal, isAgentOpen])

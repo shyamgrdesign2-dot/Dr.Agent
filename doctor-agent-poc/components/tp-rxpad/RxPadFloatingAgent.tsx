@@ -4,14 +4,17 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import {
   Activity,
   AlertTriangle,
+  AtSign,
   Check,
   ChevronDown,
   ChevronUp,
   ClipboardPlus,
   Copy,
+  FileText,
   FlaskConical,
   HeartPulse,
   Mic,
+  Paperclip,
   Pill,
   Search,
   SendHorizontal,
@@ -20,6 +23,7 @@ import {
   Stethoscope,
   ThumbsDown,
   ThumbsUp,
+  Upload,
   UserRound,
   X,
 } from "lucide-react"
@@ -207,6 +211,21 @@ type RxAgentOutput =
       copyPayload: RxPadCopyPayload
     }
   | {
+      kind: "ocr_report"
+      title: string
+      reportType: "pathology" | "radiology" | "prescription"
+      parameters: Array<{
+        name: string
+        value: string
+        unit: string
+        reference: string
+        flag: "normal" | "high" | "low" | "critical"
+      }>
+      insight?: string
+      originalFileName: string
+      copyPayload: RxPadCopyPayload
+    }
+  | {
       kind: "ui_showcase"
     }
 
@@ -325,6 +344,12 @@ interface SmartSummaryData {
     unit: string
     tone?: "teal" | "red" | "violet"
   }
+  symptomCollectorData?: {
+    reportedAt: string
+    symptoms: Array<{ name: string; duration?: string; severity?: string }>
+    medicalHistory?: string[]
+    familyHistory?: string[]
+  }
 }
 
 const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
@@ -376,6 +401,16 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       labels: ["20 Jan", "22 Jan", "24 Jan", "27 Jan"],
       unit: "%",
       tone: "red",
+    },
+    symptomCollectorData: {
+      reportedAt: "Today 10:15 AM",
+      symptoms: [
+        { name: "Fever", duration: "3d", severity: "High" },
+        { name: "Headache", duration: "2d" },
+        { name: "Body ache" },
+      ],
+      medicalHistory: ["Diabetes 2 yrs (on medication, name unknown)"],
+      familyHistory: ["Father: Diabetes"],
     },
   },
   "apt-anjali": {
@@ -1262,6 +1297,32 @@ function buildRxAgentReply({
           "Use row-level copy for precise insertion into RxPad sections",
         ],
         actions: ["Review symptoms", "Review medical history", "Generate DDX"],
+      },
+    }
+  }
+
+  if (q.includes("document") || q.includes("upload") || q.includes("ocr") || q.includes("report processed")) {
+    return {
+      reply: "Document processed. Found CBC panel with 2 flagged values requiring attention.",
+      nextPhase: "in_progress",
+      rxOutput: {
+        kind: "ocr_report",
+        title: "CBC · Auto-OCR · 2 flagged",
+        reportType: "pathology",
+        parameters: [
+          { name: "Hemoglobin", value: "13.1", unit: "g/dL", reference: "13–17", flag: "normal" },
+          { name: "WBC", value: "14,200", unit: "cells/mm³", reference: "4K–11K", flag: "high" },
+          { name: "Platelets", value: "2.4L", unit: "/mm³", reference: "1.5–4.0L", flag: "normal" },
+          { name: "ESR", value: "28", unit: "mm/hr", reference: "0–20", flag: "high" },
+          { name: "RBC", value: "4.8", unit: "M/µL", reference: "4.5–5.5", flag: "normal" },
+        ],
+        insight: "WBC↑ + ESR↑ → active infection/inflammation markers",
+        originalFileName: "CBC_report.pdf",
+        copyPayload: {
+          sourceDateLabel: "OCR: CBC report",
+          targetSection: "labResults",
+          labInvestigations: ["CBC"],
+        },
       },
     }
   }
@@ -4974,6 +5035,98 @@ function SymptomCollectorCard({
   )
 }
 
+// ─── OCR Report Card ───
+function OcrReportCard({
+  data,
+  onCopy,
+  onQuickSend,
+}: {
+  data: Extract<RxAgentOutput, { kind: "ocr_report" }>
+  onCopy: (payload: RxPadCopyPayload, message: string) => void
+  onQuickSend: (prompt: string) => void
+}) {
+  const flaggedCount = data.parameters.filter((p) => p.flag !== "normal").length
+  return (
+    <div className={AI_OUTPUT_CARD_CLASS}>
+      <div className={AI_INNER_SURFACE_CLASS}>
+        <div className="flex items-center gap-1.5 border-b border-tp-slate-100 bg-gradient-to-r from-[#0d948810] to-[#0d948805] px-2.5 py-1.5">
+          <span className="size-[6px] rounded-full bg-[#0D9488]" />
+          <span className="text-[10px] font-semibold text-[#0D9488]">📄 {data.title}</span>
+          {flaggedCount > 0 && (
+            <span className="ml-auto text-[9px] font-semibold text-tp-error-600">{flaggedCount} flagged</span>
+          )}
+        </div>
+        <div className="px-2 py-1.5">
+          {/* Table header */}
+          <div className="mb-1 grid grid-cols-[minmax(0,1fr)_60px_48px_20px] gap-x-1 border-b-2 border-tp-slate-100 pb-1">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-tp-slate-400">Parameter</span>
+            <span className="text-[9px] font-bold uppercase tracking-wider text-tp-slate-400">Ref</span>
+            <span className="text-right text-[9px] font-bold uppercase tracking-wider text-tp-slate-400">Value</span>
+            <span className="text-center text-[9px] font-bold uppercase tracking-wider text-tp-slate-400">⚑</span>
+          </div>
+          {/* Parameter rows */}
+          {data.parameters.map((param) => (
+            <div
+              key={param.name}
+              className={cn(
+                "grid grid-cols-[minmax(0,1fr)_60px_48px_20px] items-center gap-x-1 border-b border-tp-slate-50 py-[3px]",
+                (param.flag === "high" || param.flag === "critical") && "bg-tp-error-50/60 -mx-2 px-2",
+                param.flag === "low" && "bg-tp-warning-50/60 -mx-2 px-2",
+              )}
+            >
+              <span className={cn("text-[10px]", param.flag !== "normal" ? "font-semibold text-tp-slate-800" : "text-tp-slate-600")}>
+                {param.name}
+              </span>
+              <span className="text-[9px] text-tp-slate-400">{param.reference}</span>
+              <span
+                className={cn(
+                  "text-right text-[10px] font-semibold",
+                  param.flag === "high" || param.flag === "critical" ? "text-tp-error-600" : param.flag === "low" ? "text-tp-warning-600" : "text-tp-slate-700",
+                )}
+              >
+                {param.flag === "high" || param.flag === "critical" ? "↑" : param.flag === "low" ? "↓" : ""}
+                {param.value}
+              </span>
+              <span className={cn("text-center text-[10px]", param.flag === "normal" ? "text-tp-success-600" : "text-tp-error-600")}>
+                {param.flag === "normal" ? "✓" : param.flag === "high" ? "↑" : param.flag === "low" ? "↓" : "⚠"}
+              </span>
+            </div>
+          ))}
+          {/* Clinical insight */}
+          {data.insight && (
+            <div className="mt-2 rounded-[6px] bg-tp-error-50 px-2 py-1.5 text-[10px] font-medium text-tp-error-700">
+              <strong>Alert:</strong> {data.insight}
+            </div>
+          )}
+          {/* Action pills */}
+          <div className="mt-2 flex flex-wrap gap-1">
+            <button
+              type="button"
+              onClick={() => onCopy(data.copyPayload, `OCR data copied to Lab Results`)}
+              className="rounded-[42px] border border-tp-success-200 bg-tp-success-50 px-2 py-0.5 text-[9px] font-semibold text-tp-success-700 transition-colors hover:bg-tp-success-100"
+            >
+              📋 Copy to Lab Results
+            </button>
+            <button
+              type="button"
+              onClick={() => onQuickSend("Compare previous CBC")}
+              className="rounded-[42px] border border-tp-blue-200 bg-tp-blue-50 px-2 py-0.5 text-[9px] font-semibold text-tp-blue-700 transition-colors hover:bg-tp-blue-100"
+            >
+              📊 Compare prev CBC
+            </button>
+            <button
+              type="button"
+              className="rounded-[42px] border border-tp-slate-200 bg-white px-2 py-0.5 text-[9px] font-semibold text-tp-slate-600 transition-colors hover:bg-tp-slate-50"
+            >
+              📄 Original PDF
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function RxOutputRenderer({
   rxOutput,
   output,
@@ -5038,6 +5191,9 @@ function RxOutputRenderer({
   if (rxOutput?.kind === "annual_panel") {
     return <AnnualPanelCard data={rxOutput} onCopy={onCopy} />
   }
+  if (rxOutput?.kind === "ocr_report") {
+    return <OcrReportCard data={rxOutput} onCopy={onCopy} onQuickSend={onQuickSend} />
+  }
   if (rxOutput?.kind === "ui_showcase") {
     return <UiShowcaseCard onCopy={onCopy} onQuickSend={onQuickSend} />
   }
@@ -5101,6 +5257,11 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
   const [hasRxpadSymptomsByContext, setHasRxpadSymptomsByContext] = useState<Record<string, boolean>>({})
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null)
   const [messageFeedback, setMessageFeedback] = useState<Record<string, "like" | "dislike">>({})
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [isProcessingUpload, setIsProcessingUpload] = useState(false)
+  const [showPiDropdown, setShowPiDropdown] = useState(false)
+  const [piFilter, setPiFilter] = useState("")
+  const [symptomCollectorCollapsed, setSymptomCollectorCollapsed] = useState(false)
 
   const timersRef = useRef<number[]>([])
   const voiceTimerRef = useRef<number | null>(null)
@@ -5110,6 +5271,8 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
   const copyTimerRef = useRef<number | null>(null)
   const staleRotationRef = useRef<number | null>(null)
   const lastHandledSignalRef = useRef<number>(0)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const piDropdownRef = useRef<HTMLDivElement | null>(null)
 
   const selectedContext = useMemo(
     () => RX_CONTEXT_OPTIONS.find((option) => option.id === selectedContextId) ?? RX_CONTEXT_OPTIONS[0],
@@ -5238,6 +5401,12 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
         currentLens,
         nextPhase,
       )
+      return
+    }
+
+    if (lastSignal.type === "sidebar_pill_tap" && lastSignal.label) {
+      // Sidebar pill tap → inject the pill label as a user message in the chat
+      sendMessage(lastSignal.label, "canned")
     }
   }, [lastSignal, selectedContextId, lensByContext, consultPhaseByContext])
 
@@ -5388,6 +5557,104 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
 
     setPromptSuggestions(Array.from(new Map(merged.map((pill) => [pill.label, pill])).values()).slice(0, 5))
   }
+
+  // ─── PI (Patient Information) dropdown categories ───
+  const piCategories = useMemo(() => {
+    if (!isPatientContext || !activeSummaryData) return []
+    const s = activeSummaryData
+    return [
+      { id: "vitals", icon: "🩺", label: "Vitals", snippet: s.todayVitals ? `BP: ${s.todayVitals.bp}, SpO2: ${s.todayVitals.spo2}, Pulse: ${s.todayVitals.pulse}, Temp: ${s.todayVitals.temp}` : "No vitals recorded" },
+      { id: "allergies", icon: "⚠️", label: "Allergies", snippet: s.allergies?.length ? s.allergies.join(", ") : "No known allergies" },
+      { id: "conditions", icon: "🏥", label: "Chronic Conditions", snippet: s.chronicConditions?.length ? s.chronicConditions.join(", ") : "None on file" },
+      { id: "meds", icon: "💊", label: "Active Medications", snippet: s.activeMeds?.length ? s.activeMeds.join(", ") : "No active medications" },
+      { id: "last-visit", icon: "📋", label: "Last Visit", snippet: s.lastVisit ? `${s.lastVisit.date} · Dx: ${s.lastVisit.diagnosis} · Rx: ${s.lastVisit.medication}` : "No previous visits" },
+      { id: "labs", icon: "🔬", label: "Lab Results", snippet: s.keyLabs?.length ? s.keyLabs.map((l) => `${l.name}: ${l.value}${l.flag !== "normal" ? ` (${l.flag})` : ""}`).join(", ") : "No lab data" },
+      { id: "family", icon: "👨‍👩‍👧", label: "Family History", snippet: s.familyHistory?.length ? s.familyHistory.join(", ") : "No family history on file" },
+    ]
+  }, [isPatientContext, activeSummaryData])
+
+  const filteredPiCategories = useMemo(() => {
+    if (!piFilter) return piCategories
+    const q = piFilter.toLowerCase()
+    return piCategories.filter((c) => c.label.toLowerCase().includes(q) || c.snippet.toLowerCase().includes(q))
+  }, [piCategories, piFilter])
+
+  function handlePiSelect(category: (typeof piCategories)[0]) {
+    setInputValue((prev) => `${prev}[${category.label}: ${category.snippet}] `.trimStart())
+    setShowPiDropdown(false)
+    setPiFilter("")
+  }
+
+  function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setUploadedFile(file)
+    if (event.target) event.target.value = ""
+  }
+
+  function handleSendWithUpload() {
+    if (!uploadedFile && !inputValue.trim()) return
+    const fileName = uploadedFile?.name ?? ""
+    const messageText = uploadedFile
+      ? inputValue.trim()
+        ? `📎 ${fileName} — ${inputValue.trim()}`
+        : `📎 Uploaded: ${fileName}`
+      : inputValue.trim()
+
+    if (uploadedFile) {
+      setIsProcessingUpload(true)
+      sendMessage(messageText, "typed")
+      const timer = window.setTimeout(() => {
+        setIsProcessingUpload(false)
+        const contextId = selectedContextId
+        const assistantOcr = createAgentMessage(
+          "assistant",
+          `Document processed: ${fileName}. Found CBC panel with 2 flagged values.`,
+        )
+        pushMessage(contextId, {
+          ...assistantOcr,
+          rxOutput: {
+            kind: "ocr_report",
+            title: `CBC · Auto-OCR · 2 flagged`,
+            reportType: "pathology",
+            parameters: [
+              { name: "Hemoglobin", value: "13.1", unit: "g/dL", reference: "13–17", flag: "normal" },
+              { name: "WBC", value: "14,200", unit: "cells/mm³", reference: "4K–11K", flag: "high" },
+              { name: "Platelets", value: "2.4L", unit: "/mm³", reference: "1.5–4.0L", flag: "normal" },
+              { name: "ESR", value: "28", unit: "mm/hr", reference: "0–20", flag: "high" },
+              { name: "RBC", value: "4.8", unit: "M/µL", reference: "4.5–5.5", flag: "normal" },
+            ],
+            insight: "WBC↑ + ESR↑ → active infection/inflammation markers",
+            originalFileName: fileName,
+            copyPayload: {
+              sourceDateLabel: "OCR: " + fileName,
+              targetSection: "labResults",
+              labInvestigations: ["CBC"],
+            },
+          },
+        })
+      }, 1500)
+      timersRef.current.push(timer)
+      setUploadedFile(null)
+    } else {
+      sendMessage(messageText, "typed")
+    }
+    setInputValue("")
+  }
+
+  // Close PI dropdown on click outside
+  useEffect(() => {
+    function onClickOutside(event: MouseEvent) {
+      if (piDropdownRef.current && !piDropdownRef.current.contains(event.target as Node)) {
+        setShowPiDropdown(false)
+        setPiFilter("")
+      }
+    }
+    if (showPiDropdown) {
+      document.addEventListener("mousedown", onClickOutside)
+      return () => document.removeEventListener("mousedown", onClickOutside)
+    }
+  }, [showPiDropdown])
 
   function sendMessage(rawMessage: string, source: "typed" | "canned" | "voice" = "typed") {
     const text = rawMessage.trim()
@@ -5806,6 +6073,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="shrink-0 border-t border-tp-slate-100 bg-white/95 px-3 py-2.5 backdrop-blur-sm">
+          {/* ── Prompt Pills ── */}
           <div className="mb-2 overflow-x-auto pb-1">
             <div className="inline-flex min-w-max items-center gap-1.5">
               {promptSuggestions.map((prompt) => (
@@ -5826,48 +6094,151 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* ── Upload Preview Chip ── */}
+          {uploadedFile && (
+            <div className="mb-2 inline-flex items-center gap-1.5 rounded-[8px] border border-tp-blue-200 bg-tp-blue-50 px-2.5 py-1.5">
+              <FileText size={13} className="text-tp-blue-500" />
+              <span className="max-w-[200px] truncate text-[11px] font-medium text-tp-blue-700">{uploadedFile.name}</span>
+              <button type="button" onClick={() => setUploadedFile(null)} className="text-tp-blue-400 hover:text-tp-blue-600">
+                <X size={12} />
+              </button>
+            </div>
+          )}
+
+          {/* ── Processing indicator ── */}
+          {isProcessingUpload && (
+            <div className="mb-2 flex items-center gap-2 rounded-[8px] bg-tp-slate-50 px-2.5 py-1.5">
+              <div className="size-3 animate-spin rounded-full border-2 border-tp-violet-300 border-t-transparent" />
+              <span className="text-[11px] text-tp-slate-600">Processing document via OCR...</span>
+            </div>
+          )}
+
+          {/* ── PI Dropdown (above input) ── */}
+          {showPiDropdown && isPatientContext && (
+            <div ref={piDropdownRef} className="mb-2 overflow-hidden rounded-[10px] border border-tp-slate-200 bg-white shadow-lg">
+              <div className="border-b border-tp-slate-100 px-2.5 py-1.5">
+                <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-tp-slate-400">
+                  <AtSign size={11} />
+                  Insert patient context
+                </div>
+              </div>
+              <div className="max-h-[200px] overflow-y-auto py-1">
+                {filteredPiCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => handlePiSelect(cat)}
+                    className="flex w-full items-start gap-2 px-2.5 py-2 text-left transition-colors hover:bg-tp-slate-50"
+                  >
+                    <span className="mt-0.5 text-[13px]">{cat.icon}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-semibold text-tp-slate-700">{cat.label}</p>
+                      <p className="truncate text-[10px] text-tp-slate-500">{cat.snippet}</p>
+                    </div>
+                  </button>
+                ))}
+                {filteredPiCategories.length === 0 && (
+                  <p className="px-2.5 py-2 text-center text-[10px] text-tp-slate-400">No matching categories</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── Input Area: [📎] [@] [input] [🎤] [➤] ── */}
+          <div className="flex items-center gap-1.5">
+            {/* Upload button */}
+            <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={handleFileUpload} />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className={cn(
+                "inline-flex size-9 shrink-0 items-center justify-center rounded-[10px] border-[0.5px] transition-colors",
+                uploadedFile
+                  ? "border-tp-blue-300 bg-tp-blue-50 text-tp-blue-500"
+                  : "border-tp-slate-200 bg-white text-tp-slate-400 hover:bg-tp-slate-50 hover:text-tp-blue-500",
+              )}
+              aria-label="Upload document"
+              title="Upload report (PDF, Image)"
+            >
+              <Paperclip size={14} strokeWidth={2} />
+            </button>
+
+            {/* PI context button */}
+            {isPatientContext && (
+              <button
+                type="button"
+                onClick={() => { setShowPiDropdown((prev) => !prev); setPiFilter("") }}
+                className={cn(
+                  "inline-flex size-9 shrink-0 items-center justify-center rounded-[10px] border-[0.5px] transition-colors",
+                  showPiDropdown
+                    ? "border-tp-violet-300 bg-tp-violet-50 text-tp-violet-500"
+                    : "border-tp-slate-200 bg-white text-tp-slate-400 hover:bg-tp-slate-50 hover:text-tp-violet-500",
+                )}
+                aria-label="Insert patient info"
+                title="Insert patient data (@)"
+              >
+                <AtSign size={14} strokeWidth={2} />
+              </button>
+            )}
+
+            {/* Text input */}
             <input
               value={inputValue}
-              onChange={(event) => setInputValue(event.target.value)}
+              onChange={(event) => {
+                setInputValue(event.target.value)
+                if (event.target.value.endsWith("@") && isPatientContext) {
+                  setShowPiDropdown(true)
+                  setPiFilter("")
+                }
+              }}
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
                   event.preventDefault()
-                  sendMessage(inputValue, "typed")
+                  handleSendWithUpload()
+                }
+                if (event.key === "Escape" && showPiDropdown) {
+                  setShowPiDropdown(false)
                 }
               }}
-              placeholder="Type a prompt for Doctor Agent"
-              className="h-10 min-w-0 flex-1 rounded-[10px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50 px-3 text-[13px] text-tp-slate-700 outline-none focus:border-tp-blue-300"
+              placeholder={uploadedFile ? "Add a note about this document..." : "Type a prompt for Doctor Agent"}
+              className="h-9 min-w-0 flex-1 rounded-[10px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50 px-3 text-[12px] text-tp-slate-700 outline-none transition-colors focus:border-tp-blue-300 focus:ring-1 focus:ring-tp-blue-100"
             />
+
+            {/* Voice button */}
             <button
               type="button"
               onClick={handleMicClick}
               className={cn(
-                "inline-flex size-10 items-center justify-center rounded-[10px] border-[0.5px]",
+                "inline-flex size-9 shrink-0 items-center justify-center rounded-[10px] border-[0.5px] transition-colors",
                 isRecording
                   ? "border-tp-violet-300 bg-tp-violet-100 text-tp-violet-600"
                   : "border-tp-slate-200 bg-white text-tp-slate-600 hover:bg-tp-slate-50",
               )}
               aria-label={isRecording ? "Stop recording" : "Record audio prompt"}
             >
-              <Mic size={15} strokeWidth={2} />
+              <Mic size={14} strokeWidth={2} />
             </button>
+
+            {/* Send button */}
             <button
               type="button"
-              onClick={() => sendMessage(inputValue, "typed")}
-              disabled={!inputValue.trim()}
+              onClick={handleSendWithUpload}
+              disabled={!inputValue.trim() && !uploadedFile}
               className={cn(
-                "inline-flex size-10 shrink-0 items-center justify-center rounded-[10px]",
-                inputValue.trim() ? "bg-tp-blue-500 text-white" : "cursor-not-allowed bg-tp-slate-100 text-tp-slate-400",
+                "inline-flex size-9 shrink-0 items-center justify-center rounded-[10px] transition-colors",
+                inputValue.trim() || uploadedFile
+                  ? "bg-tp-blue-500 text-white shadow-sm hover:bg-tp-blue-600"
+                  : "cursor-not-allowed bg-tp-slate-100 text-tp-slate-400",
               )}
               aria-label="Send prompt"
             >
-              <SendHorizontal size={16} strokeWidth={2} />
+              <SendHorizontal size={14} strokeWidth={2} />
             </button>
           </div>
 
+          {/* ── Footer ── */}
           <div className="mt-2 flex items-center gap-1.5 text-[10px] text-tp-slate-500">
-            <ShieldCheck size={12} className="text-tp-success-600" />
+            <ShieldCheck size={11} className="text-tp-success-600" />
             <span>Encrypted. Patient details are stored securely and accessible only to this doctor.</span>
           </div>
 

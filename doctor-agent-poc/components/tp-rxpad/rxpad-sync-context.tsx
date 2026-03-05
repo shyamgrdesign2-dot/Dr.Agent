@@ -55,7 +55,7 @@ export interface RxPadCopyRequest {
 
 export interface RxPadSignal {
   id: number
-  type: "symptoms_changed" | "medications_changed" | "section_focus"
+  type: "symptoms_changed" | "medications_changed" | "section_focus" | "sidebar_pill_tap"
   label?: string
   count?: number
   sectionId?: string
