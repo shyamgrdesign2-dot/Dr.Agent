@@ -4,18 +4,20 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import {
   Activity,
   AlertTriangle,
-
+  Baby,
   Check,
   ChevronDown,
   ChevronUp,
   ClipboardPlus,
   Copy,
+  Droplets,
   FileText,
   FlaskConical,
   HeartPulse,
   Mic,
   Paperclip,
   Pill,
+  Scale,
   Search,
   SendHorizontal,
   ShieldCheck,
@@ -40,6 +42,7 @@ import {
   type RxPadVitalsSeed,
   useRxPadSync,
 } from "@/components/tp-rxpad/rxpad-sync-context"
+import { TPMedicalIcon } from "@/components/tp-ui/medical-icons/TPMedicalIcon"
 import { cn } from "@/lib/utils"
 
 const CONTEXT_PATIENT_ID = "__patient__"
@@ -355,11 +358,17 @@ interface SmartSummaryData {
   lastVisit?: LastVisitSummary
   labFlagCount: number
   todayVitals?: {
-    bp: string
-    pulse: string
-    spo2: string
-    temp: string
-    bmi: string
+    bp?: string
+    pulse?: string
+    spo2?: string
+    temp?: string
+    bmi?: string
+    rr?: string
+    weight?: string
+    height?: string
+    bmr?: string
+    bsa?: string
+    bloodSugar?: string
   }
   activeMeds?: string[]
   keyLabs?: Array<{ name: string; value: string; flag: "high" | "low" }>
@@ -589,6 +598,11 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       spo2: "97%",
       temp: "98.6 F",
       bmi: "25.1",
+      rr: "18",
+      weight: "78",
+      height: "174",
+      bmr: "1680",
+      bsa: "1.94",
     },
     activeMeds: undefined,
     keyLabs: undefined,
@@ -4103,7 +4117,7 @@ interface SpecialtyClinicalView {
 
 function vitalsSeedFromVitals(vitals?: SmartSummaryData["todayVitals"]): RxPadVitalsSeed | undefined {
   if (!vitals) return undefined
-  const [systolic, diastolic] = vitals.bp.split("/")
+  const [systolic, diastolic] = (vitals.bp ?? "").split("/")
   return {
     bpSystolic: systolic?.trim(),
     bpDiastolic: diastolic?.trim(),
@@ -4562,7 +4576,18 @@ function AgentIntroMessage({
 /*  PatientSummaryCard — specialty-aware compact card                  */
 /* ------------------------------------------------------------------ */
 
-type SummaryRow = { label: string; parts: Array<{ text: string; tone?: "error" | "muted" }> }
+type VitalEntry = { key: string; label: string; value: string; unit?: string; icon: React.ReactNode; abnormal: boolean; priority: number }
+
+type SummarySection =
+  | { kind: "allergy"; allergies: string[] }
+  | { kind: "vitals"; entries: VitalEntry[] }
+  | { kind: "specialty"; specialtyId: SpecialtyTabId; content: React.ReactNode }
+  | { kind: "chronic"; conditions: string[]; meds?: string[] }
+  | { kind: "lastVisit"; visit: LastVisitSummary }
+  | { kind: "labs"; labs: Array<{ name: string; value: string; flag: "high" | "low" }> }
+  | { kind: "dueAlerts"; alerts: string[] }
+  | { kind: "symptoms"; symptoms: Array<{ name: string; duration?: string; severity?: string }> }
+  | { kind: "zeroData" }
 
 const SPECIALTY_CARD_TITLES: Record<SpecialtyTabId, string> = {
   gp: "Patient Summary",
@@ -4572,269 +4597,436 @@ const SPECIALTY_CARD_TITLES: Record<SpecialtyTabId, string> = {
   pediatrics: "Pediatric Summary",
 }
 
-function buildGpRows(s: SmartSummaryData): SummaryRow[] {
-  const rows: SummaryRow[] = []
-  if (s.chronicConditions?.length) {
-    const parts: SummaryRow["parts"] = [{ text: s.chronicConditions.join(", ") }]
-    if (s.activeMeds?.length) {
-      parts.push({ text: " | ", tone: "muted" }, { text: `Meds: ${s.activeMeds.join(", ")}` })
-    }
-    rows.push({ label: "Chronic", parts })
-  }
-  if (s.lastVisit) {
-    const lv = s.lastVisit
-    const parts: SummaryRow["parts"] = [{ text: `Dx: ${lv.diagnosis}` }, { text: " | ", tone: "muted" }, { text: `Rx: ${lv.medication}` }]
-    if (lv.investigation) {
-      parts.push({ text: " | ", tone: "muted" }, { text: `Inv: ${lv.investigation}` })
-    }
-    rows.push({ label: `Last visit ${lv.date}`, parts })
-  }
-  if (s.todayVitals) {
-    const v = s.todayVitals
-    const spo2Tone = Number.parseInt(v.spo2) < 95 ? ("error" as const) : undefined
-    rows.push({
-      label: "Today",
-      parts: [
-        { text: `BP ${v.bp}` }, { text: " | ", tone: "muted" },
-        { text: `SpO2 ${v.spo2}`, tone: spo2Tone }, { text: " | ", tone: "muted" },
-        { text: `Pulse ${v.pulse}` }, { text: " | ", tone: "muted" },
-        { text: `Temp ${v.temp}` },
-      ],
-    })
-  }
-  if (s.keyLabs?.length) {
-    const flagged = s.keyLabs.filter((l) => l.flag !== "normal")
-    if (flagged.length > 0) {
-      rows.push({
-        label: "Labs",
-        parts: [
-          { text: `${flagged.length} abnormal — ` },
-          ...flagged.slice(0, 3).flatMap((l, i) => {
-            const arrow = l.flag === "high" ? "↑" : "↓"
-            const items: SummaryRow["parts"] = [{ text: `${l.name} ${arrow}${l.value}`, tone: "error" }]
-            if (i < Math.min(flagged.length, 3) - 1) items.push({ text: ", " })
-            return items
-          }),
-        ],
-      })
-    }
-  }
-  if (s.symptomCollectorData?.symptoms?.length) {
-    const sx = s.symptomCollectorData.symptoms
-    rows.push({ label: "Sx", parts: [{ text: sx.map((x) => `${x.name}${x.duration ? ` ${x.duration}` : ""}`).join(", ") }] })
-  }
-  return rows
+const SPECIALTY_VISUAL_CONFIG: Record<SpecialtyTabId, { headerBg: string; accentBorder: string; iconBg: string; iconColor: string; icon: React.ReactNode }> = {
+  gp:         { headerBg: "bg-tp-slate-50",     accentBorder: "border-l-tp-blue-400",   iconBg: "bg-tp-blue-50",   iconColor: "text-tp-blue-500",   icon: <Stethoscope size={12} /> },
+  gynec:      { headerBg: "bg-[#FDF2F8]",       accentBorder: "border-l-[#EC4899]",     iconBg: "bg-[#FDF2F8]",    iconColor: "text-[#EC4899]",     icon: <TPMedicalIcon name="Gynec" size={12} color="#EC4899" /> },
+  ophthal:    { headerBg: "bg-[#F0FDFA]",       accentBorder: "border-l-[#14B8A6]",     iconBg: "bg-[#F0FDFA]",    iconColor: "text-[#14B8A6]",     icon: <TPMedicalIcon name="eye" size={12} color="#14B8A6" /> },
+  obstetric:  { headerBg: "bg-tp-violet-50/60", accentBorder: "border-l-tp-violet-400", iconBg: "bg-tp-violet-50", iconColor: "text-tp-violet-500", icon: <TPMedicalIcon name="Obstetric" size={12} color="#8B5CF6" /> },
+  pediatrics: { headerBg: "bg-tp-blue-50/60",   accentBorder: "border-l-tp-blue-300",   iconBg: "bg-tp-blue-50",   iconColor: "text-tp-blue-400",   icon: <Baby size={12} /> },
 }
 
-function buildGynecRows(s: SmartSummaryData): SummaryRow[] {
-  const g = s.gynecData
-  if (!g) return buildGpRows(s)
-  const rows: SummaryRow[] = []
-  rows.push({
-    label: "Cycle",
-    parts: [
-      { text: `${g.cycleRegularity ?? "—"}, ${g.cycleLength ?? "—"}` },
-      { text: " | ", tone: "muted" },
-      { text: `Flow: ${g.flowIntensity ?? "—"}${g.padsPerDay ? `, ${g.padsPerDay} pads/day` : ""}` },
-    ],
-  })
-  if (g.lmp) {
-    const parts: SummaryRow["parts"] = [{ text: g.lmp }]
-    if (g.painScore) { parts.push({ text: " | ", tone: "muted" }, { text: `Pain: ${g.painScore}` }) }
-    rows.push({ label: "LMP", parts })
-  }
-  if (g.lastPapSmear) {
-    rows.push({ label: "Pap Smear", parts: [{ text: g.lastPapSmear }] })
-  }
-  // Keep vitals row if available
-  if (s.todayVitals) {
-    const v = s.todayVitals
-    rows.push({
-      label: "Today",
-      parts: [
-        { text: `BP ${v.bp}` }, { text: " | ", tone: "muted" },
-        { text: `Pulse ${v.pulse}` }, { text: " | ", tone: "muted" },
-        { text: `Temp ${v.temp}` },
-      ],
-    })
-  }
-  // Show Hb if flagged
-  if (s.keyLabs?.length) {
-    const hb = s.keyLabs.find((l) => l.name.toLowerCase().includes("hb") || l.name.toLowerCase().includes("hemoglobin"))
-    if (hb) {
-      const arrow = hb.flag === "high" ? "↑" : "↓"
-      rows.push({ label: "Labs", parts: [{ text: `${hb.name} ${arrow}${hb.value}`, tone: "error" }] })
-    }
-  }
-  return rows
+const VITAL_META: Record<string, { label: string; unit?: string; icon: React.ReactNode; priority: number; isAbnormal: (v: string) => boolean }> = {
+  bp:         { label: "BP",    unit: "mmHg",  icon: <Activity size={11} />,    priority: 1,  isAbnormal: (v) => { const s = Number.parseInt(v); return s >= 140 || s <= 90 } },
+  spo2:       { label: "SpO2",  unit: "%",     icon: <HeartPulse size={11} />,  priority: 2,  isAbnormal: (v) => Number.parseInt(v) < 95 },
+  pulse:      { label: "Pulse", unit: "/min",  icon: <HeartPulse size={11} />,  priority: 3,  isAbnormal: (v) => { const n = Number.parseInt(v); return n > 100 || n < 50 } },
+  temp:       { label: "Temp",  unit: "°F",    icon: <TPMedicalIcon name="thermometer" size={11} color="currentColor" />, priority: 4, isAbnormal: (v) => Number.parseFloat(v) >= 100.4 },
+  rr:         { label: "RR",    unit: "/min",  icon: <Activity size={11} />,    priority: 5,  isAbnormal: (v) => { const n = Number.parseInt(v); return n > 20 || n < 12 } },
+  weight:     { label: "Wt",    unit: "kg",    icon: <Scale size={11} />,       priority: 6,  isAbnormal: () => false },
+  height:     { label: "Ht",    unit: "cm",    icon: <Scale size={11} />,       priority: 7,  isAbnormal: () => false },
+  bmi:        { label: "BMI",   unit: "kg/m²", icon: <Activity size={11} />,    priority: 8,  isAbnormal: (v) => { const n = Number.parseFloat(v); return n > 30 || n < 18.5 } },
+  bmr:        { label: "BMR",   unit: "kcal",  icon: <Activity size={11} />,    priority: 9,  isAbnormal: () => false },
+  bsa:        { label: "BSA",   unit: "m²",    icon: <Activity size={11} />,    priority: 10, isAbnormal: () => false },
+  bloodSugar: { label: "BS",    unit: "mg/dL", icon: <Droplets size={11} />,    priority: 11, isAbnormal: (v) => Number.parseInt(v) > 140 },
 }
 
-function buildOphthalRows(s: SmartSummaryData): SummaryRow[] {
-  const o = s.ophthalData
-  if (!o) return buildGpRows(s)
-  const rows: SummaryRow[] = []
-  if (o.vaRight || o.vaLeft) {
-    rows.push({
-      label: "VA",
-      parts: [
-        { text: `OD ${o.vaRight ?? "—"}` }, { text: " | ", tone: "muted" },
-        { text: `OS ${o.vaLeft ?? "—"}` },
-      ],
-    })
+/* ---- Shared section builders ---- */
+
+function buildVitalsSection(todayVitals: SmartSummaryData["todayVitals"]): SummarySection | null {
+  if (!todayVitals) return null
+  const entries: VitalEntry[] = []
+  for (const [key, value] of Object.entries(todayVitals)) {
+    if (value == null || value === "") continue
+    const meta = VITAL_META[key]
+    if (!meta) continue
+    entries.push({ key, label: meta.label, value, unit: meta.unit, icon: meta.icon, abnormal: meta.isAbnormal(value), priority: meta.priority })
   }
-  if (o.nearVaRight || o.nearVaLeft) {
-    rows.push({
-      label: "Near VA",
-      parts: [
-        { text: `OD ${o.nearVaRight ?? "—"}` }, { text: " | ", tone: "muted" },
-        { text: `OS ${o.nearVaLeft ?? "—"}` },
-      ],
-    })
-  }
-  if (o.iop) {
-    rows.push({
-      label: "IOP",
-      parts: [
-        { text: `OD ${o.iop.right}` }, { text: " | ", tone: "muted" },
-        { text: `OS ${o.iop.left}` },
-      ],
-    })
-  }
-  if (o.slitLamp) {
-    rows.push({ label: "Slit Lamp", parts: [{ text: o.slitLamp }] })
-  }
-  if (o.fundus) {
-    rows.push({ label: "Fundus", parts: [{ text: o.fundus }] })
-  }
-  if (o.glassPrescription) {
-    rows.push({ label: "Glass Rx", parts: [{ text: o.glassPrescription }] })
-  }
-  if (o.lastExamDate) {
-    rows.push({ label: "Last exam", parts: [{ text: o.lastExamDate }] })
-  }
-  return rows
+  entries.sort((a, b) => a.priority - b.priority)
+  if (entries.length === 0) return null
+  return { kind: "vitals" as const, entries }
 }
 
-function buildObstetricRows(s: SmartSummaryData): SummaryRow[] {
-  const ob = s.obstetricData
-  if (!ob) return buildGpRows(s)
-  const rows: SummaryRow[] = []
-  // GPLAE
-  if (ob.gravida != null) {
-    rows.push({
-      label: "GPLAE",
-      parts: [{ text: `G${ob.gravida} P${ob.para ?? 0} L${ob.living ?? 0} A${ob.abortion ?? 0} E${ob.ectopic ?? 0}` }],
-    })
-  }
-  // LMP / EDD / Weeks
-  const timeline: SummaryRow["parts"] = []
-  if (ob.lmp) timeline.push({ text: `LMP: ${ob.lmp}` })
-  if (ob.edd) { if (timeline.length) timeline.push({ text: " | ", tone: "muted" }); timeline.push({ text: `EDD: ${ob.edd}` }) }
-  if (ob.gestationalWeeks) { if (timeline.length) timeline.push({ text: " | ", tone: "muted" }); timeline.push({ text: `${ob.gestationalWeeks}w` }) }
-  if (timeline.length) rows.push({ label: "Timeline", parts: timeline })
-  // Presentation / FM / Oedema
-  const exam: SummaryRow["parts"] = []
-  if (ob.presentation) exam.push({ text: ob.presentation })
-  if (ob.fetalMovement) { if (exam.length) exam.push({ text: " | ", tone: "muted" }); exam.push({ text: `FM: ${ob.fetalMovement}` }) }
-  if (ob.oedema != null) { if (exam.length) exam.push({ text: " | ", tone: "muted" }); exam.push({ text: `Oedema: ${ob.oedema ? "Yes" : "No"}` }) }
-  if (exam.length) rows.push({ label: "Exam", parts: exam })
-  // Fundus / Fluid
-  const measures: SummaryRow["parts"] = []
-  if (ob.fundusHeight) measures.push({ text: `Fundus: ${ob.fundusHeight}` })
-  if (ob.amnioticFluid) { if (measures.length) measures.push({ text: " | ", tone: "muted" }); measures.push({ text: `Fluid: ${ob.amnioticFluid}` }) }
-  if (measures.length) rows.push({ label: "Measures", parts: measures })
-  // ANC Due
-  if (ob.ancDue?.length) {
-    rows.push({ label: "ANC Due", parts: [{ text: ob.ancDue.join(", "), tone: "error" }] })
-  }
-  // Vaccines
-  if (ob.vaccineStatus) {
-    rows.push({ label: "Vaccines", parts: [{ text: ob.vaccineStatus }] })
-  }
-  // Keep vitals (BP critical for obstetric)
-  if (s.todayVitals) {
-    const v = s.todayVitals
-    const bpParts = v.bp.split("/")
-    const systolic = Number.parseInt(bpParts[0] ?? "0")
-    const bpTone = systolic >= 140 ? ("error" as const) : systolic >= 130 ? ("error" as const) : undefined
-    rows.push({
-      label: "Today",
-      parts: [
-        { text: `BP ${v.bp}`, tone: bpTone }, { text: " | ", tone: "muted" },
-        { text: `Pulse ${v.pulse}` }, { text: " | ", tone: "muted" },
-        { text: `SpO2 ${v.spo2}` },
-      ],
-    })
-  }
-  return rows
+function buildAllergySection(allergies?: string[]): SummarySection | null {
+  if (!allergies?.length) return null
+  return { kind: "allergy" as const, allergies }
 }
 
-function buildPediatricsRows(s: SmartSummaryData): SummaryRow[] {
-  const p = s.pediatricsData
-  if (!p) return buildGpRows(s)
-  const rows: SummaryRow[] = []
-  // Growth
-  const growth: SummaryRow["parts"] = []
-  if (p.heightCm != null) growth.push({ text: `Ht ${p.heightCm}cm (${p.heightPercentile ?? "—"})` })
-  if (p.weightKg != null) {
-    if (growth.length) growth.push({ text: " | ", tone: "muted" })
-    const wtTone = p.weightPercentile && Number.parseInt(p.weightPercentile) < 25 ? ("error" as const) : undefined
-    growth.push({ text: `Wt ${p.weightKg}kg (${p.weightPercentile ?? "—"})`, tone: wtTone })
-  }
-  if (p.ofcCm != null) { if (growth.length) growth.push({ text: " | ", tone: "muted" }); growth.push({ text: `OFC ${p.ofcCm}cm` }) }
-  if (growth.length) rows.push({ label: "Growth", parts: growth })
-  // BMI
-  if (p.bmiPercentile) {
-    rows.push({ label: "BMI", parts: [{ text: `${s.todayVitals?.bmi ?? "—"} (${p.bmiPercentile})` }] })
-  }
-  // Vaccines
-  if (p.vaccinesPending != null || p.vaccinesOverdue != null) {
-    const parts: SummaryRow["parts"] = []
-    if (p.vaccinesPending) parts.push({ text: `${p.vaccinesPending} pending` })
-    if (p.vaccinesOverdue) {
-      if (parts.length) parts.push({ text: ", " })
-      parts.push({ text: `${p.vaccinesOverdue} overdue`, tone: "error" })
-      if (p.overdueVaccineNames?.length) {
-        parts.push({ text: ` (${p.overdueVaccineNames.join(", ")})`, tone: "error" })
-      }
-    }
-    if (parts.length) rows.push({ label: "Vaccines", parts })
-  }
-  // Milestones
-  if (p.milestoneNotes?.length) {
-    rows.push({ label: "Milestones", parts: [{ text: p.milestoneNotes.join("; ") }] })
-  }
-  // Feeding
-  if (p.feedingNotes) {
-    rows.push({ label: "Feeding", parts: [{ text: p.feedingNotes }] })
-  }
-  // Keep vitals and labs
-  if (s.todayVitals) {
-    const v = s.todayVitals
-    const parts: SummaryRow["parts"] = [{ text: `Pulse ${v.pulse}` }, { text: " | ", tone: "muted" }, { text: `SpO2 ${v.spo2}` }, { text: " | ", tone: "muted" }, { text: `Temp ${v.temp}` }]
-    rows.push({ label: "Today", parts })
-  }
-  if (s.keyLabs?.length) {
-    const flagged = s.keyLabs.filter((l) => l.flag !== "normal")
-    if (flagged.length > 0) {
-      rows.push({
-        label: "Labs",
-        parts: flagged.slice(0, 3).flatMap((l, i) => {
+function buildChronicSection(conditions?: string[], meds?: string[]): SummarySection | null {
+  if (!conditions?.length) return null
+  return { kind: "chronic" as const, conditions, meds }
+}
+
+function buildLabsSection(keyLabs?: Array<{ name: string; value: string; flag: "high" | "low" }>): SummarySection | null {
+  if (!keyLabs?.length) return null
+  const flagged = keyLabs.filter((l) => l.flag === "high" || l.flag === "low")
+  if (flagged.length === 0) return null
+  return { kind: "labs" as const, labs: flagged }
+}
+
+function buildLastVisitSection(visit?: LastVisitSummary): SummarySection | null {
+  if (!visit) return null
+  return { kind: "lastVisit" as const, visit }
+}
+
+function buildSymptomsSection(symptomData?: SmartSummaryData["symptomCollectorData"]): SummarySection | null {
+  if (!symptomData?.symptoms?.length) return null
+  return { kind: "symptoms" as const, symptoms: symptomData.symptoms }
+}
+
+function buildDueAlertsSection(alerts?: string[]): SummarySection | null {
+  if (!alerts?.length) return null
+  return { kind: "dueAlerts" as const, alerts }
+}
+
+/* ---- Section renderers ---- */
+
+function AllergyBanner({ allergies }: { allergies: string[] }) {
+  return (
+    <div className="flex items-center gap-1.5 rounded-[8px] border-[0.5px] border-tp-error-200 bg-tp-error-50 px-2 py-1.5">
+      <ShieldCheck size={13} className="shrink-0 text-tp-error-500" />
+      <p className="text-[11px] font-semibold leading-[14px] text-tp-error-700">
+        ALLERGY: {allergies.join(", ")}
+      </p>
+    </div>
+  )
+}
+
+function VitalsGrid({ entries }: { entries: VitalEntry[] }) {
+  const TIER1_MAX = 5
+  const TIER2_MAX = 5
+  const tier1 = entries.slice(0, TIER1_MAX)
+  const remaining = entries.slice(TIER1_MAX)
+  const tier2 = remaining.slice(0, TIER2_MAX)
+  const overflowCount = remaining.length - tier2.length
+
+  return (
+    <div className="space-y-1">
+      {/* Tier 1 — prominent mini-cards */}
+      <div className="flex flex-wrap gap-1">
+        {tier1.map((v) => (
+          <div
+            key={v.key}
+            className={cn(
+              "flex items-center gap-1 rounded-[6px] border-[0.5px] px-1.5 py-[3px]",
+              v.abnormal ? "border-tp-error-200 bg-tp-error-50" : "border-tp-slate-200 bg-tp-slate-50",
+            )}
+          >
+            <span className={cn("shrink-0", v.abnormal ? "text-tp-error-500" : "text-tp-slate-400")}>{v.icon}</span>
+            <span className={cn("text-[10px] font-medium", v.abnormal ? "text-tp-error-500" : "text-tp-slate-500")}>{v.label}</span>
+            <span className={cn("text-[11px] font-semibold", v.abnormal ? "text-tp-error-600" : "text-tp-slate-700")}>{v.value}</span>
+          </div>
+        ))}
+      </div>
+      {/* Tier 2 — compact chips for overflow vitals */}
+      {tier2.length > 0 && (
+        <div className="flex flex-wrap gap-1 pl-0.5">
+          {tier2.map((v) => (
+            <span
+              key={v.key}
+              className={cn(
+                "rounded bg-tp-slate-100 px-1.5 py-0.5 text-[10px] font-medium",
+                v.abnormal ? "text-tp-error-600" : "text-tp-slate-500",
+              )}
+            >
+              {v.label} {v.value}
+            </span>
+          ))}
+          {overflowCount > 0 && (
+            <span className="rounded bg-tp-slate-100 px-1.5 py-0.5 text-[10px] text-tp-slate-400">+{overflowCount} more</span>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ChronicMedsSection({ conditions, meds }: { conditions: string[]; meds?: string[] }) {
+  const MAX_CHIPS = 5
+  const shown = conditions.slice(0, MAX_CHIPS)
+  const overflow = conditions.length - shown.length
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-1">
+        <Stethoscope size={12} className="shrink-0 text-tp-slate-400" />
+        <div className="flex flex-wrap gap-1">
+          {shown.map((c) => (
+            <span key={c} className="rounded-full bg-tp-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-tp-slate-600">
+              {c}
+            </span>
+          ))}
+          {overflow > 0 && (
+            <span className="rounded-full bg-tp-slate-100 px-1.5 py-0.5 text-[10px] text-tp-slate-400">+{overflow}</span>
+          )}
+        </div>
+      </div>
+      {meds && meds.length > 0 && (
+        <div className="flex items-start gap-1 pl-4">
+          <Pill size={11} className="mt-0.5 shrink-0 text-tp-slate-300" />
+          <p className="truncate text-[11px] text-tp-slate-500" title={meds.join(", ")}>
+            Rx: {meds.join(", ")}
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function LabChipsSection({ labs }: { labs: Array<{ name: string; value: string; flag: "high" | "low" }> }) {
+  const MAX_SHOWN = 3
+  const shown = labs.slice(0, MAX_SHOWN)
+  const overflow = labs.length - shown.length
+
+  return (
+    <div className="flex items-start gap-1.5">
+      <FlaskConical size={12} className="mt-0.5 shrink-0 text-tp-error-400" />
+      <div className="flex flex-wrap gap-1">
+        {shown.map((l) => {
           const arrow = l.flag === "high" ? "↑" : "↓"
-          const items: SummaryRow["parts"] = [{ text: `${l.name} ${arrow}${l.value}`, tone: "error" }]
-          if (i < Math.min(flagged.length, 3) - 1) items.push({ text: ", " })
-          return items
-        }),
-      })
-    }
-  }
-  return rows
+          return (
+            <span key={l.name} className="inline-flex items-center gap-0.5 rounded-full border-[0.5px] border-tp-error-200 bg-tp-error-50 px-1.5 py-0.5 text-[11px] font-medium text-tp-error-600">
+              {l.name} {arrow}{l.value}
+            </span>
+          )
+        })}
+        {overflow > 0 && (
+          <span className="rounded-full border-[0.5px] border-tp-error-100 bg-tp-error-50/60 px-1.5 py-0.5 text-[10px] text-tp-error-400">+{overflow} more</span>
+        )}
+      </div>
+    </div>
+  )
 }
 
-function buildSpecialtyAlerts(s: SmartSummaryData, specialty: SpecialtyTabId): Array<{ text: string; tone: "red" | "amber" }> {
+function LastVisitSection({ visit }: { visit: LastVisitSummary }) {
+  return (
+    <div className="flex items-start gap-1.5">
+      <FileText size={12} className="mt-0.5 shrink-0 text-tp-slate-400" />
+      <div className="min-w-0">
+        <p className="text-[10px] text-tp-slate-400">{visit.date}</p>
+        <p className="truncate text-[11px] text-tp-slate-700">
+          <span className="font-semibold">Dx:</span> {visit.diagnosis}
+          <span className="mx-1 text-tp-slate-300">|</span>
+          <span className="font-semibold">Rx:</span> {visit.medication}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function DueAlertsSection({ alerts }: { alerts: string[] }) {
+  return (
+    <div className="flex items-start gap-1.5">
+      <AlertTriangle size={12} className="mt-0.5 shrink-0 text-tp-warning-500" />
+      <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+        {alerts.map((a) => (
+          <span key={a} className="text-[11px] font-medium text-tp-warning-700">{a}</span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function SymptomsSection({ symptoms }: { symptoms: Array<{ name: string; duration?: string }> }) {
+  const MAX_SHOWN = 4
+  const shown = symptoms.slice(0, MAX_SHOWN)
+  const overflow = symptoms.length - shown.length
+
+  return (
+    <div className="flex items-start gap-1.5">
+      <Activity size={12} className="mt-0.5 shrink-0 text-tp-slate-400" />
+      <div className="flex flex-wrap gap-1">
+        {shown.map((sx) => (
+          <span key={sx.name} className="inline-flex items-center gap-0.5 rounded-full bg-tp-slate-100 px-1.5 py-0.5 text-[11px] text-tp-slate-600">
+            {sx.name}
+            {sx.duration && <span className="text-[10px] font-medium text-tp-slate-400">{sx.duration}</span>}
+          </span>
+        ))}
+        {overflow > 0 && (
+          <span className="rounded-full bg-tp-slate-100 px-1.5 py-0.5 text-[10px] text-tp-slate-400">+{overflow} more</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ZeroDataPlaceholder() {
+  return (
+    <div className="flex flex-col items-center justify-center gap-1.5 py-4">
+      <span className="inline-flex size-8 items-center justify-center rounded-full bg-tp-slate-100">
+        <UserRound size={16} className="text-tp-slate-400" />
+      </span>
+      <p className="text-[12px] font-medium text-tp-slate-500">New patient</p>
+      <p className="text-[11px] text-tp-slate-400">No prior records available</p>
+    </div>
+  )
+}
+
+function SpecialtyContextBlock({ specialtyId, content, accentBorder, icon, label }: { specialtyId: SpecialtyTabId; content: React.ReactNode; accentBorder: string; icon: React.ReactNode; label: string }) {
+  return (
+    <div className="overflow-hidden rounded-[8px] border-[0.5px] border-tp-slate-150 bg-white">
+      <div className={cn("flex items-start gap-2 border-l-[3px] px-2 py-1.5", accentBorder)}>
+        <span className="mt-0.5 shrink-0">{icon}</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-tp-slate-400">{label}</p>
+          <div className="mt-0.5">{content}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ---- Specialty-specific context content builders ---- */
+
+function buildGynecContextContent(g: NonNullable<SmartSummaryData["gynecData"]>): React.ReactNode {
+  return (
+    <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-tp-slate-600">
+      {g.cycleRegularity && <span>{g.cycleRegularity}, {g.cycleLength ?? "—"}</span>}
+      {g.flowIntensity && <><span className="text-tp-slate-300">|</span><span>Flow {g.flowIntensity}{g.padsPerDay ? `, ${g.padsPerDay} pads/day` : ""}</span></>}
+      {g.lmp && <><span className="text-tp-slate-300">|</span><span className="font-medium text-tp-slate-700">LMP {g.lmp}</span></>}
+      {g.lastPapSmear && <><span className="text-tp-slate-300">|</span><span>Pap {g.lastPapSmear}</span></>}
+      {g.painScore && <><span className="text-tp-slate-300">|</span><span>Pain {g.painScore}</span></>}
+    </div>
+  )
+}
+
+function buildOphthalContextContent(o: NonNullable<SmartSummaryData["ophthalData"]>): React.ReactNode {
+  return (
+    <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-[11px]">
+      {(o.vaRight || o.vaLeft) && <><span className="font-semibold text-tp-slate-500">VA</span><span className="text-tp-slate-700">OD {o.vaRight ?? "—"} | OS {o.vaLeft ?? "—"}</span></>}
+      {(o.nearVaRight || o.nearVaLeft) && <><span className="font-semibold text-tp-slate-500">Near</span><span className="text-tp-slate-700">OD {o.nearVaRight ?? "—"} | OS {o.nearVaLeft ?? "—"}</span></>}
+      {o.iop && <><span className="font-semibold text-tp-slate-500">IOP</span><span className="text-tp-slate-700">OD {o.iop.right} | OS {o.iop.left}</span></>}
+      {o.slitLamp && <><span className="font-semibold text-tp-slate-500">Slit</span><span className="text-tp-slate-700">{o.slitLamp}</span></>}
+      {o.fundus && <><span className="font-semibold text-tp-slate-500">Fundus</span><span className="text-tp-slate-700">{o.fundus}</span></>}
+      {o.glassPrescription && <><span className="font-semibold text-tp-slate-500">Rx</span><span className="text-tp-slate-700">{o.glassPrescription}</span></>}
+      {o.lastExamDate && <><span className="font-semibold text-tp-slate-500">Last</span><span className="text-tp-slate-700">{o.lastExamDate}</span></>}
+    </div>
+  )
+}
+
+function buildObstetricContextContent(ob: NonNullable<SmartSummaryData["obstetricData"]>): React.ReactNode {
+  return (
+    <div className="space-y-0.5">
+      <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+        {ob.gravida != null && (
+          <span className="rounded bg-tp-violet-50 px-1 py-0.5 text-[11px] font-bold text-tp-violet-700">
+            G{ob.gravida}P{ob.para ?? 0}L{ob.living ?? 0}A{ob.abortion ?? 0}E{ob.ectopic ?? 0}
+          </span>
+        )}
+        {ob.gestationalWeeks && <span className="font-semibold text-tp-slate-700">{ob.gestationalWeeks}w</span>}
+        {ob.edd && <><span className="text-tp-slate-300">|</span><span className="text-tp-slate-600">EDD {ob.edd}</span></>}
+        {ob.presentation && <><span className="text-tp-slate-300">|</span><span className="text-tp-slate-600">{ob.presentation}</span></>}
+        {ob.fetalMovement && <><span className="text-tp-slate-300">|</span><span className="text-tp-slate-600">FM {ob.fetalMovement}</span></>}
+      </div>
+      {(ob.fundusHeight || ob.amnioticFluid || ob.oedema != null) && (
+        <div className="flex flex-wrap gap-x-2 text-[10px] text-tp-slate-500">
+          {ob.fundusHeight && <span>Fundus {ob.fundusHeight}</span>}
+          {ob.amnioticFluid && <span>Fluid {ob.amnioticFluid}</span>}
+          {ob.oedema != null && <span>Oedema {ob.oedema ? "Yes" : "No"}</span>}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function buildPediatricsContextContent(p: NonNullable<SmartSummaryData["pediatricsData"]>): React.ReactNode {
+  return (
+    <div className="space-y-0.5">
+      <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+        {p.ageDisplay && <span className="font-semibold text-tp-slate-700">{p.ageDisplay}</span>}
+        {p.heightCm != null && (
+          <span className="text-tp-slate-600">Ht {p.heightCm}cm <span className="text-[10px] text-tp-slate-400">({p.heightPercentile ?? "—"})</span></span>
+        )}
+        {p.weightKg != null && (
+          <span className={cn("text-tp-slate-600", p.weightPercentile && Number.parseInt(p.weightPercentile) < 25 && "font-semibold text-tp-error-600")}>
+            Wt {p.weightKg}kg <span className="text-[10px] text-tp-slate-400">({p.weightPercentile ?? "—"})</span>
+          </span>
+        )}
+        {p.ofcCm != null && <span className="text-tp-slate-600">OFC {p.ofcCm}cm</span>}
+      </div>
+      {(p.vaccinesPending != null || p.vaccinesOverdue != null) && (
+        <div className="flex gap-1.5 text-[10px]">
+          {p.vaccinesPending ? <span className="text-tp-slate-500">{p.vaccinesPending} vaccines pending</span> : null}
+          {p.vaccinesOverdue ? <span className="font-medium text-tp-error-600">{p.vaccinesOverdue} overdue{p.overdueVaccineNames?.length ? ` (${p.overdueVaccineNames.join(", ")})` : ""}</span> : null}
+        </div>
+      )}
+      {p.milestoneNotes?.length ? (
+        <p className="text-[10px] text-tp-slate-500">Milestones: {p.milestoneNotes.join("; ")}</p>
+      ) : null}
+    </div>
+  )
+}
+
+/* ---- build*Sections — per-specialty section assembly ---- */
+
+function buildGpSections(s: SmartSummaryData): SummarySection[] {
+  const sections: SummarySection[] = []
+  const allergy = buildAllergySection(s.allergies); if (allergy) sections.push(allergy)
+  const vitals = buildVitalsSection(s.todayVitals); if (vitals) sections.push(vitals)
+  const chronic = buildChronicSection(s.chronicConditions, s.activeMeds); if (chronic) sections.push(chronic)
+  const labs = buildLabsSection(s.keyLabs); if (labs) sections.push(labs)
+  const lastVisit = buildLastVisitSection(s.lastVisit); if (lastVisit) sections.push(lastVisit)
+  const symptoms = buildSymptomsSection(s.symptomCollectorData); if (symptoms) sections.push(symptoms)
+  if (sections.length === 0) sections.push({ kind: "zeroData" })
+  return sections
+}
+
+function buildGynecSections(s: SmartSummaryData): SummarySection[] {
+  const g = s.gynecData
+  if (!g) return buildGpSections(s)
+  const sections: SummarySection[] = []
+  const allergy = buildAllergySection(s.allergies); if (allergy) sections.push(allergy)
+  const config = SPECIALTY_VISUAL_CONFIG.gynec
+  sections.push({ kind: "specialty", specialtyId: "gynec", content: buildGynecContextContent(g) })
+  const vitals = buildVitalsSection(s.todayVitals); if (vitals) sections.push(vitals)
+  const labs = buildLabsSection(s.keyLabs); if (labs) sections.push(labs)
+  if (sections.length <= 1) sections.push({ kind: "zeroData" })
+  return sections
+}
+
+function buildOphthalSections(s: SmartSummaryData): SummarySection[] {
+  const o = s.ophthalData
+  if (!o) return buildGpSections(s)
+  const sections: SummarySection[] = []
+  const allergy = buildAllergySection(s.allergies); if (allergy) sections.push(allergy)
+  sections.push({ kind: "specialty", specialtyId: "ophthal", content: buildOphthalContextContent(o) })
+  const lastVisit = buildLastVisitSection(s.lastVisit); if (lastVisit) sections.push(lastVisit)
+  if (sections.length <= 1) sections.push({ kind: "zeroData" })
+  return sections
+}
+
+function buildObstetricSections(s: SmartSummaryData): SummarySection[] {
+  const ob = s.obstetricData
+  if (!ob) return buildGpSections(s)
+  const sections: SummarySection[] = []
+  const allergy = buildAllergySection(s.allergies); if (allergy) sections.push(allergy)
+  sections.push({ kind: "specialty", specialtyId: "obstetric", content: buildObstetricContextContent(ob) })
+  const vitals = buildVitalsSection(s.todayVitals); if (vitals) sections.push(vitals)
+  const due = buildDueAlertsSection(ob.ancDue); if (due) sections.push(due)
+  const labs = buildLabsSection(s.keyLabs); if (labs) sections.push(labs)
+  if (sections.length <= 1) sections.push({ kind: "zeroData" })
+  return sections
+}
+
+function buildPediatricsSections(s: SmartSummaryData): SummarySection[] {
+  const p = s.pediatricsData
+  if (!p) return buildGpSections(s)
+  const sections: SummarySection[] = []
+  const allergy = buildAllergySection(s.allergies); if (allergy) sections.push(allergy)
+  sections.push({ kind: "specialty", specialtyId: "pediatrics", content: buildPediatricsContextContent(p) })
+  const vitals = buildVitalsSection(s.todayVitals); if (vitals) sections.push(vitals)
+  // Vaccine due alerts
+  const vaccineAlerts: string[] = []
+  if (p.vaccinesOverdue) vaccineAlerts.push(`${p.vaccinesOverdue} vaccines overdue${p.overdueVaccineNames?.length ? ` (${p.overdueVaccineNames.join(", ")})` : ""}`)
+  if (p.vaccinesPending) vaccineAlerts.push(`${p.vaccinesPending} vaccines pending`)
+  const due = buildDueAlertsSection(vaccineAlerts.length > 0 ? vaccineAlerts : undefined); if (due) sections.push(due)
+  const labs = buildLabsSection(s.keyLabs); if (labs) sections.push(labs)
+  if (sections.length <= 1) sections.push({ kind: "zeroData" })
+  return sections
+}
+
+function getSectionsForSpecialty(s: SmartSummaryData, specialty: SpecialtyTabId): SummarySection[] {
+  switch (specialty) {
+    case "gynec": return buildGynecSections(s)
+    case "ophthal": return buildOphthalSections(s)
+    case "obstetric": return buildObstetricSections(s)
+    case "pediatrics": return buildPediatricsSections(s)
+    default: return buildGpSections(s)
+  }
+}
+
+/* ---- New clinical alerts (allergy handled in sections, not here) ---- */
+
+function buildClinicalAlerts(s: SmartSummaryData, specialty: SpecialtyTabId): Array<{ text: string; tone: "red" | "amber" }> {
   const alerts: Array<{ text: string; tone: "red" | "amber" }> = []
-  // Common alerts
-  if (s.allergies?.length) alerts.push({ text: `ALLERGY: ${s.allergies.join(", ")}`, tone: "red" })
   if (s.todayVitals?.spo2) {
     const spo2Val = Number.parseInt(s.todayVitals.spo2)
     if (!Number.isNaN(spo2Val) && spo2Val < 90) alerts.push({ text: `SpO2 ${s.todayVitals.spo2} — Critical`, tone: "red" })
@@ -4842,7 +5034,6 @@ function buildSpecialtyAlerts(s: SmartSummaryData, specialty: SpecialtyTabId): A
   if (specialty === "gp" && s.followUpOverdueDays > 0) {
     alerts.push({ text: `F/U Overdue: ${s.followUpOverdueDays} days`, tone: "amber" })
   }
-  // Specialty-specific alerts
   if (specialty === "gynec" && s.gynecData?.alerts?.length) {
     for (const a of s.gynecData.alerts) alerts.push({ text: a, tone: "amber" })
   }
@@ -4858,48 +5049,46 @@ function buildSpecialtyAlerts(s: SmartSummaryData, specialty: SpecialtyTabId): A
   return alerts
 }
 
-function buildCollapsedTokens(s: SmartSummaryData, specialty: SpecialtyTabId): string[] {
+function buildCollapsedInfo(s: SmartSummaryData, specialty: SpecialtyTabId): { tokens: string[]; hasAllergy: boolean; abnormalLabCount: number; abnormalVitalCount: number } {
+  const hasAllergy = !!s.allergies?.length
+  const abnormalLabCount = s.keyLabs?.filter((l) => l.flag === "high" || l.flag === "low").length ?? 0
+  let abnormalVitalCount = 0
+  if (s.todayVitals) {
+    for (const [key, value] of Object.entries(s.todayVitals)) {
+      if (value && VITAL_META[key]?.isAbnormal(value)) abnormalVitalCount++
+    }
+  }
+
+  let tokens: string[] = []
   if (specialty === "gynec" && s.gynecData) {
     const g = s.gynecData
-    const tokens: string[] = []
     if (g.cycleRegularity) tokens.push(`Cycle ${g.cycleRegularity}`)
     if (g.lmp) tokens.push(`LMP ${g.lmp}`)
     if (g.flowIntensity) tokens.push(`Flow ${g.flowIntensity}`)
-    return tokens
-  }
-  if (specialty === "ophthal" && s.ophthalData) {
+  } else if (specialty === "ophthal" && s.ophthalData) {
     const o = s.ophthalData
-    const tokens: string[] = []
     if (o.vaRight || o.vaLeft) tokens.push(`VA OD ${o.vaRight ?? "—"} OS ${o.vaLeft ?? "—"}`)
-    if (o.slitLamp && o.slitLamp.toLowerCase() !== "no abnormality" && o.slitLamp.toLowerCase() !== "no abnormality detected" && o.slitLamp.toLowerCase() !== "normal anterior segment ou")
+    if (o.slitLamp && !["no abnormality", "no abnormality detected", "normal anterior segment ou"].includes(o.slitLamp.toLowerCase()))
       tokens.push("Slit Lamp abnormal")
-    return tokens
-  }
-  if (specialty === "obstetric" && s.obstetricData) {
+  } else if (specialty === "obstetric" && s.obstetricData) {
     const ob = s.obstetricData
-    const tokens: string[] = []
     if (ob.gravida != null) tokens.push(`G${ob.gravida}P${ob.para ?? 0}`)
     if (ob.edd) tokens.push(`EDD ${ob.edd}`)
     if (ob.gestationalWeeks) tokens.push(`${ob.gestationalWeeks}w`)
     if (ob.ancDue?.length) tokens.push("ANC due")
-    return tokens
-  }
-  if (specialty === "pediatrics" && s.pediatricsData) {
+  } else if (specialty === "pediatrics" && s.pediatricsData) {
     const p = s.pediatricsData
-    const tokens: string[] = []
     if (p.ageDisplay) tokens.push(p.ageDisplay)
     if (p.weightPercentile) tokens.push(`Wt ${p.weightPercentile}`)
-    if (p.vaccinesOverdue) tokens.push(`Vaccines: ${p.vaccinesOverdue} overdue`)
-    return tokens
+    if (p.vaccinesOverdue) tokens.push(`${p.vaccinesOverdue} vax overdue`)
+  } else {
+    if (s.chronicConditions?.length) tokens.push(s.chronicConditions.slice(0, 2).join(", "))
+    if (s.followUpOverdueDays > 0) tokens.push("F/U Overdue")
   }
-  // GP fallback
-  const tokens: string[] = []
-  if (s.chronicConditions?.length) tokens.push(s.chronicConditions.join(", "))
-  if (s.followUpOverdueDays > 0) tokens.push("F/U Overdue")
-  if (s.labFlagCount > 0) tokens.push(`${s.labFlagCount} lab flags`)
-  if (s.allergies?.length) tokens.push(`${s.allergies[0]} allergy`)
-  return tokens
+  return { tokens, hasAllergy, abnormalLabCount, abnormalVitalCount }
 }
+
+/* ---- Redesigned PatientSummaryCard ---- */
 
 function PatientSummaryCard({
   collapsed,
@@ -4917,6 +5106,7 @@ function PatientSummaryCard({
   patientAge?: number
 }) {
   const s = summaryData
+  const config = SPECIALTY_VISUAL_CONFIG[activeSpecialty]
 
   // N/A check
   const isNA =
@@ -4933,18 +5123,21 @@ function PatientSummaryCard({
     if (collapsed) {
       return (
         <button type="button" onClick={onToggle}
-          className="flex h-[32px] w-full items-center justify-between rounded-[10px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50/60 px-3 text-left">
-          <p className="truncate text-[12px] font-medium text-tp-slate-400 italic">Not applicable for this patient</p>
-          <ChevronDown size={12} className="shrink-0 text-tp-slate-400" />
+          className="flex h-[32px] w-full items-center justify-between rounded-[10px] border-[0.5px] border-dashed border-tp-slate-200 bg-tp-slate-50/40 px-3 text-left">
+          <p className="truncate text-[11px] text-tp-slate-400 italic">Not applicable for this patient</p>
+          <ChevronDown size={11} className="shrink-0 text-tp-slate-300" />
         </button>
       )
     }
     return (
-      <div className="overflow-hidden rounded-[10px] border-[0.8px] border-tp-slate-200 bg-white">
-        <div className="flex items-center justify-between gap-2 border-b border-tp-slate-100 px-3 py-2">
-          <p className="text-[13px] font-semibold text-tp-slate-800">{SPECIALTY_CARD_TITLES[activeSpecialty]}</p>
-          <button type="button" onClick={onToggle} className="inline-flex size-6 items-center justify-center rounded-[8px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50 text-tp-slate-600" aria-label="Collapse card">
-            <ChevronUp size={12} />
+      <div className="overflow-hidden rounded-[10px] border-[0.8px] border-dashed border-tp-slate-200 bg-white">
+        <div className={cn("flex items-center justify-between gap-2 border-b border-tp-slate-100 px-3 py-1.5", config.headerBg)}>
+          <div className="flex items-center gap-1.5">
+            <span className={cn("inline-flex size-5 items-center justify-center rounded-[6px]", config.iconBg, config.iconColor)}>{config.icon}</span>
+            <p className="text-[12px] font-medium text-tp-slate-400">{SPECIALTY_CARD_TITLES[activeSpecialty]}</p>
+          </div>
+          <button type="button" onClick={onToggle} className="inline-flex size-5 items-center justify-center rounded-[6px] border-[0.5px] border-tp-slate-200 bg-white text-tp-slate-500" aria-label="Collapse card">
+            <ChevronUp size={11} />
           </button>
         </div>
         <div className="px-3 py-3">
@@ -4954,81 +5147,114 @@ function PatientSummaryCard({
     )
   }
 
-  // Build rows and alerts based on specialty
-  const alerts = buildSpecialtyAlerts(s, activeSpecialty)
-  const rows =
-    activeSpecialty === "gynec" ? buildGynecRows(s) :
-    activeSpecialty === "ophthal" ? buildOphthalRows(s) :
-    activeSpecialty === "obstetric" ? buildObstetricRows(s) :
-    activeSpecialty === "pediatrics" ? buildPediatricsRows(s) :
-    buildGpRows(s)
+  // Build sections and metadata
+  const sections = getSectionsForSpecialty(s, activeSpecialty)
+  const clinicalAlerts = buildClinicalAlerts(s, activeSpecialty)
+  const collapsedInfo = buildCollapsedInfo(s, activeSpecialty)
 
-  const collapsedTokens = buildCollapsedTokens(s, activeSpecialty)
-
+  /* ---- COLLAPSED STATE ---- */
   if (collapsed) {
+    const totalFlags = collapsedInfo.abnormalLabCount + collapsedInfo.abnormalVitalCount
     return (
       <button
         type="button"
         onClick={onToggle}
-        className="flex h-[32px] w-full items-center justify-between rounded-[10px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50/60 px-3 text-left"
+        className={cn(
+          "flex h-[36px] w-full items-center gap-2 rounded-[10px] border-[0.5px] px-2.5 text-left",
+          collapsedInfo.hasAllergy ? "border-tp-error-200 bg-tp-error-50/40" : "border-tp-slate-200 bg-tp-slate-50/60",
+        )}
       >
-        <p className="truncate text-[12px] font-medium text-tp-slate-600">
-          {collapsedTokens.join(" | ") || SPECIALTY_CARD_TITLES[activeSpecialty]}
-        </p>
-        <ChevronDown size={12} className="shrink-0 text-tp-slate-400" />
+        {/* Specialty mini-icon */}
+        <span className={cn("inline-flex size-4 shrink-0 items-center justify-center rounded", config.iconBg, config.iconColor)}>
+          {config.icon}
+        </span>
+        {/* Allergy indicator dot */}
+        {collapsedInfo.hasAllergy && <span className="size-1.5 shrink-0 rounded-full bg-tp-error-500" title="Has allergy" />}
+        {/* Token pills */}
+        <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+          {collapsedInfo.tokens.slice(0, 3).map((token) => (
+            <span key={token} className="truncate rounded bg-tp-slate-100 px-1 py-0.5 text-[10px] font-medium text-tp-slate-600">
+              {token}
+            </span>
+          ))}
+          {totalFlags > 0 && (
+            <span className="shrink-0 rounded bg-tp-error-50 px-1 py-0.5 text-[10px] font-semibold text-tp-error-600">
+              {totalFlags} {totalFlags === 1 ? "flag" : "flags"}
+            </span>
+          )}
+        </div>
+        <ChevronDown size={11} className="shrink-0 text-tp-slate-400" />
       </button>
     )
   }
 
+  /* ---- EXPANDED STATE ---- */
   return (
     <div className="overflow-hidden rounded-[10px] border-[0.8px] border-tp-slate-200 bg-white">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-2 border-b border-tp-slate-100 px-3 py-2">
-        <p className="text-[13px] font-semibold text-tp-slate-800">{SPECIALTY_CARD_TITLES[activeSpecialty]}</p>
+      {/* Specialty-tinted header */}
+      <div className={cn("flex items-center justify-between gap-2 border-b border-tp-slate-100 px-3 py-1.5", config.headerBg)}>
+        <div className="flex items-center gap-1.5">
+          <span className={cn("inline-flex size-5 items-center justify-center rounded-[6px]", config.iconBg, config.iconColor)}>
+            {config.icon}
+          </span>
+          <p className="text-[12px] font-semibold text-tp-slate-800">{SPECIALTY_CARD_TITLES[activeSpecialty]}</p>
+        </div>
         <button
           type="button"
           onClick={onToggle}
-          className="inline-flex size-6 items-center justify-center rounded-[8px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50 text-tp-slate-600"
+          className="inline-flex size-5 items-center justify-center rounded-[6px] border-[0.5px] border-tp-slate-200 bg-white text-tp-slate-500"
           aria-label="Collapse card"
         >
-          <ChevronUp size={12} />
+          <ChevronUp size={11} />
         </button>
       </div>
 
-      {/* Body */}
-      <div className="space-y-1 px-3 py-2">
-        {/* Alert banners */}
-        {alerts.map((alert, i) => (
-          <div
-            key={i}
-            className={cn(
-              "rounded-[6px] px-2 py-1 text-[12px] font-semibold",
-              alert.tone === "red" ? "bg-tp-error-50 text-tp-error-700" : "bg-tp-warning-50 text-tp-warning-700",
-            )}
-          >
-            {alert.text}
-          </div>
-        ))}
-
-        {/* Context rows */}
-        {rows.length > 0 ? (
-          rows.map((row, i) => (
-            <p key={i} className="text-[12px] leading-[18px] text-tp-slate-700">
-              <span className="font-semibold">{row.label}:</span>{" "}
-              {row.parts.map((part, j) =>
-                part.tone === "muted" ? (
-                  <span key={j} className="text-tp-slate-300">{part.text}</span>
-                ) : part.tone === "error" ? (
-                  <span key={j} className="font-medium text-tp-error-600">{part.text}</span>
-                ) : (
-                  <span key={j}>{part.text}</span>
-                ),
-              )}
+      {/* Clinical alerts strip */}
+      {clinicalAlerts.length > 0 && (
+        <div className="space-y-0.5 border-b border-tp-slate-100 px-3 py-1">
+          {clinicalAlerts.map((alert, i) => (
+            <p key={i} className={cn("text-[11px] font-semibold", alert.tone === "red" ? "text-tp-error-600" : "text-tp-warning-600")}>
+              {alert.text}
             </p>
-          ))
-        ) : (
-          <p className="text-[12px] italic text-tp-slate-500">No {SPECIALTY_CARD_TITLES[activeSpecialty].toLowerCase()} data available.</p>
-        )}
+          ))}
+        </div>
+      )}
+
+      {/* Sections */}
+      <div className="space-y-2 px-3 py-2">
+        {sections.map((section, i) => {
+          switch (section.kind) {
+            case "allergy":
+              return <AllergyBanner key="allergy" allergies={section.allergies} />
+            case "vitals":
+              return <VitalsGrid key="vitals" entries={section.entries} />
+            case "specialty":
+              return (
+                <SpecialtyContextBlock
+                  key="specialty"
+                  specialtyId={section.specialtyId}
+                  content={section.content}
+                  accentBorder={SPECIALTY_VISUAL_CONFIG[section.specialtyId].accentBorder}
+                  icon={SPECIALTY_VISUAL_CONFIG[section.specialtyId].icon}
+                  label={SPECIALTY_CARD_TITLES[section.specialtyId]}
+                />
+              )
+            case "chronic":
+              return <ChronicMedsSection key="chronic" conditions={section.conditions} meds={section.meds} />
+            case "lastVisit":
+              return <LastVisitSection key="lastVisit" visit={section.visit} />
+            case "labs":
+              return <LabChipsSection key="labs" labs={section.labs} />
+            case "dueAlerts":
+              return <DueAlertsSection key="dueAlerts" alerts={section.alerts} />
+            case "symptoms":
+              return <SymptomsSection key="symptoms" symptoms={section.symptoms} />
+            case "zeroData":
+              return <ZeroDataPlaceholder key="zeroData" />
+            default:
+              return null
+          }
+        })}
       </div>
     </div>
   )
