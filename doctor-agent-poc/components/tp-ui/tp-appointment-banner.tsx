@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { NoiseOverlay } from "./noise-overlay"
 
 /**
  * TPAppointmentBanner — Hero banner with gradient background + texture.
@@ -54,23 +55,18 @@ export function TPAppointmentBanner({
         className,
       )}
     >
-      {/* SVG dot texture overlay */}
-      <svg
-        className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.06]"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <pattern id="banner-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-            <circle cx="2" cy="2" r="1.5" fill="currentColor" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#banner-dots)" />
-      </svg>
+      {/* Geometric line pattern — right-aligned, scaled to banner height */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/assets/8b46197b8125e32aedb152d3d430b818c39f3157.svg"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute right-0 top-0 h-full w-auto opacity-[0.75]"
+        style={{ mixBlendMode: "screen" }}
+      />
 
-      {/* Decorative circles */}
-      <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-white/[0.06]" />
-      <div className="pointer-events-none absolute -bottom-8 -right-4 h-32 w-32 rounded-full bg-white/[0.04]" />
-      <div className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-white/[0.03]" />
+      {/* Noise grain texture */}
+      <NoiseOverlay opacity={0.06} />
 
       {/* Content */}
       <div className="relative z-10 flex items-center justify-between px-6 py-6 lg:px-8 lg:py-7">

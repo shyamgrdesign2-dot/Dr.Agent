@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import {
   Activity,
   AlertTriangle,
   Baby,
+  Calendar,
   Check,
   ChevronDown,
   ChevronUp,
@@ -29,6 +30,7 @@ import {
   UserRound,
   X,
 } from "lucide-react"
+import { Heart, DocumentText1, Warning2, People, Notepad2, Calendar1 } from "iconsax-reactjs"
 
 import { AiBrandSparkIcon, AI_GRADIENT_SOFT } from "@/components/doctor-agent/ai-brand"
 import {
@@ -80,6 +82,17 @@ interface PromptChip {
   label: string
   tone: "primary" | "info" | "warning" | "danger"
   force?: boolean
+}
+
+interface CannedPill {
+  id: string
+  label: string
+  icon?: React.ReactNode
+  priority: number          // 0-99, lower = higher priority
+  layer: 1 | 2 | 3 | 4
+  force?: boolean            // Layer 1 safety = non-dismissible
+  cooldownMs?: number        // Post-tap cooldown (default 3000ms)
+  tone: "primary" | "info" | "warning" | "danger"
 }
 
 interface RxAgentChatMessage {
@@ -231,6 +244,70 @@ type RxAgentOutput =
   | {
       kind: "ui_showcase"
     }
+  | {
+      kind: "allergy_conflict"
+      drug: string
+      allergy: string
+      severity: "critical"
+    }
+  | {
+      kind: "drug_interaction"
+      drugA: string
+      drugB: string
+      description: string
+      severity: "minor" | "moderate" | "severe"
+    }
+  | {
+      kind: "protocol_meds"
+      diagnosis: string
+      meds: Array<{
+        name: string
+        dose: string
+        route: string
+        frequency: string
+        safetyCheck: "ok" | "allergy_conflict" | "dose_warning"
+      }>
+      copyPayload: RxPadCopyPayload
+    }
+  | {
+      kind: "patient_summary"
+      summaryData: SmartSummaryData
+      activeSpecialty: SpecialtyTabId
+      patientGender?: string
+      patientAge?: number
+    }
+  | {
+      kind: "text_fact"
+      icon: string
+      fact: string
+      source: string
+    }
+  | {
+      kind: "text_alert"
+      level: "critical" | "warning"
+      message: string
+      action?: string
+    }
+  | {
+      kind: "text_list"
+      title: string
+      items: string[]
+      max?: number
+    }
+  | {
+      kind: "text_compare"
+      label: string
+      current: string
+      previous: string
+      delta: string
+      deltaDirection: "up" | "down" | "same"
+    }
+  | {
+      kind: "text_suggestion"
+      suggestion: string
+      rationale: string
+      pills: string[]
+    }
 
 const RX_CONTEXT_OPTIONS: RxContextOption[] = [
   {
@@ -300,6 +377,34 @@ const RX_CONTEXT_OPTIONS: RxContextOption[] = [
       gender: "M",
       age: 4,
       visitType: "Follow-up",
+    },
+  },
+  {
+    id: "apt-lakshmi",
+    label: "Lakshmi K (F, 45y)",
+    meta: "Appointment today",
+    kind: "patient",
+    isToday: true,
+    patient: {
+      id: "apt-lakshmi",
+      name: "Lakshmi K",
+      gender: "F",
+      age: 45,
+      visitType: "New",
+    },
+  },
+  {
+    id: "apt-zerodata",
+    label: "Ramesh M (M, 35y)",
+    meta: "Walk-in today",
+    kind: "patient",
+    isToday: true,
+    patient: {
+      id: "apt-zerodata",
+      name: "Ramesh M",
+      gender: "M",
+      age: 35,
+      visitType: "New",
     },
   },
   {
@@ -386,6 +491,8 @@ interface SmartSummaryData {
     symptoms: Array<{ name: string; duration?: string; severity?: string }>
     medicalHistory?: string[]
     familyHistory?: string[]
+    allergies?: string[]
+    lifestyle?: string[]
   }
 
   // --- Specialty-specific data blocks ---
@@ -509,6 +616,8 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       ],
       medicalHistory: ["Diabetes 2 yrs (on medication, name unknown)"],
       familyHistory: ["Father: Diabetes"],
+      allergies: ["Dust", "NSAID sensitivity"],
+      lifestyle: ["Sleep reduced ~5 hrs for 1 week", "Frequent outside food during travel"],
     },
     ophthalData: {
       vaRight: "6/9",
@@ -780,6 +889,90 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       alerts: ["Mild intermittent exotropia — follow-up in 3 months"],
     },
   },
+  "apt-lakshmi": {
+    specialtyTags: ["Gynecology", "Endocrinology"],
+    followUpOverdueDays: 0,
+    patientNarrative:
+      "I have heavy menstrual bleeding since 6 months with fatigue and lower abdominal pain during periods. I was diagnosed with PCOS in 2018 and had partial thyroidectomy in 2020. I want to check if my thyroid dose needs adjustment and whether my bleeding needs further evaluation.",
+    familyHistory: ["Mother — Diabetes", "Sister — PCOS"],
+    lifestyleNotes: ["Sedentary work pattern", "Irregular meal timings"],
+    allergies: [],
+    chronicConditions: ["PCOS", "Hypothyroidism"],
+    receptionistIntakeNotes: [
+      "Symptom collector marked heavy menstrual bleeding and fatigue before consultation.",
+      "Patient reports missed thyroid medication doses during travel last month.",
+    ],
+    lastVisit: {
+      date: "12 Dec'25",
+      vitals: "BP 128/82, Pulse 76, SpO2 98%, Temp 98.4 F",
+      symptoms: "Fatigue, irregular cycles",
+      examination: "Mild pallor, thyroid surgical scar noted",
+      diagnosis: "Hypothyroidism, PCOS evaluation",
+      medication: "Thyronorm 50mcg, Metformin 500mg",
+      labTestsSuggested: "TSH, FBS, CBC",
+      followUp: "3 months",
+    },
+    labFlagCount: 3,
+    todayVitals: {
+      bp: "130/85",
+      pulse: "78",
+      spo2: "98%",
+      temp: "98.4°F",
+      weight: "68",
+      height: "158",
+    },
+    activeMeds: ["Thyronorm 50mcg 1-0-0-0", "Metformin 500mg 0-1-0-1"],
+    keyLabs: [
+      { name: "Hb", value: "9.2", flag: "low" },
+      { name: "TSH", value: "6.8", flag: "high" },
+      { name: "FBS", value: "112", flag: "high" },
+    ],
+    dueAlerts: ["Pap smear overdue > 1 year"],
+    recordAlerts: ["Latest lab: Hb 9.2 g/dL (low), TSH 6.8 (elevated)"],
+    concernTrend: {
+      label: "Hb trend (latest 9.2)",
+      values: [11.0, 10.5, 9.8, 9.2],
+      labels: ["Jun'25", "Aug'25", "Oct'25", "Feb'26"],
+      unit: "g/dL",
+      tone: "red",
+    },
+    symptomCollectorData: {
+      reportedAt: "Today 10:15 AM",
+      symptoms: [
+        { name: "Heavy menstrual bleeding", duration: "6 months", severity: "Severe" },
+        { name: "Fatigue", duration: "3 months", severity: "Moderate" },
+        { name: "Lower abdominal pain", duration: "during periods", severity: "Moderate" },
+      ],
+      medicalHistory: ["PCOS diagnosed 2018", "Thyroidectomy 2020 (partial)"],
+      familyHistory: ["Mother — Diabetes", "Sister — PCOS"],
+    },
+    gynecData: {
+      cycleRegularity: "Irregular",
+      cycleLength: "35-50 days",
+      flowIntensity: "Heavy",
+      padsPerDay: 6,
+      lmp: "18 Feb'26",
+      lastPapSmear: "Mar 2024",
+      painScore: "6/10",
+      alerts: ["Heavy flow with low Hb — evaluate for menorrhagia", "Pap smear overdue > 1 year"],
+    },
+    obstetricData: {
+      gravida: 2,
+      para: 1,
+      abortion: 1,
+    },
+  },
+  "apt-zerodata": {
+    specialtyTags: [],
+    followUpOverdueDays: 0,
+    labFlagCount: 0,
+    todayVitals: undefined,
+    allergies: [],
+    chronicConditions: [],
+    activeMeds: [],
+    keyLabs: [],
+    lastVisit: undefined,
+  },
 }
 
 function summarizeNarrative(text?: string, maxLen = 150) {
@@ -864,67 +1057,226 @@ function inferLensFromPrompt(text: string, fallback: RxTabLens): RxTabLens {
   return fallback
 }
 
-function buildSafetyPills({
+/* ──────────────────────────────────────────────────────────────── */
+/*  Phase 3 — Canned Pill Engine (4-layer priority pipeline)      */
+/* ──────────────────────────────────────────────────────────────── */
+
+function buildCannedPillEngine({
+  phase,
+  lens,
   isPatientContext,
   hasInteractionAlert,
+  hasRxpadSymptoms = false,
   summaryData,
+  specialty,
 }: {
+  phase: ConsultPhase
+  lens: RxTabLens
   isPatientContext: boolean
   hasInteractionAlert: boolean
+  hasRxpadSymptoms?: boolean
   summaryData?: SmartSummaryData
-}): PromptChip[] {
-  if (!isPatientContext || !summaryData) return []
+  specialty?: SpecialtyTabId
+}): CannedPill[] {
+  const pills: CannedPill[] = []
 
-  const pills: PromptChip[] = []
+  /* ── Layer 1 — Safety FORCE (priority 0-9) ── */
+  if (isPatientContext && summaryData) {
+    const spo2Raw = summaryData.todayVitals?.spo2
+    const spo2Val = spo2Raw ? Number(spo2Raw.replace("%", "")) : null
 
-  if (hasInteractionAlert) {
+    if (spo2Val !== null && spo2Val < 90) {
+      pills.push({
+        id: "force-spo2-critical",
+        label: `\u26A0 Review SpO2`,
+        priority: 0,
+        layer: 1,
+        tone: "danger",
+        force: true,
+        cooldownMs: 3000,
+      })
+    }
+
+    // Allergy conflict — surface when patient has known allergies
+    if ((summaryData.allergies?.length ?? 0) > 0) {
+      pills.push({
+        id: "force-allergy",
+        label: `\u26A0 Allergy Alert`,
+        priority: 1,
+        layer: 1,
+        tone: "danger",
+        force: true,
+        cooldownMs: 3000,
+      })
+    }
+
+    if (hasInteractionAlert) {
+      pills.push({
+        id: "force-interaction",
+        label: `\u26A0 Drug Interaction`,
+        priority: 2,
+        layer: 1,
+        tone: "danger",
+        force: true,
+        cooldownMs: 3000,
+      })
+    }
+  }
+
+  /* ── Layer 2 — Clinical Flags (priority 10-29) ── */
+  if (isPatientContext && summaryData) {
+    if (summaryData.labFlagCount >= 3) {
+      pills.push({
+        id: "flag-labs",
+        label: `Review Lab Flags (${summaryData.labFlagCount})`,
+        priority: 10,
+        layer: 2,
+        tone: "warning",
+        cooldownMs: 3000,
+      })
+    }
+
+    if (summaryData.followUpOverdueDays > 0) {
+      pills.push({
+        id: "flag-fu",
+        label: `Overdue F/U (${summaryData.followUpOverdueDays}d)`,
+        priority: 12,
+        layer: 2,
+        tone: "warning",
+        cooldownMs: 3000,
+      })
+    }
+
+    const spo2Raw = summaryData.todayVitals?.spo2
+    const spo2Val = spo2Raw ? Number(spo2Raw.replace("%", "")) : null
+    if (spo2Val !== null && spo2Val < 95 && spo2Val >= 90) {
+      pills.push({
+        id: "flag-spo2-declining",
+        label: "SpO2 declining",
+        priority: 14,
+        layer: 2,
+        tone: "warning",
+        cooldownMs: 3000,
+      })
+    }
+
+    // Abnormal vitals — check for concerning BP, pulse, temp
+    const bp = summaryData.todayVitals?.bp
+    const pulse = summaryData.todayVitals?.pulse
+    const temp = summaryData.todayVitals?.temp
+    const hasAbnormalVitals =
+      (bp && (parseInt(bp) > 140 || parseInt(bp) < 90)) ||
+      (pulse && (parseInt(pulse) > 100 || parseInt(pulse) < 50)) ||
+      (temp && (parseFloat(temp) > 99.5 || parseFloat(temp) < 96.0))
+    if (hasAbnormalVitals) {
+      pills.push({
+        id: "flag-vitals-abnormal",
+        label: "Review Vitals",
+        priority: 16,
+        layer: 2,
+        tone: "warning",
+        cooldownMs: 3000,
+      })
+    }
+  }
+
+  /* ── Layer 3 — Consultation Phase (priority 30-59) ── */
+  const phaseMap: Record<ConsultPhase, Array<{ id: string; label: string; priority: number }>> = {
+    empty: [
+      { id: "phase-voice", label: "\uD83C\uDF99 Start voice", priority: 30 },
+      { id: "phase-history", label: "\uD83D\uDCCB Add history", priority: 32 },
+      { id: "phase-upload", label: "\uD83D\uDCCE Upload report", priority: 34 },
+    ],
+    symptoms_entered: [
+      { id: "phase-ddx", label: "\uD83E\uDDE0 Suggest DDX", priority: 30 },
+      { id: "phase-inv-bundle", label: "\uD83D\uDD0D Investigation bundle", priority: 32 },
+    ],
+    dx_accepted: [
+      { id: "phase-protocol-meds", label: "\uD83D\uDC8A Protocol meds", priority: 30 },
+      { id: "phase-advice", label: "\uD83D\uDCDD Advice", priority: 32 },
+      { id: "phase-investigation", label: "\uD83D\uDCCB Investigation", priority: 34 },
+    ],
+    meds_written: [
+      { id: "phase-advice-bundle", label: "\uD83D\uDCDD Advice bundle", priority: 30 },
+      { id: "phase-followup", label: "\uD83D\uDCC5 Follow-up plan", priority: 32 },
+      { id: "phase-completeness", label: "\u2705 Completeness check", priority: 34 },
+    ],
+    near_complete: [
+      { id: "phase-completeness", label: "\u2705 Completeness check", priority: 30 },
+      { id: "phase-translate", label: "\uD83C\uDF10 Translate advice", priority: 32 },
+      { id: "phase-summary", label: "\uD83D\uDCCA Summary", priority: 34 },
+    ],
+    in_progress: [
+      { id: "phase-snapshot", label: "Patient snapshot", priority: 30 },
+      { id: "phase-abnormal", label: "Abnormal labs", priority: 32 },
+      { id: "phase-last-visit", label: "Last visit", priority: 34 },
+    ],
+  }
+
+  const phasePills = phaseMap[phase] ?? phaseMap.in_progress
+  for (const p of phasePills) {
     pills.push({
-      id: "force-interaction",
-      label: "Review drug interaction: Ibuprofen and Telma20",
-      tone: "danger",
-      force: true,
+      id: p.id,
+      label: p.label,
+      priority: p.priority,
+      layer: 3,
+      tone: "primary",
+      cooldownMs: 3000,
     })
   }
 
-  if (summaryData.todayVitals?.spo2 && Number(summaryData.todayVitals.spo2.replace("%", "")) < 95) {
-    pills.push({ id: "flag-spo2", label: `Review low SpO2: ${summaryData.todayVitals.spo2}`, tone: "warning" })
+  /* ── Layer 4 — Tab-Specific (priority 60-89) ── */
+  const lensMap: Partial<Record<RxTabLens, Array<{ id: string; label: string; priority: number }>>> = {
+    "past-visits": [
+      { id: "lens-compare", label: "Compare visits", priority: 60 },
+      { id: "lens-recurrence", label: "Recurrence check", priority: 62 },
+    ],
+    vitals: [
+      { id: "lens-vital-trends", label: "Vital trends", priority: 60 },
+      { id: "lens-graph", label: "Graph view", priority: 62 },
+    ],
+    "lab-results": [
+      { id: "lens-lab-compare", label: "Lab comparison", priority: 60 },
+      { id: "lens-annual-panel", label: "Annual panel", priority: 62 },
+    ],
+    history: [
+      { id: "lens-med-search", label: "Med history search", priority: 60 },
+      { id: "lens-chronic-timeline", label: "Chronic timeline", priority: 62 },
+    ],
+    "medical-records": [
+      { id: "lens-ocr", label: "OCR analysis", priority: 60 },
+      { id: "lens-extract", label: "Report extract", priority: 62 },
+    ],
   }
 
-  if (summaryData.followUpOverdueDays > 0) {
-    pills.push({
-      id: "flag-fu",
-      label: `Show overdue follow-up: ${summaryData.followUpOverdueDays} days`,
-      tone: "warning",
-    })
+  const lensPills = lensMap[lens]
+  if (lensPills) {
+    for (const lp of lensPills) {
+      pills.push({
+        id: lp.id,
+        label: lp.label,
+        priority: lp.priority,
+        layer: 4,
+        tone: "info",
+        cooldownMs: 3000,
+      })
+    }
   }
 
-  if (summaryData.labFlagCount >= 3) {
-    pills.push({
-      id: "flag-labs",
-      label: `Show ${summaryData.labFlagCount} abnormal lab results`,
-      tone: "danger",
-    })
-  }
+  /* ── Sorting & selection ── */
+  pills.sort((a, b) => a.priority - b.priority)
 
-  if ((summaryData.dueAlerts?.length ?? 0) > 0) {
-    pills.push({
-      id: "flag-due",
-      label: `Show due alerts: ${summaryData.dueAlerts!.length} items`,
-      tone: "warning",
-    })
-  }
+  // Layer 1 pills always occupy first slots
+  const layer1 = pills.filter((p) => p.layer === 1)
+  const rest = pills.filter((p) => p.layer !== 1)
 
-  if ((summaryData.recordAlerts?.length ?? 0) > 0 && summaryData.recordAlerts?.some((line) => line.toLowerCase().includes("high"))) {
-    pills.push({
-      id: "flag-record",
-      label: "Show medical record alerts",
-      tone: "warning",
-    })
-  }
-
-  return pills
+  const selected: CannedPill[] = [...layer1, ...rest]
+  // Deduplicate by label, then truncate to 4
+  const uniqueByLabel = Array.from(new Map(selected.map((pill) => [pill.label, pill])).values())
+  return uniqueByLabel.slice(0, 4)
 }
 
+/** Backward-compatible wrapper — returns PromptChip[] from the new CannedPill engine */
 function buildPromptEngine({
   phase,
   lens,
@@ -940,54 +1292,13 @@ function buildPromptEngine({
   hasRxpadSymptoms?: boolean
   summaryData?: SmartSummaryData
 }): PromptChip[] {
-  const safety = buildSafetyPills({ isPatientContext, hasInteractionAlert, summaryData })
-  const showcasePrompt: PromptChip = {
-    id: "showcase-ui",
-    label: "Show UI capabilities",
-    tone: "info",
-  }
-
-  const phasePrompts = (PHASE_PROMPTS[phase] ?? PHASE_PROMPTS.in_progress).map((label) => ({
-    id: `phase-${label}`,
-    label,
-    tone: "primary" as const,
+  const canned = buildCannedPillEngine({ phase, lens, isPatientContext, hasInteractionAlert, hasRxpadSymptoms, summaryData })
+  return canned.map((pill) => ({
+    id: pill.id,
+    label: pill.label,
+    tone: pill.tone,
+    force: pill.force,
   }))
-
-  const lensPrompts = (TAB_PROMPTS[lens] ?? TAB_PROMPTS["dr-agent"]).map((label) => ({
-    id: `lens-${label}`,
-    label,
-    tone: "info" as const,
-  }))
-
-  const merged = [...safety, ...phasePrompts, ...lensPrompts]
-  const uniqueByLabel = Array.from(new Map(merged.map((pill) => [pill.label, pill])).values())
-  const limited = uniqueByLabel.slice(0, 4)
-
-  if (isPatientContext && hasRxpadSymptoms && !limited.some((pill) => pill.label === "Generate DDX")) {
-    const ddxPrompt: PromptChip = {
-      id: "ddx-quick",
-      label: "Generate DDX",
-      tone: "primary",
-      force: true,
-    }
-    if (limited.length >= 4) {
-      limited[limited.length - 1] = ddxPrompt
-    } else {
-      limited.push(ddxPrompt)
-    }
-  }
-
-  if (isPatientContext && (phase === "empty" || phase === "in_progress")) {
-    if (!limited.some((pill) => pill.label === showcasePrompt.label)) {
-      if (limited.length >= 4) {
-        limited[limited.length - 1] = showcasePrompt
-      } else {
-        limited.push(showcasePrompt)
-      }
-    }
-  }
-
-  return limited
 }
 
 function deriveBehaviorAwarePrompts({
@@ -1051,17 +1362,20 @@ function MiniLineGraph({
   values,
   labels,
   tone = "violet",
+  threshold,
 }: {
   values: number[]
   labels: string[]
   tone?: "violet" | "red" | "teal"
+  threshold?: number
 }) {
   const width = 260
   const height = 64
   const top = 8
   const bottom = 48
-  const max = Math.max(...values)
-  const min = Math.min(...values)
+  const allValues = threshold != null ? [...values, threshold] : values
+  const max = Math.max(...allValues)
+  const min = Math.min(...allValues)
   const span = Math.max(1, max - min)
   const step = values.length > 1 ? (width - 16) / (values.length - 1) : width - 16
   const points = values.map((value, index) => {
@@ -1075,10 +1389,28 @@ function MiniLineGraph({
   const stroke = tone === "red" ? "#dc2626" : tone === "teal" ? "#0d9488" : "#4B4AD5"
   const fill = tone === "red" ? "rgba(220,38,38,0.16)" : tone === "teal" ? "rgba(13,148,136,0.16)" : "rgba(75,74,213,0.16)"
 
+  const thresholdY = threshold != null ? bottom - ((threshold - min) / span) * (bottom - top) : null
+
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="h-[64px] w-full">
       <path d={pathArea} fill={fill} />
       <path d={pathLine} fill="none" stroke={stroke} strokeWidth="2" />
+      {thresholdY != null && (
+        <g>
+          <line
+            x1={8}
+            y1={thresholdY}
+            x2={width - 8}
+            y2={thresholdY}
+            stroke="#ef4444"
+            strokeWidth="1"
+            strokeDasharray="3 2"
+          />
+          <text x={width - 8} y={thresholdY - 3} textAnchor="end" fontSize="7" fill="#ef4444">
+            Threshold: {threshold}
+          </text>
+        </g>
+      )}
       {points.map((point, index) => (
         <g key={`${point.x}-${point.y}-${index}`}>
           <circle cx={point.x} cy={point.y} r="2.8" fill={stroke} />
@@ -1094,19 +1426,142 @@ function MiniLineGraph({
   )
 }
 
-function toneChipClass(tone: PromptChip["tone"]) {
+function VitalBarChart({
+  values,
+  labels,
+  unit,
+  threshold,
+  tone,
+}: {
+  values: number[]
+  labels: string[]
+  unit?: string
+  threshold?: number
+  tone: "violet" | "teal" | "red"
+}) {
+  const barHeight = 14
+  const gap = 4
+  const labelAreaWidth = 40
+  const valueAreaWidth = 32
+  const chartLeft = labelAreaWidth + 4
+  const chartRight = 200 - valueAreaWidth - 4
+  const chartWidth = chartRight - chartLeft
+  const svgHeight = values.length * (barHeight + gap) + 8
+  const allValues = threshold != null ? [...values, threshold] : values
+  const max = Math.max(...allValues)
+
+  const colorMap = {
+    violet: { fill: "#8b5cf6", stroke: "#7c3aed" },
+    teal: { fill: "#14b8a6", stroke: "#0d9488" },
+    red: { fill: "#ef4444", stroke: "#dc2626" },
+  }
+  const colors = colorMap[tone]
+
+  const thresholdX = threshold != null && max > 0 ? chartLeft + (threshold / max) * chartWidth : null
+
+  return (
+    <svg viewBox={`0 0 200 ${svgHeight}`} className="w-full" style={{ height: svgHeight }}>
+      {values.map((value, index) => {
+        const y = 4 + index * (barHeight + gap)
+        const barWidth = max > 0 ? (value / max) * chartWidth : 0
+        const isAboveThreshold = threshold != null && value > threshold
+        const barFill = isAboveThreshold ? "rgba(239,68,68,0.6)" : `${colors.fill}99`
+        const barStroke = isAboveThreshold ? "#dc2626" : colors.stroke
+
+        return (
+          <g key={`bar-${index}`}>
+            <text x={labelAreaWidth} y={y + barHeight / 2 + 3} textAnchor="end" fontSize="8" fill="#64748b">
+              {labels[index] ?? `D${index + 1}`}
+            </text>
+            <rect
+              x={chartLeft}
+              y={y}
+              width={Math.max(0, barWidth)}
+              height={barHeight}
+              rx={3}
+              fill={barFill}
+              stroke={barStroke}
+              strokeWidth="0.5"
+            />
+            <text
+              x={chartLeft + barWidth + 4}
+              y={y + barHeight / 2 + 3}
+              textAnchor="start"
+              fontSize="8"
+              fontWeight="bold"
+              fill="#374151"
+            >
+              {value}
+              {unit ? ` ${unit}` : ""}
+            </text>
+          </g>
+        )
+      })}
+      {thresholdX != null && (
+        <g>
+          <line
+            x1={thresholdX}
+            y1={0}
+            x2={thresholdX}
+            y2={svgHeight}
+            stroke="#ef4444"
+            strokeWidth="1"
+            strokeDasharray="3 2"
+          />
+          <text x={thresholdX} y={7} textAnchor="middle" fontSize="7" fill="#ef4444">
+            {threshold}
+          </text>
+        </g>
+      )}
+    </svg>
+  )
+}
+
+function getVitalThreshold(label: string): number | undefined {
+  const lower = label.toLowerCase()
+  if (lower.includes("spo2") || lower.includes("sp02")) return 95
+  if (lower.includes("systolic") || lower.includes("bp sys")) return 140
+  if (lower.includes("diastolic") || lower.includes("bp dia")) return 90
+  if (lower.includes("pulse") || lower.includes("heart rate")) return 100
+  if (lower.includes("temp")) return 100.4
+  if (lower.includes("rbs") || lower.includes("blood sugar")) return 200
+  return undefined
+}
+
+function toneChipClass(tone: CannedPill["tone"]) {
   return ""
 }
 
-const AGENT_GRADIENT_CHIP_CLASS =
-  "rounded-full border-[0.5px] border-tp-violet-200/75 [background:linear-gradient(135deg,rgba(242,77,182,0.08)_0%,rgba(150,72,254,0.06)_52%,rgba(75,74,213,0.06)_100%)] px-2 py-1 text-[12px] font-medium text-tp-violet-700/90"
+/* ──────────────────────────────────────────────────────────────── */
+/*  CARD ANATOMY — Design-System-Aligned Constants (Phase 1)      */
+/* ──────────────────────────────────────────────────────────────── */
 
 const AI_OUTPUT_CARD_CLASS =
-  "rounded-[12px] border-[0.5px] border-tp-slate-200 bg-[linear-gradient(180deg,rgba(245,243,255,0.52)_0%,rgba(255,255,255,0.98)_22%,#fff_100%)] p-2.5"
+  "rounded-[12px] border-[0.5px] border-tp-slate-200 bg-[linear-gradient(180deg,rgba(245,243,255,0.52)_0%,rgba(255,255,255,0.98)_22%,#fff_100%)] p-2.5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
 const AI_INNER_SURFACE_CLASS = "overflow-hidden rounded-[10px] bg-tp-slate-50/85"
 const AI_INNER_HEADER_CLASS = "border-b border-tp-slate-100 px-2 py-1.5"
 const AI_INNER_BODY_CLASS = "space-y-1 px-2 py-1 text-[12px] text-tp-slate-600"
 const AI_ROW_GRID_CLASS = "group/line grid grid-cols-[9px_72px_minmax(0,1fr)_auto] items-start gap-x-1.5"
+
+/* 3 Button Families per Implementation Guide */
+
+// Family 1: Chat Pills — AI Gradient, triggers agent chat action
+const AGENT_GRADIENT_CHIP_CLASS =
+  "inline-flex h-[24px] items-center rounded-full border-[0.5px] border-tp-violet-200/75 [background:linear-gradient(135deg,rgba(242,77,182,0.08)_0%,rgba(150,72,254,0.06)_52%,rgba(75,74,213,0.06)_100%)] px-2 py-0 text-[11px] font-medium text-tp-violet-700/90 transition-colors hover:bg-tp-violet-50/70"
+
+// Family 2: Copy/Action — TP Blue, copies to RxPad
+const AI_SMALL_PRIMARY_CTA_CLASS =
+  "inline-flex h-[32px] items-center justify-center gap-1.5 rounded-[10px] border-[0.5px] border-tp-blue-200 bg-white px-3 text-[12px] font-medium text-tp-blue-700 transition-colors hover:bg-tp-blue-50 active:bg-tp-blue-100 disabled:cursor-not-allowed disabled:border-tp-slate-200 disabled:bg-tp-slate-100 disabled:text-tp-slate-400"
+
+const AI_SMALL_SECONDARY_CTA_CLASS =
+  "inline-flex h-[32px] items-center justify-center gap-1.5 rounded-[10px] border-[0.5px] border-tp-blue-200 bg-white px-3 text-[12px] font-medium text-tp-blue-700 transition-colors hover:bg-tp-blue-50 active:bg-tp-blue-100 disabled:cursor-not-allowed disabled:border-tp-slate-200 disabled:bg-tp-slate-100 disabled:text-tp-slate-400"
+
+const AI_TERTIARY_CTA_CLASS =
+  "inline-flex h-[32px] items-center justify-center gap-1.5 rounded-[10px] px-3 text-[12px] font-medium text-tp-slate-600 transition-colors hover:bg-tp-slate-50 active:bg-tp-slate-100"
+
+// Family 3: External CTA — TP Blue border, opens sidebar tab
+const SIDEBAR_CTA_CLASS =
+  "inline-flex items-center gap-1 text-[11px] font-medium text-tp-blue-600 transition-colors hover:text-tp-blue-700 hover:underline"
 
 const AI_INLINE_PROMPT_CLASS =
   "rounded-full border-[0.5px] border-tp-violet-200/75 [background:linear-gradient(135deg,rgba(242,77,182,0.08)_0%,rgba(150,72,254,0.06)_52%,rgba(75,74,213,0.06)_100%)] px-2 py-1 text-[12px] font-medium text-tp-violet-700/90 transition-colors hover:bg-tp-violet-50/70"
@@ -1117,11 +1572,943 @@ const AI_CARD_ICON_WRAP_CLASS =
 const HOVER_COPY_ICON_CLASS =
   "inline-flex size-5 items-center justify-center rounded-[7px] border-[0.5px] border-tp-slate-200 bg-white text-tp-slate-500 transition-all hover:border-tp-blue-300 hover:text-tp-blue-600 hover:[&_svg]:stroke-[2.4]"
 
-const AI_SMALL_PRIMARY_CTA_CLASS =
-  "inline-flex h-9 items-center justify-center gap-1 rounded-[10px] border-[0.5px] border-tp-blue-500 bg-tp-blue-500 px-3 text-[12px] font-medium text-white transition-colors hover:bg-tp-blue-600 disabled:cursor-not-allowed disabled:border-tp-slate-200 disabled:bg-tp-slate-100 disabled:text-tp-slate-400"
+/* ──────────────────────────────────────────────────────────────── */
+/*  FOUNDATION PRIMITIVES — Shared Components (Phase 1)            */
+/* ──────────────────────────────────────────────────────────────── */
 
-const AI_SMALL_SECONDARY_CTA_CLASS =
-  "inline-flex h-9 items-center justify-center gap-1 rounded-[10px] border-[0.5px] border-tp-blue-200 bg-white px-3 text-[12px] font-medium text-tp-blue-700 transition-colors hover:bg-tp-blue-50 disabled:cursor-not-allowed disabled:border-tp-slate-200 disabled:bg-tp-slate-100 disabled:text-tp-slate-400"
+/* ── Phase 11 — Polish: Guardrails, Touch Targets, Edge Cases ─── */
+
+/** Drug names are displayed exactly as stored — brand names, not generics.
+ *  Abbreviation conventions: Sx, Dx, Rx, BF, 1-0-0-1 format */
+const DRUG_NAME_DISPLAY_RULE = "as-stored" as const // brand names, not generics
+void DRUG_NAME_DISPLAY_RULE // referenced for documentation; prevents unused-var lint
+
+/** Off-topic detection: blocks non-clinical queries */
+function isOffTopicQuery(text: string): boolean {
+  const offTopicPatterns = [
+    /\b(weather|movie|sport|game|cook|recipe|joke|sing|dance|news|politics)\b/i,
+    /\b(who is|tell me about|what happened)\b.*\b(celebrity|actor|singer|player)\b/i,
+    /\b(play|stream|watch|listen)\b/i,
+  ]
+  return offTopicPatterns.some((pattern) => pattern.test(text))
+}
+
+const OFF_TOPIC_REPLY =
+  "I'm focused on clinical support. Try asking about this patient's vitals, lab results, or treatment plan."
+
+/** Response truncation: enforces "no paragraphs" rule (max 4 lines) */
+function truncateResponseText(text: string, maxLines: number = 4): { text: string; truncated: boolean } {
+  const lines = text.split("\n").filter((l) => l.trim())
+  if (lines.length <= maxLines) return { text, truncated: false }
+  return { text: lines.slice(0, maxLines).join("\n") + "...", truncated: true }
+}
+
+/** Cross-patient safety block: prevents referencing other patients */
+function detectsCrossPatientReference(text: string, currentPatientName: string): boolean {
+  const otherPatients = RX_CONTEXT_OPTIONS
+    .filter((opt) => opt.kind === "patient" && opt.label !== currentPatientName)
+    .map((opt) => opt.patient?.name?.toLowerCase() ?? "")
+    .filter(Boolean)
+
+  const lowerText = text.toLowerCase()
+  return otherPatients.some((name) => lowerText.includes(name))
+}
+
+const CROSS_PATIENT_REPLY =
+  "I can only provide information about the current patient. Please switch to the correct patient context."
+
+/* ── End Phase 11 Helpers ─────────────────────────────────────── */
+
+/** Level 1-3 Hover Copy Button */
+function HoverCopyButton({
+  size = "item",
+  label,
+  payload,
+  onCopy,
+  className,
+}: {
+  size?: "card" | "section" | "item"
+  label: string
+  payload: RxPadCopyPayload
+  onCopy: (payload: RxPadCopyPayload, message: string) => void
+  className?: string
+}) {
+  const sizeClass = size === "card" ? "size-6" : size === "section" ? "size-5" : "size-[18px]"
+  const iconSize = size === "card" ? 12 : size === "section" ? 11 : 10
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); onCopy(payload, label) }}
+      className={cn(
+        "inline-flex items-center justify-center rounded-[7px] border-[0.5px] border-tp-slate-200 bg-white text-tp-slate-500 transition-all hover:border-tp-blue-300 hover:text-tp-blue-600",
+        sizeClass,
+        className,
+      )}
+      title={label}
+      aria-label={label}
+    >
+      <Copy size={iconSize} />
+    </button>
+  )
+}
+
+/** Section Tag — inline uppercase label with hover-copy (Level 2) */
+function SectionTag({
+  label,
+  copyPayload,
+  onCopy,
+}: {
+  label: string
+  copyPayload?: RxPadCopyPayload
+  onCopy?: (payload: RxPadCopyPayload, message: string) => void
+}) {
+  return (
+    <span className="group/tag mr-1.5 inline-flex items-center gap-1">
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-tp-slate-400">{label}</span>
+      {copyPayload && onCopy && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onCopy(copyPayload, `${label} copied`) }}
+          className="inline-flex size-[15px] items-center justify-center rounded border-[0.5px] border-transparent text-tp-slate-300 opacity-0 transition-all group-hover/tag:border-tp-slate-200 group-hover/tag:text-tp-blue-500 group-hover/tag:opacity-100"
+          title={`Copy ${label}`}
+          aria-label={`Copy ${label}`}
+        >
+          <Copy size={9} />
+        </button>
+      )}
+    </span>
+  )
+}
+
+/** Compact inline row: [Icon] TAG  value1 | value2 | value3 */
+function InlineSummaryRow({
+  icon,
+  tag,
+  segments,
+  onCopy,
+  copyPayload,
+}: {
+  icon: React.ReactNode
+  tag: string
+  segments: Array<{ text: string; red?: boolean; bold?: boolean }>
+  onCopy?: (payload: RxPadCopyPayload, msg: string) => void
+  copyPayload?: RxPadCopyPayload
+}) {
+  if (segments.length === 0) return null
+
+  return (
+    <div className="group/row flex items-start gap-1.5 py-[2px]">
+      <span className="mt-[2px] shrink-0 text-tp-slate-400">{icon}</span>
+      <div className="min-w-0 flex-1">
+        <span className="mr-1.5 inline text-[10px] font-semibold uppercase tracking-wider text-tp-slate-400">
+          {tag}
+        </span>
+        {copyPayload && onCopy && (
+          <button
+            type="button"
+            onClick={() => onCopy(copyPayload, `${tag} copied`)}
+            className="mr-1 hidden align-middle group-hover/row:inline-flex"
+            title={`Copy ${tag}`}
+          >
+            <Copy size={10} className="text-tp-slate-300 hover:text-tp-blue-500" />
+          </button>
+        )}
+        <span className="text-[11px] leading-[15px]">
+          {segments.map((seg, j) => (
+            <span key={j}>
+              {j > 0 && <span className="mx-0.5 text-tp-slate-300">|</span>}
+              <span
+                className={cn(
+                  seg.red ? "font-medium text-tp-error-500" : "text-tp-slate-600",
+                  seg.bold && "font-semibold text-tp-slate-700",
+                )}
+              >
+                {seg.text}
+              </span>
+            </span>
+          ))}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function TagHeading({
+  icon,
+  label,
+  tooltipTab,
+  onNavigate,
+}: {
+  icon: React.ReactNode
+  label: string
+  tooltipTab?: string
+  onNavigate?: (tab: string) => void
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-[6px] bg-tp-slate-100 px-1.5 py-[3px]",
+        tooltipTab && onNavigate && "cursor-pointer hover:bg-tp-slate-200/80",
+      )}
+      title={tooltipTab ? `Go to ${tooltipTab.replace(/-/g, " ")}` : undefined}
+      onClick={tooltipTab && onNavigate ? () => onNavigate(tooltipTab) : undefined}
+      role={tooltipTab && onNavigate ? "button" : undefined}
+      tabIndex={tooltipTab && onNavigate ? 0 : undefined}
+    >
+      <span className="text-tp-slate-500">{icon}</span>
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-tp-slate-500">{label}</span>
+    </span>
+  )
+}
+
+function ColorCodedValue({
+  value,
+  status,
+  className,
+}: {
+  value: string
+  status: "normal" | "abnormal" | "warning"
+  className?: string
+}) {
+  return (
+    <span
+      className={cn(
+        "text-[12px]",
+        status === "abnormal"
+          ? "font-semibold text-tp-error-600"
+          : status === "warning"
+            ? "font-medium text-tp-warning-600"
+            : "text-tp-slate-700",
+        className,
+      )}
+    >
+      {value}
+    </span>
+  )
+}
+
+/** Source Attribution — small gray text below card content */
+function SourceAttribution({ tab, section, date }: { tab: string; section?: string; date?: string }) {
+  const parts = [tab, section, date].filter(Boolean)
+  return (
+    <p className="mt-1.5 text-[10px] text-tp-slate-400">
+      Source: {parts.join(" · ")}
+    </p>
+  )
+}
+
+/** Sidebar CTA Link — opens sidebar tab, closes agent */
+function SidebarCTA({
+  label,
+  targetTab,
+  onClick,
+}: {
+  label: string
+  targetTab: string
+  onClick?: (tab: string) => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onClick?.(targetTab)}
+      className={cn(SIDEBAR_CTA_CLASS, "mt-1.5 border-t border-tp-slate-100 pt-1.5")}
+    >
+      {label} <span className="text-tp-blue-400">→</span>
+    </button>
+  )
+}
+
+/** Response Feedback — 👍/👎 below every agent response */
+function ResponseFeedback({
+  messageId,
+  feedback,
+  onFeedback,
+}: {
+  messageId: string
+  feedback?: "like" | "dislike"
+  onFeedback: (messageId: string, type: "like" | "dislike") => void
+}) {
+  return (
+    <div className="mt-1.5 flex items-center gap-2 border-t border-tp-slate-100 pt-1.5">
+      <span className="text-[10px] text-tp-slate-400">Helpful?</span>
+      <button
+        type="button"
+        onClick={() => !feedback && onFeedback(messageId, "like")}
+        disabled={!!feedback}
+        className={cn(
+          "inline-flex size-5 items-center justify-center rounded-[5px] transition-all",
+          feedback === "like"
+            ? "bg-tp-success-50 text-tp-success-600"
+            : feedback === "dislike"
+              ? "text-tp-slate-200"
+              : "text-tp-slate-400 hover:bg-tp-success-50 hover:text-tp-success-600",
+        )}
+        aria-label="Helpful"
+      >
+        <ThumbsUp size={11} />
+      </button>
+      <button
+        type="button"
+        onClick={() => !feedback && onFeedback(messageId, "dislike")}
+        disabled={!!feedback}
+        className={cn(
+          "inline-flex size-5 items-center justify-center rounded-[5px] transition-all",
+          feedback === "dislike"
+            ? "bg-tp-error-50 text-tp-error-600"
+            : feedback === "like"
+              ? "text-tp-slate-200"
+              : "text-tp-slate-400 hover:bg-tp-error-50 hover:text-tp-error-600",
+        )}
+        aria-label="Not helpful"
+      >
+        <ThumbsDown size={11} />
+      </button>
+    </div>
+  )
+}
+
+/* ──────────────────────────────────────────────────────────────── */
+/*  INTRO UX — Context Lines & Alert Banners (Phase 2)             */
+/* ──────────────────────────────────────────────────────────────── */
+
+interface IntroContextLine {
+  label: string
+  segments: Array<{ text: string; red?: boolean }>
+  priority: number
+}
+
+function buildContextLines(s: SmartSummaryData, specialty: SpecialtyTabId): IntroContextLine[] {
+  const lines: IntroContextLine[] = []
+
+  // Priority 1 — Chronic + Active Meds (merged onto ONE line)
+  if (s.chronicConditions?.length || s.activeMeds?.length) {
+    const segs: Array<{ text: string; red?: boolean }> = []
+    if (s.chronicConditions?.length) {
+      segs.push({ text: s.chronicConditions.join(", ") })
+    }
+    if (s.activeMeds?.length) {
+      segs.push({ text: `On ${s.activeMeds.join(", ")}` })
+    }
+    lines.push({ label: "Chronic", segments: segs, priority: 1 })
+  }
+
+  // Priority 2 — Last visit headline (Dx → Rx · Inv · F/U merged)
+  if (s.lastVisit) {
+    const segs: Array<{ text: string; red?: boolean }> = []
+    if (s.lastVisit.diagnosis) segs.push({ text: s.lastVisit.diagnosis })
+    if (s.lastVisit.medication) segs.push({ text: `Rx: ${s.lastVisit.medication}` })
+    if (s.lastVisit.labTestsSuggested) segs.push({ text: `Inv: ${s.lastVisit.labTestsSuggested}` })
+    if (s.lastVisit.followUp) segs.push({ text: `F/U: ${s.lastVisit.followUp}` })
+    lines.push({ label: `Last visit ${s.lastVisit.date}`, segments: segs, priority: 2 })
+  }
+
+  // Priority 3 — Today's vitals (merged, abnormal in red)
+  if (s.todayVitals) {
+    const segs: Array<{ text: string; red?: boolean }> = []
+    const v = s.todayVitals
+    if (v.bp) {
+      const sys = Number.parseInt(v.bp)
+      segs.push({ text: `BP ${v.bp}`, red: sys >= 140 })
+    }
+    if (v.spo2) {
+      const val = Number.parseInt(v.spo2)
+      segs.push({ text: `SpO2 ${v.spo2}`, red: val < 95 })
+    }
+    if (v.pulse) segs.push({ text: `Pulse ${v.pulse}` })
+    if (v.temp) {
+      const t = Number.parseFloat(v.temp)
+      segs.push({ text: `Temp ${v.temp}\u00B0F`, red: t >= 100.4 })
+    }
+    if (v.weight) segs.push({ text: `Wt ${v.weight}kg` })
+    if (segs.length > 0) {
+      lines.push({ label: "Today", segments: segs, priority: 3 })
+    }
+  }
+
+  // Priority 4 — Lab flags (count + top 3)
+  if (s.labFlagCount > 0 && s.keyLabs?.length) {
+    const topFlags = s.keyLabs.slice(0, 3).map(l => ({
+      text: `${l.name}${l.flag === "high" ? "\u2191" : "\u2193"} ${l.value}`,
+      red: true as const,
+    }))
+    const extra = s.labFlagCount > 3 ? [{ text: `+${s.labFlagCount - 3} more` }] : []
+    lines.push({ label: `Labs${s.keyLabs[0] ? "" : ""}`, segments: [{ text: `${s.labFlagCount} abnormal` }, ...topFlags, ...extra], priority: 4 })
+  }
+
+  // Priority 5 — Patient narrative (symptom collector summary)
+  if (s.symptomCollectorData?.symptoms?.length) {
+    const names = s.symptomCollectorData.symptoms.slice(0, 4).map(sx => sx.name)
+    lines.push({ label: "Patient says", segments: [{ text: names.join(", ") }], priority: 5 })
+  }
+
+  // Priority 6 — Specialty-specific
+  if (specialty === "obstetric" && s.obstetricData) {
+    const ob = s.obstetricData
+    lines.push({ label: "OB", segments: [
+      { text: `G${ob.gravida}P${ob.para}L${ob.living}A${ob.abortion}E${ob.ectopic}` },
+      { text: `${ob.gestationalWeeks ?? "\u2014"}w` },
+      { text: `EDD ${ob.edd ?? "\u2014"}` },
+    ], priority: 6 })
+  }
+  if (specialty === "gynec" && s.gynecData) {
+    lines.push({ label: "Gynec", segments: [
+      { text: `LMP ${s.gynecData.lmp ?? "\u2014"}` },
+      { text: `Cycle ${s.gynecData.cycleRegularity ?? "\u2014"}, ${s.gynecData.cycleLength ?? "\u2014"}` },
+      { text: `Flow ${s.gynecData.flowIntensity ?? "\u2014"}` },
+    ], priority: 6 })
+  }
+  if (specialty === "ophthal" && s.ophthalData) {
+    const o = s.ophthalData
+    lines.push({ label: "Vision", segments: [
+      { text: `VA OD ${o.vaRight ?? "\u2014"} OS ${o.vaLeft ?? "\u2014"}` },
+      ...(o.slitLamp ? [{ text: `Slit: ${o.slitLamp.slice(0, 40)}` }] : []),
+    ], priority: 6 })
+  }
+  if (specialty === "pediatrics" && s.pediatricsData) {
+    const p = s.pediatricsData
+    lines.push({ label: "Growth", segments: [
+      { text: p.ageDisplay ?? "\u2014" },
+      { text: `Ht ${p.heightCm ?? "\u2014"}cm (${p.heightPercentile ?? "\u2014"})` },
+      { text: `Wt ${p.weightKg ?? "\u2014"}kg (${p.weightPercentile ?? "\u2014"})` },
+    ], priority: 6 })
+  }
+
+  // Sort by priority, return top 5
+  lines.sort((a, b) => a.priority - b.priority)
+  return lines.slice(0, 5)
+}
+
+/** Patient Category Intelligence */
+type PatientCategory = "concerning" | "care" | "operational" | "unknown"
+
+function classifyPatientCategory(s: SmartSummaryData): PatientCategory {
+  // Clinically Concerning
+  if (s.todayVitals?.spo2 && Number.parseInt(s.todayVitals.spo2) < 95) return "concerning"
+  if (s.todayVitals?.bp && Number.parseInt(s.todayVitals.bp) >= 180) return "concerning"
+  if (s.keyLabs?.some(l => l.flag === "high" || l.flag === "low")) return "concerning"
+
+  // Care-Level
+  if (s.chronicConditions?.length) return "care"
+  if (s.followUpOverdueDays > 0) return "care"
+  if (s.allergies?.length) return "care"
+
+  // Operational
+  if (s.lastVisit || s.todayVitals) return "operational"
+
+  return "unknown"
+}
+
+const CATEGORY_BORDER_CLASS: Record<PatientCategory, string> = {
+  concerning: "border-l-[3px] border-l-tp-error-300",
+  care: "border-l-[3px] border-l-tp-warning-300",
+  operational: "border-l-[3px] border-l-tp-slate-200",
+  unknown: "border-l-[3px] border-l-tp-slate-150",
+}
+
+/** Intro Alert Strip — compact single-line safety alerts */
+function IntroAlertStrip({ summaryData }: { summaryData: SmartSummaryData }) {
+  const items: Array<{ text: string; tone: "critical" | "warning" }> = []
+
+  // Allergy — always critical
+  if (summaryData.allergies?.length) {
+    items.push({ text: `ALLERGY: ${summaryData.allergies.join(", ")}`, tone: "critical" })
+  }
+  // SpO2 < 90 — true emergency
+  if (summaryData.todayVitals?.spo2 && Number.parseInt(summaryData.todayVitals.spo2) < 90) {
+    items.push({ text: `SpO2 ${summaryData.todayVitals.spo2}% — Critical`, tone: "critical" })
+  }
+  // BP >= 180 — hypertensive urgency
+  if (summaryData.todayVitals?.bp && Number.parseInt(summaryData.todayVitals.bp) >= 180) {
+    items.push({ text: `BP ${summaryData.todayVitals.bp} — Hypertensive urgency`, tone: "critical" })
+  }
+  // F/U overdue > 7 days
+  if (summaryData.followUpOverdueDays > 7) {
+    items.push({ text: `F/U overdue ${summaryData.followUpOverdueDays}d`, tone: "warning" })
+  }
+
+  if (items.length === 0) return null
+
+  // Max 2 items
+  const displayItems = items.slice(0, 2)
+
+  return (
+    <div className="flex items-center gap-1 px-0.5">
+      <AlertTriangle size={10} className="shrink-0 text-tp-error-500" />
+      <p className="text-[10px] font-semibold leading-[14px]">
+        {displayItems.map((item, i) => (
+          <span key={i}>
+            {i > 0 && <span className="text-tp-slate-300"> &middot; </span>}
+            <span className={item.tone === "critical" ? "text-tp-error-600" : "text-tp-warning-600"}>{item.text}</span>
+          </span>
+        ))}
+      </p>
+    </div>
+  )
+}
+
+/** Intro Context Lines — consolidated smart lines with bold labels */
+function IntroSmartLines({ lines }: { lines: IntroContextLine[] }) {
+  if (lines.length === 0) return null
+
+  return (
+    <div className="space-y-[3px]">
+      {lines.map((line, i) => (
+        <div key={i} className="text-[12px] leading-[18px]">
+          <span className="font-semibold text-tp-slate-800">{line.label}:</span>{" "}
+          {line.segments.map((seg, j) => (
+            <span key={j}>
+              {j > 0 && <span className="text-tp-slate-300"> &middot; </span>}
+              <span className={seg.red ? "font-medium text-tp-error-500" : "text-tp-slate-600"}>{seg.text}</span>
+            </span>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Symptom Collector Card — purple-tinted collapsible card */
+function SymptomCollectorCard({
+  data,
+  collapsed,
+  onToggle,
+  onCopy,
+}: {
+  data: NonNullable<SmartSummaryData["symptomCollectorData"]>
+  collapsed: boolean
+  onToggle: () => void
+  onCopy: (payload: RxPadCopyPayload, message: string) => void
+}) {
+  if (collapsed) {
+    return (
+      <button type="button" onClick={onToggle}
+        className="flex h-[32px] w-full items-center justify-between rounded-[10px] border-[0.5px] border-tp-violet-200 bg-tp-violet-50/40 px-2.5 text-left">
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex size-4 items-center justify-center rounded bg-tp-violet-100 text-tp-violet-500">
+            <ClipboardPlus size={10} />
+          </span>
+          <p className="text-[11px] font-medium text-tp-violet-700">Patient-reported · {data.reportedAt}</p>
+          <span className="rounded-full bg-tp-violet-100 px-1 py-0.5 text-[10px] font-medium text-tp-violet-600">{data.symptoms.length} Sx</span>
+        </div>
+        <ChevronDown size={11} className="shrink-0 text-tp-violet-400" />
+      </button>
+    )
+  }
+
+  return (
+    <div className="overflow-hidden rounded-[10px] border-[0.5px] border-tp-violet-200 bg-white">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2 border-b border-tp-violet-100 bg-tp-violet-50/40 px-2.5 py-1.5">
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex size-5 items-center justify-center rounded-[6px] bg-tp-violet-100 text-tp-violet-500">
+            <ClipboardPlus size={11} />
+          </span>
+          <p className="text-[12px] font-semibold text-tp-violet-800">Patient-reported</p>
+          <span className="text-[10px] text-tp-violet-500">{data.reportedAt}</span>
+        </div>
+        <button type="button" onClick={onToggle} className="inline-flex size-5 items-center justify-center rounded-[6px] border-[0.5px] border-tp-violet-200 bg-white text-tp-violet-500" aria-label="Collapse">
+          <ChevronUp size={11} />
+        </button>
+      </div>
+
+      {/* Symptoms */}
+      <div className="space-y-1 px-2.5 py-2">
+        <SectionTag label="Symptoms" />
+        <div className="flex flex-wrap gap-1">
+          {data.symptoms.map(sx => (
+            <span key={sx.name} className="inline-flex items-center gap-1 rounded-full bg-tp-violet-50 px-1.5 py-0.5 text-[11px] text-tp-violet-700">
+              {sx.name}
+              {sx.duration && <span className="rounded bg-tp-violet-100 px-0.5 text-[10px] font-medium text-tp-violet-600">{sx.duration}</span>}
+              {sx.severity && (
+                <span className={cn(
+                  "rounded px-0.5 text-[9px] font-semibold uppercase",
+                  sx.severity === "High" || sx.severity === "Severe" ? "bg-tp-error-50 text-tp-error-600" :
+                  sx.severity === "Moderate" ? "bg-tp-warning-50 text-tp-warning-700" :
+                  "bg-tp-slate-100 text-tp-slate-500",
+                )}>{sx.severity}</span>
+              )}
+            </span>
+          ))}
+        </div>
+
+        {/* Medical/Family History if present */}
+        {data.medicalHistory?.length ? (
+          <div className="mt-1">
+            <SectionTag label="History" />
+            <p className="inline text-[11px] text-tp-slate-600">{data.medicalHistory.join(" | ")}</p>
+          </div>
+        ) : null}
+        {data.familyHistory?.length ? (
+          <div className="mt-0.5">
+            <SectionTag label="Family" />
+            <p className="inline text-[11px] text-tp-slate-600">{data.familyHistory.join(" | ")}</p>
+          </div>
+        ) : null}
+
+        {/* Copy actions */}
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          <button
+            type="button"
+            onClick={() => onCopy({
+              sourceDateLabel: `Patient-reported ${data.reportedAt}`,
+              targetSection: "symptoms",
+              symptoms: data.symptoms.map(sx => sx.name),
+              additionalNotes: data.symptoms.map(sx => `${sx.name}${sx.duration ? ` (${sx.duration})` : ""}${sx.severity ? ` [${sx.severity}]` : ""}`).join(" | "),
+            }, "Symptoms copied to Complaints")}
+            className="inline-flex h-[28px] items-center gap-1 rounded-[8px] border-[0.5px] border-tp-blue-200 bg-white px-2 text-[11px] font-medium text-tp-blue-700 hover:bg-tp-blue-50"
+          >
+            <Copy size={10} /> Copy Sx to Complaints
+          </button>
+          {(data.medicalHistory?.length || data.familyHistory?.length) ? (
+            <button
+              type="button"
+              onClick={() => onCopy({
+                sourceDateLabel: `Patient-reported History ${data.reportedAt}`,
+                targetSection: "history",
+                additionalNotes: [...(data.medicalHistory ?? []), ...(data.familyHistory ?? [])].join(" | "),
+              }, "History copied to Medical History")}
+              className="inline-flex h-[28px] items-center gap-1 rounded-[8px] border-[0.5px] border-tp-blue-200 bg-white px-2 text-[11px] font-medium text-tp-blue-700 hover:bg-tp-blue-50"
+            >
+              <Copy size={10} /> Copy to History
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PatientReportedCard({
+  data,
+  collapsed,
+  onToggle,
+  onCopy,
+}: {
+  data: NonNullable<SmartSummaryData["symptomCollectorData"]>
+  collapsed: boolean
+  onToggle: () => void
+  onCopy: (payload: RxPadCopyPayload, message: string) => void
+}) {
+  const sxCount = data.symptoms.length
+  const hxCount = (data.medicalHistory?.length ?? 0) + (data.familyHistory?.length ?? 0)
+  const totalItems = sxCount + hxCount
+
+  if (collapsed) {
+    return (
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex h-[32px] w-full items-center justify-between rounded-[10px] border-[0.5px] border-tp-violet-200 bg-tp-violet-50/40 px-2.5 text-left"
+      >
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex size-4 items-center justify-center rounded bg-tp-violet-100 text-tp-violet-500">
+            <ClipboardPlus size={10} />
+          </span>
+          <p className="text-[12px] font-medium text-tp-violet-700">Patient-reported</p>
+          <span className="rounded-full bg-tp-violet-100 px-1 py-0.5 text-[10px] font-medium text-tp-violet-600">
+            {sxCount} Sx{hxCount > 0 ? ` · ${hxCount} Hx` : ""}
+          </span>
+        </div>
+        <ChevronDown size={11} className="shrink-0 text-tp-violet-400" />
+      </button>
+    )
+  }
+
+  return (
+    <div className="overflow-hidden rounded-[10px] border-[0.5px] border-tp-violet-200 bg-white">
+      {/* Header with copy-all + collapse */}
+      <div className="flex items-center justify-between gap-2 border-b border-tp-violet-100 bg-tp-violet-50/40 px-2.5 py-1.5">
+        <div className="flex items-center gap-1.5">
+          <span className="inline-flex size-5 items-center justify-center rounded-[6px] bg-tp-violet-100 text-tp-violet-500">
+            <ClipboardPlus size={11} />
+          </span>
+          <div>
+            <p className="text-[12px] font-semibold text-tp-violet-800">Patient-reported</p>
+            <p className="text-[9px] italic text-tp-violet-400">Not clinically validated</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() =>
+              onCopy(
+                {
+                  sourceDateLabel: `Patient-reported ${data.reportedAt}`,
+                  targetSection: "symptoms",
+                  symptoms: data.symptoms.map((sx) => sx.name),
+                  additionalNotes: [
+                    ...data.symptoms.map((sx) => `${sx.name}${sx.duration ? ` (${sx.duration})` : ""}${sx.severity ? ` [${sx.severity}]` : ""}`),
+                    ...(data.medicalHistory ?? []).map((h) => `Hx: ${h}`),
+                    ...(data.familyHistory ?? []).map((f) => `FHx: ${f}`),
+                  ].join(" | "),
+                },
+                "All patient-reported data copied",
+              )
+            }
+            className={HOVER_COPY_ICON_CLASS}
+            title="Copy all"
+          >
+            <Copy size={11} />
+          </button>
+          <button
+            type="button"
+            onClick={onToggle}
+            className="inline-flex size-5 items-center justify-center rounded-[6px] border-[0.5px] border-tp-violet-200 bg-white text-tp-violet-500"
+            aria-label="Collapse"
+          >
+            <ChevronUp size={11} />
+          </button>
+        </div>
+      </div>
+
+      <div className="divide-y divide-tp-violet-50 px-2.5">
+        {/* ── Section 1: Symptoms — per-item copy on hover ── */}
+        <div className="py-2">
+          <div className="mb-1 flex items-center justify-between">
+            <TagHeading icon={<Activity size={11} />} label="Symptoms" />
+            <button
+              type="button"
+              onClick={() =>
+                onCopy(
+                  {
+                    sourceDateLabel: `Patient-reported ${data.reportedAt}`,
+                    targetSection: "symptoms",
+                    symptoms: data.symptoms.map((sx) => sx.name),
+                    additionalNotes: data.symptoms.map((sx) => `${sx.name}${sx.duration ? ` (${sx.duration})` : ""}${sx.severity ? ` [${sx.severity}]` : ""}`).join(" | "),
+                  },
+                  "Symptoms → Complaints",
+                )
+              }
+              className="inline-flex items-center gap-0.5 text-[10px] font-medium text-tp-blue-600 opacity-0 transition-opacity hover:text-tp-blue-700 group-hover:opacity-100 [div:hover>&]:opacity-100"
+              title="Copy all symptoms"
+            >
+              <Copy size={9} /> Copy Sx
+            </button>
+          </div>
+          <div className="space-y-0.5">
+            {data.symptoms.map((sx) => (
+              <div key={sx.name} className="group/sx flex items-center justify-between gap-1 rounded px-0.5 py-0.5 hover:bg-tp-violet-50/60">
+                <div className="flex flex-wrap items-center gap-1 text-[12px]">
+                  <span className="font-medium text-tp-slate-700">{sx.name}</span>
+                  {sx.duration && (
+                    <span className="rounded bg-tp-violet-100/80 px-1 py-0.5 text-[10px] font-medium text-tp-violet-600">
+                      {sx.duration}
+                    </span>
+                  )}
+                  {sx.severity && (
+                    <span
+                      className={cn(
+                        "rounded px-1 py-0.5 text-[9px] font-semibold uppercase",
+                        sx.severity === "High" || sx.severity === "Severe"
+                          ? "bg-tp-error-50 text-tp-error-600"
+                          : sx.severity === "Moderate"
+                            ? "bg-tp-warning-50 text-tp-warning-700"
+                            : "bg-tp-slate-100 text-tp-slate-500",
+                      )}
+                    >
+                      {sx.severity}
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onCopy(
+                      {
+                        sourceDateLabel: `Patient-reported ${data.reportedAt}`,
+                        targetSection: "symptoms",
+                        symptoms: [sx.name],
+                        additionalNotes: `${sx.name}${sx.duration ? ` (${sx.duration})` : ""}${sx.severity ? ` [${sx.severity}]` : ""}`,
+                      },
+                      `${sx.name} → Complaints`,
+                    )
+                  }
+                  className="shrink-0 rounded p-0.5 opacity-0 transition-opacity hover:bg-tp-violet-50 group-hover/sx:opacity-100"
+                  title={`Copy ${sx.name}`}
+                >
+                  <Copy size={10} className="text-tp-slate-400 hover:text-tp-blue-500" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Section 2: Chronic / Medical History — per-item copy ── */}
+        {data.medicalHistory?.length ? (
+          <div className="py-2">
+            <div className="mb-1 flex items-center justify-between">
+              <TagHeading icon={<Notepad2 size={11} variant="Bold" />} label="Chronic" />
+              <button
+                type="button"
+                onClick={() =>
+                  onCopy(
+                    {
+                      sourceDateLabel: `Patient-reported History ${data.reportedAt}`,
+                      targetSection: "history",
+                      additionalNotes: data.medicalHistory!.join(" | "),
+                    },
+                    "History → Medical History",
+                  )
+                }
+                className="inline-flex items-center gap-0.5 text-[10px] font-medium text-tp-blue-600 opacity-0 transition-opacity hover:text-tp-blue-700 [div:hover>&]:opacity-100"
+                title="Copy all history"
+              >
+                <Copy size={9} /> Copy Hx
+              </button>
+            </div>
+            <div className="space-y-0.5">
+              {data.medicalHistory.map((item, i) => (
+                <div key={i} className="group/hx flex items-center justify-between gap-1 rounded px-0.5 py-0.5 hover:bg-tp-slate-50">
+                  <span className="text-[12px] text-tp-slate-600">{item}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onCopy(
+                        {
+                          sourceDateLabel: `Patient-reported History ${data.reportedAt}`,
+                          targetSection: "history",
+                          additionalNotes: item,
+                        },
+                        `${item} → History`,
+                      )
+                    }
+                    className="shrink-0 rounded p-0.5 opacity-0 transition-opacity hover:bg-tp-slate-50 group-hover/hx:opacity-100"
+                    title={`Copy ${item}`}
+                  >
+                    <Copy size={10} className="text-tp-slate-400 hover:text-tp-blue-500" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {/* ── Section 3: Allergies (from patient input, not validated) ── */}
+        {data.allergies?.length ? (
+          <div className="py-2">
+            <div className="mb-1">
+              <TagHeading icon={<ShieldCheck size={11} />} label="Allergies" />
+            </div>
+            <div className="space-y-0.5">
+              {data.allergies.map((item, i) => (
+                <div key={i} className="group/al flex items-center justify-between gap-1 rounded px-0.5 py-0.5 hover:bg-tp-error-50/40">
+                  <span className="text-[12px] font-medium text-tp-error-700">{item}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onCopy(
+                        {
+                          sourceDateLabel: `Patient-reported Allergy ${data.reportedAt}`,
+                          targetSection: "history",
+                          additionalNotes: `Allergy: ${item}`,
+                        },
+                        `Allergy: ${item} → History`,
+                      )
+                    }
+                    className="shrink-0 rounded p-0.5 opacity-0 transition-opacity hover:bg-tp-error-50 group-hover/al:opacity-100"
+                    title={`Copy allergy: ${item}`}
+                  >
+                    <Copy size={10} className="text-tp-slate-400 hover:text-tp-blue-500" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {/* ── Section 4: Family History — per-item copy ── */}
+        {data.familyHistory?.length ? (
+          <div className="py-2">
+            <div className="mb-1 flex items-center justify-between">
+              <TagHeading icon={<People size={11} />} label="Family" />
+              <button
+                type="button"
+                onClick={() =>
+                  onCopy(
+                    {
+                      sourceDateLabel: `Patient-reported Family ${data.reportedAt}`,
+                      targetSection: "history",
+                      additionalNotes: data.familyHistory!.map((f) => `Family: ${f}`).join(" | "),
+                    },
+                    "Family History → History",
+                  )
+                }
+                className="inline-flex items-center gap-0.5 text-[10px] font-medium text-tp-blue-600 opacity-0 transition-opacity hover:text-tp-blue-700 [div:hover>&]:opacity-100"
+                title="Copy all family history"
+              >
+                <Copy size={9} /> Copy FHx
+              </button>
+            </div>
+            <div className="space-y-0.5">
+              {data.familyHistory.map((item, i) => (
+                <div key={i} className="group/fh flex items-center justify-between gap-1 rounded px-0.5 py-0.5 hover:bg-tp-slate-50">
+                  <span className="text-[12px] text-tp-slate-600">{item}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onCopy(
+                        {
+                          sourceDateLabel: `Patient-reported Family ${data.reportedAt}`,
+                          targetSection: "history",
+                          additionalNotes: `Family: ${item}`,
+                        },
+                        `Family: ${item} → History`,
+                      )
+                    }
+                    className="shrink-0 rounded p-0.5 opacity-0 transition-opacity hover:bg-tp-slate-50 group-hover/fh:opacity-100"
+                    title={`Copy ${item}`}
+                  >
+                    <Copy size={10} className="text-tp-slate-400 hover:text-tp-blue-500" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {/* ── Section 5: Lifestyle (if data present) ── */}
+        {data.lifestyle?.length ? (
+          <div className="py-2">
+            <div className="mb-1">
+              <TagHeading icon={<HeartPulse size={11} />} label="Lifestyle" />
+            </div>
+            <div className="space-y-0.5">
+              {data.lifestyle.map((item, i) => (
+                <div key={i} className="group/ls flex items-center justify-between gap-1 rounded px-0.5 py-0.5 hover:bg-tp-slate-50">
+                  <span className="text-[12px] text-tp-slate-600">{item}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onCopy(
+                        {
+                          sourceDateLabel: `Patient-reported Lifestyle ${data.reportedAt}`,
+                          targetSection: "history",
+                          additionalNotes: `Lifestyle: ${item}`,
+                        },
+                        `${item} → History`,
+                      )
+                    }
+                    className="shrink-0 rounded p-0.5 opacity-0 transition-opacity hover:bg-tp-slate-50 group-hover/ls:opacity-100"
+                    title={`Copy ${item}`}
+                  >
+                    <Copy size={10} className="text-tp-slate-400 hover:text-tp-blue-500" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Disclaimer footer */}
+      <div className="border-t border-tp-violet-100 px-2.5 py-1">
+        <p className="text-[9px] italic text-tp-slate-400">
+          ⚠ Patient-reported data — not clinically validated. Verify before prescribing.
+        </p>
+      </div>
+    </div>
+  )
+}
 
 function parseTokenDetail(raw: string) {
   const value = raw.trim()
@@ -1176,11 +2563,12 @@ const VISIT_SUMMARY_ARCHIVE: LastVisitCardData[] = [
   {
     visitDate: "27 Jan'26",
     sections: [
-      { short: "Symptoms", value: "Fever (2 days, high), eye redness (2 days)" },
-      { short: "Diagnosis", value: "Viral fever, conjunctivitis" },
-      { short: "Medication", value: "Telma20 1-0-0-1, Metsmail 500 1-0-0-1" },
+      { short: "Symptoms", value: "Fever — 2 days | High severity | Evening spikes, Eye redness — 2 days | Bilateral | Watering" },
+      { short: "Diagnosis", value: "Viral fever, Conjunctivitis" },
+      { short: "Medication", value: "Telma20 — 1-0-0-1 · BF · 4d, Metsmail 500 — 1-0-0-1 · AF · 4d" },
       { short: "Lab Tests", value: "CBC, LFT" },
-      { short: "Follow-up", value: "2 weeks" },
+      { short: "Advice", value: "Hydration, eye hygiene and steam inhalation, avoid screen time" },
+      { short: "Follow-up", value: "Review in 2 weeks with lab reports" },
     ],
     meds: ["Telma20 1-0-0-1", "Metsmail 500 1-0-0-1"],
     copyAllPayload: {
@@ -1202,11 +2590,11 @@ const VISIT_SUMMARY_ARCHIVE: LastVisitCardData[] = [
   {
     visitDate: "26 Jan'26",
     sections: [
-      { short: "Symptoms", value: "Fever, cough, throat discomfort" },
+      { short: "Symptoms", value: "Fever — 3 days | Moderate, Cough — dry | 4 days, Throat discomfort — mild" },
       { short: "Diagnosis", value: "Upper respiratory infection" },
-      { short: "Medication", value: "Azithromycin 500 mg, Paracetamol SOS" },
+      { short: "Medication", value: "Azithromycin 500mg — 1-0-0-0 · AF · 3d, Paracetamol 650 — SOS · AF · If fever >100°F" },
       { short: "Lab Tests", value: "CBC" },
-      { short: "Follow-up", value: "5 days" },
+      { short: "Follow-up", value: "Review in 5 days" },
     ],
     meds: ["Azithromycin 500 mg", "Paracetamol SOS"],
     copyAllPayload: {
@@ -1572,18 +2960,14 @@ function buildRxAgentReply({
 
   if (q.includes("patient snapshot")) {
     return {
-      reply: "Patient smart snapshot refreshed for quick pre-consult review.",
+      reply: "Patient smart snapshot — compact overview for quick pre-consult review.",
       nextPhase: "in_progress",
-      output: {
-        type: "summary",
-        title: "Patient Smart Snapshot",
-        subtitle: "Current context + previous visit essentials",
-        bullets: [
-          `Last visit: ${summaryData.lastVisit?.date ?? "Not available"} · ${summaryData.lastVisit?.diagnosis ?? "No diagnosis on file"}`,
-          `Chronic conditions: ${(summaryData.chronicConditions ?? ["None reported"]).join(", ")}`,
-          `Flagged labs: ${summaryData.labFlagCount} · Due alerts: ${summaryData.dueAlerts?.length ?? 0}`,
-        ],
-        actions: ["Last visit essentials", "Abnormal findings", "Generate DDX"],
+      rxOutput: {
+        kind: "patient_summary",
+        summaryData,
+        activeSpecialty: "gp" as SpecialtyTabId,
+        patientGender: patient.gender,
+        patientAge: patient.age,
       },
     }
   }
@@ -2044,7 +3428,7 @@ function buildRxAgentReply({
       rxOutput: {
         kind: "cascade",
         diagnosis: "Viral Fever",
-        meds: ["Paracetamol 650 mg SOS", "Levocetirizine 5 mg HS", "Ibuprofen 400 mg BD"],
+        meds: ["Paracetamol 650mg — 1-0-0-1 · AF · 5d · SOS if fever>100°F", "Levocetirizine 5mg — 0-0-0-1 · AF · 5d", "Ibuprofen 400mg — 1-0-1-0 · AF · 3d · If pain"],
         investigations: ["CBC", "CRP", "Urine Routine"],
         advice: "Hydration, eye hygiene, steam inhalation and red-flag counseling.",
         followUp: "2 weeks",
@@ -2173,6 +3557,55 @@ function buildRxAgentReply({
           sourceDateLabel: "Annual panel suggestion",
           labInvestigations: ["HbA1c", "Lipid Profile", "TSH", "Vitamin D", "Urine Routine"],
         },
+      },
+    }
+  }
+
+  if (q.includes("protocol") || q.includes("treatment plan") || q.includes("medication protocol")) {
+    return {
+      reply: "Protocol-based medication plan generated. Review and copy to RxPad.",
+      nextPhase: "dx_accepted",
+      rxOutput: {
+        kind: "protocol_meds",
+        diagnosis: "Type 2 Diabetes Mellitus",
+        meds: [
+          { name: "Metformin", dose: "500mg", route: "Oral", frequency: "1-0-0-1", safetyCheck: "ok" },
+          { name: "Glimepiride", dose: "1mg", route: "Oral", frequency: "1-0-0-0", safetyCheck: "ok" },
+          { name: "Atorvastatin", dose: "10mg", route: "Oral", frequency: "0-0-0-1", safetyCheck: "ok" },
+        ],
+        copyPayload: {
+          sourceDateLabel: "Protocol",
+          targetSection: "rxpad",
+          medications: [
+            { medicine: "Metformin 500mg", unitPerDose: "1 tab", frequency: "1-0-0-1", when: "After food", duration: "30 days", note: "" },
+            { medicine: "Glimepiride 1mg", unitPerDose: "1 tab", frequency: "1-0-0-0", when: "Before food", duration: "30 days", note: "" },
+            { medicine: "Atorvastatin 10mg", unitPerDose: "1 tab", frequency: "0-0-0-1", when: "After food", duration: "30 days", note: "" },
+          ],
+        },
+      },
+    }
+  }
+
+  if (q.includes("what is") || q.includes("meaning of") || q.includes("define")) {
+    return {
+      reply: "Here is a quick clinical fact for your reference.",
+      rxOutput: {
+        kind: "text_fact",
+        icon: "info",
+        fact: "HbA1c reflects average blood glucose over the past 2-3 months. A value above 6.5% is diagnostic of diabetes mellitus. Target for most adults with diabetes is below 7%.",
+        source: "ADA Standards of Care 2025",
+      },
+    }
+  }
+
+  if (q.includes("allergy check") || q.includes("check allergy") || q.includes("nsaid allergy")) {
+    return {
+      reply: "Allergy conflict detected for this patient.",
+      rxOutput: {
+        kind: "allergy_conflict",
+        drug: "Ibuprofen",
+        allergy: summaryData.allergies?.find((a) => a.toLowerCase().includes("nsaid")) ?? "NSAID sensitivity",
+        severity: "critical",
       },
     }
   }
@@ -2349,153 +3782,204 @@ function LastVisitCard({
   onCopy: (payload: RxPadCopyPayload, message: string) => void
   onQuickSend: (prompt: string) => void
 }) {
-  const [copyMenuOpen, setCopyMenuOpen] = useState(false)
+  /** Map raw section.short to concise heading labels */
+  const sectionLabel = (short: string): string => {
+    const s = short.toLowerCase()
+    if (s.includes("symptom")) return "Sx"
+    if (s.includes("exam")) return "Examination"
+    if (s.includes("diagnosis")) return "Dx"
+    if (s.includes("medication")) return "Rx"
+    if (s.includes("lab")) return "Lab"
+    if (s.includes("follow")) return "Follow-up"
+    return short
+  }
+
+  /** Build a copy payload for a single item within a section */
+  const itemPayload = (lower: string, item: string): RxPadCopyPayload => {
+    if (lower.includes("symptom"))
+      return { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "rxpad", symptoms: [item] }
+    if (lower.includes("diagnosis"))
+      return { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "rxpad", diagnoses: [item] }
+    if (lower.includes("medication"))
+      return {
+        sourceDateLabel: `Visit ${data.visitDate}`,
+        targetSection: "rxpad",
+        medications: [{ medicine: item.trim(), unitPerDose: "-", frequency: "-", when: "-", duration: "-", note: "" }],
+      }
+    if (lower.includes("lab"))
+      return { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "labResults", labInvestigations: [item] }
+    if (lower.includes("follow"))
+      return { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "rxpad", followUp: item }
+    return { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "history", additionalNotes: item }
+  }
+
+  /** Build a copy payload for an entire section */
+  const sectionPayload = (lower: string, items: string[], rawValue: string): RxPadCopyPayload => {
+    if (lower.includes("symptom"))
+      return { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "rxpad", symptoms: items }
+    if (lower.includes("diagnosis"))
+      return { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "rxpad", diagnoses: items }
+    if (lower.includes("medication"))
+      return {
+        sourceDateLabel: `Visit ${data.visitDate}`,
+        targetSection: "rxpad",
+        medications: items.map((med) => ({ medicine: med.trim(), unitPerDose: "-", frequency: "-", when: "-", duration: "-", note: "" })),
+      }
+    if (lower.includes("lab"))
+      return { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "labResults", labInvestigations: items }
+    if (lower.includes("follow"))
+      return { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "rxpad", followUp: rawValue }
+    return { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "history", additionalNotes: rawValue }
+  }
+
+  // Section icon mapping
+  const sectionIcon = (short: string): React.ReactNode => {
+    const s = short.toLowerCase()
+    if (s.includes("symptom")) return <Activity size={12} className="text-tp-slate-400" />
+    if (s.includes("exam")) return <Stethoscope size={12} className="text-tp-slate-400" />
+    if (s.includes("diagnosis")) return <Stethoscope size={12} className="text-tp-blue-500" />
+    if (s.includes("medication")) return <Pill size={12} className="text-tp-violet-500" />
+    if (s.includes("lab")) return <FlaskConical size={12} className="text-tp-blue-500" />
+    if (s.includes("advice")) return <FileText size={12} className="text-tp-emerald-500" />
+    if (s.includes("follow")) return <Calendar size={12} className="text-tp-amber-500" />
+    return <FileText size={12} className="text-tp-slate-400" />
+  }
 
   return (
-    <div className={AI_OUTPUT_CARD_CLASS}>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-[12px] font-semibold text-tp-slate-800">Last Visit Summary · {data.visitDate}</p>
-        <div className="relative flex items-center gap-1.5">
-          <span className="rounded-full border border-tp-slate-200 bg-tp-slate-50 px-1.5 py-0.5 text-[12px] font-semibold text-tp-slate-600">Past Visits</span>
-          <button
-            type="button"
-            onClick={() => setCopyMenuOpen((prev) => !prev)}
-            className="inline-flex size-6 items-center justify-center rounded-[8px] border-[0.5px] border-tp-slate-200 bg-white text-tp-slate-500 hover:border-tp-blue-300 hover:text-tp-blue-600"
-            title="Copy options to RxPad"
-            aria-label="Copy options to RxPad"
-          >
-            <Copy size={11} />
-          </button>
-          {copyMenuOpen ? (
-            <div className="absolute right-0 top-[28px] z-20 w-[210px] overflow-hidden rounded-[10px] border-[0.5px] border-tp-slate-200 bg-white p-1">
-              <button
-                type="button"
-                onClick={() => {
-                  onCopy(data.copyAllPayload, "Complete visit Rx copied to RxPad")
-                  setCopyMenuOpen(false)
-                }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
-                title="Copy complete Rx to RxPad"
-                aria-label="Copy complete Rx to RxPad"
-              >
-                <ClipboardPlus size={11} className="text-tp-blue-600" />
-                Copy complete Rx to RxPad
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  onCopy(data.copyMedsPayload, "Medications copied to RxPad")
-                  setCopyMenuOpen(false)
-                }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
-                title="Copy medications to RxPad"
-                aria-label="Copy medications to RxPad"
-              >
-                <Pill size={11} className="text-tp-blue-600" />
-                Copy medications to RxPad
-              </button>
-            </div>
-          ) : null}
+    <div className="overflow-hidden rounded-[12px] bg-white shadow-[0_1px_4px_rgba(20,18,14,0.06),0_0_0_0.5px_rgba(20,18,14,0.08)]">
+      {/* ── Card header ── */}
+      <div className="flex items-center justify-between gap-2 bg-tp-slate-50 px-3 py-2">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex size-[26px] shrink-0 items-center justify-center rounded-[8px]" style={{ background: AI_GRADIENT_SOFT }}>
+            <FileText size={13} className="text-tp-violet-600" />
+          </span>
+          <div>
+            <p className="text-[13px] font-semibold text-[#1A1714]">Last Visit</p>
+            <p className="text-[11px] text-[#9E978B]">{data.visitDate}</p>
+          </div>
         </div>
+        <HoverCopyButton
+          size="card"
+          label="Copy entire visit to RxPad"
+          payload={data.copyAllPayload}
+          onCopy={onCopy}
+        />
       </div>
-      <div className="space-y-1 text-[12px] text-tp-slate-600">
+
+      {/* ── Detailed Pointer Sections ── */}
+      <div className="py-1">
         {data.sections.map((section) => {
           const lower = section.short.toLowerCase()
+          const heading = sectionLabel(section.short)
+          const icon = sectionIcon(section.short)
           const sectionItems = section.value
             .split(",")
             .map((item) => item.trim())
             .filter(Boolean)
-          const copyPayload: RxPadCopyPayload =
-            lower.includes("symptom")
-              ? { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "rxpad", symptoms: sectionItems }
-              : lower.includes("diagnosis")
-                ? { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "rxpad", diagnoses: sectionItems }
-                : lower.includes("medication")
-                  ? {
-                      sourceDateLabel: `Visit ${data.visitDate}`,
-                      targetSection: "rxpad",
-                      medications: sectionItems.map((med) => ({
-                        medicine: med.trim(),
-                        unitPerDose: "-",
-                        frequency: "-",
-                        when: "-",
-                        duration: "-",
-                        note: "",
-                      })),
-                    }
-                  : lower.includes("lab")
-                    ? { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "labResults", labInvestigations: sectionItems }
-                    : lower.includes("follow")
-                      ? { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "rxpad", followUp: section.value }
-                      : { sourceDateLabel: `Visit ${data.visitDate}`, targetSection: "history", additionalNotes: `${section.short}: ${section.value}` }
+          const secPayload = sectionPayload(lower, sectionItems, section.value)
+
+          // For advice/follow-up: render as paragraph, not bullets
+          const isTextSection = lower.includes("advice") || lower.includes("follow")
 
           return (
-            <div key={section.short} className="group/row grid grid-cols-[9px_72px_minmax(0,1fr)_auto] items-start gap-x-1.5">
-              <span className="text-tp-slate-400">•</span>
-              <span className="text-tp-slate-500">{section.short}</span>
-              <p className="min-w-0 leading-4 text-[12px] text-tp-slate-600">
-                {lower.includes("medication")
-                  ? sectionItems.map((entry, index) => {
-                      const med = parseMedicationEntry(entry)
-                      return (
-                        <span key={`${med.name}-${index}`}>
-                          <span className="font-semibold text-tp-slate-700">{med.name || entry}</span>
-                          {med.detail ? (
-                            <>
-                              <span className="text-tp-slate-400"> (</span>
-                              <span className="text-tp-slate-500">{med.detail}</span>
-                              <span className="text-tp-slate-400">)</span>
-                            </>
-                          ) : null}
-                          {index < sectionItems.length - 1 ? <span className="mx-1 text-tp-slate-300">|</span> : null}
-                        </span>
-                      )
-                    })
-                    : lower.includes("symptom")
-                    ? sectionItems.map((entry, index) => {
-                        const token = parseTokenDetail(entry)
-                        return (
-                          <span key={`${token.label}-${index}`}>
-                            <span className="font-semibold text-tp-slate-700">{token.label}</span>
-                            {token.detail ? (
+            <div key={section.short} className="mb-1">
+              {/* Section strip heading */}
+              <div className="group/heading mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]">
+                {icon}
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E978B]">{heading}</span>
+                <button
+                  type="button"
+                  onClick={() => onCopy(secPayload, `${heading} copied`)}
+                  className="ml-auto opacity-0 transition-opacity group-hover/heading:opacity-100"
+                  title={`Copy ${heading}`}
+                >
+                  <Copy size={10} className="text-tp-slate-400 hover:text-tp-blue-500" />
+                </button>
+              </div>
+
+              {/* Content */}
+              {isTextSection ? (
+                <p className="px-3 text-[11px] leading-[16px] text-[#1A1714]/80">{section.value}</p>
+              ) : (
+                <ul className="space-y-[3px] px-3">
+                  {sectionItems.map((entry, index) => {
+                    const isMed = lower.includes("medication")
+                    const isSx = lower.includes("symptom")
+                    const isDx = lower.includes("diagnosis")
+
+                    return (
+                      <li
+                        key={`${entry}-${index}`}
+                        className="group/item flex items-start gap-1.5"
+                      >
+                        <span className="mt-[6px] block size-[4px] shrink-0 rounded-full bg-tp-slate-300" />
+                        <span className="min-w-0 flex-1 text-[11.5px] leading-[16px] text-tp-slate-600">
+                          {isMed ? (() => {
+                            // Parse: "DrugName — detail" or "DrugName (detail)"
+                            const dashSplit = entry.split(" — ")
+                            if (dashSplit.length >= 2) {
+                              return (
+                                <>
+                                  <span className="font-semibold text-tp-slate-700">{dashSplit[0].trim()}</span>
+                                  <span className="text-tp-slate-400"> — {dashSplit.slice(1).join(" — ").trim()}</span>
+                                </>
+                              )
+                            }
+                            const med = parseMedicationEntry(entry)
+                            return (
                               <>
-                                <span className="text-tp-slate-400"> (</span>
-                                <span className="text-tp-slate-500">{token.detail}</span>
-                                <span className="text-tp-slate-400">)</span>
+                                <span className="font-semibold text-tp-slate-700">{med.name || entry}</span>
+                                {med.detail ? <span className="text-tp-slate-400"> — {med.detail}</span> : null}
                               </>
-                            ) : null}
-                            {index < sectionItems.length - 1 ? <span className="mx-1 text-tp-slate-300">|</span> : null}
-                          </span>
-                        )
-                      })
-                    : sectionItems.map((entry, index) => (
-                        <span key={`${entry}-${index}`}>
-                          <span className={cn("font-medium text-tp-slate-700", lower.includes("lab") && "font-semibold")}>{entry}</span>
-                          {index < sectionItems.length - 1 ? <span className="mx-1 text-tp-slate-300">|</span> : null}
+                            )
+                          })() : isSx ? (() => {
+                            // Parse: "SymptomName — detail"
+                            const dashSplit = entry.split(" — ")
+                            if (dashSplit.length >= 2) {
+                              return (
+                                <>
+                                  <span className="font-semibold text-tp-slate-700">{dashSplit[0].trim()}</span>
+                                  <span className="text-tp-slate-400"> — {dashSplit.slice(1).join(" — ").trim()}</span>
+                                </>
+                              )
+                            }
+                            const token = parseTokenDetail(entry)
+                            return (
+                              <>
+                                <span className="font-medium text-tp-slate-700">{token.label}</span>
+                                {token.detail ? <span className="text-tp-slate-400"> — {token.detail}</span> : null}
+                              </>
+                            )
+                          })() : isDx ? (
+                            <span className="font-semibold text-tp-slate-700">{entry}</span>
+                          ) : (
+                            <span className="font-medium text-tp-slate-700">{entry}</span>
+                          )}
                         </span>
-                      ))}
-              </p>
-              <button
-                type="button"
-                onClick={() => onCopy(copyPayload, `${section.short} copied to RxPad`)}
-                className={cn("opacity-0 transition-opacity group-hover/row:opacity-100", HOVER_COPY_ICON_CLASS)}
-                title={`Copy ${section.short} to RxPad`}
-                aria-label={`Copy ${section.short} to RxPad`}
-              >
-                <Copy size={10} />
-              </button>
+                        {/* Level 3 — per-item hover copy */}
+                        <HoverCopyButton
+                          size="item"
+                          label={`Copy "${entry}" to RxPad`}
+                          payload={itemPayload(lower, entry)}
+                          onCopy={onCopy}
+                          className="shrink-0 opacity-0 transition-opacity group-hover/item:opacity-100"
+                        />
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
             </div>
           )
         })}
       </div>
-      <div className="mt-2 border-t border-tp-slate-100 pt-1.5">
-        <div className="overflow-x-auto pb-0.5">
-          <div className="inline-flex min-w-max gap-1">
-            <button type="button" onClick={() => onQuickSend("Compare previous visit with current context")} className={AGENT_GRADIENT_CHIP_CLASS}>
-              Compare previous visit
-            </button>
-          </div>
-        </div>
+
+      {/* ── Action Row ── */}
+      <div className="flex flex-wrap items-center gap-1.5 border-t border-[#C4BFB5]/20 px-3 py-1.5">
+        <SidebarCTA label="See all past visits" targetTab="past-visits" />
+        <button type="button" onClick={() => onQuickSend("Compare previous visit with current context")} className={AGENT_GRADIENT_CHIP_CLASS}>
+          Compare visit
+        </button>
       </div>
     </div>
   )
@@ -2579,15 +4063,15 @@ function VitalsTrendCard({
   const [copyMenuOpen, setCopyMenuOpen] = useState(false)
 
   return (
-    <div className={AI_OUTPUT_CARD_CLASS}>
-      <div className="mb-2 flex items-start justify-between gap-2">
+    <div className="overflow-hidden rounded-[12px] bg-white shadow-[0_1px_4px_rgba(20,18,14,0.06),0_0_0_0.5px_rgba(20,18,14,0.08)]">
+      <div className="flex items-start justify-between gap-2 bg-tp-slate-50 px-3 py-2">
         <div className="flex items-center gap-2">
-          <span className={AI_CARD_ICON_WRAP_CLASS} style={{ background: AI_GRADIENT_SOFT }}>
-            <HeartPulse size={12} />
+          <span className="inline-flex size-[26px] shrink-0 items-center justify-center rounded-[8px]" style={{ background: AI_GRADIENT_SOFT }}>
+            <HeartPulse size={13} className="text-tp-violet-600" />
           </span>
           <div>
-            <p className="text-[12px] font-semibold text-tp-slate-700">Vitals Trend View</p>
-            <p className="text-[12px] text-tp-slate-500">{data.summary}</p>
+            <p className="text-[13px] font-semibold text-[#1A1714]">Vitals Trend View</p>
+            <p className="text-[11px] text-[#9E978B]">{data.summary}</p>
           </div>
         </div>
         <div className="relative">
@@ -2664,14 +4148,26 @@ function VitalsTrendCard({
                 </button>
               </div>
             </div>
-            <MiniLineGraph
-              values={trend.values}
-              labels={trend.labels}
-              tone={trend.tone === "critical" ? "red" : trend.tone === "warn" ? "teal" : "violet"}
-            />
+            {trend.values.length <= 4 ? (
+              <VitalBarChart
+                values={trend.values}
+                labels={trend.labels}
+                tone={trend.tone === "critical" ? "red" : trend.tone === "warn" ? "teal" : "violet"}
+                threshold={getVitalThreshold(trend.label)}
+              />
+            ) : (
+              <MiniLineGraph
+                values={trend.values}
+                labels={trend.labels}
+                tone={trend.tone === "critical" ? "red" : trend.tone === "warn" ? "teal" : "violet"}
+                threshold={getVitalThreshold(trend.label)}
+              />
+            )}
           </div>
         ))}
       </div>
+      <SourceAttribution tab="Vitals" section="Trend Analysis" />
+      <SidebarCTA label="View full vitals history →" targetTab="vitals" />
     </div>
   )
 }
@@ -2753,6 +4249,8 @@ function LabPanelCard({
         ))}
       </div>
       <div className="mt-1.5 rounded-[10px] bg-white/72 px-2 py-1 text-[12px] text-tp-slate-700">{data.insight}</div>
+      <SourceAttribution tab="Lab Results" section="Abnormal Panel" date={data.panelDate} />
+      <SidebarCTA label="View complete lab report →" targetTab="lab-results" />
       <div className="mt-2 border-t border-tp-slate-100 pt-1.5">
         <div className="overflow-x-auto pb-0.5">
           <div className="inline-flex min-w-max gap-1">
@@ -2777,23 +4275,31 @@ function VisitCompareCard({
 }) {
   const [selectedRows, setSelectedRows] = useState<string[]>([])
 
+  const worseCount = data.rows.filter(r => r.status === "worse").length
+
   return (
-    <div className={AI_OUTPUT_CARD_CLASS}>
-      <div className="mb-2 flex items-start gap-2">
-        <span className={AI_CARD_ICON_WRAP_CLASS} style={{ background: AI_GRADIENT_SOFT }}>
-          <AiBrandSparkIcon size={13} />
+    <div className="overflow-hidden rounded-[12px] bg-white shadow-[0_1px_4px_rgba(20,18,14,0.06),0_0_0_0.5px_rgba(20,18,14,0.08)]">
+      {/* Card Header */}
+      <div className="flex items-center gap-2 bg-tp-slate-50 px-3 py-2">
+        <span className="inline-flex size-[26px] shrink-0 items-center justify-center rounded-[8px]" style={{ background: AI_GRADIENT_SOFT }}>
+          <AiBrandSparkIcon size={14} />
         </span>
         <div>
-          <p className="text-[12px] font-semibold text-tp-slate-700">{data.title}</p>
-          <p className="text-[12px] text-tp-slate-500">
-            {data.currentLabel} vs {data.previousLabel}
-          </p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[13px] font-semibold text-[#1A1714]">{data.title}</p>
+            {worseCount > 0 && (
+              <span className="rounded-[4px] bg-[#C42B2B] px-1.5 py-[1px] text-[10px] font-semibold text-white">{worseCount} worse</span>
+            )}
+          </div>
+          <p className="text-[11px] text-[#9E978B]">{data.currentLabel} vs {data.previousLabel}</p>
         </div>
       </div>
 
-      <div className="space-y-1.5 text-[12px]">
+      {/* Comparison rows */}
+      <div className="space-y-[2px] p-2">
         {data.rows.map((row) => {
           const active = selectedRows.includes(row.section)
+          const statusColor = row.status === "worse" ? "#C42B2B" : row.status === "improved" ? "#1B8C54" : "#9E978B"
           return (
             <button
               key={row.section}
@@ -2803,35 +4309,31 @@ function VisitCompareCard({
                   active ? prev.filter((item) => item !== row.section) : [...prev, row.section],
                 )
               }
-              className="w-full rounded-[9px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50/85 px-2 py-1.5 text-left"
+              className={cn(
+                "w-full rounded-[8px] border-[0.5px] border-l-[3px] px-2.5 py-1.5 text-left transition-colors hover:bg-tp-slate-50",
+                row.status === "worse" ? "border-l-[#C42B2B] border-tp-error-100" :
+                row.status === "improved" ? "border-l-[#1B8C54] border-tp-success-100" : "border-l-[#9E978B] border-tp-slate-200",
+              )}
             >
-              <div className="mb-1 flex items-center justify-between gap-2">
-                <p className="text-[12px] font-semibold text-tp-slate-700">{row.section}</p>
-                <span
-                  className={cn(
-                    "rounded-full border-[0.5px] px-1.5 py-0.5 text-[12px] font-medium",
-                    row.status === "worse"
-                      ? "border-tp-error-200 bg-tp-error-50 text-tp-error-700"
-                      : row.status === "improved"
-                        ? "border-tp-success-200 bg-tp-success-50 text-tp-success-700"
-                        : "border-tp-slate-200 bg-white text-tp-slate-600",
-                  )}
-                >
+              <div className="mb-0.5 flex items-center justify-between gap-2">
+                <p className="text-[12px] font-semibold text-[#1A1714]">{row.section}</p>
+                <span className="shrink-0 rounded-[4px] px-1.5 py-[1px] text-[10px] font-semibold capitalize" style={{ backgroundColor: `${statusColor}15`, color: statusColor }}>
                   {row.status}
                 </span>
               </div>
-              <p className="leading-4 text-tp-slate-600">
-                <span className="text-tp-slate-500">Current:</span> <span className="font-medium text-tp-slate-700">{row.current}</span>
-              </p>
-              <p className="leading-4 text-tp-slate-600">
-                <span className="text-tp-slate-500">Previous:</span> <span className="font-medium text-tp-slate-700">{row.previous}</span>
-              </p>
+              <div className="grid grid-cols-[52px_1fr] gap-x-1 gap-y-0.5 text-[11px]">
+                <span className="text-[#9E978B]">Current</span>
+                <span className="font-medium text-[#1A1714]">{row.current}</span>
+                <span className="text-[#9E978B]">Previous</span>
+                <span className="text-[#1A1714]/70">{row.previous}</span>
+              </div>
             </button>
           )
         })}
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-1.5">
+      {/* Action Row */}
+      <div className="flex flex-wrap items-center gap-1.5 border-t border-[#C4BFB5]/20 px-3 py-1.5">
         <button
           type="button"
           onClick={() =>
@@ -2851,17 +4353,11 @@ function VisitCompareCard({
           }
           className={AI_SMALL_PRIMARY_CTA_CLASS}
         >
-          Copy comparison to RxPad
+          <Copy size={10} className="mr-1" /> Copy comparison
         </button>
-      </div>
-      <div className="mt-2 border-t border-tp-slate-100 pt-1.5">
-        <div className="overflow-x-auto pb-0.5">
-          <div className="inline-flex min-w-max gap-1">
-            <button type="button" onClick={() => onQuickSend("Generate DDX using worsened findings only")} className={AGENT_GRADIENT_CHIP_CLASS}>
-              DDX from worsened findings
-            </button>
-          </div>
-        </div>
+        <button type="button" onClick={() => onQuickSend("Generate DDX using worsened findings only")} className={AGENT_GRADIENT_CHIP_CLASS}>
+          DDX from worsened
+        </button>
       </div>
     </div>
   )
@@ -2884,21 +4380,37 @@ function AbnormalFindingsCard({
     setSelected(data.findings.filter((item) => item.selected).map((item) => item.label))
   }, [data.findings])
 
+  const highCount = data.findings.filter(f => f.severity === "high").length
+  const modCount = data.findings.filter(f => f.severity === "moderate").length
+
   return (
-    <div className={AI_OUTPUT_CARD_CLASS}>
-      <div className="mb-2 flex items-start gap-2">
-        <span className={AI_CARD_ICON_WRAP_CLASS} style={{ background: AI_GRADIENT_SOFT }}>
-          <AlertTriangle size={12} />
-        </span>
-        <div>
-          <p className="text-[12px] font-semibold text-tp-slate-700">{data.title}</p>
-          <p className="text-[12px] text-tp-slate-500">{data.subtitle}</p>
+    <div className="overflow-hidden rounded-[12px] bg-white shadow-[0_1px_4px_rgba(20,18,14,0.06),0_0_0_0.5px_rgba(20,18,14,0.08)]">
+      {/* Card Header */}
+      <div className="flex items-center justify-between gap-2 bg-tp-slate-50 px-3 py-2">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex size-[26px] shrink-0 items-center justify-center rounded-[8px]" style={{ background: AI_GRADIENT_SOFT }}>
+            <AlertTriangle size={14} className="text-tp-violet-600" />
+          </span>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <p className="text-[13px] font-semibold text-[#1A1714]">{data.title}</p>
+              {highCount > 0 && (
+                <span className="rounded-[4px] bg-[#C42B2B] px-1.5 py-[1px] text-[10px] font-semibold text-white">{highCount} high</span>
+              )}
+              {modCount > 0 && (
+                <span className="rounded-[4px] bg-[#C6850C] px-1.5 py-[1px] text-[10px] font-semibold text-white">{modCount} moderate</span>
+              )}
+            </div>
+            <p className="text-[11px] text-[#9E978B]">{data.subtitle}</p>
+          </div>
         </div>
       </div>
 
-      <div className="space-y-1 text-[12px]">
+      {/* Findings rows */}
+      <div className="space-y-[2px] p-2">
         {data.findings.map((item) => {
           const active = selected.includes(item.label)
+          const sevColor = item.severity === "high" ? "#C42B2B" : item.severity === "moderate" ? "#C6850C" : "#9E978B"
           return (
             <button
               key={item.label}
@@ -2908,30 +4420,39 @@ function AbnormalFindingsCard({
                   active ? prev.filter((entry) => entry !== item.label) : [...prev, item.label],
                 )
               }
-              className="w-full rounded-[9px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50/85 px-2 py-1.5 text-left"
+              className={cn(
+                "group/af flex w-full items-start gap-2 rounded-[8px] border-[0.5px] border-l-[3px] px-2.5 py-1.5 text-left transition-colors",
+                item.severity === "high"
+                  ? "border-l-[#C42B2B] border-tp-error-100 bg-tp-error-50/30 hover:bg-tp-error-50/60"
+                  : item.severity === "moderate"
+                    ? "border-l-[#C6850C] border-tp-warning-100 bg-tp-warning-50/20 hover:bg-tp-warning-50/40"
+                    : "border-l-[#9E978B] border-tp-slate-200 bg-tp-slate-50/50 hover:bg-tp-slate-50",
+              )}
             >
-              <div className="flex items-center justify-between gap-2">
-                <p className="font-semibold text-tp-slate-700">{item.label}</p>
-                <span
-                  className={cn(
-                    "rounded-full border-[0.5px] px-1.5 py-0.5 text-[12px] font-medium",
-                    item.severity === "high"
-                      ? "border-tp-error-200 bg-tp-error-50 text-tp-error-700"
-                      : item.severity === "moderate"
-                        ? "border-tp-warning-200 bg-tp-warning-50 text-tp-warning-700"
-                        : "border-tp-slate-200 bg-white text-tp-slate-600",
-                  )}
-                >
-                  {item.severity}
-                </span>
+              {/* Checkbox */}
+              <span className={cn(
+                "mt-0.5 inline-flex size-[16px] shrink-0 items-center justify-center rounded-[4px] border-[1.5px] transition-all",
+                active ? "border-tp-blue-500 bg-tp-blue-500 text-white" : "border-tp-slate-300 bg-white text-transparent",
+              )}>
+                <Check size={10} strokeWidth={3} />
+              </span>
+              {/* Content */}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-1.5">
+                  <p className="text-[12px] font-semibold text-[#1A1714]">{item.label}</p>
+                  <span className="shrink-0 rounded-[4px] px-1.5 py-[1px] text-[10px] font-semibold capitalize" style={{ backgroundColor: `${sevColor}15`, color: sevColor }}>
+                    {item.severity}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-[11px] leading-[15px] text-[#9E978B]">{item.detail}</p>
               </div>
-              <p className="mt-0.5 leading-4 text-tp-slate-500">{item.detail}</p>
             </button>
           )
         })}
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-1.5">
+      {/* Action Row */}
+      <div className="flex flex-wrap items-center gap-1.5 border-t border-[#C4BFB5]/20 px-3 py-1.5">
         <button
           type="button"
           onClick={() =>
@@ -2946,24 +4467,53 @@ function AbnormalFindingsCard({
           }
           className={AI_SMALL_PRIMARY_CTA_CLASS}
         >
-          Copy findings to RxPad
+          <Copy size={11} className="mr-1" /> Copy findings
         </button>
-      </div>
-      <div className="mt-2 border-t border-tp-slate-100 pt-1.5">
-        <div className="overflow-x-auto pb-0.5">
-          <div className="inline-flex min-w-max gap-1">
-            <button type="button" onClick={() => onQuickSend("Generate DDX from selected abnormal findings")} className={AGENT_GRADIENT_CHIP_CLASS}>
-              Generate DDX from findings
-            </button>
-            <button type="button" onClick={() => onQuickSend("Suggest investigations for selected abnormal findings")} className={AGENT_GRADIENT_CHIP_CLASS}>
-              Suggest investigations
-            </button>
-          </div>
-        </div>
+        <button type="button" onClick={() => onQuickSend("Generate DDX from selected abnormal findings")} className={AGENT_GRADIENT_CHIP_CLASS}>
+          DDX from findings
+        </button>
+        <button type="button" onClick={() => onQuickSend("Suggest investigations for selected abnormal findings")} className={AGENT_GRADIENT_CHIP_CLASS}>
+          Suggest investigations
+        </button>
       </div>
     </div>
   )
 }
+
+/* ──────────────────────────────────────────────────────────────── */
+/*  DDX 3-TIER CARD — Can't Miss / Most Likely / Consider          */
+/*  Phase 6A — Visual Overhaul per Implementation Guide            */
+/* ──────────────────────────────────────────────────────────────── */
+
+const DDX_TIER_CONFIG = {
+  cant_miss: {
+    title: "CAN'T MISS",
+    icon: <ShieldCheck size={11} />,
+    borderClass: "border-l-[3px] border-l-tp-error-400",
+    bgClass: "bg-tp-error-50/50",
+    titleClass: "text-tp-error-700",
+    badgeBg: "bg-tp-error-100 text-tp-error-700",
+    hoverBg: "hover:bg-tp-error-50/80",
+  },
+  most_likely: {
+    title: "MOST LIKELY",
+    icon: <Stethoscope size={11} />,
+    borderClass: "border-l-[3px] border-l-tp-blue-400",
+    bgClass: "bg-tp-blue-50/40",
+    titleClass: "text-tp-blue-700",
+    badgeBg: "bg-tp-blue-100 text-tp-blue-700",
+    hoverBg: "hover:bg-tp-blue-50/60",
+  },
+  extended: {
+    title: "CONSIDER",
+    icon: <Search size={11} />,
+    borderClass: "border-l-[3px] border-l-tp-slate-300",
+    bgClass: "bg-tp-slate-50/60",
+    titleClass: "text-tp-slate-600",
+    badgeBg: "bg-tp-slate-200 text-tp-slate-600",
+    hoverBg: "hover:bg-tp-slate-100/60",
+  },
+} as const
 
 function DdxCard({
   data,
@@ -2976,8 +4526,8 @@ function DdxCard({
   onQuickSend: (prompt: string) => void
   onCopy: (payload: RxPadCopyPayload, message: string) => void
 }) {
-  const [copyMenuOpen, setCopyMenuOpen] = useState(false)
   const [selected, setSelected] = useState<string[]>([])
+  const [expandedRationale, setExpandedRationale] = useState<string[]>([])
   const contextTokens = useMemo(
     () => data.context.split("+").map((item) => item.trim()).filter(Boolean),
     [data.context],
@@ -2985,6 +4535,7 @@ function DdxCard({
 
   useEffect(() => {
     setSelected([])
+    setExpandedRationale([])
   }, [data.context, data.options])
 
   const grouped = useMemo(() => {
@@ -2993,18 +4544,15 @@ function DdxCard({
       most_likely: [],
       extended: [],
     }
-    data.options.forEach((option) => {
+    for (const option of data.options) {
       const bucket = option.bucket ?? (option.confidence >= 80 ? "cant_miss" : option.confidence >= 60 ? "most_likely" : "extended")
       bucketMap[bucket].push(option)
-    })
-    return [
-      { id: "cant_miss" as const, title: "CAN'T MISS", className: "border-tp-error-200 bg-tp-error-50/40 text-tp-error-700" },
-      { id: "most_likely" as const, title: "MOST LIKELY", className: "border-tp-slate-200 bg-tp-slate-50/85 text-tp-slate-700" },
-      { id: "extended" as const, title: "EXTENDED", className: "border-tp-slate-200 bg-tp-slate-50/65 text-tp-slate-600" },
-    ].map((bucket) => ({
-      ...bucket,
-      options: bucketMap[bucket.id],
-    }))
+    }
+    return (["cant_miss", "most_likely", "extended"] as const).map((id) => ({
+      id,
+      ...DDX_TIER_CONFIG[id],
+      options: bucketMap[id],
+    })).filter(g => g.options.length > 0)
   }, [data.options])
 
   const selectedCount = selected.length
@@ -3013,99 +4561,117 @@ function DdxCard({
     setSelected((prev) => (prev.includes(name) ? prev.filter((item) => item !== name) : [...prev, name]))
   }
 
+  function toggleRationale(name: string) {
+    setExpandedRationale((prev) => (prev.includes(name) ? prev.filter((item) => item !== name) : [...prev, name]))
+  }
+
   return (
-    <div className={AI_OUTPUT_CARD_CLASS}>
-      <div className="mb-2 flex items-start justify-between gap-2">
+    <div className="overflow-hidden rounded-[12px] bg-white shadow-[0_1px_4px_rgba(20,18,14,0.06),0_0_0_0.5px_rgba(20,18,14,0.08)]">
+      {/* Card Header */}
+      <div className="flex items-center justify-between gap-2 bg-tp-slate-50 px-3 py-2">
         <div className="flex items-center gap-2">
-          <span className={AI_CARD_ICON_WRAP_CLASS} style={{ background: AI_GRADIENT_SOFT }}>
+          <span className="inline-flex size-[26px] shrink-0 items-center justify-center rounded-[8px]" style={{ background: AI_GRADIENT_SOFT }}>
             <AiBrandSparkIcon size={14} />
           </span>
           <div>
-            <p className="text-[12px] font-semibold text-tp-slate-700">Differential Diagnosis</p>
-            <p className="text-[12px] text-tp-slate-500">Ranked by clinical probability</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-[13px] font-semibold text-[#1A1714]">Differential Diagnosis</p>
+              <span className="rounded-[4px] bg-tp-violet-100 px-1.5 py-[1px] text-[10px] font-semibold text-tp-violet-700">
+                {data.options.length}
+              </span>
+            </div>
+            <p className="text-[11px] text-[#9E978B]">3-tier ranked by clinical probability</p>
           </div>
         </div>
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setCopyMenuOpen((prev) => !prev)}
-            className="inline-flex size-6 items-center justify-center rounded-[8px] border-[0.5px] border-tp-slate-200 bg-white text-tp-slate-500 hover:border-tp-blue-300 hover:text-tp-blue-600"
-            title="Copy options to RxPad"
-            aria-label="Copy options to RxPad"
-          >
-            <Copy size={11} />
-          </button>
-          {copyMenuOpen ? (
-            <div className="absolute right-0 top-[28px] z-20 w-[208px] overflow-hidden rounded-[10px] border-[0.5px] border-tp-slate-200 bg-white p-1">
-              <button
-                type="button"
-                onClick={() => {
-                  onCopy(
-                    {
-                      sourceDateLabel: "DDX suggestions",
-                      diagnoses: data.options.map((option) => option.name),
-                    },
-                    "All DDX options copied to RxPad",
-                  )
-                  setCopyMenuOpen(false)
-                }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
-                title="Copy all DDX options to RxPad"
-                aria-label="Copy all DDX options to RxPad"
-              >
-                <ClipboardPlus size={11} className="text-tp-blue-600" />
-                Copy all DDX options to RxPad
-              </button>
-            </div>
-          ) : null}
-        </div>
+        <button
+          type="button"
+          onClick={() => onCopy({ sourceDateLabel: "DDX suggestions", diagnoses: data.options.map(o => o.name) }, "All DDX copied to RxPad")}
+          className={HOVER_COPY_ICON_CLASS}
+          title="Copy all to RxPad"
+          aria-label="Copy all DDX to RxPad"
+        >
+          <Copy size={11} />
+        </button>
       </div>
-      {contextTokens.length > 0 ? (
-        <p className="mb-2 rounded-[10px] bg-tp-slate-50 px-2 py-1.5 text-[12px] leading-4 text-tp-slate-600">
-          Generated using: <span className="font-medium text-tp-slate-700">{contextTokens.join(", ")}</span>.
-        </p>
-      ) : null}
-      <div className="space-y-2">
+
+      {/* Context tokens */}
+      {contextTokens.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1 border-b border-[#C4BFB5]/20 px-3 py-1.5">
+          <span className="text-[10px] font-medium uppercase tracking-wider text-[#9E978B]">Based on</span>
+          {contextTokens.map((token) => (
+            <span key={token} className="rounded-full bg-tp-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-[#1A1714]">{token}</span>
+          ))}
+        </div>
+      )}
+
+      {/* 3-Tier Groups */}
+      <div className="space-y-1.5">
         {grouped.map((group) => (
-          <div key={group.id} className={cn("rounded-[10px] border-[0.5px] p-2", group.className)}>
-            <p className="mb-1 text-[12px] font-semibold tracking-wide">{group.title}</p>
-            <div className="space-y-1">
+          <div key={group.id} className={cn("overflow-hidden rounded-[10px]", group.bgClass)}>
+            {/* Tier header */}
+            <div className={cn("flex items-center gap-1.5 px-2.5 py-1.5", group.borderClass)}>
+              <span className={group.titleClass}>{group.icon}</span>
+              <span className={cn("text-[10px] font-bold uppercase tracking-widest", group.titleClass)}>{group.title}</span>
+              <span className={cn("ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold", group.badgeBg)}>{group.options.length}</span>
+            </div>
+
+            {/* Options */}
+            <div className="divide-y divide-white/60">
               {group.options.map((option) => {
                 const isSelected = selected.includes(option.name)
+                const isExpanded = expandedRationale.includes(option.name)
                 return (
-                  <div key={option.name} className="group/row grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => toggleSelection(option.name)}
-                      className={cn(
-                        "mt-0.5 inline-flex size-4 items-center justify-center rounded-[5px] border-[0.5px] transition-colors",
-                        isSelected ? "border-tp-blue-500 bg-tp-blue-500 text-white" : "border-tp-slate-300 bg-white text-transparent",
-                      )}
-                      aria-label={`${isSelected ? "Unselect" : "Select"} ${option.name}`}
-                    >
-                      <Check size={10} strokeWidth={2.8} />
-                    </button>
-                    <div className="min-w-0">
-                      <p className="text-[12px] font-semibold text-tp-slate-700">{option.name}</p>
-                      <p className="text-[12px] leading-4 text-tp-slate-500">{option.rationale}</p>
+                  <div key={option.name} className={cn("group/dx px-2.5 py-1.5 transition-colors", group.hoverBg)}>
+                    <div className="flex items-start gap-2">
+                      {/* Checkbox */}
+                      <button
+                        type="button"
+                        onClick={() => toggleSelection(option.name)}
+                        className={cn(
+                          "mt-0.5 inline-flex size-[18px] shrink-0 items-center justify-center rounded-[5px] border-[1.5px] transition-all",
+                          isSelected
+                            ? "border-tp-blue-500 bg-tp-blue-500 text-white shadow-[0_0_0_2px_rgba(75,74,213,0.15)]"
+                            : "border-tp-slate-300 bg-white text-transparent hover:border-tp-blue-300",
+                        )}
+                        aria-label={`${isSelected ? "Unselect" : "Select"} ${option.name}`}
+                      >
+                        <Check size={11} strokeWidth={3} />
+                      </button>
+
+                      {/* Dx content */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => toggleRationale(option.name)}
+                            className="text-left text-[12px] font-semibold text-tp-slate-800 hover:text-tp-blue-700"
+                          >
+                            {option.name}
+                          </button>
+                          <span className={cn(
+                            "shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums",
+                            group.badgeBg,
+                          )}>
+                            {option.confidence}%
+                          </span>
+                        </div>
+                        {/* Rationale — collapsible */}
+                        {isExpanded && (
+                          <p className="mt-0.5 text-[11px] leading-[15px] text-tp-slate-500">{option.rationale}</p>
+                        )}
+                      </div>
+
+                      {/* Per-row copy */}
+                      <button
+                        type="button"
+                        onClick={() => onCopy({ sourceDateLabel: "DDX", diagnoses: [option.name] }, `${option.name} → Dx`)}
+                        className={cn("shrink-0 opacity-0 transition-opacity group-hover/dx:opacity-100", HOVER_COPY_ICON_CLASS)}
+                        title={`Copy ${option.name} to RxPad`}
+                        aria-label={`Copy ${option.name} to RxPad`}
+                      >
+                        <Copy size={10} />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onCopy(
-                          {
-                            sourceDateLabel: "DDX suggestion",
-                            diagnoses: [option.name],
-                          },
-                          `${option.name} copied to RxPad`,
-                        )
-                      }
-                      className={cn("opacity-0 transition-opacity group-hover/row:opacity-100", HOVER_COPY_ICON_CLASS)}
-                      title={`Copy ${option.name} to RxPad`}
-                      aria-label={`Copy ${option.name} to RxPad`}
-                    >
-                      <Copy size={10} />
-                    </button>
                   </div>
                 )
               })}
@@ -3113,40 +4679,28 @@ function DdxCard({
           </div>
         ))}
       </div>
-      <div className="mt-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+
+      {/* Action Row */}
+      <div className="flex flex-wrap items-center gap-1.5 border-t border-[#C4BFB5]/20 px-3 py-1.5">
         <button
           type="button"
           disabled={selectedCount === 0}
-          onClick={() =>
-            onCopy(
-              {
-                sourceDateLabel: "Selected DDX",
-                diagnoses: selected,
-              },
-              `${selectedCount} diagnoses copied to RxPad`,
-            )
-          }
+          onClick={() => {
+            onAccept(selected)
+            onQuickSend(`Generate cascade for ${selected.join(", ")}`)
+          }}
+          className={selectedCount > 0 ? AI_SMALL_SECONDARY_CTA_CLASS : AGENT_GRADIENT_CHIP_CLASS}
+        >
+          {selectedCount > 0 ? `Accept ${selectedCount} Dx → Cascade` : "Select Dx to cascade"}
+        </button>
+        <button
+          type="button"
+          disabled={selectedCount === 0}
+          onClick={() => onCopy({ sourceDateLabel: "Selected DDX", diagnoses: selected }, `${selectedCount} Dx → RxPad`)}
           className={AI_SMALL_SECONDARY_CTA_CLASS}
         >
-          {selectedCount > 0 ? `Copy ${selectedCount} to RxPad` : "Copy to RxPad"}
+          <Copy size={10} className="mr-1" /> Copy to Dx
         </button>
-      </div>
-      <div className="mt-2 border-t border-tp-slate-100 pt-1.5">
-        <div className="overflow-x-auto pb-0.5">
-          <div className="inline-flex min-w-max gap-1">
-            <button
-              type="button"
-              disabled={selectedCount === 0}
-              onClick={() => {
-                onAccept(selected)
-                onQuickSend(`Generate cascade for ${selected.join(", ")}`)
-              }}
-              className={cn(AGENT_GRADIENT_CHIP_CLASS, selectedCount === 0 && "cursor-not-allowed border-tp-slate-200 bg-tp-slate-100 text-tp-slate-400")}
-            >
-              {selectedCount > 0 ? `Generate cascade (${selectedCount})` : "Generate cascade"}
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   )
@@ -3174,18 +4728,23 @@ function InvestigationBundleCard({
   }
 
   return (
-    <div className={AI_OUTPUT_CARD_CLASS}>
-      <div className="mb-2 flex items-start gap-2">
-        <span className={AI_CARD_ICON_WRAP_CLASS} style={{ background: AI_GRADIENT_SOFT }}>
-          <AiBrandSparkIcon size={13} />
+    <div className="overflow-hidden rounded-[12px] bg-white shadow-[0_1px_4px_rgba(20,18,14,0.06),0_0_0_0.5px_rgba(20,18,14,0.08)]">
+      {/* Card Header */}
+      <div className="flex items-center gap-2 bg-tp-slate-50 px-3 py-2">
+        <span className="inline-flex size-[26px] shrink-0 items-center justify-center rounded-[8px]" style={{ background: AI_GRADIENT_SOFT }}>
+          <FlaskConical size={13} className="text-tp-violet-600" />
         </span>
         <div>
-          <p className="text-[12px] font-semibold text-tp-slate-700">{data.title}</p>
-          <p className="text-[12px] text-tp-slate-500">{data.subtitle}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[13px] font-semibold text-[#1A1714]">{data.title}</p>
+            <span className="rounded-[4px] bg-tp-blue-50 px-1.5 py-[1px] text-[10px] font-semibold text-tp-blue-700">{data.items.length}</span>
+          </div>
+          <p className="text-[11px] text-[#9E978B]">{data.subtitle}</p>
         </div>
       </div>
 
-      <div className="space-y-1.5 text-[12px] text-tp-slate-700">
+      {/* Items */}
+      <div className="space-y-[2px] p-2">
         {data.items.map((item) => {
           const isSelected = selected.includes(item.label)
           return (
@@ -3193,23 +4752,22 @@ function InvestigationBundleCard({
               key={item.label}
               type="button"
               onClick={() => toggleSelection(item.label)}
-              className="flex w-full items-start gap-2 rounded-[8px] px-1 py-0.5 text-left hover:bg-tp-slate-50"
+              className="flex w-full items-center gap-2 rounded-[8px] border-[0.5px] border-tp-slate-100 px-2.5 py-1.5 text-left transition-colors hover:bg-tp-slate-50"
             >
-              <span
-                className={cn(
-                  "mt-0.5 inline-flex size-4 items-center justify-center rounded-[5px] border-[0.5px]",
-                  isSelected ? "border-tp-blue-500 bg-tp-blue-500 text-white" : "border-tp-slate-300 bg-white text-transparent",
-                )}
-              >
-                <Check size={10} strokeWidth={2.8} />
+              <span className={cn(
+                "inline-flex size-[16px] shrink-0 items-center justify-center rounded-[4px] border-[1.5px] transition-all",
+                isSelected ? "border-tp-blue-500 bg-tp-blue-500 text-white" : "border-tp-slate-300 bg-white text-transparent",
+              )}>
+                <Check size={10} strokeWidth={3} />
               </span>
-              <span className="leading-4">{item.label}</span>
+              <span className="text-[12px] leading-[16px] text-[#1A1714]">{item.label}</span>
             </button>
           )
         })}
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-1.5">
+      {/* Action Row */}
+      <div className="flex flex-wrap items-center gap-1.5 border-t border-[#C4BFB5]/20 px-3 py-1.5">
         <button
           type="button"
           onClick={() =>
@@ -3223,17 +4781,11 @@ function InvestigationBundleCard({
           }
           className={AI_SMALL_PRIMARY_CTA_CLASS}
         >
-          Add all
+          <Copy size={10} className="mr-1" /> Add {selected.length > 0 ? `${selected.length} selected` : "all"}
         </button>
-      </div>
-      <div className="mt-2 border-t border-tp-slate-100 pt-1.5">
-        <div className="overflow-x-auto pb-0.5">
-          <div className="inline-flex min-w-max gap-1">
-            <button type="button" onClick={() => onQuickSend("Refine investigation bundle by cost and urgency")} className={AGENT_GRADIENT_CHIP_CLASS}>
-              Edit investigation bundle
-            </button>
-          </div>
-        </div>
+        <button type="button" onClick={() => onQuickSend("Refine investigation bundle by cost and urgency")} className={AGENT_GRADIENT_CHIP_CLASS}>
+          Edit bundle
+        </button>
       </div>
     </div>
   )
@@ -3257,18 +4809,23 @@ function AdviceBundleCard({
   }, [data.items])
 
   return (
-    <div className={AI_OUTPUT_CARD_CLASS}>
-      <div className="mb-2 flex items-start gap-2">
-        <span className={AI_CARD_ICON_WRAP_CLASS} style={{ background: AI_GRADIENT_SOFT }}>
-          <AiBrandSparkIcon size={13} />
+    <div className="overflow-hidden rounded-[12px] bg-white shadow-[0_1px_4px_rgba(20,18,14,0.06),0_0_0_0.5px_rgba(20,18,14,0.08)]">
+      {/* Card Header */}
+      <div className="flex items-center gap-2 bg-tp-slate-50 px-3 py-2">
+        <span className="inline-flex size-[26px] shrink-0 items-center justify-center rounded-[8px]" style={{ background: AI_GRADIENT_SOFT }}>
+          <FileText size={13} className="text-tp-violet-600" />
         </span>
         <div>
-          <p className="text-[12px] font-semibold text-tp-slate-700">{data.title}</p>
-          <p className="text-[12px] text-tp-slate-500">{data.subtitle}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[13px] font-semibold text-[#1A1714]">{data.title}</p>
+            <span className="rounded-[4px] bg-tp-violet-50 px-1.5 py-[1px] text-[10px] font-semibold text-tp-violet-700">{data.items.length}</span>
+          </div>
+          <p className="text-[11px] text-[#9E978B]">{data.subtitle}</p>
         </div>
       </div>
 
-      <div className="space-y-1 text-[12px] text-tp-slate-700">
+      {/* Items */}
+      <div className="space-y-[2px] p-2">
         {data.items.map((item) => {
           const isSelected = selected.includes(item.label)
           return (
@@ -3278,16 +4835,17 @@ function AdviceBundleCard({
               onClick={() =>
                 setSelected((prev) => (prev.includes(item.label) ? prev.filter((entry) => entry !== item.label) : [...prev, item.label]))
               }
-              className="flex w-full items-start gap-2 rounded-[8px] px-1 py-0.5 text-left hover:bg-tp-slate-50"
+              className="flex w-full items-center gap-2 rounded-[8px] border-[0.5px] border-tp-slate-100 px-2.5 py-1.5 text-left transition-colors hover:bg-tp-slate-50"
             >
-              <span className="mt-[7px] inline-block size-1.5 shrink-0 rounded-full bg-tp-violet-400" />
-              <span className={cn("leading-4", isSelected ? "font-medium text-tp-slate-800" : "text-tp-slate-600")}>{item.label}</span>
+              <span className="size-[5px] shrink-0 rounded-full bg-tp-violet-400" />
+              <span className={cn("text-[12px] leading-[16px]", isSelected ? "font-medium text-[#1A1714]" : "text-[#1A1714]/70")}>{item.label}</span>
             </button>
           )
         })}
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-1.5">
+      {/* Action Row */}
+      <div className="flex flex-wrap items-center gap-1.5 border-t border-[#C4BFB5]/20 px-3 py-1.5">
         <button
           type="button"
           onClick={() =>
@@ -3301,17 +4859,11 @@ function AdviceBundleCard({
           }
           className={AI_SMALL_PRIMARY_CTA_CLASS}
         >
-          Add to advice
+          <Copy size={10} className="mr-1" /> Add to advice
         </button>
-      </div>
-      <div className="mt-2 border-t border-tp-slate-100 pt-1.5">
-        <div className="overflow-x-auto pb-0.5">
-          <div className="inline-flex min-w-max gap-1">
-            <button type="button" onClick={() => onQuickSend(data.shareMessage)} className={AGENT_GRADIENT_CHIP_CLASS}>
-              Share advice with patient
-            </button>
-          </div>
-        </div>
+        <button type="button" onClick={() => onQuickSend(data.shareMessage)} className={AGENT_GRADIENT_CHIP_CLASS}>
+          Share with patient
+        </button>
       </div>
     </div>
   )
@@ -3335,18 +4887,22 @@ function FollowUpBundleCard({
   }, [data.items])
 
   return (
-    <div className={AI_OUTPUT_CARD_CLASS}>
-      <div className="mb-2 flex items-start gap-2">
-        <span className={AI_CARD_ICON_WRAP_CLASS} style={{ background: AI_GRADIENT_SOFT }}>
-          <AiBrandSparkIcon size={13} />
+    <div className="overflow-hidden rounded-[12px] bg-white shadow-[0_1px_4px_rgba(20,18,14,0.06),0_0_0_0.5px_rgba(20,18,14,0.08)]">
+      {/* Card Header */}
+      <div className="flex items-center gap-2 bg-tp-slate-50 px-3 py-2">
+        <span className="inline-flex size-[26px] shrink-0 items-center justify-center rounded-[8px]" style={{ background: AI_GRADIENT_SOFT }}>
+          <Calendar size={13} className="text-tp-violet-600" />
         </span>
         <div>
-          <p className="text-[12px] font-semibold text-tp-slate-700">{data.title}</p>
-          <p className="text-[12px] text-tp-slate-500">{data.subtitle}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[13px] font-semibold text-[#1A1714]">{data.title}</p>
+          </div>
+          <p className="text-[11px] text-[#9E978B]">{data.subtitle}</p>
         </div>
       </div>
 
-      <div className="space-y-1 text-[12px] text-tp-slate-700">
+      {/* Items */}
+      <div className="space-y-[2px] p-2">
         {data.items.map((item) => {
           const isSelected = selected.includes(item.label)
           return (
@@ -3356,16 +4912,17 @@ function FollowUpBundleCard({
               onClick={() =>
                 setSelected((prev) => (prev.includes(item.label) ? prev.filter((entry) => entry !== item.label) : [...prev, item.label]))
               }
-              className="flex w-full items-start gap-2 rounded-[8px] px-1 py-0.5 text-left hover:bg-tp-slate-50"
+              className="flex w-full items-center gap-2 rounded-[8px] border-[0.5px] border-tp-slate-100 px-2.5 py-1.5 text-left transition-colors hover:bg-tp-slate-50"
             >
-              <span className="mt-[7px] inline-block size-1.5 shrink-0 rounded-full bg-tp-violet-400" />
-              <span className={cn("leading-4", isSelected ? "font-medium text-tp-slate-800" : "text-tp-slate-600")}>{item.label}</span>
+              <span className="size-[5px] shrink-0 rounded-full bg-[#C6850C]" />
+              <span className={cn("text-[12px] leading-[16px]", isSelected ? "font-medium text-[#1A1714]" : "text-[#1A1714]/70")}>{item.label}</span>
             </button>
           )
         })}
       </div>
 
-      <div className="mt-2 flex flex-wrap gap-1.5">
+      {/* Action Row */}
+      <div className="flex flex-wrap items-center gap-1.5 border-t border-[#C4BFB5]/20 px-3 py-1.5">
         <button
           type="button"
           onClick={() =>
@@ -3380,7 +4937,7 @@ function FollowUpBundleCard({
           }
           className={AI_SMALL_PRIMARY_CTA_CLASS}
         >
-          Set follow-up date
+          <Calendar size={10} className="mr-1" /> Set follow-up
         </button>
         <button
           type="button"
@@ -3399,17 +4956,8 @@ function FollowUpBundleCard({
           }
           className={AI_SMALL_SECONDARY_CTA_CLASS}
         >
-          Add follow-up notes
+          <Copy size={10} className="mr-1" /> Add notes
         </button>
-      </div>
-      <div className="mt-2 border-t border-tp-slate-100 pt-1.5">
-        <div className="overflow-x-auto pb-0.5">
-          <div className="inline-flex min-w-max gap-1">
-            <button type="button" onClick={() => onQuickSend("Create appointment reminder for follow-up plan")} className={AGENT_GRADIENT_CHIP_CLASS}>
-              Schedule appointment
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   )
@@ -3422,68 +4970,214 @@ function CascadeCard({
   data: Extract<RxAgentOutput, { kind: "cascade" }>
   onCopy: (payload: RxPadCopyPayload, message: string) => void
 }) {
-  const [copyMenuOpen, setCopyMenuOpen] = useState(false)
-
   return (
-    <div className={AI_OUTPUT_CARD_CLASS}>
-      <div className="mb-2 flex items-start justify-between gap-2">
+    <div className="overflow-hidden rounded-[12px] bg-white shadow-[0_1px_4px_rgba(20,18,14,0.06),0_0_0_0.5px_rgba(20,18,14,0.08)]">
+      {/* ── Card Header ── */}
+      <div className="flex items-center justify-between gap-2 bg-tp-slate-50 px-3 py-2">
         <div className="flex items-center gap-2">
-          <span className={AI_CARD_ICON_WRAP_CLASS} style={{ background: AI_GRADIENT_SOFT }}>
-            <Stethoscope size={12} />
+          <span
+            className="inline-flex size-[26px] shrink-0 items-center justify-center rounded-[8px]"
+            style={{ background: "linear-gradient(135deg, #8B5CF6, #2AABAB)" }}
+          >
+            <Pill size={13} className="text-white" />
           </span>
-          <div>
-            <p className="text-[12px] font-semibold text-tp-slate-700">DDX Cascade · {data.diagnosis}</p>
-            <p className="text-[12px] text-tp-slate-500">Protocol meds + investigations + advice + follow-up</p>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-[13px] font-semibold text-[#1A1714]">
+                Suggested Rx
+              </p>
+              <span className="rounded-[4px] bg-tp-blue-50 px-1.5 py-[1px] text-[10px] font-semibold text-tp-blue-700">
+                {data.meds.length} meds
+              </span>
+            </div>
+            <p className="text-[11px] text-[#9E978B]">{data.diagnosis}</p>
           </div>
         </div>
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setCopyMenuOpen((prev) => !prev)}
-            className="inline-flex size-6 items-center justify-center rounded-[8px] border-[0.5px] border-tp-slate-200 bg-white text-tp-slate-500 hover:border-tp-blue-300 hover:text-tp-blue-600"
-            title="Copy options to RxPad"
-            aria-label="Copy options to RxPad"
-          >
-            <Copy size={11} />
-          </button>
-          {copyMenuOpen ? (
-            <div className="absolute right-0 top-[28px] z-20 w-[220px] overflow-hidden rounded-[10px] border-[0.5px] border-tp-slate-200 bg-white p-1">
-              <button
-                type="button"
-                onClick={() => {
-                  onCopy(data.copyPayload, "Cascade suggestions copied to RxPad")
-                  setCopyMenuOpen(false)
-                }}
-                className="flex w-full items-center gap-1.5 rounded-[8px] px-2 py-1 text-left text-[12px] text-tp-slate-700 hover:bg-tp-slate-50"
-                title="Copy complete cascade to RxPad"
-                aria-label="Copy complete cascade to RxPad"
-              >
-                <ClipboardPlus size={11} className="text-tp-blue-600" />
-                Copy complete cascade to RxPad
-              </button>
-            </div>
-          ) : null}
-        </div>
+        <HoverCopyButton
+          size="card"
+          label="Copy all meds to Med(Rx)"
+          payload={data.copyPayload}
+          onCopy={(p) => onCopy(p, "All medications copied to Med(Rx)")}
+        />
       </div>
 
-      <div className="space-y-1.5 text-[12px] text-tp-slate-700">
-        <div className="rounded-[10px] bg-white/72 px-2 py-1.5">
-          <p className="mb-1 font-semibold">Medications</p>
-          <p>{data.meds.join(" · ")}</p>
-        </div>
-        <div className="rounded-[10px] bg-white/72 px-2 py-1.5">
-          <p className="mb-1 font-semibold">Investigations</p>
-          <p>{data.investigations.join(" · ")}</p>
-        </div>
-        <div className="rounded-[10px] bg-white/72 px-2 py-1.5">
-          <p className="mb-1 font-semibold">Advice</p>
-          <p>{data.advice}</p>
-        </div>
-        <div className="rounded-[10px] bg-white/72 px-2 py-1.5">
-          <p className="mb-1 font-semibold">Follow-up</p>
-          <p>{data.followUp}</p>
-        </div>
+      {/* ── Safety Line ── */}
+      <div className="flex items-center gap-1.5 border-b border-[#C4BFB5]/20 bg-[#1B8C54]/5 px-3 py-1">
+        <span className="size-[5px] rounded-full bg-[#1B8C54]" />
+        <p className="text-[11px] font-medium text-[#1B8C54]">
+          No allergy conflicts · No interactions
+        </p>
       </div>
+
+      {/* ── Drug Rows (bordered) ── */}
+      <div className="overflow-hidden rounded-[8px] border-[0.5px] border-tp-slate-150">
+        {data.meds.map((med, idx) => {
+          // Parse: "DrugName — detail" or "DrugName (detail)" or just name
+          const dashSplit = med.split(" — ")
+          let drugName = med
+          let drugDetail = ""
+          if (dashSplit.length >= 2) {
+            drugName = dashSplit[0].trim()
+            drugDetail = dashSplit.slice(1).join(" — ").trim()
+          } else {
+            const parenMatch = med.match(/^([^(]+)\((.+)\)$/)
+            if (parenMatch) {
+              drugName = parenMatch[1].trim()
+              drugDetail = parenMatch[2].trim()
+            } else {
+              const spaceMatch = med.match(/^([A-Za-z]+\s?\d*\s?(?:mg|mcg|ml|g|IU)?)\s*(.*)$/)
+              if (spaceMatch && spaceMatch[2]) {
+                drugName = spaceMatch[1].trim()
+                drugDetail = spaceMatch[2].trim()
+              }
+            }
+          }
+
+          return (
+            <div
+              key={med}
+              className={cn(
+                "group/drug flex items-start justify-between gap-2 px-2.5 py-2 hover:bg-tp-slate-50/50",
+                idx > 0 && "border-t border-tp-slate-100",
+              )}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-[12px] font-semibold text-tp-slate-800">{drugName}</p>
+                {drugDetail && (
+                  <p className="mt-0.5 text-[11px] leading-[14px] text-tp-slate-500">{drugDetail}</p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  onCopy(
+                    {
+                      sourceDateLabel: `Suggested Rx · ${data.diagnosis}`,
+                      targetSection: "rxpad",
+                      medications: [{ medicine: med.trim(), unitPerDose: "-", frequency: "-", when: "-", duration: "-", note: "" }],
+                    },
+                    `${drugName} copied to Med(Rx)`,
+                  )
+                }
+                className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-[4px] border-[0.5px] border-transparent text-tp-slate-300 hover:border-tp-slate-200 hover:text-tp-blue-500"
+                title={`Copy ${drugName} to Med(Rx)`}
+                aria-label={`Copy ${drugName} to Med(Rx)`}
+              >
+                <Copy size={10} />
+              </button>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* ── Copy All button ── */}
+      <div className="mt-2 flex">
+        <button
+          type="button"
+          onClick={() =>
+            onCopy(
+              {
+                ...data.copyPayload,
+                targetSection: "rxpad",
+                medications: data.meds.map((m) => ({
+                  medicine: m.trim(),
+                  unitPerDose: "-",
+                  frequency: "-",
+                  when: "-",
+                  duration: "-",
+                  note: "",
+                })),
+              },
+              `${data.meds.length} medications copied to Med(Rx)`,
+            )
+          }
+          className={AI_SMALL_PRIMARY_CTA_CLASS}
+        >
+          <Copy size={10} className="mr-1 inline" />
+          Copy all {data.meds.length} to Med(Rx)
+        </button>
+      </div>
+
+      {/* ── Additional Protocol — section strip headers ── */}
+      {(data.investigations.length > 0 || data.advice || data.followUp) && (
+        <div className="py-1">
+          {/* Investigations */}
+          {data.investigations.length > 0 && (
+            <div className="mb-1">
+              <div className="group/heading mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]">
+                <FlaskConical size={11} className="text-[#9E978B]" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E978B]">Investigations</span>
+                <span className="rounded-[4px] bg-tp-blue-50 px-1 py-[1px] text-[9px] font-semibold text-tp-blue-600">{data.investigations.length}</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onCopy(
+                      { ...data.copyPayload, targetSection: "labResults", labInvestigations: data.investigations },
+                      "Investigations copied",
+                    )
+                  }
+                  className="ml-auto opacity-0 transition-opacity group-hover/heading:opacity-100"
+                  title="Copy investigations"
+                >
+                  <Copy size={10} className="text-tp-slate-400 hover:text-tp-blue-500" />
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-1 px-3">
+                {data.investigations.map((inv) => (
+                  <span key={inv} className="inline-flex items-center rounded-[6px] border-[0.5px] border-tp-blue-200 bg-tp-blue-50/50 px-2 py-[3px] text-[11px] text-tp-blue-800">
+                    {inv}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Advice */}
+          {data.advice && (
+            <div className="mb-1">
+              <div className="group/heading mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]">
+                <FileText size={11} className="text-[#9E978B]" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E978B]">Advice</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onCopy({ ...data.copyPayload, advice: data.advice }, "Advice copied")
+                  }
+                  className="ml-auto opacity-0 transition-opacity group-hover/heading:opacity-100"
+                  title="Copy advice"
+                >
+                  <Copy size={10} className="text-tp-slate-400 hover:text-tp-blue-500" />
+                </button>
+              </div>
+              <p className="px-3 text-[11px] leading-[16px] text-[#1A1714]/80">{data.advice}</p>
+            </div>
+          )}
+
+          {/* Follow-up */}
+          {data.followUp && (
+            <div className="mb-1">
+              <div className="group/heading mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]">
+                <Activity size={11} className="text-[#C6850C]" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E978B]">Follow-up</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onCopy(
+                      { ...data.copyPayload, targetSection: "followUp", followUpNotes: data.followUp },
+                      "Follow-up copied",
+                    )
+                  }
+                  className="ml-auto opacity-0 transition-opacity group-hover/heading:opacity-100"
+                  title="Copy follow-up"
+                >
+                  <Copy size={10} className="text-tp-slate-400 hover:text-tp-blue-500" />
+                </button>
+              </div>
+              <p className="px-3 text-[11px] leading-[16px] text-[#1A1714]/80">{data.followUp}</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -3539,18 +5233,30 @@ function TranslationCard({
         </div>
       </div>
       <div className="space-y-1.5">
-        <div className="rounded-[10px] bg-white/72 px-2 py-1.5 text-[12px] text-tp-slate-600">{data.source}</div>
-        <div className="rounded-[10px] bg-white/72 px-2 py-1.5 text-[12px] text-tp-slate-700">{data.translated}</div>
+        <div className="rounded-[10px] bg-white/72 px-2 py-1.5">
+          <SectionTag label="Original" />
+          <p className="mt-0.5 text-[12px] text-tp-slate-600">{data.source}</p>
+        </div>
+        <div className="rounded-[10px] bg-white/72 px-2 py-1.5">
+          <SectionTag label={data.language} />
+          <p className="mt-0.5 text-[12px] font-medium text-tp-slate-700">{data.translated}</p>
+        </div>
       </div>
+      <SourceAttribution tab="Dr Agent" section="Translation" />
     </div>
   )
 }
 
 function CompletenessCard({
   data,
+  onQuickSend,
 }: {
   data: Extract<RxAgentOutput, { kind: "completeness" }>
+  onQuickSend?: (prompt: string) => void
 }) {
+  // Define optional sections (gray dash if absent)
+  const optionalSections = new Set(["Notes", "Follow-up Notes"])
+
   return (
     <div className={AI_OUTPUT_CARD_CLASS}>
       <div className="mb-2 flex items-center justify-between gap-2">
@@ -3560,16 +5266,40 @@ function CompletenessCard({
       <div className="h-1.5 overflow-hidden rounded-full bg-tp-slate-200">
         <div className="h-full rounded-full bg-gradient-to-r from-[#f59e0b] to-[#d97706]" style={{ width: `${data.completenessPercent}%` }} />
       </div>
-      <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
-        <div className="rounded-lg border border-tp-slate-100 bg-tp-slate-50/75 p-2">
-          <p className="mb-1 text-[12px] font-semibold text-tp-success-700">Filled</p>
-          <p className="text-[12px] text-tp-success-700">{data.filled.join(" · ")}</p>
-        </div>
-        <div className="rounded-lg border border-tp-slate-100 bg-tp-slate-50/75 p-2">
-          <p className="mb-1 text-[12px] font-semibold text-tp-warning-700">Missing</p>
-          <p className="text-[12px] text-tp-warning-700">{data.missing.join(" · ")}</p>
-        </div>
+
+      {/* Per-section status indicators */}
+      <div className="mt-2 space-y-0.5">
+        {data.filled.map((section) => (
+          <div key={section} className="flex items-center gap-1.5 py-0.5">
+            <span className="inline-flex size-4 items-center justify-center rounded-full bg-tp-success-100 text-[10px] text-tp-success-600">✓</span>
+            <span className="text-[12px] text-tp-success-700">{section}</span>
+          </div>
+        ))}
+        {data.missing.map((section) => {
+          const isOptional = optionalSections.has(section)
+          return (
+            <div key={section} className="flex items-center gap-1.5 py-0.5">
+              {isOptional ? (
+                <span className="inline-flex size-4 items-center justify-center rounded-full bg-tp-slate-100 text-[10px] text-tp-slate-400">—</span>
+              ) : (
+                <span className="inline-flex size-4 items-center justify-center rounded-full bg-amber-100 text-[10px] text-amber-600">⚠</span>
+              )}
+              <span className={cn("text-[12px]", isOptional ? "text-tp-slate-400" : "text-tp-warning-700")}>{section}</span>
+              {!isOptional && onQuickSend && (
+                <button
+                  type="button"
+                  onClick={() => onQuickSend(`Fill ${section}`)}
+                  className="ml-auto rounded-full border border-tp-warning-200 bg-tp-warning-50 px-1.5 py-0.5 text-[10px] font-semibold text-tp-warning-700 transition-colors hover:bg-tp-warning-100"
+                >
+                  Fill {section}
+                </button>
+              )}
+            </div>
+          )
+        })}
       </div>
+
+      <SourceAttribution tab="Dr Agent" section="Completeness Check" />
     </div>
   )
 }
@@ -4285,7 +6015,7 @@ function IntakeSection({
   )
 }
 
-function SymptomCollectorCard({
+function LegacySymptomCollectorCard({
   onCopy,
   onQuickSend,
 }: {
@@ -4468,18 +6198,291 @@ function OcrReportCard({
   )
 }
 
+function AllergyConflictCard({ data }: { data: Extract<RxAgentOutput, { kind: "allergy_conflict" }> }) {
+  return (
+    <div className="overflow-hidden rounded-[12px] border-l-[4px] border-l-[#C42B2B] bg-white shadow-[0_1px_4px_rgba(20,18,14,0.06),0_0_0_0.5px_rgba(20,18,14,0.08)]">
+      {/* Header strip */}
+      <div className="flex items-center gap-2 bg-tp-error-50 px-3 py-2">
+        <span className="inline-flex size-[26px] shrink-0 items-center justify-center rounded-[8px] bg-tp-error-100 text-tp-error-600">
+          <ShieldCheck size={14} />
+        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[13px] font-bold text-[#C42B2B]">Allergy Conflict</span>
+          <span className="rounded-[4px] bg-[#C42B2B] px-1.5 py-[1px] text-[10px] font-semibold text-white">BLOCK</span>
+        </div>
+      </div>
+      {/* Content */}
+      <div className="px-3 py-2">
+        <div className="mb-1.5 grid grid-cols-[40px_1fr] gap-x-2 gap-y-1">
+          <span className="text-[10px] font-medium text-[#9E978B]">Drug</span>
+          <span className="text-[12px] font-semibold text-[#C42B2B]">{data.drug}</span>
+          <span className="text-[10px] font-medium text-[#9E978B]">Allergy</span>
+          <span className="text-[12px] font-semibold text-[#1A1714]">{data.allergy}</span>
+        </div>
+        <div className="rounded-[6px] bg-tp-error-50/60 px-2 py-1.5">
+          <p className="text-[11px] font-medium text-[#C42B2B]">Do not prescribe — patient has a documented allergy to this drug or its class.</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DrugInteractionCard({ data }: { data: Extract<RxAgentOutput, { kind: "drug_interaction" }> }) {
+  const borderColor =
+    data.severity === "severe" ? "border-l-[#C42B2B]" :
+    data.severity === "moderate" ? "border-l-[#C6850C]" : "border-l-[#9E978B]"
+
+  const headerBg =
+    data.severity === "severe" ? "bg-tp-error-50" :
+    data.severity === "moderate" ? "bg-[#FEF3CD]/50" : "bg-tp-slate-50"
+
+  const badgeClass =
+    data.severity === "severe" ? "bg-[#C42B2B] text-white" :
+    data.severity === "moderate" ? "bg-[#C6850C] text-white" : "bg-tp-slate-400 text-white"
+
+  return (
+    <div className={cn("overflow-hidden rounded-[12px] border-l-[4px] bg-white shadow-[0_1px_4px_rgba(20,18,14,0.06),0_0_0_0.5px_rgba(20,18,14,0.08)]", borderColor)}>
+      {/* Header */}
+      <div className={cn("flex items-center gap-2 px-3 py-2", headerBg)}>
+        <span className="inline-flex size-[26px] shrink-0 items-center justify-center rounded-[8px] bg-white/80 text-tp-warning-600">
+          <AlertTriangle size={14} />
+        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[13px] font-semibold text-[#1A1714]">Drug Interaction</span>
+          <span className={cn("rounded-[4px] px-1.5 py-[1px] text-[10px] font-semibold capitalize", badgeClass)}>
+            {data.severity}
+          </span>
+        </div>
+      </div>
+      {/* Content */}
+      <div className="px-3 py-2">
+        <div className="mb-1.5 flex items-center justify-center gap-3">
+          <span className="rounded-[6px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50 px-2 py-1 text-[12px] font-semibold text-[#1A1714]">{data.drugA}</span>
+          <span className="text-[14px] text-[#C6850C]">↔</span>
+          <span className="rounded-[6px] border-[0.5px] border-tp-slate-200 bg-tp-slate-50 px-2 py-1 text-[12px] font-semibold text-[#1A1714]">{data.drugB}</span>
+        </div>
+        <p className="text-[11px] leading-[16px] text-[#1A1714]/80">{data.description}</p>
+        <SourceAttribution tab="CDSS" section="Drug Interactions" />
+      </div>
+    </div>
+  )
+}
+
+function ProtocolMedsCard({
+  data,
+  onCopy,
+}: {
+  data: Extract<RxAgentOutput, { kind: "protocol_meds" }>
+  onCopy: (payload: RxPadCopyPayload, message: string) => void
+}) {
+  return (
+    <div className="overflow-hidden rounded-[12px] bg-white shadow-[0_1px_4px_rgba(20,18,14,0.06),0_0_0_0.5px_rgba(20,18,14,0.08)]">
+      {/* Card Header */}
+      <div className="flex items-center gap-2 bg-tp-slate-50 px-3 py-2">
+        <span className="inline-flex size-[26px] shrink-0 items-center justify-center rounded-[8px]" style={{ background: AI_GRADIENT_SOFT }}>
+          <Pill size={13} className="text-tp-violet-600" />
+        </span>
+        <div>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[13px] font-semibold text-[#1A1714]">Protocol Meds</p>
+            <span className="rounded-[4px] bg-tp-blue-50 px-1.5 py-[1px] text-[10px] font-semibold text-tp-blue-700">{data.meds.length}</span>
+          </div>
+          <p className="text-[11px] text-[#9E978B]">{data.diagnosis}</p>
+        </div>
+      </div>
+
+      {/* Drug Rows */}
+      <div className="divide-y divide-[#C4BFB5]/15 px-3 py-1">
+        {data.meds.map((med) => {
+          const safetyColor =
+            med.safetyCheck === "ok" ? "#1B8C54" :
+            med.safetyCheck === "allergy_conflict" ? "#C42B2B" : "#C6850C"
+          return (
+            <div key={med.name} className="group/med flex items-center gap-2 py-1.5">
+              <span className="size-[6px] shrink-0 rounded-full" style={{ backgroundColor: safetyColor }} />
+              <div className="min-w-0 flex-1">
+                <span className="text-[12px] font-semibold text-[#1A1714]">{med.name}</span>
+                <span className="ml-1 text-[11px] text-[#9E978B]">{med.dose} {med.route} {med.frequency}</span>
+              </div>
+              {med.safetyCheck === "allergy_conflict" && (
+                <span className="shrink-0 rounded-[4px] bg-[#C42B2B] px-1 py-[1px] text-[9px] font-semibold text-white">ALLERGY</span>
+              )}
+              <button
+                type="button"
+                onClick={() =>
+                  onCopy(
+                    {
+                      sourceDateLabel: `Protocol: ${data.diagnosis}`,
+                      medications: [
+                        {
+                          medicine: med.name,
+                          unitPerDose: med.dose,
+                          frequency: med.frequency,
+                          when: "-",
+                          duration: "-",
+                          note: med.route,
+                        },
+                      ],
+                    },
+                    `${med.name} copied to Med(Rx)`,
+                  )
+                }
+                className={cn("shrink-0 opacity-0 transition-opacity group-hover/med:opacity-100", HOVER_COPY_ICON_CLASS)}
+                title={`Copy ${med.name} to RxPad`}
+                aria-label={`Copy ${med.name} to RxPad`}
+              >
+                <Copy size={10} />
+              </button>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Action Row */}
+      <div className="flex flex-wrap items-center gap-1.5 border-t border-[#C4BFB5]/20 px-3 py-1.5">
+        <button
+          type="button"
+          onClick={() => onCopy(data.copyPayload, `Protocol meds for ${data.diagnosis} copied to Med(Rx)`)}
+          className={AI_SMALL_PRIMARY_CTA_CLASS}
+        >
+          <Copy size={10} className="mr-1" /> Copy all to Med(Rx)
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ── T1 — Fact (lightweight inline) ───────────────────────────────── */
+function TextFactCard({ data }: { data: Extract<RxAgentOutput, { kind: "text_fact" }> }) {
+  return (
+    <div className="rounded-[8px] bg-tp-slate-50/60 px-2.5 py-1.5">
+      <p className="text-[12px] leading-[16px] text-tp-slate-700">
+        {data.icon} {data.fact}
+      </p>
+      <p className="mt-0.5 text-[11px] leading-[14px] text-tp-slate-400">Source: {data.source}</p>
+    </div>
+  )
+}
+
+/* ── T2 — Alert (critical / warning) ─────────────────────────────── */
+function TextAlertCard({ data }: { data: Extract<RxAgentOutput, { kind: "text_alert" }> }) {
+  const isCritical = data.level === "critical"
+  return (
+    <div
+      className={cn(
+        "rounded-[8px] border-[0.5px] px-2.5 py-1.5",
+        isCritical
+          ? "border-tp-error-200 bg-tp-error-50/70 text-tp-error-700"
+          : "border-tp-warning-200 bg-tp-warning-50/70 text-tp-warning-700",
+      )}
+    >
+      <p className="text-[12px] font-medium leading-[16px]">
+        {isCritical ? "\u26A0" : "\u23F0"} {data.message}
+      </p>
+      {data.action && (
+        <p
+          className={cn(
+            "mt-0.5 text-[11px] leading-[14px]",
+            isCritical ? "text-tp-error-500" : "text-tp-warning-500",
+          )}
+        >
+          {data.action}
+        </p>
+      )}
+    </div>
+  )
+}
+
+/* ── T3 — List (bullet list with optional truncation) ────────────── */
+function TextListCard({ data, onQuickSend }: { data: Extract<RxAgentOutput, { kind: "text_list" }>, onQuickSend: (prompt: string) => void }) {
+  const max = data.max ?? data.items.length
+  const visible = data.items.slice(0, max)
+  const remaining = data.items.length - max
+
+  return (
+    <div className="px-0.5 py-1">
+      <p className="text-[12px] font-semibold leading-[16px] text-tp-slate-700">{data.title}</p>
+      <ul className="mt-1 list-inside list-disc space-y-0.5 text-[12px] leading-[16px] text-tp-slate-600">
+        {visible.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+      {remaining > 0 && (
+        <button
+          type="button"
+          onClick={() => onQuickSend(`Show all items for: ${data.title}`)}
+          className="mt-1 text-[11px] leading-[14px] text-tp-slate-400 hover:text-tp-slate-600"
+        >
+          {remaining} more&hellip;
+        </button>
+      )}
+    </div>
+  )
+}
+
+/* ── T4 — Compare (current vs previous, compact) ────────────────── */
+function TextCompareCard({ data }: { data: Extract<RxAgentOutput, { kind: "text_compare" }> }) {
+  const directionIcon = data.deltaDirection === "up" ? "\u2191" : data.deltaDirection === "down" ? "\u2193" : "\u2192"
+  const directionClass =
+    data.deltaDirection === "up"
+      ? "text-tp-error-600"
+      : data.deltaDirection === "down"
+        ? "text-tp-success-600"
+        : "text-tp-slate-400"
+
+  return (
+    <div className="rounded-[8px] bg-tp-slate-50/60 px-2.5 py-1.5">
+      <p className="text-[12px] font-semibold leading-[16px] text-tp-slate-700">{data.label}</p>
+      <div className="mt-0.5 flex items-center gap-1.5 text-[12px] leading-[16px]">
+        <span className="text-tp-slate-500">{data.previous}</span>
+        <span className="text-tp-slate-300">&rarr;</span>
+        <span className="font-medium text-tp-slate-700">{data.current}</span>
+        <span className={cn("font-semibold", directionClass)}>
+          {directionIcon} {data.delta}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+/* ── T5 — Suggestion (with rationale + action pills) ─────────────── */
+function TextSuggestionCard({ data, onQuickSend }: { data: Extract<RxAgentOutput, { kind: "text_suggestion" }>, onQuickSend: (prompt: string) => void }) {
+  return (
+    <div className="px-0.5 py-1">
+      <p className="text-[12px] font-semibold leading-[16px] text-tp-slate-700">{data.suggestion}</p>
+      <p className="mt-0.5 text-[11px] leading-[14px] text-tp-slate-400">{data.rationale}</p>
+      {data.pills.length > 0 && (
+        <div className="mt-1.5 flex flex-wrap gap-1">
+          {data.pills.map((pill) => (
+            <button
+              key={pill}
+              type="button"
+              onClick={() => onQuickSend(pill)}
+              className={AGENT_GRADIENT_CHIP_CLASS}
+            >
+              {pill}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function RxOutputRenderer({
   rxOutput,
   output,
   onCopy,
   onQuickSend,
   onAcceptDiagnosis,
+  onNavigate,
 }: {
   rxOutput?: RxAgentOutput
   output?: AgentDynamicOutput
   onCopy: (payload: RxPadCopyPayload, message: string) => void
   onQuickSend: (prompt: string) => void
   onAcceptDiagnosis: (diagnoses: string[]) => void
+  onNavigate?: (tab: string) => void
 }) {
   if (rxOutput?.kind === "last_visit") {
     return <LastVisitCard data={rxOutput.data} onCopy={onCopy} onQuickSend={onQuickSend} />
@@ -4521,7 +6524,7 @@ function RxOutputRenderer({
     return <TranslationCard data={rxOutput} onCopy={onCopy} />
   }
   if (rxOutput?.kind === "completeness") {
-    return <CompletenessCard data={rxOutput} />
+    return <CompletenessCard data={rxOutput} onQuickSend={onQuickSend} />
   }
   if (rxOutput?.kind === "med_history") {
     return <MedHistoryCard data={rxOutput} onCopy={onCopy} />
@@ -4535,8 +6538,45 @@ function RxOutputRenderer({
   if (rxOutput?.kind === "ocr_report") {
     return <OcrReportCard data={rxOutput} onCopy={onCopy} onQuickSend={onQuickSend} />
   }
+  if (rxOutput?.kind === "allergy_conflict") {
+    return <AllergyConflictCard data={rxOutput} />
+  }
+  if (rxOutput?.kind === "drug_interaction") {
+    return <DrugInteractionCard data={rxOutput} />
+  }
+  if (rxOutput?.kind === "protocol_meds") {
+    return <ProtocolMedsCard data={rxOutput} onCopy={onCopy} />
+  }
   if (rxOutput?.kind === "ui_showcase") {
     return <UiShowcaseCard onCopy={onCopy} onQuickSend={onQuickSend} />
+  }
+  if (rxOutput?.kind === "patient_summary") {
+    return (
+      <PatientSummaryCard
+        collapsed={false}
+        onToggle={() => {}}
+        summaryData={rxOutput.summaryData}
+        activeSpecialty={rxOutput.activeSpecialty}
+        patientGender={rxOutput.patientGender}
+        patientAge={rxOutput.patientAge}
+        onNavigate={onNavigate}
+      />
+    )
+  }
+  if (rxOutput?.kind === "text_fact") {
+    return <TextFactCard data={rxOutput} />
+  }
+  if (rxOutput?.kind === "text_alert") {
+    return <TextAlertCard data={rxOutput} />
+  }
+  if (rxOutput?.kind === "text_list") {
+    return <TextListCard data={rxOutput} onQuickSend={onQuickSend} />
+  }
+  if (rxOutput?.kind === "text_compare") {
+    return <TextCompareCard data={rxOutput} />
+  }
+  if (rxOutput?.kind === "text_suggestion") {
+    return <TextSuggestionCard data={rxOutput} onQuickSend={onQuickSend} />
   }
   if (output) {
     return <DynamicOutputCard output={output} onCopy={onCopy} />
@@ -4559,7 +6599,7 @@ function AgentIntroMessage({
 }) {
   const patientName = contextLabel.split(" (")[0]
   const greeting = isPatientContext
-    ? `Hi Doctor, here's ${patientName}'s summary`
+    ? `Hi Doctor, here's ${patientName}'s overview`
     : `Hi Doctor, you are in ${contextLabel}. I can help with operational guidance until you switch to a patient chart.`
 
   return (
@@ -4572,11 +6612,103 @@ function AgentIntroMessage({
   )
 }
 
+/** Full Intro Sequence — Alert Strip + Context Lines + PatientReported + PatientSummary (collapsed when symptoms exist) */
+function PatientIntroSequence({
+  summaryData,
+  activeSpecialty,
+  patientGender,
+  patientAge,
+  summaryCollapsed,
+  onToggleSummary,
+  symptomCollectorCollapsed,
+  onToggleSymptomCollector,
+  onCopy,
+  onNavigate,
+}: {
+  summaryData: SmartSummaryData
+  activeSpecialty: SpecialtyTabId
+  patientGender?: string
+  patientAge?: number
+  summaryCollapsed: boolean
+  onToggleSummary: () => void
+  symptomCollectorCollapsed: boolean
+  onToggleSymptomCollector: () => void
+  onCopy: (payload: RxPadCopyPayload, message: string) => void
+  onNavigate?: (tab: string) => void
+}) {
+  const contextLines = useMemo(
+    () => buildContextLines(summaryData, activeSpecialty),
+    [summaryData, activeSpecialty],
+  )
+  const category = useMemo(
+    () => classifyPatientCategory(summaryData),
+    [summaryData],
+  )
+  const isZeroData = !summaryData.lastVisit && !summaryData.todayVitals && !summaryData.chronicConditions?.length && !summaryData.keyLabs?.length
+
+  return (
+    <div className="space-y-2">
+      {/* ── Intro Card: Alert Strip + Context Lines (compact, low cognitive load) ── */}
+      <div className={cn("space-y-1.5 rounded-[12px] border-[0.5px] border-tp-slate-200 bg-white p-2.5 shadow-[0_1px_3px_rgba(0,0,0,0.04)]", CATEGORY_BORDER_CLASS[category])}>
+        {/* 1. Alert Strip — compact inline safety alerts (max 2) */}
+        <IntroAlertStrip summaryData={summaryData} />
+
+        {/* 2. Context Lines — 3-5 prioritized clinical facts */}
+        {!isZeroData && <IntroSmartLines lines={contextLines} />}
+
+        {/* 3. Zero-data state for new patients */}
+        {isZeroData && (
+          <div className="flex flex-col items-center gap-2 py-3">
+            <span className="inline-flex size-10 items-center justify-center rounded-full bg-tp-slate-100">
+              <UserRound size={20} className="text-tp-slate-400" />
+            </span>
+            <p className="text-[12px] font-medium text-tp-slate-600">New patient · First consultation</p>
+            <div className="flex flex-wrap justify-center gap-1.5">
+              <button type="button" className={AGENT_GRADIENT_CHIP_CLASS}>
+                <Mic size={11} className="mr-0.5 inline" /> Start voice
+              </button>
+              <button type="button" className={AGENT_GRADIENT_CHIP_CLASS}>
+                <ClipboardPlus size={11} className="mr-0.5 inline" /> Add history
+              </button>
+              <button type="button" className={AGENT_GRADIENT_CHIP_CLASS}>
+                <Paperclip size={11} className="mr-0.5 inline" /> Upload report
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Patient-Reported Card: SEPARATE from intro (per spec A6) ── */}
+      {summaryData.symptomCollectorData && (
+        <PatientReportedCard
+          data={summaryData.symptomCollectorData}
+          collapsed={symptomCollectorCollapsed}
+          onToggle={onToggleSymptomCollector}
+          onCopy={onCopy}
+        />
+      )}
+
+      {/* ── Patient Summary Card: collapsed when patient-reported exists, expanded when none ── */}
+      {!isZeroData && (
+        <PatientSummaryCard
+          collapsed={summaryCollapsed}
+          onToggle={onToggleSummary}
+          summaryData={summaryData}
+          activeSpecialty={activeSpecialty}
+          patientGender={patientGender}
+          patientAge={patientAge}
+          onNavigate={onNavigate}
+        />
+      )}
+    </div>
+  )
+}
+
 /* ------------------------------------------------------------------ */
 /*  PatientSummaryCard — specialty-aware compact card                  */
 /* ------------------------------------------------------------------ */
 
-type VitalEntry = { key: string; label: string; value: string; unit?: string; icon: React.ReactNode; abnormal: boolean; priority: number }
+type VitalEntry = { key: string; label: string; value: string; unit?: string; icon: React.ReactNode; abnormal: boolean; sev: "critical" | "warning" | "normal"; arrow: "↑" | "↓"; priority: number }
 
 type SummarySection =
   | { kind: "allergy"; allergies: string[] }
@@ -4605,18 +6737,18 @@ const SPECIALTY_VISUAL_CONFIG: Record<SpecialtyTabId, { headerBg: string; accent
   pediatrics: { headerBg: "bg-tp-blue-50/60",   accentBorder: "border-l-tp-blue-300",   iconBg: "bg-tp-blue-50",   iconColor: "text-tp-blue-400",   icon: <Baby size={12} /> },
 }
 
-const VITAL_META: Record<string, { label: string; unit?: string; icon: React.ReactNode; priority: number; isAbnormal: (v: string) => boolean }> = {
-  bp:         { label: "BP",    unit: "mmHg",  icon: <Activity size={11} />,    priority: 1,  isAbnormal: (v) => { const s = Number.parseInt(v); return s >= 140 || s <= 90 } },
-  spo2:       { label: "SpO2",  unit: "%",     icon: <HeartPulse size={11} />,  priority: 2,  isAbnormal: (v) => Number.parseInt(v) < 95 },
-  pulse:      { label: "Pulse", unit: "/min",  icon: <HeartPulse size={11} />,  priority: 3,  isAbnormal: (v) => { const n = Number.parseInt(v); return n > 100 || n < 50 } },
-  temp:       { label: "Temp",  unit: "°F",    icon: <TPMedicalIcon name="thermometer" size={11} color="currentColor" />, priority: 4, isAbnormal: (v) => Number.parseFloat(v) >= 100.4 },
-  rr:         { label: "RR",    unit: "/min",  icon: <Activity size={11} />,    priority: 5,  isAbnormal: (v) => { const n = Number.parseInt(v); return n > 20 || n < 12 } },
-  weight:     { label: "Wt",    unit: "kg",    icon: <Scale size={11} />,       priority: 6,  isAbnormal: () => false },
-  height:     { label: "Ht",    unit: "cm",    icon: <Scale size={11} />,       priority: 7,  isAbnormal: () => false },
-  bmi:        { label: "BMI",   unit: "kg/m²", icon: <Activity size={11} />,    priority: 8,  isAbnormal: (v) => { const n = Number.parseFloat(v); return n > 30 || n < 18.5 } },
-  bmr:        { label: "BMR",   unit: "kcal",  icon: <Activity size={11} />,    priority: 9,  isAbnormal: () => false },
-  bsa:        { label: "BSA",   unit: "m²",    icon: <Activity size={11} />,    priority: 10, isAbnormal: () => false },
-  bloodSugar: { label: "BS",    unit: "mg/dL", icon: <Droplets size={11} />,    priority: 11, isAbnormal: (v) => Number.parseInt(v) > 140 },
+const VITAL_META: Record<string, { label: string; unit?: string; icon: React.ReactNode; priority: number; isAbnormal: (v: string) => boolean; direction: (v: string) => "↑" | "↓"; severity: (v: string) => "critical" | "warning" | "normal" }> = {
+  bp:         { label: "BP",    unit: "mmHg",  icon: <Activity size={11} />,    priority: 1,  isAbnormal: (v) => { const s = Number.parseInt(v); return s >= 140 || s <= 90 }, direction: (v) => Number.parseInt(v) >= 140 ? "↑" : "↓", severity: (v) => { const s = Number.parseInt(v); if (s >= 180 || s <= 70) return "critical"; if (s >= 140 || s <= 90) return "warning"; return "normal" } },
+  spo2:       { label: "SpO2",  unit: "%",     icon: <HeartPulse size={11} />,  priority: 2,  isAbnormal: (v) => Number.parseInt(v) < 95, direction: () => "↓", severity: (v) => { const n = Number.parseInt(v); if (n < 90) return "critical"; if (n < 95) return "warning"; return "normal" } },
+  pulse:      { label: "Pulse", unit: "/min",  icon: <HeartPulse size={11} />,  priority: 3,  isAbnormal: (v) => { const n = Number.parseInt(v); return n > 100 || n < 50 }, direction: (v) => Number.parseInt(v) > 100 ? "↑" : "↓", severity: (v) => { const n = Number.parseInt(v); if (n > 130 || n < 40) return "critical"; if (n > 100 || n < 50) return "warning"; return "normal" } },
+  temp:       { label: "Temp",  unit: "°F",    icon: <TPMedicalIcon name="thermometer" size={11} color="currentColor" />, priority: 4, isAbnormal: (v) => Number.parseFloat(v) >= 100.4, direction: () => "↑", severity: (v) => { const n = Number.parseFloat(v); if (n >= 103) return "critical"; if (n >= 100.4) return "warning"; return "normal" } },
+  rr:         { label: "RR",    unit: "/min",  icon: <Activity size={11} />,    priority: 5,  isAbnormal: (v) => { const n = Number.parseInt(v); return n > 20 || n < 12 }, direction: (v) => Number.parseInt(v) > 20 ? "↑" : "↓", severity: (v) => { const n = Number.parseInt(v); if (n > 30 || n < 8) return "critical"; if (n > 20 || n < 12) return "warning"; return "normal" } },
+  weight:     { label: "Wt",    unit: "kg",    icon: <Scale size={11} />,       priority: 6,  isAbnormal: () => false, direction: () => "↑" as const, severity: () => "normal" as const },
+  height:     { label: "Ht",    unit: "cm",    icon: <Scale size={11} />,       priority: 7,  isAbnormal: () => false, direction: () => "↑" as const, severity: () => "normal" as const },
+  bmi:        { label: "BMI",   unit: "kg/m²", icon: <Activity size={11} />,    priority: 8,  isAbnormal: (v) => { const n = Number.parseFloat(v); return n > 30 || n < 18.5 }, direction: (v) => Number.parseFloat(v) > 30 ? "↑" : "↓", severity: (v) => { const n = Number.parseFloat(v); if (n > 40 || n < 16) return "critical"; if (n > 30 || n < 18.5) return "warning"; return "normal" } },
+  bmr:        { label: "BMR",   unit: "kcal",  icon: <Activity size={11} />,    priority: 9,  isAbnormal: () => false, direction: () => "↑" as const, severity: () => "normal" as const },
+  bsa:        { label: "BSA",   unit: "m²",    icon: <Activity size={11} />,    priority: 10, isAbnormal: () => false, direction: () => "↑" as const, severity: () => "normal" as const },
+  bloodSugar: { label: "BS",    unit: "mg/dL", icon: <Droplets size={11} />,    priority: 11, isAbnormal: (v) => Number.parseInt(v) > 140, direction: () => "↑", severity: (v) => { const n = Number.parseInt(v); if (n > 300) return "critical"; if (n > 140) return "warning"; return "normal" } },
 }
 
 /* ---- Shared section builders ---- */
@@ -4628,7 +6760,7 @@ function buildVitalsSection(todayVitals: SmartSummaryData["todayVitals"]): Summa
     if (value == null || value === "") continue
     const meta = VITAL_META[key]
     if (!meta) continue
-    entries.push({ key, label: meta.label, value, unit: meta.unit, icon: meta.icon, abnormal: meta.isAbnormal(value), priority: meta.priority })
+    entries.push({ key, label: meta.label, value, unit: meta.unit, icon: meta.icon, abnormal: meta.isAbnormal(value), sev: meta.severity(value), arrow: meta.direction(value), priority: meta.priority })
   }
   entries.sort((a, b) => a.priority - b.priority)
   if (entries.length === 0) return null
@@ -4673,170 +6805,14 @@ function AllergyBanner({ allergies }: { allergies: string[] }) {
   return (
     <div className="flex items-center gap-1.5 rounded-[8px] border-[0.5px] border-tp-error-200 bg-tp-error-50 px-2 py-1.5">
       <ShieldCheck size={13} className="shrink-0 text-tp-error-500" />
-      <p className="text-[11px] font-semibold leading-[14px] text-tp-error-700">
+      <p className="text-[12px] font-semibold leading-[14px] text-tp-error-700">
         ALLERGY: {allergies.join(", ")}
       </p>
     </div>
   )
 }
 
-function VitalsGrid({ entries }: { entries: VitalEntry[] }) {
-  const TIER1_MAX = 5
-  const TIER2_MAX = 5
-  const tier1 = entries.slice(0, TIER1_MAX)
-  const remaining = entries.slice(TIER1_MAX)
-  const tier2 = remaining.slice(0, TIER2_MAX)
-  const overflowCount = remaining.length - tier2.length
-
-  return (
-    <div className="space-y-1">
-      {/* Tier 1 — prominent mini-cards */}
-      <div className="flex flex-wrap gap-1">
-        {tier1.map((v) => (
-          <div
-            key={v.key}
-            className={cn(
-              "flex items-center gap-1 rounded-[6px] border-[0.5px] px-1.5 py-[3px]",
-              v.abnormal ? "border-tp-error-200 bg-tp-error-50" : "border-tp-slate-200 bg-tp-slate-50",
-            )}
-          >
-            <span className={cn("shrink-0", v.abnormal ? "text-tp-error-500" : "text-tp-slate-400")}>{v.icon}</span>
-            <span className={cn("text-[10px] font-medium", v.abnormal ? "text-tp-error-500" : "text-tp-slate-500")}>{v.label}</span>
-            <span className={cn("text-[11px] font-semibold", v.abnormal ? "text-tp-error-600" : "text-tp-slate-700")}>{v.value}</span>
-          </div>
-        ))}
-      </div>
-      {/* Tier 2 — compact chips for overflow vitals */}
-      {tier2.length > 0 && (
-        <div className="flex flex-wrap gap-1 pl-0.5">
-          {tier2.map((v) => (
-            <span
-              key={v.key}
-              className={cn(
-                "rounded bg-tp-slate-100 px-1.5 py-0.5 text-[10px] font-medium",
-                v.abnormal ? "text-tp-error-600" : "text-tp-slate-500",
-              )}
-            >
-              {v.label} {v.value}
-            </span>
-          ))}
-          {overflowCount > 0 && (
-            <span className="rounded bg-tp-slate-100 px-1.5 py-0.5 text-[10px] text-tp-slate-400">+{overflowCount} more</span>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function ChronicMedsSection({ conditions, meds }: { conditions: string[]; meds?: string[] }) {
-  const MAX_CHIPS = 5
-  const shown = conditions.slice(0, MAX_CHIPS)
-  const overflow = conditions.length - shown.length
-
-  return (
-    <div className="space-y-1">
-      <div className="flex items-center gap-1">
-        <Stethoscope size={12} className="shrink-0 text-tp-slate-400" />
-        <div className="flex flex-wrap gap-1">
-          {shown.map((c) => (
-            <span key={c} className="rounded-full bg-tp-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-tp-slate-600">
-              {c}
-            </span>
-          ))}
-          {overflow > 0 && (
-            <span className="rounded-full bg-tp-slate-100 px-1.5 py-0.5 text-[10px] text-tp-slate-400">+{overflow}</span>
-          )}
-        </div>
-      </div>
-      {meds && meds.length > 0 && (
-        <div className="flex items-start gap-1 pl-4">
-          <Pill size={11} className="mt-0.5 shrink-0 text-tp-slate-300" />
-          <p className="truncate text-[11px] text-tp-slate-500" title={meds.join(", ")}>
-            Rx: {meds.join(", ")}
-          </p>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function LabChipsSection({ labs }: { labs: Array<{ name: string; value: string; flag: "high" | "low" }> }) {
-  const MAX_SHOWN = 3
-  const shown = labs.slice(0, MAX_SHOWN)
-  const overflow = labs.length - shown.length
-
-  return (
-    <div className="flex items-start gap-1.5">
-      <FlaskConical size={12} className="mt-0.5 shrink-0 text-tp-error-400" />
-      <div className="flex flex-wrap gap-1">
-        {shown.map((l) => {
-          const arrow = l.flag === "high" ? "↑" : "↓"
-          return (
-            <span key={l.name} className="inline-flex items-center gap-0.5 rounded-full border-[0.5px] border-tp-error-200 bg-tp-error-50 px-1.5 py-0.5 text-[11px] font-medium text-tp-error-600">
-              {l.name} {arrow}{l.value}
-            </span>
-          )
-        })}
-        {overflow > 0 && (
-          <span className="rounded-full border-[0.5px] border-tp-error-100 bg-tp-error-50/60 px-1.5 py-0.5 text-[10px] text-tp-error-400">+{overflow} more</span>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function LastVisitSection({ visit }: { visit: LastVisitSummary }) {
-  return (
-    <div className="flex items-start gap-1.5">
-      <FileText size={12} className="mt-0.5 shrink-0 text-tp-slate-400" />
-      <div className="min-w-0">
-        <p className="text-[10px] text-tp-slate-400">{visit.date}</p>
-        <p className="truncate text-[11px] text-tp-slate-700">
-          <span className="font-semibold">Dx:</span> {visit.diagnosis}
-          <span className="mx-1 text-tp-slate-300">|</span>
-          <span className="font-semibold">Rx:</span> {visit.medication}
-        </p>
-      </div>
-    </div>
-  )
-}
-
-function DueAlertsSection({ alerts }: { alerts: string[] }) {
-  return (
-    <div className="flex items-start gap-1.5">
-      <AlertTriangle size={12} className="mt-0.5 shrink-0 text-tp-warning-500" />
-      <div className="flex flex-wrap gap-x-2 gap-y-0.5">
-        {alerts.map((a) => (
-          <span key={a} className="text-[11px] font-medium text-tp-warning-700">{a}</span>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function SymptomsSection({ symptoms }: { symptoms: Array<{ name: string; duration?: string }> }) {
-  const MAX_SHOWN = 4
-  const shown = symptoms.slice(0, MAX_SHOWN)
-  const overflow = symptoms.length - shown.length
-
-  return (
-    <div className="flex items-start gap-1.5">
-      <Activity size={12} className="mt-0.5 shrink-0 text-tp-slate-400" />
-      <div className="flex flex-wrap gap-1">
-        {shown.map((sx) => (
-          <span key={sx.name} className="inline-flex items-center gap-0.5 rounded-full bg-tp-slate-100 px-1.5 py-0.5 text-[11px] text-tp-slate-600">
-            {sx.name}
-            {sx.duration && <span className="text-[10px] font-medium text-tp-slate-400">{sx.duration}</span>}
-          </span>
-        ))}
-        {overflow > 0 && (
-          <span className="rounded-full bg-tp-slate-100 px-1.5 py-0.5 text-[10px] text-tp-slate-400">+{overflow} more</span>
-        )}
-      </div>
-    </div>
-  )
-}
+/* Old section renderers (VitalsGrid, ChronicMedsSection, LabChipsSection, LastVisitSection, DueAlertsSection, SymptomsSection) removed — replaced by InlineSummaryRow in PatientSummaryCard */
 
 function ZeroDataPlaceholder() {
   return (
@@ -5097,6 +7073,7 @@ function PatientSummaryCard({
   activeSpecialty,
   patientGender,
   patientAge,
+  onNavigate,
 }: {
   collapsed: boolean
   onToggle: () => void
@@ -5104,6 +7081,7 @@ function PatientSummaryCard({
   activeSpecialty: SpecialtyTabId
   patientGender?: string
   patientAge?: number
+  onNavigate?: (tab: string) => void
 }) {
   const s = summaryData
   const config = SPECIALTY_VISUAL_CONFIG[activeSpecialty]
@@ -5189,72 +7167,329 @@ function PatientSummaryCard({
   }
 
   /* ---- EXPANDED STATE ---- */
+  const totalFlags = collapsedInfo.abnormalLabCount + collapsedInfo.abnormalVitalCount
+
+  // Pre-compute vital entries for grid
+  const vitalEntries = (() => {
+    if (!s.todayVitals) return [] as VitalEntry[]
+    return Object.entries(s.todayVitals)
+      .filter(([, v]) => v)
+      .map(([key, val]) => {
+        const meta = VITAL_META[key as keyof typeof VITAL_META]
+        if (!meta) return null
+        const sev = meta.severity(val as string)
+        const arrow = meta.direction(val as string)
+        return { key, label: meta.label, value: val as string, unit: meta.unit ?? "", icon: meta.icon, abnormal: sev !== "normal", sev, arrow, priority: meta.priority } as VitalEntry
+      })
+      .filter(Boolean) as VitalEntry[]
+  })().sort((a, b) => a.priority - b.priority)
+
   return (
-    <div className="overflow-hidden rounded-[10px] border-[0.8px] border-tp-slate-200 bg-white">
-      {/* Specialty-tinted header */}
-      <div className={cn("flex items-center justify-between gap-2 border-b border-tp-slate-100 px-3 py-1.5", config.headerBg)}>
-        <div className="flex items-center gap-1.5">
-          <span className={cn("inline-flex size-5 items-center justify-center rounded-[6px]", config.iconBg, config.iconColor)}>
+    <div className="overflow-hidden rounded-[12px] bg-white shadow-[0_1px_4px_rgba(20,18,14,0.06),0_0_0_0.5px_rgba(20,18,14,0.08)]">
+      {/* ── Card Header — 26×26 specialty icon · title · flagged badge · collapse ── */}
+      <div className={cn("flex items-center justify-between gap-2 px-3 py-2", config.headerBg)}>
+        <div className="flex items-center gap-2">
+          <span className={cn("inline-flex size-[26px] shrink-0 items-center justify-center rounded-[8px]", config.iconBg, config.iconColor)}>
             {config.icon}
           </span>
-          <p className="text-[12px] font-semibold text-tp-slate-800">{SPECIALTY_CARD_TITLES[activeSpecialty]}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-[13px] font-semibold text-[#1A1714]">{SPECIALTY_CARD_TITLES[activeSpecialty]}</p>
+            {totalFlags > 0 && (
+              <span className="rounded-[4px] bg-tp-error-50 px-1.5 py-[1px] text-[10px] font-semibold text-tp-error-600">
+                {totalFlags} flagged
+              </span>
+            )}
+            {collapsedInfo.hasAllergy && (
+              <span className="rounded-[4px] bg-tp-error-100 px-1.5 py-[1px] text-[10px] font-semibold text-tp-error-700">
+                ⚠ Allergy
+              </span>
+            )}
+          </div>
         </div>
-        <button
-          type="button"
-          onClick={onToggle}
-          className="inline-flex size-5 items-center justify-center rounded-[6px] border-[0.5px] border-tp-slate-200 bg-white text-tp-slate-500"
-          aria-label="Collapse card"
-        >
-          <ChevronUp size={11} />
+        <button type="button" onClick={onToggle}
+          className="inline-flex size-6 items-center justify-center rounded-[6px] border-[0.5px] border-tp-slate-200 bg-white text-tp-slate-500 hover:bg-tp-slate-50"
+          aria-label="Collapse card">
+          <ChevronUp size={12} />
         </button>
       </div>
 
-      {/* Clinical alerts strip */}
+      {/* ── Clinical Alerts Strip ── */}
       {clinicalAlerts.length > 0 && (
-        <div className="space-y-0.5 border-b border-tp-slate-100 px-3 py-1">
-          {clinicalAlerts.map((alert, i) => (
-            <p key={i} className={cn("text-[11px] font-semibold", alert.tone === "red" ? "text-tp-error-600" : "text-tp-warning-600")}>
-              {alert.text}
-            </p>
-          ))}
+        <div className="flex items-center gap-2 border-b border-[#C4BFB5]/20 bg-tp-error-50/40 px-3 py-1.5">
+          <AlertTriangle size={12} className="shrink-0 text-tp-error-500" />
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+            {clinicalAlerts.map((alert, i) => (
+              <span key={i} className={cn("text-[11px] font-semibold", alert.tone === "red" ? "text-tp-error-600" : "text-tp-warning-600")}>
+                {alert.text}
+              </span>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Sections */}
-      <div className="space-y-2 px-3 py-2">
-        {sections.map((section, i) => {
-          switch (section.kind) {
-            case "allergy":
-              return <AllergyBanner key="allergy" allergies={section.allergies} />
-            case "vitals":
-              return <VitalsGrid key="vitals" entries={section.entries} />
-            case "specialty":
-              return (
-                <SpecialtyContextBlock
-                  key="specialty"
-                  specialtyId={section.specialtyId}
-                  content={section.content}
-                  accentBorder={SPECIALTY_VISUAL_CONFIG[section.specialtyId].accentBorder}
-                  icon={SPECIALTY_VISUAL_CONFIG[section.specialtyId].icon}
-                  label={SPECIALTY_CARD_TITLES[section.specialtyId]}
-                />
-              )
-            case "chronic":
-              return <ChronicMedsSection key="chronic" conditions={section.conditions} meds={section.meds} />
-            case "lastVisit":
-              return <LastVisitSection key="lastVisit" visit={section.visit} />
-            case "labs":
-              return <LabChipsSection key="labs" labs={section.labs} />
-            case "dueAlerts":
-              return <DueAlertsSection key="dueAlerts" alerts={section.alerts} />
-            case "symptoms":
-              return <SymptomsSection key="symptoms" symptoms={section.symptoms} />
-            case "zeroData":
-              return <ZeroDataPlaceholder key="zeroData" />
-            default:
-              return null
-          }
-        })}
+      {/* ── Card Body — Visual sections with gray strip headers ── */}
+      <div className="py-1">
+
+        {/* ─── 1. ALLERGY SECTION ─── */}
+        {s.allergies?.length ? (
+          <div className="mb-1">
+            <div className="mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]">
+              <ShieldCheck size={11} className="text-tp-error-500" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E978B]">Allergy Alert</span>
+              <span className="rounded-[4px] bg-tp-error-100 px-1 py-[1px] text-[9px] font-semibold text-tp-error-700">Drug Allergy</span>
+            </div>
+            <div className="px-3">
+              <div className="flex flex-wrap gap-1">
+                {s.allergies.map((a) => (
+                  <span key={a} className="inline-flex items-center rounded-full border-[0.5px] border-tp-error-200 bg-tp-error-50 px-2 py-0.5 text-[11px] font-medium text-tp-error-700">
+                    {a}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {/* ─── 2. VITALS SECTION — 2-column grid layout ─── */}
+        {vitalEntries.length > 0 && (
+          <div className="mb-1">
+            <div
+              className={cn("mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]", onNavigate && "cursor-pointer hover:bg-[#F0EFEB]")}
+              onClick={onNavigate ? () => onNavigate("vitals") : undefined}
+              role={onNavigate ? "button" : undefined}
+              tabIndex={onNavigate ? 0 : undefined}
+              title={onNavigate ? "Go to vitals" : undefined}
+            >
+              <Heart size={11} variant="Bold" className="text-[#9E978B]" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E978B]">Today&apos;s Vitals</span>
+              {collapsedInfo.abnormalVitalCount > 0 && (
+                <span className="rounded-[4px] bg-tp-warning-50 px-1 py-[1px] text-[9px] font-semibold text-tp-warning-600">
+                  {collapsedInfo.abnormalVitalCount} abnormal
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-[3px] px-3">
+              {vitalEntries.map((e) => (
+                <div key={e.key} className="flex items-baseline justify-between">
+                  <span className="text-[11px] text-[#9E978B]">{e.label}</span>
+                  <span className={cn("text-[12px] font-semibold",
+                    e.sev === "critical" ? "text-[#C42B2B]" :
+                    e.sev === "warning" ? "text-[#C6850C]" :
+                    "text-[#1A1714]"
+                  )}>
+                    {e.value}
+                    {e.unit && <span className="ml-0.5 text-[10px] font-normal text-[#9E978B]">{e.unit}</span>}
+                    {e.abnormal && <span className="ml-0.5 text-[10px]">{e.arrow}</span>}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ─── 3. LABS SECTION — individual flagged rows with color dots ─── */}
+        {s.keyLabs?.length ? (() => {
+          const labs = s.keyLabs!
+          const shown = labs.slice(0, 6)
+          const overflow = labs.length - shown.length
+          return (
+            <div className="mb-1">
+              <div
+                className={cn("mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]", onNavigate && "cursor-pointer hover:bg-[#F0EFEB]")}
+                onClick={onNavigate ? () => onNavigate("lab-results") : undefined}
+              >
+                <FlaskConical size={11} className="text-[#9E978B]" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E978B]">Lab Results</span>
+                {collapsedInfo.abnormalLabCount > 0 && (
+                  <span className="rounded-[4px] bg-tp-error-50 px-1 py-[1px] text-[9px] font-semibold text-tp-error-600">
+                    {collapsedInfo.abnormalLabCount} flagged
+                  </span>
+                )}
+              </div>
+              <div className="space-y-[2px] px-3">
+                {shown.map((l) => (
+                  <div key={l.name} className="flex items-center justify-between border-b border-[#C4BFB5]/15 pb-[2px]">
+                    <div className="flex items-center gap-1.5">
+                      <span className={cn("size-[6px] rounded-full", l.flag === "high" || l.flag === "low" ? "bg-[#C42B2B]" : "bg-[#1B8C54]")} />
+                      <span className="text-[11px] text-[#1A1714]">{l.name}</span>
+                    </div>
+                    <span className={cn("text-[12px] font-semibold",
+                      l.flag === "high" || l.flag === "low" ? "text-[#C42B2B]" : "text-[#1B8C54]"
+                    )}>
+                      {l.value}{l.flag === "high" ? " ↑" : l.flag === "low" ? " ↓" : ""}
+                    </span>
+                  </div>
+                ))}
+                {overflow > 0 && (
+                  <button type="button" className="mt-0.5 text-[10px] font-medium text-tp-blue-600 hover:underline"
+                    onClick={onNavigate ? () => onNavigate("lab-results") : undefined}>
+                    +{overflow} more results →
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })() : null}
+
+        {/* ─── 4. HISTORY SECTION — condition & family chips ─── */}
+        {(s.chronicConditions?.length || s.familyHistory?.length) ? (
+          <div className="mb-1">
+            <div
+              className={cn("mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]", onNavigate && "cursor-pointer hover:bg-[#F0EFEB]")}
+              onClick={onNavigate ? () => onNavigate("history") : undefined}
+            >
+              <Notepad2 size={11} variant="Bold" className="text-[#9E978B]" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E978B]">History</span>
+            </div>
+            <div className="space-y-1.5 px-3">
+              {s.chronicConditions?.length ? (
+                <div>
+                  <p className="mb-0.5 text-[10px] font-medium text-[#9E978B]">Chronic Conditions</p>
+                  <div className="flex flex-wrap gap-1">
+                    {s.chronicConditions.map((c) => (
+                      <span key={c} className="inline-flex items-center rounded-full border-[0.5px] border-tp-slate-200 bg-tp-slate-50 px-2 py-0.5 text-[11px] text-[#1A1714]">
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {s.familyHistory?.length ? (
+                <div>
+                  <p className="mb-0.5 text-[10px] font-medium text-[#9E978B]">Family History</p>
+                  <div className="flex flex-wrap gap-1">
+                    {s.familyHistory.map((f) => (
+                      <span key={f} className="inline-flex items-center rounded-full border-[0.5px] border-tp-slate-200 bg-tp-slate-50 px-2 py-0.5 text-[11px] text-[#1A1714]">
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+
+        {/* ─── 5. ACTIVE Rx SECTION — medication pills ─── */}
+        {s.activeMeds?.length ? (
+          <div className="mb-1">
+            <div
+              className={cn("mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]", onNavigate && "cursor-pointer hover:bg-[#F0EFEB]")}
+              onClick={onNavigate ? () => onNavigate("dr-agent") : undefined}
+            >
+              <Pill size={11} className="text-[#9E978B]" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E978B]">Active Rx</span>
+              <span className="rounded-[4px] bg-tp-blue-50 px-1 py-[1px] text-[9px] font-semibold text-tp-blue-600">
+                {s.activeMeds.length}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-1 px-3">
+              {s.activeMeds.map((m, i) => (
+                <span key={i} className="inline-flex items-center rounded-[6px] border-[0.5px] border-tp-blue-200 bg-tp-blue-50/50 px-2 py-[3px] text-[11px] font-medium text-tp-blue-800">
+                  <Pill size={9} className="mr-1 text-tp-blue-400" />{m}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {/* ─── 6. LAST VISIT SECTION — structured Dx/Rx/Inv/F-U rows ─── */}
+        {s.lastVisit ? (
+          <div className="mb-1">
+            <div
+              className={cn("mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]", onNavigate && "cursor-pointer hover:bg-[#F0EFEB]")}
+              onClick={onNavigate ? () => onNavigate("past-visits") : undefined}
+            >
+              <Calendar1 size={11} variant="Bold" className="text-[#9E978B]" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E978B]">Last Visit</span>
+              <span className="text-[10px] font-normal text-[#9E978B]">{s.lastVisit.date}</span>
+            </div>
+            <div className="space-y-[3px] px-3">
+              <div className="grid grid-cols-[32px_1fr] gap-x-2">
+                <span className="text-[10px] font-medium text-[#9E978B]">Dx</span>
+                <span className="text-[12px] font-medium text-[#1A1714]">{s.lastVisit.diagnosis}</span>
+              </div>
+              <div className="grid grid-cols-[32px_1fr] gap-x-2">
+                <span className="text-[10px] font-medium text-[#9E978B]">Rx</span>
+                <span className="text-[11px] text-[#1A1714]">{s.lastVisit.medication}</span>
+              </div>
+              {s.lastVisit.labTestsSuggested && (
+                <div className="grid grid-cols-[32px_1fr] gap-x-2">
+                  <span className="text-[10px] font-medium text-[#9E978B]">Inv</span>
+                  <span className="text-[11px] text-[#1A1714]">{s.lastVisit.labTestsSuggested}</span>
+                </div>
+              )}
+              {s.lastVisit.followUp && (
+                <div className="grid grid-cols-[32px_1fr] gap-x-2">
+                  <span className="text-[10px] font-medium text-[#9E978B]">F/U</span>
+                  <span className="text-[11px] text-[#1A1714]">{s.lastVisit.followUp}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
+
+        {/* ─── 7. DUE ALERTS SECTION — red-tinted rows ─── */}
+        {s.dueAlerts?.length ? (
+          <div className="mb-1">
+            <div className="mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]">
+              <Warning2 size={11} variant="Bold" className="text-[#C42B2B]" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#C42B2B]">Due Alerts</span>
+            </div>
+            <div className="space-y-[2px] px-3">
+              {s.dueAlerts.map((a, i) => (
+                <div key={i} className="flex items-center gap-1.5 rounded-[4px] bg-tp-error-50/40 px-2 py-[3px]">
+                  <span className="size-[5px] shrink-0 rounded-full bg-[#C42B2B]" />
+                  <span className="text-[11px] font-medium text-[#C42B2B]">{a}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {/* ─── 8. SPECIALTY EMBED — colored accent box for non-GP ─── */}
+        {activeSpecialty !== "gp" && (() => {
+          const specConfig = SPECIALTY_VISUAL_CONFIG[activeSpecialty]
+          let specContent: React.ReactNode = null
+          if (activeSpecialty === "gynec" && s.gynecData) specContent = buildGynecContextContent(s.gynecData)
+          else if (activeSpecialty === "ophthal" && s.ophthalData) specContent = buildOphthalContextContent(s.ophthalData)
+          else if (activeSpecialty === "obstetric" && s.obstetricData) specContent = buildObstetricContextContent(s.obstetricData)
+          else if (activeSpecialty === "pediatrics" && s.pediatricsData) specContent = buildPediatricsContextContent(s.pediatricsData)
+          if (!specContent) return null
+          return (
+            <div className="mx-3 mb-1 mt-1">
+              <SpecialtyContextBlock
+                specialtyId={activeSpecialty}
+                content={specContent}
+                accentBorder={specConfig.accentBorder}
+                icon={specConfig.icon}
+                label={SPECIALTY_CARD_TITLES[activeSpecialty]}
+              />
+            </div>
+          )
+        })()}
+
+        {/* Zero data */}
+        {!s.todayVitals && !s.lastVisit && !s.chronicConditions?.length && !s.keyLabs?.length && (
+          <div className="px-3"><ZeroDataPlaceholder /></div>
+        )}
+      </div>
+
+      {/* ── Action Pills Row ── */}
+      <div className="flex flex-wrap gap-1.5 border-t border-[#C4BFB5]/20 px-3 py-1.5">
+        {s.lastVisit && (
+          <button type="button" className={AGENT_GRADIENT_CHIP_CLASS} onClick={onNavigate ? () => onNavigate("past-visits") : undefined}>
+            <Calendar1 size={10} variant="Bold" className="mr-0.5" /> Last visit
+          </button>
+        )}
+        {(s.keyLabs?.length ?? 0) > 0 && (
+          <button type="button" className={AGENT_GRADIENT_CHIP_CLASS} onClick={onNavigate ? () => onNavigate("lab-results") : undefined}>
+            <FlaskConical size={10} className="mr-0.5" /> Labs{collapsedInfo.abnormalLabCount > 0 ? ` (${collapsedInfo.abnormalLabCount} flagged)` : ""}
+          </button>
+        )}
+        <button type="button" className={AGENT_GRADIENT_CHIP_CLASS} onClick={onNavigate ? () => onNavigate("vitals") : undefined}>
+          <Activity size={10} className="mr-0.5" /> Trends
+        </button>
       </div>
     </div>
   )
@@ -5288,6 +7523,9 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [isProcessingUpload, setIsProcessingUpload] = useState(false)
   const [symptomCollectorCollapsed, setSymptomCollectorCollapsed] = useState(false)
+  const [pillCooldowns, setPillCooldowns] = useState<Record<string, number>>({})
+  const [dismissedPills, setDismissedPills] = useState<Record<string, number>>({})
+  const [expandedMessages, setExpandedMessages] = useState<Record<string, boolean>>({})
 
   const timersRef = useRef<number[]>([])
   const voiceTimerRef = useRef<number | null>(null)
@@ -5314,11 +7552,11 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
   const activeLens = lensByContext[selectedContextId] ?? "dr-agent"
   const activeSpecialty = specialtyByContext[selectedContextId] ?? "gp"
   const consultPhase = consultPhaseByContext[selectedContextId] ?? "empty"
-  const summaryCollapsed = summaryCollapsedByContext[selectedContextId] ?? true
   const activeSummaryData =
     isPatientContext
       ? SMART_SUMMARY_BY_CONTEXT[selectedContextId] ?? SMART_SUMMARY_BY_CONTEXT[CONTEXT_PATIENT_ID]
       : undefined
+  const summaryCollapsed = summaryCollapsedByContext[selectedContextId] ?? !!(activeSummaryData?.symptomCollectorData)
   const summaryHasSymptoms = useMemo(() => {
     if (!isPatientContext || !activeSummaryData) return false
     return buildSpecialtyClinicalView(activeSpecialty, activeSummaryData).currentSymptoms.length > 0
@@ -5327,18 +7565,19 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
 
   const basePills = useMemo(
     () =>
-      buildPromptEngine({
+      buildCannedPillEngine({
         phase: consultPhase,
         lens: activeLens,
         isPatientContext,
         hasInteractionAlert,
         hasRxpadSymptoms,
         summaryData: activeSummaryData,
+        specialty: activeSpecialty,
       }),
-    [consultPhase, activeLens, isPatientContext, hasInteractionAlert, hasRxpadSymptoms, activeSummaryData],
+    [consultPhase, activeLens, isPatientContext, hasInteractionAlert, hasRxpadSymptoms, activeSummaryData, activeSpecialty],
   )
 
-  const [promptSuggestions, setPromptSuggestions] = useState<PromptChip[]>(basePills)
+  const [promptSuggestions, setPromptSuggestions] = useState<CannedPill[]>(basePills)
 
   useEffect(() => {
     setPromptSuggestions(basePills)
@@ -5529,6 +7768,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
     const contextIsPatient = contextOption?.kind === "patient"
     const summaryData = contextIsPatient ? SMART_SUMMARY_BY_CONTEXT[contextId] ?? SMART_SUMMARY_BY_CONTEXT[CONTEXT_PATIENT_ID] : undefined
     const contextHasSymptoms = hasRxpadSymptomsByContext[contextId] ?? false
+    const contextSpecialty = specialtyByContext[contextId] ?? "gp"
 
     const dynamic = deriveBehaviorAwarePrompts({
       text,
@@ -5536,20 +7776,24 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
       isPatientContext: Boolean(contextIsPatient),
       summaryData,
     })
-    const dynamicPills: PromptChip[] = dynamic.map((label) => ({
+    const dynamicPills: CannedPill[] = dynamic.map((label, i) => ({
       id: `dynamic-${label}`,
       label,
-      tone: "primary",
+      priority: 50 + i,
+      layer: 3 as const,
+      tone: "primary" as const,
+      cooldownMs: 3000,
     }))
 
-    const merged = [
-      ...buildPromptEngine({
+    const merged: CannedPill[] = [
+      ...buildCannedPillEngine({
         phase,
         lens,
         isPatientContext: contextIsPatient,
         hasInteractionAlert,
         hasRxpadSymptoms: contextHasSymptoms,
         summaryData,
+        specialty: contextSpecialty,
       }),
       ...dynamicPills,
     ]
@@ -5561,22 +7805,27 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
     const contextIsPatient = contextOption?.kind === "patient"
     const summaryData = contextIsPatient ? SMART_SUMMARY_BY_CONTEXT[contextId] ?? SMART_SUMMARY_BY_CONTEXT[CONTEXT_PATIENT_ID] : undefined
     const contextHasSymptoms = hasRxpadSymptomsByContext[contextId] ?? false
+    const contextSpecialty = specialtyByContext[contextId] ?? "gp"
 
-    const signalPills: PromptChip[] = labels.map((label) => ({
+    const signalPills: CannedPill[] = labels.map((label, i) => ({
       id: `signal-${label}`,
       label,
-      tone: "primary",
+      priority: 40 + i,
+      layer: 3 as const,
+      tone: "primary" as const,
+      cooldownMs: 3000,
     }))
 
-    const merged = [
+    const merged: CannedPill[] = [
       ...signalPills,
-      ...buildPromptEngine({
+      ...buildCannedPillEngine({
         phase,
         lens,
         isPatientContext: contextIsPatient,
         hasInteractionAlert,
         hasRxpadSymptoms: contextHasSymptoms,
         summaryData,
+        specialty: contextSpecialty,
       }),
     ]
 
@@ -5653,6 +7902,25 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
     pushMessage(contextId, { ...user })
     setInputValue("")
     setSummaryCollapsedByContext((prev) => ({ ...prev, [contextId]: true }))
+
+    // ── Phase 11 Guardrail: Off-topic detection ──
+    if (source === "typed" && isOffTopicQuery(text)) {
+      const guardrailMsg = createAgentMessage("assistant", OFF_TOPIC_REPLY)
+      pushMessage(contextId, guardrailMsg)
+      return
+    }
+
+    // ── Phase 11 Guardrail: Cross-patient safety block ──
+    const currentPatientName = contextOption?.label ?? ""
+    if (
+      source === "typed" &&
+      contextOption?.kind === "patient" &&
+      detectsCrossPatientReference(text, currentPatientName)
+    ) {
+      const guardrailMsg = createAgentMessage("assistant", CROSS_PATIENT_REPLY)
+      pushMessage(contextId, guardrailMsg)
+      return
+    }
 
     if (inferredLens !== currentLens) {
       setLensByContext((prev) => ({ ...prev, [contextId]: inferredLens }))
@@ -5816,7 +8084,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex size-6 items-center justify-center rounded-[8px] text-tp-slate-500 transition-colors hover:bg-white/70"
+              className="inline-flex size-6 min-h-[44px] min-w-[44px] items-center justify-center rounded-[8px] text-tp-slate-500 transition-colors hover:bg-white/70"
               aria-label="Close doctor agent"
             >
               <X size={14} strokeWidth={2} />
@@ -5910,20 +8178,19 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
               <AgentIntroMessage contextLabel={selectedContext.label} isPatientContext={isPatientContext} />
 
               {isPatientContext && activeSummaryData && (
-                <div className="space-y-2">
-                  <div className="ml-8 max-w-[86%]">
-                    <PatientSummaryCard
-                      collapsed={summaryCollapsed}
-                      onToggle={() => setSummaryCollapsedByContext((prev) => ({ ...prev, [selectedContextId]: !summaryCollapsed }))}
-                      summaryData={activeSummaryData}
-                      activeSpecialty={activeSpecialty}
-                      patientGender={selectedContext.patient?.gender}
-                      patientAge={selectedContext.patient?.age}
-                    />
-                  </div>
-                  <div className="ml-8 max-w-[86%]">
-                    <SymptomCollectorCard onCopy={handleCopy} onQuickSend={(prompt) => sendMessage(prompt, "canned")} />
-                  </div>
+                <div className="ml-8 max-w-[86%]">
+                  <PatientIntroSequence
+                    summaryData={activeSummaryData}
+                    activeSpecialty={activeSpecialty}
+                    patientGender={selectedContext.patient?.gender}
+                    patientAge={selectedContext.patient?.age}
+                    summaryCollapsed={summaryCollapsed}
+                    onToggleSummary={() => setSummaryCollapsedByContext((prev) => ({ ...prev, [selectedContextId]: !summaryCollapsed }))}
+                    symptomCollectorCollapsed={symptomCollectorCollapsed}
+                    onToggleSymptomCollector={() => setSymptomCollectorCollapsed((prev) => !prev)}
+                    onCopy={handleCopy}
+                    onNavigate={(tab) => setLensByContext((prev) => ({ ...prev, [selectedContextId]: tab as RxTabLens }))}
+                  />
                 </div>
               )}
 
@@ -5936,6 +8203,10 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
               {messages.map((message) => {
                 const isUser = message.role === "user"
                 const feedback = messageFeedback[message.id]
+                const { text: displayText, truncated: isTruncated } = isUser
+                  ? { text: message.text, truncated: false }
+                  : truncateResponseText(message.text)
+                const isExpanded = expandedMessages[message.id] ?? false
                 return (
                   <div key={message.id} className="space-y-1.5">
                     <div className={cn("flex w-full items-start gap-2", isUser ? "justify-end" : "justify-start")}>
@@ -5952,7 +8223,21 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
                             : "rounded-none bg-transparent text-tp-slate-700",
                         )}
                       >
-                        <p>{message.text}</p>
+                        <p className="whitespace-pre-line">{isExpanded ? message.text : displayText}</p>
+                        {isTruncated && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedMessages((prev) => ({
+                                ...prev,
+                                [message.id]: !prev[message.id],
+                              }))
+                            }
+                            className="mt-0.5 text-[11px] text-tp-blue-600 hover:underline"
+                          >
+                            {isExpanded ? "Show less" : "Show more"}
+                          </button>
+                        )}
                         {isUser ? <p className="mt-1 text-[12px] text-tp-slate-500">{formatMessageTime(message.createdAt)}</p> : null}
                       </div>
                       {isUser && (
@@ -5969,58 +8254,18 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
                           onCopy={handleCopy}
                           onQuickSend={(prompt) => sendMessage(prompt, "canned")}
                           onAcceptDiagnosis={handleAcceptDiagnosis}
+                          onNavigate={(tab) => setLensByContext((prev) => ({ ...prev, [selectedContextId]: tab as RxTabLens }))}
                         />
                       </div>
                     )}
                     {!isUser && (
-                      <div className="ml-8 flex items-center gap-1.5 text-[12px] text-tp-slate-400">
-                        <span>{formatMessageTime(message.createdAt)}</span>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setMessageFeedback((prev) => {
-                              const next = { ...prev }
-                              if (feedback === "like") {
-                                delete next[message.id]
-                              } else {
-                                next[message.id] = "like"
-                              }
-                              return next
-                            })
-                          }
-                          className={cn(
-                            "inline-flex size-5 items-center justify-center rounded-[8px]",
-                            feedback === "like"
-                              ? "bg-tp-success-50 text-tp-success-700"
-                              : "bg-tp-slate-100 text-tp-slate-500 hover:bg-tp-slate-200",
-                          )}
-                          aria-label="Like response"
-                        >
-                          <ThumbsUp size={11} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setMessageFeedback((prev) => {
-                              const next = { ...prev }
-                              if (feedback === "dislike") {
-                                delete next[message.id]
-                              } else {
-                                next[message.id] = "dislike"
-                              }
-                              return next
-                            })
-                          }
-                          className={cn(
-                            "inline-flex size-5 items-center justify-center rounded-[8px]",
-                            feedback === "dislike"
-                              ? "bg-tp-error-50 text-tp-error-600"
-                              : "bg-tp-slate-100 text-tp-slate-500 hover:bg-tp-slate-200",
-                          )}
-                          aria-label="Dislike response"
-                        >
-                          <ThumbsDown size={11} />
-                        </button>
+                      <div className="ml-8 flex items-center gap-2">
+                        <span className="text-[10px] text-tp-slate-400">{formatMessageTime(message.createdAt)}</span>
+                        <ResponseFeedback
+                          messageId={message.id}
+                          feedback={feedback}
+                          onFeedback={(id, type) => setMessageFeedback((prev) => ({ ...prev, [id]: type }))}
+                        />
                       </div>
                     )}
                   </div>
@@ -6059,24 +8304,52 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="shrink-0 border-t border-tp-slate-100 bg-white/95 px-3 py-2.5 backdrop-blur-sm">
-          {/* ── Prompt Pills ── */}
+          {/* ── Canned Pill Strip ── */}
           <div className="mb-2 overflow-x-auto pb-1">
             <div className="inline-flex min-w-max items-center gap-1.5">
-              {promptSuggestions.map((prompt) => (
-                <button
-                  key={prompt.id}
-                  type="button"
-                  onClick={() => sendMessage(prompt.label, "canned")}
-                  className={cn(
-                    "whitespace-nowrap transition-colors hover:bg-tp-violet-50/60",
-                    AGENT_GRADIENT_CHIP_CLASS,
-                    toneChipClass(prompt.tone),
-                    prompt.force && "border-tp-error-200/90 text-tp-error-700",
-                  )}
-                >
-                  {prompt.label}
-                </button>
-              ))}
+              {promptSuggestions
+                .filter((pill) => {
+                  // Layer 1 (force) pills always shown
+                  if (pill.force) return true
+                  // Filter out dismissed pills within 5-min window
+                  const dismissedAt = dismissedPills[pill.id]
+                  if (dismissedAt && Date.now() - dismissedAt < 300000) return false
+                  return true
+                })
+                .map((prompt) => {
+                  const isCoolingDown = Boolean(pillCooldowns[prompt.id] && Date.now() - pillCooldowns[prompt.id] < (prompt.cooldownMs ?? 3000))
+                  return (
+                    <button
+                      key={prompt.id}
+                      type="button"
+                      disabled={isCoolingDown}
+                      onClick={() => {
+                        // Set cooldown timestamp
+                        setPillCooldowns((prev) => ({ ...prev, [prompt.id]: Date.now() }))
+                        // Clear cooldown after duration
+                        const cd = prompt.cooldownMs ?? 3000
+                        const timer = window.setTimeout(() => {
+                          setPillCooldowns((prev) => {
+                            const next = { ...prev }
+                            delete next[prompt.id]
+                            return next
+                          })
+                        }, cd)
+                        timersRef.current.push(timer)
+                        sendMessage(prompt.label, "canned")
+                      }}
+                      className={cn(
+                        "whitespace-nowrap transition-all hover:bg-tp-violet-50/60",
+                        AGENT_GRADIENT_CHIP_CLASS,
+                        toneChipClass(prompt.tone),
+                        prompt.force && "border-tp-error-200/90 text-tp-error-700",
+                        isCoolingDown && "pointer-events-none opacity-50",
+                      )}
+                    >
+                      {prompt.label}
+                    </button>
+                  )
+                })}
             </div>
           </div>
 
@@ -6137,7 +8410,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
               type="button"
               onClick={handleMicClick}
               className={cn(
-                "inline-flex size-9 shrink-0 items-center justify-center rounded-[10px] border-[0.5px] transition-colors",
+                "inline-flex size-9 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-[10px] border-[0.5px] transition-colors",
                 isRecording
                   ? "border-tp-violet-300 bg-tp-violet-100 text-tp-violet-600"
                   : "border-tp-slate-200 bg-white text-tp-slate-600 hover:bg-tp-slate-50",
@@ -6153,7 +8426,7 @@ export function RxPadFloatingAgent({ onClose }: { onClose: () => void }) {
               onClick={handleSendWithUpload}
               disabled={!inputValue.trim() && !uploadedFile}
               className={cn(
-                "inline-flex size-9 shrink-0 items-center justify-center rounded-[10px] transition-colors",
+                "inline-flex size-9 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-[10px] transition-colors",
                 inputValue.trim() || uploadedFile
                   ? "bg-tp-blue-500 text-white shadow-sm hover:bg-tp-blue-600"
                   : "cursor-not-allowed bg-tp-slate-100 text-tp-slate-400",

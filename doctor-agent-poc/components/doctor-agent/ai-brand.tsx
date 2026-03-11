@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 
 export const AI_GRADIENT = "linear-gradient(135deg, #D565EA 0%, #673AAC 45%, #1A1994 100%)"
 export const AI_GRADIENT_SOFT =
-  "linear-gradient(135deg, rgba(213,101,234,0.2) 0%, rgba(103,58,172,0.2) 45%, rgba(26,25,148,0.2) 100%)"
+  "linear-gradient(135deg, rgba(213,101,234,0.18) 0%, rgba(139,92,246,0.22) 50%, rgba(103,58,172,0.18) 100%)"
 
 export function AiBrandSparkIcon({
   size = 24,
@@ -21,7 +21,7 @@ export function AiBrandSparkIcon({
     <svg
       width={size}
       height={size}
-      viewBox="0 0 24 24"
+      viewBox="4 4 16 16"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
@@ -30,8 +30,8 @@ export function AiBrandSparkIcon({
       <defs>
         <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#D565EA" />
-          <stop offset="45%" stopColor="#673AAC" />
-          <stop offset="100%" stopColor="#1A1994" />
+          <stop offset="60%" stopColor="#8B5CF6" />
+          <stop offset="100%" stopColor="#673AAC" />
         </linearGradient>
       </defs>
       <path

@@ -35,6 +35,7 @@ import { TPMedicalIcon, TPSnackbar } from "@/components/tp-ui"
 
 import { tpSectionCardStyle } from "../tokens"
 import { useStickyHeaderState } from "../detail-shared"
+import { AiTriggerIcon } from "@/components/tp-rxpad/dr-agent/shared/AiTriggerIcon"
 
 type RxTab = "digital" | "written"
 
@@ -525,12 +526,23 @@ function DateHeader({
           ) : null}
         </div>
 
-        <div className="relative shrink-0 size-[18px]">
-          {expanded ? (
-            <ArrowSquareUp color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
-          ) : (
-            <ArrowSquareDown color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
-          )}
+        <div className="flex items-center gap-1.5">
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+            <AiTriggerIcon
+              tooltip={`Ask Dr.Agent about ${dateLabel} visit`}
+              signalLabel={`Analyze visit from ${dateLabel}`}
+              sectionId="past-visits"
+              size={12}
+              as="span"
+            />
+          </span>
+          <div className="relative shrink-0 size-[18px]">
+            {expanded ? (
+              <ArrowSquareUp color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
+            ) : (
+              <ArrowSquareDown color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -595,6 +607,13 @@ function RxTabStrip({
       </div>
     </div>
   )
+}
+
+const SECTION_TITLE_TO_ID: Record<string, string> = {
+  Symptoms: "symptoms",
+  Examination: "examination",
+  Diagnosis: "diagnosis",
+  "Med (Rx)": "medications",
 }
 
 function ListSection({

@@ -17,6 +17,8 @@ import {
   symptomSuggestions,
 } from "../sample-data"
 import { useRxPadSync } from "@/components/tp-rxpad/rxpad-sync-context"
+import { AiTriggerChip } from "@/components/tp-rxpad/dr-agent/shared/AiTriggerChip"
+import { PER_PATIENT_RXPAD_DATA, checkDrugInteraction, checkTableInteractions } from "./per-patient-rxpad-data"
 import {
   TPMedicalIcon,
   TPRxPadSearchInput,
@@ -60,6 +62,16 @@ type TableModuleConfig = {
   onSaveClick?: () => void
   onTemplateClick?: () => void
   onClearClick?: () => void
+  /** Optional content rendered right-aligned after the search input area */
+  afterSearch?: React.ReactNode
+  /** Optional tag renderer for search dropdown options (e.g. "AI Suggested") */
+  getOptionTag?: (option: string) => React.ReactNode
+  /** data-rxpad-module attribute for scroll targeting */
+  moduleDataAttr?: string
+  /** Set of row IDs to highlight (e.g. drug interaction warnings) */
+  highlightedRowIds?: Set<string>
+  /** Tooltip text for highlighted rows, keyed by row ID */
+  highlightedRowTooltips?: Record<string, string>
 }
 
 type ActiveMenu = {
@@ -354,6 +366,11 @@ function EditableTableModule({
   onSaveClick,
   onTemplateClick,
   onClearClick,
+  afterSearch,
+  getOptionTag,
+  moduleDataAttr,
+  highlightedRowIds,
+  highlightedRowTooltips,
 }: TableModuleConfig) {
   const isTablet = useTabletMode()
   const [searchText, setSearchText] = useState("")
@@ -1083,6 +1100,7 @@ function EditableTableModule({
   }
 
   return (
+    <div {...(moduleDataAttr ? { "data-rxpad-module": moduleDataAttr } : {})}>
     <TPRxPadSection
       title={title}
       icon={icon}
@@ -1143,12 +1161,16 @@ function EditableTableModule({
                 (() => {
                   const isDraggingRow = draggingRowId === row.id
                   const isDropTargetRow = dragOverRowId === row.id && !isDraggingRow
+                  const isHighlighted = highlightedRowIds?.has(row.id)
+                  const highlightTooltip = highlightedRowTooltips?.[row.id]
                   return (
                 <tr
                   key={row.id}
                   data-row-id={row.id}
+                  title={highlightTooltip}
                   className={[
-                    "h-[52px] border-t border-tp-slate-100 bg-white align-middle transition-colors duration-150 will-change-transform",
+                    "h-[52px] border-t border-tp-slate-100 align-middle transition-colors duration-150 will-change-transform",
+                    isHighlighted ? "bg-tp-warning-50/40 border-l-2 border-l-tp-warning-300" : "bg-white",
                     isDraggingRow ? "bg-tp-blue-50/45" : "",
                     isDropTargetRow ? "bg-tp-blue-50/65" : "hover:bg-tp-slate-50/50",
                   ].join(" ")}
@@ -1734,6 +1756,13 @@ function EditableTableModule({
             ))}
           </div>
         ) : null}
+
+        {/* AI trigger chips — right-aligned after search area */}
+        {afterSearch && (
+          <div className="flex justify-end mt-[6px]">
+            {afterSearch}
+          </div>
+        )}
       </div>
 
       {activeMenu && menuPosition && optionsForMenu.length > 0 && typeof document !== "undefined"
@@ -1773,7 +1802,7 @@ function EditableTableModule({
                       type="button"
                       data-rx-menu-index={index}
                       className={[
-                        "w-full rounded-[8px] px-[10px] py-[7px] text-left text-[14px] font-medium font-['Inter',sans-serif]",
+                        "w-full rounded-[8px] px-[10px] py-[7px] text-left text-[14px] font-medium font-['Inter',sans-serif] flex items-center gap-2",
                         index === activeMenu.highlightedIndex
                           ? "bg-tp-slate-100 text-tp-slate-700"
                           : "text-tp-slate-700 hover:bg-tp-slate-100",
@@ -1802,7 +1831,8 @@ function EditableTableModule({
                         closeMenu()
                       }}
                     >
-                      {getOptionLabel(option)}
+                      <span className="flex-1 truncate">{getOptionLabel(option)}</span>
+                      {activeMenu.mode === "search" && getOptionTag?.(getOptionValue(option))}
                     </button>
                   ))}
                 </div>
@@ -1889,66 +1919,97 @@ function EditableTableModule({
         : null}
 
     </TPRxPadSection>
+    </div>
   )
 }
 
-export function RxPadFunctional() {
-  const { lastCopyRequest, publishSignal } = useRxPadSync()
+/* ── Medication allergy/interaction check helper ── */
+
+/** Known drug-allergy keyword pairs: allergy keyword → matching drug substrings */
+const DRUG_ALLERGY_MAP: Record<string, string[]> = {
+  ibuprofen: ["ibuprofen", "brufen", "advil"],
+  "sulfa drugs": ["sulfamethoxazole", "trimethoprim", "bactrim", "cotrimoxazole", "sulfa"],
+  sulfa: ["sulfamethoxazole", "trimethoprim", "bactrim", "cotrimoxazole", "sulfa"],
+  aspirin: ["aspirin", "disprin", "ecosprin"],
+  penicillin: ["amoxicillin", "ampicillin", "penicillin", "augmentin"],
+}
+
+interface MedicationAlert {
+  rowId: string
+  medName: string
+  allergen: string
+}
+
+function checkMedicationAlerts(
+  medRows: TableRow[],
+  allergies: string[],
+): MedicationAlert[] {
+  if (allergies.length === 0) return []
+  const alerts: MedicationAlert[] = []
+  const normalizedAllergies = allergies.map((a) => a.replace(/\s*\([^)]*\)/g, "").trim().toLowerCase())
+
+  for (const row of medRows) {
+    const medName = (row.medicine ?? "").trim().toLowerCase()
+    if (!medName) continue
+
+    for (let ai = 0; ai < normalizedAllergies.length; ai++) {
+      const allergy = normalizedAllergies[ai]
+      // Direct name match
+      if (medName.includes(allergy) || allergy.includes(medName.split(" ")[0])) {
+        alerts.push({ rowId: row.id, medName: row.medicine ?? "", allergen: allergies[ai] })
+        break
+      }
+      // Drug-allergy map match
+      const mappedDrugs = DRUG_ALLERGY_MAP[allergy]
+      if (mappedDrugs?.some((drug) => medName.includes(drug))) {
+        alerts.push({ rowId: row.id, medName: row.medicine ?? "", allergen: allergies[ai] })
+        break
+      }
+    }
+  }
+  return alerts
+}
+
+export function RxPadFunctional({ patientId = "__patient__" }: { patientId?: string }) {
+  const { lastCopyRequest, publishSignal, patientAllergies } = useRxPadSync()
   const lastHandledCopyId = useRef<number>(0)
   const symptomInitRef = useRef(false)
   const medInitRef = useRef(false)
+  const dxInitRef = useRef(false)
   const symptomCountRef = useRef(0)
   const medCountRef = useRef(0)
+  const dxCountRef = useRef(0)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
-  const [symptomRows, setSymptomRows] = useState<TableRow[]>([
-    { id: getRowId("symptoms"), name: "Redness in both eyes", since: "2 days", status: "Severe", note: "" },
-    { id: getRowId("symptoms"), name: "Fever", since: "2 days", status: "Moderate", note: "" },
-  ])
-  const [examinationRows, setExaminationRows] = useState<TableRow[]>([
-    { id: getRowId("exam"), name: "Cold & Cough", note: "" },
-    { id: getRowId("exam"), name: "Left Knee Tenderness", note: "" },
-  ])
-  const [diagnosisRows, setDiagnosisRows] = useState<TableRow[]>([
-    { id: getRowId("diagnosis"), name: "Allergic Rhinitis", since: "2 days", status: "Suspected", note: "" },
-    { id: getRowId("diagnosis"), name: "Viral Pharyngitis", since: "2 days", status: "Confirmed", note: "" },
-  ])
-  const [medicationRows, setMedicationRows] = useState<TableRow[]>([
-    {
-      id: getRowId("med"),
-      medicine: "A Tron 4mg Tablet MD",
-      unitPerDose: "1 tablet",
-      frequency: "1-0-1",
-      when: "After Food",
-      duration: "5 days",
-      note: "",
-    },
-    {
-      id: getRowId("med"),
-      medicine: "Paracetamol 650mg",
-      unitPerDose: "1 tablet",
-      frequency: "1-0-0-1",
-      when: "After Food",
-      duration: "3 days",
-      note: "",
-    },
-  ])
-  const [adviceRows, setAdviceRows] = useState<TableRow[]>([
-    { id: getRowId("advice"), advice: "Stay hydrated daily", note: "" },
-    { id: getRowId("advice"), advice: "Practice deep breathing", note: "" },
-  ])
-  const [labRows, setLabRows] = useState<TableRow[]>([
-    { id: getRowId("lab"), investigation: "Complete Blood Count", note: "" },
-    { id: getRowId("lab"), investigation: "Liver Function Test", note: "" },
-  ])
-  const [surgeryRows, setSurgeryRows] = useState<TableRow[]>([
-    { id: getRowId("surgery"), surgery: "Cardiac Restoration Surgery", note: "" },
-    { id: getRowId("surgery"), surgery: "Gastrointestinal Detox Surgery", note: "" },
-  ])
+  // Per-patient initial data
+  const patientData = PER_PATIENT_RXPAD_DATA[patientId] ?? PER_PATIENT_RXPAD_DATA["__patient__"]
+  const ddxSuggestions = patientData.ddxSuggestions
 
-  const [additionalNotes, setAdditionalNotes] = useState("")
-  const [followUpDate, setFollowUpDate] = useState("")
-  const [followUpNotes, setFollowUpNotes] = useState("")
+  const [symptomRows, setSymptomRows] = useState<TableRow[]>(() =>
+    patientData.symptoms.map((r) => ({ ...r, id: getRowId("symptoms") })),
+  )
+  const [examinationRows, setExaminationRows] = useState<TableRow[]>(() =>
+    patientData.examinations.map((r) => ({ ...r, id: getRowId("exam") })),
+  )
+  const [diagnosisRows, setDiagnosisRows] = useState<TableRow[]>(() =>
+    patientData.diagnoses.map((r) => ({ ...r, id: getRowId("diagnosis") })),
+  )
+  const [medicationRows, setMedicationRows] = useState<TableRow[]>(() =>
+    patientData.medications.map((r) => ({ ...r, id: getRowId("med") })),
+  )
+  const [adviceRows, setAdviceRows] = useState<TableRow[]>(() =>
+    patientData.advice.map((r) => ({ ...r, id: getRowId("advice") })),
+  )
+  const [labRows, setLabRows] = useState<TableRow[]>(() =>
+    patientData.labs.map((r) => ({ ...r, id: getRowId("lab") })),
+  )
+  const [surgeryRows, setSurgeryRows] = useState<TableRow[]>(() =>
+    patientData.surgeries.map((r) => ({ ...r, id: getRowId("surgery") })),
+  )
+
+  const [additionalNotes, setAdditionalNotes] = useState(patientData.additionalNotes)
+  const [followUpDate, setFollowUpDate] = useState(patientData.followUpDate)
+  const [followUpNotes, setFollowUpNotes] = useState(patientData.followUpNotes)
 
   useEffect(() => {
     if (!symptomInitRef.current) {
@@ -1989,6 +2050,48 @@ export function RxPadFunctional() {
       count: currentCount,
     })
   }, [medicationRows, publishSignal])
+
+  useEffect(() => {
+    if (!dxInitRef.current) {
+      dxInitRef.current = true
+      dxCountRef.current = diagnosisRows.length
+      return
+    }
+
+    const currentCount = diagnosisRows.length
+    const previousCount = dxCountRef.current
+    dxCountRef.current = currentCount
+    if (currentCount <= previousCount) return
+
+    const latest = diagnosisRows[currentCount - 1]?.name?.trim()
+    publishSignal({
+      type: "diagnosis_changed",
+      label: latest || "Diagnosis updated",
+      count: currentCount,
+    })
+  }, [diagnosisRows, publishSignal])
+
+  /* Medication allergy alerts — recomputed when meds or allergies change */
+  const medicationAlerts = useMemo(
+    () => checkMedicationAlerts(medicationRows, patientAllergies),
+    [medicationRows, patientAllergies],
+  )
+
+  /* Drug-drug interaction check for medication table */
+  const tableInteractions = useMemo(
+    () => checkTableInteractions(medicationRows as { id: string; medicine?: string }[]),
+    [medicationRows],
+  )
+  const interactionRowIds = useMemo(
+    () => new Set(tableInteractions.map((t) => t.rowId)),
+    [tableInteractions],
+  )
+
+  /* Existing med names for search dropdown interaction check */
+  const existingMedNames = useMemo(
+    () => medicationRows.map((r) => (r.medicine ?? "").trim()).filter(Boolean),
+    [medicationRows],
+  )
 
   useEffect(() => {
     if (!lastCopyRequest || lastHandledCopyId.current === lastCopyRequest.id) return
@@ -2079,6 +2182,36 @@ export function RxPadFunctional() {
 
     setToastMessage(`Details from ${payload.sourceDateLabel} added to RxPad`)
   }, [lastCopyRequest])
+
+  // ── Consume pending copies from sessionStorage (homepage → RxPad navigation) ──
+  const pendingCopyConsumedRef = useRef(false)
+  useEffect(() => {
+    if (pendingCopyConsumedRef.current) return
+    pendingCopyConsumedRef.current = true
+    try {
+      const raw = sessionStorage.getItem("pendingRxPadCopy")
+      if (!raw) return
+      sessionStorage.removeItem("pendingRxPadCopy")
+      const payloads = JSON.parse(raw) as Array<Record<string, unknown>>
+      for (const p of payloads) {
+        if (p.symptoms && Array.isArray(p.symptoms)) {
+          setSymptomRows((prev) => [...prev, ...(p.symptoms as string[]).map((s) => ({ id: getRowId("symptoms"), name: s, since: "1 day", status: "Moderate", note: `From ${p.sourceDateLabel ?? "Dr. Agent"}` }))])
+        }
+        if (p.examinations && Array.isArray(p.examinations)) {
+          setExaminationRows((prev) => [...prev, ...(p.examinations as string[]).map((s) => ({ id: getRowId("exam"), name: s, note: `From ${p.sourceDateLabel ?? "Dr. Agent"}` }))])
+        }
+        if (p.diagnoses && Array.isArray(p.diagnoses)) {
+          setDiagnosisRows((prev) => [...prev, ...(p.diagnoses as string[]).map((s) => ({ id: getRowId("diagnosis"), name: s, since: "1 day", status: "Suspected", note: `From ${p.sourceDateLabel ?? "Dr. Agent"}` }))])
+        }
+        if (p.labInvestigations && Array.isArray(p.labInvestigations)) {
+          setLabRows((prev) => [...prev, ...(p.labInvestigations as string[]).map((s) => ({ id: getRowId("lab"), investigation: s, note: `From ${p.sourceDateLabel ?? "Dr. Agent"}` }))])
+        }
+      }
+      if (payloads.length > 0) {
+        setToastMessage("Pre-populated from Dr. Agent")
+      }
+    } catch { /* ignore parse errors */ }
+  }, [])
 
   function setFollowUpByOffset(days: number) {
     const date = new Date()
@@ -2306,6 +2439,20 @@ export function RxPadFunctional() {
         searchPlaceholder="Search & Add Symptoms"
         searchSuggestions={symptomSuggestions}
         cannedChips={symptomSuggestions.slice(0, 12)}
+        afterSearch={
+          symptomRows.length >= 1 ? (
+            <AiTriggerChip
+              label="Suggest DDX"
+              signalLabel="Generate differential diagnosis based on current symptoms"
+              sectionId="symptoms"
+              onAfterClick={() => {
+                setTimeout(() => {
+                  document.querySelector('[data-rxpad-module="diagnosis"]')?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }, 100)
+              }}
+            />
+          ) : null
+        }
       />
 
       <EditableTableModule
@@ -2332,6 +2479,25 @@ export function RxPadFunctional() {
         searchPlaceholder="Search & Add Diagnosis"
         searchSuggestions={diagnosisSuggestions}
         cannedChips={diagnosisSuggestions.slice(0, 12)}
+        moduleDataAttr="diagnosis"
+        getOptionTag={(option) => {
+          const match = ddxSuggestions.some((d) => option.toLowerCase().includes(d.toLowerCase()) || d.toLowerCase().includes(option.toLowerCase()))
+          return match ? (
+            <span className="shrink-0 inline-flex items-center gap-0.5 rounded bg-tp-blue-50 px-1.5 py-0.5 text-[9px] font-semibold text-tp-blue-600 whitespace-nowrap">
+              <svg width={9} height={9} viewBox="0 0 24 24" fill="none" className="flex-shrink-0"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z" fill="currentColor" opacity={0.7} /></svg>
+              DDx Match
+            </span>
+          ) : null
+        }}
+        afterSearch={
+          diagnosisRows.length >= 1 ? (
+            <AiTriggerChip
+              label="Suggest lab tests"
+              signalLabel="Suggest lab investigations based on diagnosis"
+              sectionId="diagnosis"
+            />
+          ) : null
+        }
       />
 
       <EditableTableModule
@@ -2344,6 +2510,14 @@ export function RxPadFunctional() {
         onChangeRows={setMedicationRows}
         searchPlaceholder="Search & Add Medication (Rx)"
         searchSuggestions={medicationSuggestions}
+        getOptionTag={(option) => {
+          const hit = checkDrugInteraction(option, existingMedNames)
+          return hit ? (
+            <span className="shrink-0 text-[9px] text-tp-warning-600 whitespace-nowrap">⚠ Interacts with {hit.interactsWith.split(" ")[0]}</span>
+          ) : null
+        }}
+        highlightedRowIds={interactionRowIds}
+        highlightedRowTooltips={Object.fromEntries(tableInteractions.map((t) => [t.rowId, `⚠ ${t.description} — interacts with ${t.interactsWith}`]))}
         cannedChips={[
           "Paracetamol 650mg",
           "Amoxicillin 500mg",
@@ -2354,6 +2528,26 @@ export function RxPadFunctional() {
           "Multivitamin",
           "Ibuprofen 400mg",
         ]}
+        afterSearch={
+          <div className="flex items-center gap-2 flex-wrap">
+            {medicationAlerts.map((alert) => (
+              <AiTriggerChip
+                key={alert.rowId}
+                label={`⚠ ${alert.medName} — Allergy: ${alert.allergen}`}
+                signalLabel={`Check drug interaction for ${alert.medName} — patient has ${alert.allergen} allergy`}
+                sectionId="medication"
+                className="!border-tp-amber-300 !text-[10px]"
+              />
+            ))}
+            {medicationRows.length >= 2 && (
+              <AiTriggerChip
+                label="Check interactions"
+                signalLabel="Check drug interactions for current medications"
+                sectionId="medication"
+              />
+            )}
+          </div>
+        }
       />
 
       <EditableTableModule
@@ -2366,6 +2560,22 @@ export function RxPadFunctional() {
         onChangeRows={setAdviceRows}
         searchPlaceholder="Search & Add Advice"
         cannedChips={ADVICE_SUGGESTIONS}
+        afterSearch={
+          <div className="flex items-center gap-2">
+            {adviceRows.length >= 1 && (
+              <AiTriggerChip
+                label="Translate advices"
+                signalLabel="Translate advice to patient's language"
+                sectionId="advice"
+              />
+            )}
+            <AiTriggerChip
+              label="Generate advices"
+              signalLabel="Generate advice based on this consultation"
+              sectionId="advice"
+            />
+          </div>
+        }
       />
 
       <EditableTableModule
@@ -2378,6 +2588,15 @@ export function RxPadFunctional() {
         onChangeRows={setLabRows}
         searchPlaceholder="Search & Add Lab Investigation"
         cannedChips={LAB_INVESTIGATION_BASE_OPTIONS}
+        afterSearch={
+          diagnosisRows.length >= 1 ? (
+            <AiTriggerChip
+              label="Suggest investigations"
+              signalLabel="Suggest lab investigations based on diagnosis"
+              sectionId="lab"
+            />
+          ) : null
+        }
       />
 
       <EditableTableModule

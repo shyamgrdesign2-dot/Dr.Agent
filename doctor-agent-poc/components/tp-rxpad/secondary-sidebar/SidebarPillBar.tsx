@@ -2,6 +2,7 @@
 
 import { type SidebarPill, SIDEBAR_TAB_PILLS } from "./sidebar-pills"
 import { useRxPadSync } from "@/components/tp-rxpad/rxpad-sync-context"
+import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
 
 /**
  * Pill bar rendered at the bottom of each sidebar content panel.
@@ -36,23 +37,27 @@ export function SidebarPillBar({ sectionId }: { sectionId: string }) {
   return (
     <>
       {/* Fade overlay — content fades out behind the pill bar */}
-      <div className="pointer-events-none sticky bottom-[38px] z-[9] -mb-[2px] h-6 shrink-0 bg-gradient-to-t from-white/95 to-transparent" />
+      <div className="pointer-events-none sticky bottom-[28px] z-[9] -mb-[2px] h-6 shrink-0 bg-gradient-to-t from-white/95 to-transparent" />
 
-      {/* Pill bar */}
-      <div className="sticky bottom-0 z-10 shrink-0 bg-white/95 px-2 pb-2 pt-1.5 backdrop-blur-sm">
-        <div className="overflow-x-auto">
+      {/* Pill bar — 26px pill height, 24px bottom padding, horizontal scroll */}
+      <div className="sticky bottom-0 z-10 shrink-0 bg-white/95 px-2 pb-[14px] pt-1 backdrop-blur-sm">
+        <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <div className="inline-flex min-w-max items-center gap-1.5">
-            <span className="mr-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded-[4px] bg-[linear-gradient(91deg,rgba(213,101,234,0.2)_3%,rgba(103,58,172,0.18)_67%,rgba(26,25,148,0.15)_130%)]">
-              <span className="text-[8px]">✦</span>
+            <span className="mr-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-[5px] bg-[linear-gradient(91deg,rgba(213,101,234,0.2)_3%,rgba(103,58,172,0.18)_67%,rgba(26,25,148,0.15)_130%)]">
+              <span className="text-[10px] leading-none">✦</span>
             </span>
             {pills.map((pill) => (
               <button
                 key={pill.id}
                 type="button"
                 onClick={() => handlePillClick(pill)}
-                className={`inline-flex items-center gap-1 whitespace-nowrap ${pill.danger ? DANGER_PILL_CLASS : AI_PILL_CLASS}`}
+                className={`inline-flex h-[26px] items-center gap-1 whitespace-nowrap ${pill.danger ? DANGER_PILL_CLASS : AI_PILL_CLASS}`}
               >
-                <span className="text-[10px]">{pill.icon}</span>
+                {pill.icon === "spark" ? (
+                  <AiBrandSparkIcon size={12} className="flex-shrink-0" />
+                ) : (
+                  <span className="text-[10px]">{pill.icon}</span>
+                )}
                 {pill.label}
               </button>
             ))}

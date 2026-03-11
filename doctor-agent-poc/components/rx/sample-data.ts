@@ -563,6 +563,14 @@ export const diagnosisSuggestions = [
   "Type 2 Diabetes Mellitus", "Essential Hypertension", "Acute Bronchitis",
   "Contact Dermatitis", "Urinary Tract Infection", "Gastroenteritis",
   "Migraine", "Allergic Rhinitis", "Iron Deficiency Anemia",
+  // DDX-relevant diagnoses
+  "Viral Fever", "Dengue Fever", "Conjunctivitis", "COVID-19", "Influenza",
+  "Tension-type Headache", "Cluster Headache", "Sinusitis",
+  "Obstructive Sleep Apnea", "Hypothyroidism", "Chronic Fatigue Syndrome",
+  "Pre-eclampsia", "Gestational Hypertension", "Deep Vein Thrombosis",
+  "Reactive Airway Disease", "Bronchiolitis", "Early-onset Asthma",
+  "AUB-Ovulatory Dysfunction", "Uterine Fibroids", "Endometrial Hyperplasia", "Adenomyosis",
+  "Osteoarthritis", "Meniscal Injury", "Ligament Sprain", "Gout", "Rheumatoid Arthritis",
 ]
 
 export const medicationSuggestions = [

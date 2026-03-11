@@ -3,6 +3,7 @@
  */
 import React from "react";
 import { ActionButton, SectionCard } from "../detail-shared";
+import { AiTriggerIcon } from "../../dr-agent/shared/AiTriggerIcon";
 
 type HistoryItem = { name: string; detail?: string };
 type Section = { id: string; title: string; items: HistoryItem[] };
@@ -54,7 +55,18 @@ const SECTIONS: Section[] = [
 
 function HistoryCard({ title, items }: { title: string; items: HistoryItem[] }) {
   return (
-    <SectionCard title={title} hideChevron>
+    <SectionCard
+      title={title}
+      hideChevron
+      titleAddon={
+        <AiTriggerIcon
+          tooltip={`Analyze ${title.toLowerCase()}`}
+          signalLabel={`Analyze ${title}`}
+          sectionId="history"
+          size={12}
+        />
+      }
+    >
       <div className="bg-white px-[12px] py-[12px] flex flex-col gap-[10px]">
         {items.map((item) => (
           <div key={`${title}-${item.name}`}>

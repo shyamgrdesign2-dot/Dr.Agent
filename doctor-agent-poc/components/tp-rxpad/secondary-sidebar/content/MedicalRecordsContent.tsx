@@ -5,6 +5,7 @@
 import React, { useState } from "react";
 import { Eye, EyeSlash, Import, NoteText, Trash } from "iconsax-reactjs";
 import { MoreVertical } from "lucide-react";
+import { AiTriggerIcon } from "@/components/tp-rxpad/dr-agent/shared/AiTriggerIcon";
 
 import {
   DropdownMenu,
@@ -129,7 +130,7 @@ function RecordCard({
   note: string;
 }) {
   return (
-    <div className="content-stretch flex flex-col items-start relative shrink-0 w-full overflow-hidden rounded-[10px] border border-tp-slate-100 bg-white">
+    <div className="group content-stretch flex flex-col items-start relative shrink-0 w-full overflow-hidden rounded-[10px] border border-tp-slate-100 bg-white">
       {/* Thumbnail */}
       <div className="h-[82px] relative rounded-tl-[10px] rounded-tr-[10px] shrink-0 w-full overflow-clip">
         <div
@@ -167,6 +168,14 @@ function RecordCard({
             <img alt="pathology report" className="absolute inset-0 object-cover w-full h-full opacity-80 blur-[0.65px]" src={imgImage} />
           </div>
         )}
+        {/* AI summarize icon — top-left of thumbnail, always visible */}
+        <div className="absolute left-[10px] top-[10px]">
+          <AiTriggerIcon
+            tooltip={`Summarize this ${label.toLowerCase()}`}
+            signalLabel={`Summarize uploaded document: ${label} (${date})`}
+            sectionId="medicalRecords"
+          />
+        </div>
         <Tooltip>
           <TooltipTrigger asChild>
             <button

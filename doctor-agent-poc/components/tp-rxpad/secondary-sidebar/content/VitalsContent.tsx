@@ -7,6 +7,7 @@ import clsx from "clsx";
 import { ArrowSquareDown, ArrowSquareUp } from "iconsax-reactjs";
 import { ActionButton, useStickyHeaderState } from "../detail-shared";
 import { tpSectionCardStyle } from "../tokens";
+import { AiTriggerIcon } from "../../dr-agent/shared/AiTriggerIcon";
 
 type VitalRow = {
   label: string;
@@ -114,7 +115,7 @@ function VitalsDateCard({
         ref={headerRef as React.Ref<HTMLButtonElement>}
         onClick={onToggle}
         className={clsx(
-          "bg-tp-slate-100 sticky top-0 z-[2] shrink-0 w-full text-left",
+          "group bg-tp-slate-100 sticky top-0 z-[2] shrink-0 w-full text-left",
           expanded
             ? isStuck
               ? "rounded-tl-none rounded-tr-none"
@@ -127,12 +128,23 @@ function VitalsDateCard({
             <p className="font-['Inter',sans-serif] font-semibold leading-[20px] not-italic text-tp-slate-700 text-[14px] tracking-[0.012px] whitespace-nowrap">
               {block.dateLabel}
             </p>
-            <div className="relative shrink-0 size-[18px]">
-              {expanded ? (
-                <ArrowSquareUp color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
-              ) : (
-                <ArrowSquareDown color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
-              )}
+            <div className="flex items-center gap-1.5">
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                <AiTriggerIcon
+                  tooltip="Analyze vitals"
+                  signalLabel={`Analyze vitals for ${block.dateLabel}`}
+                  sectionId="vitals"
+                  size={12}
+                  as="span"
+                />
+              </span>
+              <div className="relative shrink-0 size-[18px]">
+                {expanded ? (
+                  <ArrowSquareUp color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
+                ) : (
+                  <ArrowSquareDown color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
+                )}
+              </div>
             </div>
           </div>
         </div>

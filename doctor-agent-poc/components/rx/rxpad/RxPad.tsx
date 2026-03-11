@@ -7,8 +7,8 @@ import { RxPadFunctional } from "./RxPadFunctional"
  * The current implementation intentionally renders the exact reference UI
  * from the shared zip component. Functional behaviors will be layered later.
  */
-export function RxPad() {
+export function RxPad({ patientId }: { patientId?: string }) {
   return (
-    <RxPadFunctional />
+    <RxPadFunctional patientId={patientId} />
   )
 }

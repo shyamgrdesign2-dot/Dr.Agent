@@ -14,7 +14,7 @@ import {
   Setting2,
   User,
 } from "iconsax-reactjs"
-import { ArrowLeft, MoreVertical } from "lucide-react"
+import { ChevronLeft, MoreVertical } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import svgPaths from "./svg-gb0jbe9ifm";
 
@@ -22,9 +22,13 @@ type RxpadHeaderProps = {
   className?: string
   onBack?: () => void
   onVisitSummary?: () => void
+  patientName?: string
+  patientMeta?: string
 }
 
-export default function RxpadHeader({ className, onBack, onVisitSummary }: RxpadHeaderProps) {
+export default function RxpadHeader({ className, onBack, onVisitSummary, patientName, patientMeta }: RxpadHeaderProps) {
+  const displayName = patientName ?? "Shyam GR"
+  const metaParts = patientMeta?.split(",").map((s) => s.trim()) ?? ["Male", "25y"]
   const [isProfileOpen, setIsProfileOpen] = useState(false)
 
   return (
@@ -41,7 +45,7 @@ export default function RxpadHeader({ className, onBack, onVisitSummary }: Rxpad
             >
               <div aria-hidden="true" className="absolute border-[#f1f1f5] border-b-[0.5px] border-r-[0.5px] border-solid inset-[0_-0.25px_-0.25px_0] pointer-events-none" />
               <div className="relative shrink-0 size-[24px]" data-name="Back Arrow">
-                <ArrowLeft color="#454551" size={24} strokeWidth={1.5} />
+                <ChevronLeft color="#454551" size={24} strokeWidth={2} />
               </div>
             </button>
             <div className="content-stretch flex items-center min-h-px min-w-0 relative" data-name="User Info">
@@ -60,7 +64,7 @@ export default function RxpadHeader({ className, onBack, onVisitSummary }: Rxpad
                     <div className="content-stretch flex flex-col items-start relative shrink-0 min-w-0 w-[200px] max-w-[200px]" data-name="User Details">
                       <div className="content-stretch flex gap-[6px] items-center relative shrink-0 w-full" data-name="Header">
                         <p className="font-['Inter',sans-serif] font-semibold leading-[normal] max-w-[150px] min-w-0 truncate not-italic relative shrink text-tp-slate-700 text-[14px]">
-                          Shyam GR
+                          {displayName}
                         </p>
                         <div className="relative shrink-0 size-[18px]" data-name="Dropdown Icon">
                           <ArrowDown2
@@ -76,9 +80,9 @@ export default function RxpadHeader({ className, onBack, onVisitSummary }: Rxpad
                         className="content-stretch flex items-start leading-[18px] relative shrink-0 text-[12px] tracking-[0.1px] w-full font-['Inter',sans-serif] font-medium text-tp-slate-600"
                         data-name="Age & gender"
                       >
-                        <p className="relative shrink-0 whitespace-nowrap">Male</p>
+                        <p className="relative shrink-0 whitespace-nowrap">{metaParts[0] ?? "Male"}</p>
                         <p className="relative shrink-0 text-tp-slate-300 text-center w-[8px]">|</p>
-                        <p className="relative shrink-0 whitespace-nowrap">25y</p>
+                        <p className="relative shrink-0 whitespace-nowrap">{metaParts[1] ?? "25y"}</p>
                       </div>
                     </div>
                   </button>

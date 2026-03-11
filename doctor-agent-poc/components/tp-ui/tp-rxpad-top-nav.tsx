@@ -8,8 +8,10 @@ export interface TPRxPadTopNavProps {
   className?: string
   onBack?: () => void
   onVisitSummary?: () => void
+  patientName?: string
+  patientMeta?: string
 }
 
-export function TPRxPadTopNav({ className, onBack, onVisitSummary }: TPRxPadTopNavProps) {
-  return <RxpadHeader className={className} onBack={onBack} onVisitSummary={onVisitSummary} />
+export function TPRxPadTopNav({ className, onBack, onVisitSummary, patientName, patientMeta }: TPRxPadTopNavProps) {
+  return <RxpadHeader className={className} onBack={onBack} onVisitSummary={onVisitSummary} patientName={patientName} patientMeta={patientMeta} />
 }

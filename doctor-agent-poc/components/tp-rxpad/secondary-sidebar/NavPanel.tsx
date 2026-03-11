@@ -287,8 +287,7 @@ export function NavPanel({ active, onSelect }: Props) {
         className="content-stretch flex flex-col gap-[4px] h-full items-center overflow-x-visible overflow-y-auto relative [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         style={{ ...NAV_BG, width: rxSidebarTokens.railWidth }}
       >
-        <DrAgentItem active={active === "drAgent"} onClick={() => onSelect("drAgent")} />
-        <NavDivider />
+        {/* Dr.Agent removed from sidebar nav — lives only in its own panel */}
 
         {NAV_ITEMS.map(({ id, label, icon }) => (
           <NavItem

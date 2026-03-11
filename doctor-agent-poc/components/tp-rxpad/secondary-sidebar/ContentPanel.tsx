@@ -3,11 +3,11 @@
  * Contains a gradient section header + the scrollable section content.
  */
 import React from "react";
-import svgPaths from "./imports/svg-g7iuydxwol";
+import { SidebarLeft } from "iconsax-reactjs";
 
 // ─── Content imports ──────────────────────────────────────────────────────────
 
-import { DrAgentContent }          from "./content/DrAgentContent";
+// DrAgentContent removed — Dr.Agent lives in its own panel, not in the sidebar
 import { PastVisitsContent }        from "./content/PastVisitsContent";
 import { VitalsContent }            from "./content/VitalsContent";
 import { HistoryContent }           from "./content/HistoryContent";
@@ -56,38 +56,14 @@ function SectionHeader({ title, onClose }: { title: string; onClose?: () => void
             {title}
           </p>
         </div>
-        {/* Filter / settings icon */}
+        {/* Collapse icon */}
         <button
           type="button"
-          className="relative shrink-0 rounded-[4px] transition-opacity hover:opacity-80"
+          className="text-white/80 transition-opacity hover:text-white"
           onClick={onClose}
           aria-label="Collapse section panel"
         >
-          <div className="content-stretch flex flex-col items-start p-[3.36px] relative">
-            <div className="overflow-clip relative shrink-0 size-[17.28px]">
-              <div className="absolute inset-[12.5%]">
-                <div className="absolute inset-[-5.56%]">
-                  <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.4 14.4">
-                    <path d={svgPaths.p3558c040} stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.8" strokeWidth="1.44" />
-                  </svg>
-                </div>
-              </div>
-              <div className="absolute inset-[12.5%_62.5%_12.5%_37.5%]">
-                <div className="absolute inset-[-5.56%_-0.72px]">
-                  <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 1.44 14.4">
-                    <path d="M0.72 0.72V13.68" stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.8" strokeWidth="1.44" />
-                  </svg>
-                </div>
-              </div>
-              <div className="absolute inset-[37.5%_33.33%_37.5%_54.17%]">
-                <div className="absolute inset-[-16.67%_-33.33%]">
-                  <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 3.6 5.76">
-                    <path d={svgPaths.pcf85200} stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.8" strokeWidth="1.44" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
+          <SidebarLeft size={16} variant="Linear" />
         </button>
       </div>
     </div>
@@ -98,7 +74,7 @@ function SectionHeader({ title, onClose }: { title: string; onClose?: () => void
 
 function SectionContent({ activeId }: { activeId: NavItemId }) {
   switch (activeId) {
-    case "drAgent":        return <DrAgentContent />;
+    // drAgent no longer in sidebar — falls through to pastVisits
     case "pastVisits":     return <PastVisitsContent />;
     case "vitals":         return <VitalsContent />;
     case "history":        return <HistoryContent />;
@@ -132,8 +108,8 @@ export function ContentPanel({ activeId, onClose }: Props) {
           <div className="flex-1 overflow-y-auto">
             <SectionContent activeId={activeId} />
           </div>
-          {/* Pill bar at bottom — not shown for drAgent (has its own pills) */}
-          {activeId !== "drAgent" && <SidebarPillBar sectionId={activeId} />}
+          {/* Pill bar at bottom of every content panel */}
+          <SidebarPillBar sectionId={activeId} />
         </div>
       </div>
     </div>

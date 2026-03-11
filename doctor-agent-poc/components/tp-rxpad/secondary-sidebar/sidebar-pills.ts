@@ -1,7 +1,10 @@
 /**
  * Per-tab pill mapping for sidebar content panels.
- * Each sidebar tab gets 2–4 contextual pills at its bottom.
- * Pill taps switch to Dr.Agent tab and inject the pill label as a user message.
+ * Each sidebar tab gets 4–5 contextual pills at its bottom.
+ * Pill taps switch to Dr.Agent panel and inject the pill label as a user message.
+ *
+ * IMPORTANT: Labels must match keywords in reply-engine.ts so that clicking
+ * a pill produces an actual card response in the Dr. Agent panel.
  */
 
 export interface SidebarPill {
@@ -14,57 +17,69 @@ export interface SidebarPill {
 
 export const SIDEBAR_TAB_PILLS: Record<string, SidebarPill[]> = {
   pastVisits: [
-    { id: "pv-last", label: "Last visit", icon: "📋" },
-    { id: "pv-compare", label: "Compare visits", icon: "🔄" },
-    { id: "pv-timeline", label: "Treatment timeline", icon: "📊" },
+    { id: "pv-last", label: "Last visit details", icon: "spark" },
+    { id: "pv-compare", label: "Compare with last visit", icon: "spark" },
+    { id: "pv-summary", label: "Patient summary", icon: "spark" },
+    { id: "pv-meds", label: "Protocol meds", icon: "spark" },
   ],
   vitals: [
-    { id: "vt-trends", label: "Vital trends", icon: "📈" },
-    { id: "vt-flags", label: "Flag abnormals", icon: "⚠" },
-    { id: "vt-compare", label: "Compare visits", icon: "📊" },
+    { id: "vt-trends", label: "Vital trends", icon: "spark" },
+    { id: "vt-spo2", label: "Review SpO\u2082", icon: "spark" },
+    { id: "vt-bp", label: "BP needs attention", icon: "spark" },
+    { id: "vt-compare", label: "Compare with last visit", icon: "spark" },
   ],
   history: [
-    { id: "hx-full", label: "Full history", icon: "📋" },
-    { id: "hx-meds", label: "Chronic meds", icon: "💊" },
-    { id: "hx-allergies", label: "Allergies", icon: "⚠" },
+    { id: "hx-summary", label: "Patient summary", icon: "spark" },
+    { id: "hx-allergies", label: "Allergy Alert", icon: "spark" },
+    { id: "hx-meds", label: "Check interactions", icon: "spark" },
+    { id: "hx-ddx", label: "Suggest DDX", icon: "spark" },
   ],
   labResults: [
-    { id: "lb-panel", label: "Full panel", icon: "📊" },
-    { id: "lb-flagged", label: "Flagged values", icon: "⚠" },
-    { id: "lb-trends", label: "Lab trends", icon: "📈" },
+    { id: "lb-flagged", label: "Labs flagged", icon: "spark" },
+    { id: "lb-trends", label: "HbA1c trend", icon: "spark" },
+    { id: "lb-compare", label: "Lab comparison", icon: "spark" },
+    { id: "lb-investigate", label: "Suggest investigations", icon: "spark" },
   ],
   medicalRecords: [
-    { id: "mr-latest", label: "Latest report", icon: "📄" },
-    { id: "mr-summary", label: "Pathology summary", icon: "📊" },
-    { id: "mr-upload", label: "Upload report", icon: "📎" },
+    { id: "mr-summary", label: "Patient summary", icon: "spark" },
+    { id: "mr-labs", label: "Labs flagged", icon: "spark" },
+    { id: "mr-last", label: "Last visit details", icon: "spark" },
+    { id: "mr-upload", label: "Upload document", icon: "spark" },
   ],
   obstetric: [
-    { id: "ob-summary", label: "OB summary", icon: "🤰" },
-    { id: "ob-edd", label: "EDD calculator", icon: "📅" },
-    { id: "ob-vaccines", label: "ANC vaccines", icon: "💉" },
+    { id: "ob-summary", label: "Obstetric summary", icon: "spark" },
+    { id: "ob-vitals", label: "Vital trends", icon: "spark" },
+    { id: "ob-investigate", label: "Suggest investigations", icon: "spark" },
+    { id: "ob-followup", label: "Plan follow-up", icon: "spark" },
   ],
   gynec: [
-    { id: "gn-summary", label: "Gynec summary", icon: "📋" },
-    { id: "gn-cycle", label: "Cycle pattern", icon: "📊" },
-    { id: "gn-lmp", label: "LMP tracking", icon: "📅" },
+    { id: "gn-summary", label: "Gynec summary", icon: "spark" },
+    { id: "gn-labs", label: "Labs flagged", icon: "spark" },
+    { id: "gn-investigate", label: "Suggest investigations", icon: "spark" },
+    { id: "gn-followup", label: "Plan follow-up", icon: "spark" },
   ],
   vaccine: [
-    { id: "vc-pending", label: "Pending vaccines", icon: "💉" },
-    { id: "vc-overdue", label: "Overdue doses", icon: "⏰" },
-    { id: "vc-schedule", label: "Full schedule", icon: "📋" },
+    { id: "vc-growth", label: "Growth & vaccines", icon: "spark" },
+    { id: "vc-summary", label: "Patient summary", icon: "spark" },
+    { id: "vc-followup", label: "Plan follow-up", icon: "spark" },
+    { id: "vc-advice", label: "Generate advice", icon: "spark" },
   ],
   growth: [
-    { id: "gr-chart", label: "Growth chart", icon: "📊" },
-    { id: "gr-weight", label: "Weight trend", icon: "📈" },
-    { id: "gr-milestones", label: "Milestones", icon: "📋" },
+    { id: "gr-summary", label: "Growth & vaccines", icon: "spark" },
+    { id: "gr-vitals", label: "Vital trends", icon: "spark" },
+    { id: "gr-advice", label: "Generate advice", icon: "spark" },
+    { id: "gr-followup", label: "Plan follow-up", icon: "spark" },
   ],
   ophthal: [
-    { id: "op-va", label: "VA comparison", icon: "👁" },
-    { id: "op-iop", label: "IOP trend", icon: "📊" },
-    { id: "op-fundus", label: "Fundus summary", icon: "📋" },
+    { id: "op-summary", label: "Vision summary", icon: "spark" },
+    { id: "op-vitals", label: "Vital trends", icon: "spark" },
+    { id: "op-investigate", label: "Suggest investigations", icon: "spark" },
+    { id: "op-followup", label: "Plan follow-up", icon: "spark" },
   ],
   personalNotes: [
-    { id: "pn-latest", label: "Latest notes", icon: "📝" },
-    { id: "pn-summary", label: "Summarize notes", icon: "📋" },
+    { id: "pn-summary", label: "Patient summary", icon: "spark" },
+    { id: "pn-completeness", label: "Completeness check", icon: "spark" },
+    { id: "pn-advice", label: "Generate advice", icon: "spark" },
+    { id: "pn-translate", label: "Translate advice", icon: "spark" },
   ],
 }

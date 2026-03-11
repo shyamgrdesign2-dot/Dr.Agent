@@ -16,7 +16,7 @@ import {
   Syringe,
 } from "lucide-react"
 
-import { AppointmentBanner } from "@/components/appointments/AppointmentBanner"
+import { AppointmentBanner } from "@/components/tp-ui/appointment-banner"
 import { AiBrandSparkIcon, AI_GRADIENT_SOFT } from "@/components/doctor-agent/ai-brand"
 import { PatientDetailAgentPanel } from "@/components/patient-details/PatientDetailAgentPanel"
 import { TPButton as Button } from "@/components/tp-ui/button-system"

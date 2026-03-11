@@ -17,21 +17,30 @@ import {
   MessageProgramming,
   Messages2,
   Notification,
+  Printer,
   Profile2User,
+  InfoCircle,
   Timer,
   ReceiptText,
   SearchNormal1,
   Shop,
   TickCircle,
   Video,
+  VideoCircle,
 } from "iconsax-reactjs"
 import { Check, ChevronDown, ListFilter, Mic, MoreVertical, Plus, Search, SendHorizontal, ShieldCheck, Star, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { TPButton as Button, TPSplitButton } from "@/components/tp-ui/button-system"
-import { TPSecondaryNavPanel, type TPSecondaryNavItem, TPTag } from "@/components/tp-ui"
-import { AppointmentBanner } from "@/components/appointments/AppointmentBanner"
+import { TPButton as Button, TPIconButton, TPSplitButton } from "@/components/tp-ui/button-system"
+import { TPSecondaryNavPanel, type TPSecondaryNavItem, TPTag, TPMedicalIcon } from "@/components/tp-ui"
+import { AppointmentBanner } from "@/components/tp-ui/appointment-banner"
 import { AiBrandSparkIcon, AI_GRADIENT_SOFT } from "@/components/doctor-agent/ai-brand"
+import { AiPatientTooltip } from "./AiPatientTooltip"
+import { PATIENT_TOOLTIP_SUMMARIES } from "@/components/tp-rxpad/dr-agent/mock-data"
+import { DrAgentPanel } from "@/components/tp-rxpad/dr-agent/DrAgentPanel"
+import { DrAgentFab } from "@/components/tp-rxpad/dr-agent/shell/DrAgentFab"
+import type { RxContextOption } from "@/components/tp-rxpad/dr-agent/types"
+import { RX_CONTEXT_OPTIONS } from "@/components/tp-rxpad/dr-agent/constants"
 import {
   type AgentChatMessage,
   type AgentDynamicOutput,
@@ -52,7 +61,7 @@ type AppointmentStatus =
   | "draft"
   | "pending-digitisation"
 
-type BadgeTone = "warning" | "success"
+type BadgeTone = "warning" | "success" | "info" | "danger"
 type DateRangeKey = "today" | "yesterday" | "past-3-months" | "past-4-months"
 
 interface AppointmentTab {
@@ -81,6 +90,15 @@ interface AppointmentRow {
   status: AppointmentStatus
   dateKey: DateRangeKey
   starred?: boolean
+  hasSymptoms?: boolean
+  // Finished tab data
+  finishedData?: { symptoms: string; diagnosis: string; medication: string; investigations: string; followUp?: string; completedAt: string }
+  // Cancelled tab data
+  cancelReason?: string; cancelledAt?: string; cancelNotes?: string
+  // Draft tab data
+  draftStatus?: { symptoms: boolean; diagnosis: boolean; medCount: number; advice: boolean; investigations: boolean; followUp: boolean; lastModified: string }
+  // Pending Discharge data
+  dischargeData?: { admittedDate: string; ward: string; bed: string; currentStatus: string; pending: { dischargeSummary: boolean; billing: boolean; pendingLabs?: string; notes?: string } }
 }
 
 interface AgentContextOption {
@@ -122,14 +140,14 @@ const navItems: TPSecondaryNavItem[] = [
 ]
 
 const appointmentTabs: AppointmentTab[] = [
-  { id: "queue", label: "Queue", count: 20, icon: Clock },
-  { id: "finished", label: "Finished", count: 0, icon: ClipboardTick },
-  { id: "cancelled", label: "Cancelled", count: 0, icon: ClipboardClose },
-  { id: "draft", label: "Draft", count: 0, icon: Timer },
+  { id: "queue", label: "Queue", count: 8, icon: Clock },
+  { id: "finished", label: "Finished", count: 3, icon: ClipboardTick },
+  { id: "cancelled", label: "Cancelled", count: 2, icon: ClipboardClose },
+  { id: "draft", label: "Draft", count: 2, icon: Timer },
   {
     id: "pending-digitisation",
     label: "Pending Digitisation",
-    count: 0,
+    count: 2,
     icon: DocumentSketch,
   },
 ]
@@ -137,91 +155,274 @@ const appointmentTabs: AppointmentTab[] = [
 
 const queueAppointments: AppointmentRow[] = [
   {
-    id: "apt-1",
+    id: "apt-zerodata",
     serial: 1,
-    name: "Shyam GR",
+    name: "Ramesh M",
     gender: "M",
     age: 35,
+    contact: "+91-9812700001",
+    visitType: "Walk-in",
+    visitBadge: { text: "New", tone: "info" },
+    slotTime: "10:15 am",
+    slotDate: "9 Mar'26",
+    hasVideo: false,
+    status: "queue",
+    dateKey: "today",
+    hasSymptoms: true,
+  },
+  {
+    id: "apt-neha",
+    serial: 2,
+    name: "Neha Gupta",
+    gender: "F",
+    age: 32,
+    contact: "+91-9876501234",
+    visitType: "Follow-up",
+    visitBadge: { text: "Overdue", tone: "warning" },
+    slotTime: "10:20 am",
+    slotDate: "9 Mar'26",
+    hasVideo: true,
+    status: "queue",
+    dateKey: "today",
+    // No hasSymptoms — patient did NOT fill symptom collector
+  },
+  {
+    id: "__patient__",
+    serial: 3,
+    name: "Shyam GR",
+    gender: "M",
+    age: 25,
     contact: "+91-9812734567",
     visitType: "Follow-up",
     visitBadge: { text: "Unfulfilled", tone: "warning" },
     slotTime: "10:30 am",
-    slotDate: "9th Oct 2024",
+    slotDate: "9 Mar'26",
     hasVideo: true,
     status: "queue",
     dateKey: "today",
+    hasSymptoms: true,
   },
   {
-    id: "apt-2",
-    serial: 2,
-    name: "Sita Menon",
-    gender: "F",
-    age: 30,
-    contact: "+91-9988776655",
-    contactBadge: "IPD",
-    visitType: "New",
-    slotTime: "10:35 am",
-    slotDate: "8th Oct 2024",
-    hasVideo: true,
-    status: "queue",
-    dateKey: "yesterday",
-    starred: true,
-  },
-  {
-    id: "apt-3",
-    serial: 3,
-    name: "Vikram Singh",
-    gender: "M",
-    age: 42,
-    contact: "+91-9001234567",
-    visitType: "New",
-    slotTime: "10:40 am",
-    slotDate: "12th Sep 2024",
-    hasVideo: true,
-    status: "queue",
-    dateKey: "past-3-months",
-  },
-  {
-    id: "apt-4",
+    id: "apt-anjali",
     serial: 4,
-    name: "Nisha Rao",
-    gender: "F",
-    age: 26,
-    contact: "+91-9876543210",
-    visitType: "Routine",
-    slotTime: "10:45 am",
-    slotDate: "18th Aug 2024",
-    hasVideo: true,
-    status: "queue",
-    dateKey: "past-4-months",
-  },
-  {
-    id: "apt-5",
-    serial: 5,
-    name: "Rahul Verma",
-    gender: "M",
-    age: 50,
-    contact: "+91-9123456789",
-    visitType: "Follow-up",
-    slotTime: "10:50 am",
-    slotDate: "2nd Jul 2024",
-    hasVideo: false,
-    status: "queue",
-    dateKey: "past-4-months",
-  },
-  {
-    id: "apt-6",
-    serial: 6,
     name: "Anjali Patel",
     gender: "F",
     age: 28,
     contact: "+91-9988771122",
     visitType: "New",
-    slotTime: "10:55 am",
-    slotDate: "9th Oct 2024",
+    slotTime: "10:45 am",
+    slotDate: "9 Mar'26",
     hasVideo: true,
     status: "queue",
     dateKey: "today",
+    hasSymptoms: true,
+  },
+  {
+    id: "apt-vikram",
+    serial: 5,
+    name: "Vikram Singh",
+    gender: "M",
+    age: 42,
+    contact: "+91-9001234567",
+    visitType: "Follow-up",
+    visitBadge: { text: "Overdue", tone: "danger" },
+    slotTime: "11:00 am",
+    slotDate: "9 Mar'26",
+    hasVideo: true,
+    status: "queue",
+    dateKey: "today",
+    hasSymptoms: true,
+  },
+  {
+    id: "apt-priya",
+    serial: 6,
+    name: "Priya Rao",
+    gender: "F",
+    age: 26,
+    contact: "+91-9876543210",
+    visitType: "Routine",
+    slotTime: "11:15 am",
+    slotDate: "9 Mar'26",
+    hasVideo: true,
+    status: "queue",
+    dateKey: "today",
+    hasSymptoms: true,
+  },
+  {
+    id: "apt-arjun",
+    serial: 7,
+    name: "Arjun S",
+    gender: "M",
+    age: 4,
+    contact: "+91-9123456789",
+    visitType: "Follow-up",
+    slotTime: "11:30 am",
+    slotDate: "9 Mar'26",
+    hasVideo: false,
+    status: "queue",
+    dateKey: "today",
+    hasSymptoms: true,
+  },
+  {
+    id: "apt-lakshmi",
+    serial: 8,
+    name: "Lakshmi K",
+    gender: "F",
+    age: 45,
+    contact: "+91-9988776655",
+    visitType: "Follow-up",
+    slotTime: "11:45 am",
+    slotDate: "9 Mar'26",
+    hasVideo: true,
+    status: "queue",
+    dateKey: "today",
+    starred: true,
+    hasSymptoms: true,
+  },
+  // ── Finished patients ──────────────────────────────────────────
+  {
+    id: "fin-meera",
+    serial: 8,
+    name: "Meera Nair",
+    gender: "F",
+    age: 38,
+    contact: "+91-9811223344",
+    visitType: "Follow-up",
+    slotTime: "9:30 am",
+    slotDate: "9 Mar'26",
+    hasVideo: false,
+    status: "finished",
+    dateKey: "today",
+    finishedData: { symptoms: "Persistent cough 2wk, mild fever", diagnosis: "Acute Bronchitis", medication: "Azithromycin 500mg, Levocetrizine 5mg", investigations: "Chest X-ray", followUp: "16 Mar'26", completedAt: "10:05 am" },
+  },
+  {
+    id: "fin-suresh",
+    serial: 9,
+    name: "Suresh Kumar",
+    gender: "M",
+    age: 52,
+    contact: "+91-9900112233",
+    visitType: "Follow-up",
+    visitBadge: { text: "DM+HTN", tone: "warning" },
+    slotTime: "9:00 am",
+    slotDate: "9 Mar'26",
+    hasVideo: true,
+    status: "finished",
+    dateKey: "today",
+    finishedData: { symptoms: "Routine DM+HTN review", diagnosis: "Type 2 DM (controlled), Essential HTN", medication: "Metformin 500mg BD, Telma 40mg OD", investigations: "HbA1c, Lipid panel", followUp: "9 Apr'26", completedAt: "9:40 am" },
+  },
+  {
+    id: "fin-deepa",
+    serial: 10,
+    name: "Deepa Verma",
+    gender: "F",
+    age: 30,
+    contact: "+91-9876001122",
+    visitType: "New",
+    slotTime: "9:45 am",
+    slotDate: "9 Mar'26",
+    hasVideo: false,
+    status: "finished",
+    dateKey: "today",
+    finishedData: { symptoms: "Sore throat 3d, nasal congestion", diagnosis: "Acute pharyngitis", medication: "Paracetamol 500mg, Cetirizine 10mg", investigations: "None", completedAt: "10:15 am" },
+  },
+  // ── Cancelled patients ─────────────────────────────────────────
+  {
+    id: "can-rohit",
+    serial: 11,
+    name: "Rohit Pandey",
+    gender: "M",
+    age: 45,
+    contact: "+91-9811556677",
+    visitType: "Follow-up",
+    slotTime: "11:00 am",
+    slotDate: "9 Mar'26",
+    hasVideo: false,
+    status: "cancelled",
+    dateKey: "today",
+    cancelReason: "Patient called — couldn't make it due to work",
+    cancelledAt: "10:15 am",
+    cancelNotes: "Rescheduled for 12 Mar'26",
+  },
+  {
+    id: "can-kavitha",
+    serial: 12,
+    name: "Kavitha M",
+    gender: "F",
+    age: 33,
+    contact: "+91-9900998877",
+    visitType: "New",
+    slotTime: "2:30 pm",
+    slotDate: "9 Mar'26",
+    hasVideo: true,
+    status: "cancelled",
+    dateKey: "today",
+    cancelledAt: "2:00 pm",
+  },
+  // ── Draft patients ─────────────────────────────────────────────
+  {
+    id: "dft-amit",
+    serial: 13,
+    name: "Amit Gupta",
+    gender: "M",
+    age: 50,
+    contact: "+91-9812345678",
+    visitType: "Follow-up",
+    visitBadge: { text: "Partial", tone: "warning" },
+    slotTime: "1:15 pm",
+    slotDate: "9 Mar'26",
+    hasVideo: false,
+    status: "draft",
+    dateKey: "today",
+    draftStatus: { symptoms: true, diagnosis: true, medCount: 2, advice: false, investigations: false, followUp: false, lastModified: "1:45 pm" },
+  },
+  {
+    id: "dft-nisha",
+    serial: 14,
+    name: "Nisha Reddy",
+    gender: "F",
+    age: 22,
+    contact: "+91-9801234567",
+    visitType: "New",
+    slotTime: "3:00 pm",
+    slotDate: "9 Mar'26",
+    hasVideo: true,
+    status: "draft",
+    dateKey: "today",
+    draftStatus: { symptoms: false, diagnosis: false, medCount: 0, advice: false, investigations: false, followUp: false, lastModified: "2:55 pm" },
+  },
+  // ── Pending Digitisation (Discharge) patients ──────────────────
+  {
+    id: "pd-rajesh",
+    serial: 15,
+    name: "Rajesh Menon",
+    gender: "M",
+    age: 62,
+    contact: "+91-9811667788",
+    visitType: "Inpatient",
+    visitBadge: { text: "IPD", tone: "info" },
+    slotTime: "—",
+    slotDate: "6 Mar'26",
+    hasVideo: false,
+    status: "pending-digitisation",
+    dateKey: "past-3-months",
+    dischargeData: { admittedDate: "6 Mar'26", ward: "General Ward", bed: "Bed #12", currentStatus: "Stable, improving", pending: { dischargeSummary: false, billing: false, pendingLabs: "Blood culture (due 11 Mar)", notes: undefined } },
+  },
+  {
+    id: "pd-sanjana",
+    serial: 16,
+    name: "Sanjana Vaidya",
+    gender: "F",
+    age: 45,
+    contact: "+91-9900776655",
+    visitType: "Inpatient",
+    visitBadge: { text: "Ready", tone: "success" },
+    slotTime: "—",
+    slotDate: "4 Mar'26",
+    hasVideo: false,
+    status: "pending-digitisation",
+    dateKey: "past-3-months",
+    dischargeData: { admittedDate: "4 Mar'26", ward: "General Ward", bed: "Bed #8", currentStatus: "Stable", pending: { dischargeSummary: true, billing: true, notes: "Ready for discharge — pending physician sign-off" } },
   },
 ]
 
@@ -448,7 +649,7 @@ export function DrAgentPage() {
   const [activeTab, setActiveTab] = useState<AppointmentStatus>("queue")
   const [query, setQuery] = useState("")
   const [tabDateFilters, setTabDateFilters] = useState<Partial<Record<AppointmentStatus, DatePresetId>>>({})
-  const dateFilter = tabDateFilters[activeTab] ?? "today"
+  const dateFilter = tabDateFilters[activeTab] ?? (activeTab === "pending-digitisation" ? "past-3-months" : "today")
   function setDateFilter(id: DatePresetId) {
     setTabDateFilters((prev) => ({ ...prev, [activeTab]: id }))
   }
@@ -480,6 +681,27 @@ export function DrAgentPage() {
     () => queueAppointments.filter((row) => row.status === "queue"),
     [],
   )
+
+  // Build patient options for the Dr. Agent panel patient selector
+  // Merge queue appointments + registered patients without appointments
+  const homepagePatientOptions = useMemo<RxContextOption[]>(() => {
+    const queuePatients = queueAppointments
+      .filter((row) => row.status === "queue")
+      .map((row) => ({
+        id: row.id,
+        label: row.name,
+        meta: `${row.gender}, ${row.age}y · ${row.visitType} · ${row.slotTime}`,
+        kind: "patient" as const,
+        isToday: row.dateKey === "today",
+        gender: row.gender as "M" | "F",
+        age: row.age,
+      }))
+    const queueIds = new Set(queuePatients.map((p) => p.id))
+    // Add registered patients not in queue (from RX_CONTEXT_OPTIONS)
+    const registeredOnly = RX_CONTEXT_OPTIONS.filter((p) => !queueIds.has(p.id) && !p.isToday)
+    return [...queuePatients, ...registeredOnly]
+  }, [])
+
   const [isAgentWindowOpen, setIsAgentWindowOpen] = useState(false)
   const [selectedChatPatientId, setSelectedChatPatientId] = useState(CONTEXT_COMMON_ID)
   const [chatInput, setChatInput] = useState("")
@@ -596,11 +818,12 @@ export function DrAgentPage() {
     return rows
   }, [activeTab, dateFilter, query, slotSort, slotConsult, vtFilter])
 
-  // Calculate counts for each tab
+  // Calculate counts for each tab (use each tab's own default date filter)
   const getTabCount = (tabId: AppointmentStatus) => {
+    const tabFilter = tabDateFilters[tabId] ?? (tabId === "pending-digitisation" ? "past-3-months" : "today")
     return queueAppointments.filter((row) => {
       const tabMatch = row.status === tabId
-      const dateMatch = matchesDateFilter(row.dateKey, dateFilter)
+      const dateMatch = matchesDateFilter(row.dateKey, tabFilter)
       const slotMatch = slotConsult === "all" ? true
         : slotConsult === "video" ? row.hasVideo : !row.hasVideo
       const vtMatch = vtFilter.length === 0 ? true : vtFilter.includes(row.visitType)
@@ -615,8 +838,9 @@ export function DrAgentPage() {
     }).length
   }
 
-  function openTypeRx() {
-    router.push("/Rxpad")
+  function openTypeRx(patientId?: string) {
+    const url = patientId ? `/Rxpad?patientId=${encodeURIComponent(patientId)}` : "/Rxpad"
+    router.push(url)
   }
 
   function openPatientDetails(row: AppointmentRow, from: "appointments" | "rxpad" = "appointments") {
@@ -687,7 +911,9 @@ export function DrAgentPage() {
           <TPSecondaryNavPanel
             items={navItems}
             activeId={activeRailItem}
-            onSelect={setActiveRailItem}
+            onSelect={(id) => {
+              setActiveRailItem(id)
+            }}
             variant="primary"
             height="100%"
             bottomSpacerPx={96}
@@ -915,23 +1141,23 @@ export function DrAgentPage() {
                     ref={tableOverflowRef}
                     className="flex-1 min-h-0 overflow-auto px-3 pb-4 sm:px-4 lg:px-[18px]"
                   >
-                    <div className="min-w-[920px] pt-1">
+                    <div className="pt-1">
                       <table className="w-full border-collapse">
                         <thead>
                           <tr className="rounded-[12px] bg-tp-slate-100">
-                            <th className="rounded-l-[12px] px-3 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700 min-w-[40px] max-w-[56px] w-[48px]">
+                            <th className="rounded-l-[12px] px-3 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700 w-[48px]">
                               #
                             </th>
-                            <th className="px-3 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700 min-w-[140px] max-w-[220px]">
+                            <th className="px-3 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700 min-w-[160px]">
                               Name
                             </th>
-                            <th className="px-3 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700 min-w-[140px] max-w-[200px]">
+                            <th className="px-3 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700 min-w-[155px]">
                               Contact
                             </th>
-                            <th className="px-3 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700 min-w-[110px] max-w-[180px]">
+                            <th className="px-3 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700 min-w-[120px]">
                               Visit Type
                             </th>
-                            <th className="px-3 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700 min-w-[110px] max-w-[160px]">
+                            <th className="px-3 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700 min-w-[120px]">
                               <button
                                 type="button"
                                 onClick={() => setSlotSort((s) => s === "none" ? "asc" : s === "asc" ? "desc" : "none")}
@@ -945,8 +1171,9 @@ export function DrAgentPage() {
                               </button>
                             </th>
                             <th className={cn(
-                              "sticky right-0 z-20 w-px rounded-r-[12px] bg-tp-slate-100 px-3 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700 xl:static",
-                              isTableScrolled && "shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.10)]",
+                              "sticky right-0 z-20 w-[1%] whitespace-nowrap rounded-r-[12px] bg-tp-slate-100 pl-3 pr-2 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700",
+                              "shadow-[-6px_0_12px_-4px_rgba(0,0,0,0.06)]",
+                              isTableScrolled && "shadow-[-6px_0_14px_-2px_rgba(0,0,0,0.12)]",
                             )}>
                               Action
                             </th>
@@ -991,12 +1218,12 @@ export function DrAgentPage() {
                                 key={row.id}
                                 className="h-16 border-b border-tp-slate-100 last:border-b-0 hover:bg-tp-slate-50/50"
                               >
-                                <td className="px-3 py-3 text-sm text-tp-slate-700">
+                                <td className="w-[48px] px-3 py-3 text-sm text-tp-slate-700">
                                   {index + 1}
                                 </td>
 
                                 <td className="px-3 py-3 align-middle">
-                                  <div className="max-w-[200px] overflow-hidden">
+                                  <div className="overflow-hidden">
                                     <button
                                       type="button"
                                       onClick={() => openPatientDetails(row)}
@@ -1020,8 +1247,8 @@ export function DrAgentPage() {
                                 </td>
 
                                 <td className="px-3 py-3 align-middle">
-                                  <div className="max-w-[180px] overflow-hidden">
-                                    <span className="block truncate text-sm text-tp-slate-700">
+                                  <div className="overflow-hidden">
+                                    <span className="block whitespace-nowrap text-sm text-tp-slate-700">
                                       {row.contact}
                                     </span>
                                     {row.contactBadge && (
@@ -1039,13 +1266,20 @@ export function DrAgentPage() {
                                 </td>
 
                                 <td className="px-3 py-3 align-middle text-sm text-tp-slate-700">
-                                  <div className="max-w-[160px] overflow-hidden">
-                                    <span className="truncate block">{row.visitType}</span>
+                                  <div className="overflow-hidden">
+                                    <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                                      {row.visitType}
+                                      {row.hasSymptoms && (
+                                        <SymptomTooltip onClick={() => openAgentForPatient(row)}>
+                                          <TPMedicalIcon name="virus" variant="bulk" size={13} color="var(--tp-success-500)" />
+                                        </SymptomTooltip>
+                                      )}
+                                    </span>
                                     {row.visitBadge && (
                                       <div className="mt-1">
                                         <TPTag
-                                          color={row.visitBadge.tone === "warning" ? "warning" : "success"}
-                                          variant={row.visitBadge.tone === "warning" ? "light" : "light"}
+                                          color={row.visitBadge.tone === "danger" ? "error" : row.visitBadge.tone === "warning" ? "warning" : row.visitBadge.tone === "info" ? "blue" : "success"}
+                                          variant="light"
                                           size="sm"
                                         >
                                           {row.visitBadge.text}
@@ -1056,8 +1290,8 @@ export function DrAgentPage() {
                                 </td>
 
                                 <td className="px-3 py-3 align-middle">
-                                  <div className="max-w-[150px] overflow-hidden">
-                                    <div className="text-sm text-tp-slate-700">
+                                  <div className="overflow-hidden">
+                                    <div className="whitespace-nowrap text-sm text-tp-slate-700">
                                       <span className="inline-flex items-center gap-1">
                                         {row.slotTime}
                                         {row.hasVideo && (
@@ -1071,43 +1305,86 @@ export function DrAgentPage() {
                                         )}
                                       </span>
                                     </div>
-                                    <p className="mt-1 truncate text-xs text-tp-slate-600">
+                                    <p className="mt-1 whitespace-nowrap text-xs text-tp-slate-600">
                                       {row.slotDate}
                                     </p>
                                   </div>
                                 </td>
 
                                 <td className={cn(
-                                  "sticky right-0 z-10 w-px bg-white px-3 py-3 align-middle xl:static",
-                                  isTableScrolled && "shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.10)]",
+                                  "sticky right-0 z-10 w-[1%] whitespace-nowrap bg-white pl-3 pr-2 py-3 align-middle",
+                                  "shadow-[-6px_0_12px_-4px_rgba(0,0,0,0.06)]",
+                                  isTableScrolled && "shadow-[-6px_0_14px_-2px_rgba(0,0,0,0.12)]",
                                 )}>
                                   <div className="flex items-center gap-3 whitespace-nowrap">
-                                    <div className="transition-all hover:scale-105 duration-200">
-                                      <TPSplitButton
-                                        primaryAction={{
-                                          label: "TypeRx",
-                                          onClick: openTypeRx,
-                                        }}
-                                        secondaryActions={[
-                                          { id: "type-rx", label: "TypeRx", onClick: openTypeRx },
-                                        ]}
+                                    {/* Tab-specific CTA */}
+                                    {activeTab === "queue" && (
+                                      <div className="transition-all hover:scale-105 duration-200">
+                                        <TPSplitButton
+                                          primaryAction={{
+                                            label: "TypeRx",
+                                            onClick: () => openTypeRx(row.id),
+                                          }}
+                                          secondaryActions={[
+                                            { id: "type-rx", label: "TypeRx", onClick: () => openTypeRx(row.id) },
+                                            { id: "voice-rx", label: "VoiceRx", onClick: () => {} },
+                                            { id: "snap-rx", label: "SnapRx", onClick: () => {} },
+                                            { id: "smart-sync", label: "SmartSync", onClick: () => {} },
+                                            { id: "tab-rx", label: "TabRx", onClick: () => {} },
+                                          ]}
+                                          variant="outline"
+                                          theme="primary"
+                                          size="md"
+                                        />
+                                      </div>
+                                    )}
+                                    {activeTab === "finished" && (
+                                      <Button
                                         variant="outline"
                                         theme="primary"
                                         size="md"
-                                      />
-                                    </div>
+                                        leftIcon={<Printer size={16} variant="Bulk" />}
+                                        onClick={() => {}}
+                                      >
+                                        Print Rx
+                                      </Button>
+                                    )}
+                                    {activeTab === "draft" && (
+                                      <Button
+                                        variant="outline"
+                                        theme="primary"
+                                        size="md"
+                                        onClick={() => openTypeRx(row.id)}
+                                      >
+                                        Resume Rx
+                                      </Button>
+                                    )}
+                                    {activeTab === "pending-digitisation" && (
+                                      <Button
+                                        variant="outline"
+                                        theme="primary"
+                                        size="md"
+                                        onClick={() => {}}
+                                      >
+                                        Digitise Rx
+                                      </Button>
+                                    )}
+                                    {/* cancelled — no CTA, just AI icon + three-dot below */}
 
-                                    <button
-                                      type="button"
-                                      aria-label="AI action"
-                                      onClick={() => openAgentForPatient(row)}
-                                      className="shrink-0 inline-flex size-[42px] items-center justify-center rounded-[10px] transition-all hover:opacity-80 hover:scale-105"
-                                      style={{
-                                        background: AI_GRADIENT_SOFT,
+                                    <AiPatientTooltip
+                                      patientId={row.id}
+                                      summary={PATIENT_TOOLTIP_SUMMARIES[row.id]}
+                                      tabVariant={activeTab}
+                                      rowData={{
+                                        finishedData: row.finishedData,
+                                        cancelReason: row.cancelReason,
+                                        cancelledAt: row.cancelledAt,
+                                        cancelNotes: row.cancelNotes,
+                                        draftStatus: row.draftStatus,
+                                        dischargeData: row.dischargeData,
                                       }}
-                                    >
-                                      <AiBrandSparkIcon size={20} />
-                                    </button>
+                                      onClick={() => openAgentForPatient(row)}
+                                    />
 
                                     <button
                                       type="button"
@@ -1132,25 +1409,22 @@ export function DrAgentPage() {
           </section>
             {isAgentWindowOpen && (
               <aside className="hidden h-full w-[392px] shrink-0 md:block">
-                <AgentFloatingWindow
-                  contextOptions={contextOptions}
-                  selectedPatientId={selectedChatPatientId}
-                  selectedPatient={selectedChatPatient}
-                  messages={activeChatMessages}
-                  pendingReplyCount={pendingReplies[selectedChatPatientId] ?? 0}
-                  workspaceLabel={workspaceLabel}
-                  workspaceTip={workspaceTip}
-                  quickPrompts={workspaceQuickPrompts}
-                  inputValue={chatInput}
-                  onInputChange={setChatInput}
-                  onPatientChange={setSelectedChatPatientId}
-                  onSend={sendChatMessage}
-                  onPromptClick={sendChatMessage}
+                <DrAgentPanel
+                  initialPatientId={selectedChatPatientId !== CONTEXT_COMMON_ID && selectedChatPatientId !== CONTEXT_NONE_ID ? selectedChatPatientId : undefined}
+                  mode="homepage"
+                  activeTab={activeTab}
+                  activeRailItem={activeRailItem}
+                  homepagePatients={homepagePatientOptions}
                   onClose={() => setIsAgentWindowOpen(false)}
                 />
               </aside>
             )}
           </div>
+
+          {/* Floating Dr. Agent FAB — visible when panel is closed */}
+          {!isAgentWindowOpen && (
+            <DrAgentFab onClick={() => setIsAgentWindowOpen(true)} />
+          )}
         </main>
       </div>
 
@@ -1302,11 +1576,11 @@ function AgentFloatingWindow({
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-tp-slate-200 bg-white shadow-[0_24px_48px_-24px_rgba(23,23,37,0.35)]">
-      <div className="flex items-center justify-between border-b border-tp-slate-100 px-3 py-3">
+    <div className="flex h-full flex-col rounded-2xl border border-tp-slate-200 bg-white shadow-[0_24px_48px_-24px_rgba(23,23,37,0.35)]">
+      <div className="flex items-center justify-between border-b border-tp-slate-100 px-3 py-3 shrink-0">
         <div className="flex min-w-0 items-center gap-2">
           <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-[8px]" style={{ background: AI_GRADIENT_SOFT }}>
-            <AiBrandSparkIcon size={16} />
+            <AiBrandSparkIcon size={18} />
           </span>
           <div className="min-w-0">
             <p className="truncate text-[13px] font-semibold text-tp-slate-900">Doctor Agent</p>
@@ -1323,8 +1597,8 @@ function AgentFloatingWindow({
         </button>
       </div>
 
-      <div className="relative flex-1">
-        <div ref={contextMenuRef} className="pointer-events-none absolute left-1/2 top-2 z-10 -translate-x-1/2">
+      <div className="relative flex-1 overflow-hidden">
+        <div ref={contextMenuRef} className="pointer-events-none absolute left-1/2 top-2 z-50 -translate-x-1/2">
           <div className="pointer-events-auto relative">
             <button
               type="button"
@@ -1341,7 +1615,7 @@ function AgentFloatingWindow({
             </button>
 
             {contextMenuOpen && (
-              <div className="absolute left-1/2 top-[34px] z-20 w-[278px] -translate-x-1/2 overflow-hidden rounded-xl border border-tp-slate-200 bg-white shadow-[0_16px_30px_-12px_rgba(15,23,42,0.25)]">
+              <div className="absolute left-1/2 top-[34px] z-50 w-[278px] -translate-x-1/2 overflow-hidden rounded-xl border border-tp-slate-200 bg-white shadow-[0_16px_30px_-12px_rgba(15,23,42,0.25)]">
                 <div className="border-b border-tp-slate-100 p-2">
                   <input
                     value={contextSearch}
@@ -1406,7 +1680,7 @@ function AgentFloatingWindow({
           </div>
         </div>
 
-        <div ref={messageListRef} className="h-full space-y-3 overflow-y-auto px-3 py-3 pt-12">
+        <div ref={messageListRef} className="flex-1 min-h-0 space-y-3 overflow-y-auto px-3 py-3 pt-12">
           {messages.map((message) => {
             const isUser = message.role === "user"
             return (
@@ -1414,7 +1688,7 @@ function AgentFloatingWindow({
                 <div className={cn("flex w-full", isUser ? "justify-end" : "justify-start")}>
                   <div
                     className={cn(
-                      "max-w-[88%] rounded-2xl px-3 py-2 text-[12px] leading-[18px]",
+                      "max-w-[85%] break-words rounded-2xl px-3 py-2 text-[12px] leading-[1.5]",
                       isUser
                         ? "rounded-br-[8px] bg-tp-blue-500 text-white"
                         : "rounded-bl-[8px] bg-tp-slate-100 text-tp-slate-700",
@@ -1450,7 +1724,7 @@ function AgentFloatingWindow({
                 <div className="w-[88%] rounded-xl border border-tp-violet-100 bg-white p-2.5 shadow-[0_8px_20px_-14px_rgba(103,58,172,0.45)]">
                   <div className="mb-2 flex items-center gap-2">
                     <span className="inline-flex size-6 items-center justify-center rounded-md" style={{ background: AI_GRADIENT_SOFT }}>
-                      <AiBrandSparkIcon size={14} />
+                      <AiBrandSparkIcon size={16} />
                     </span>
                     <p className="text-[11px] font-semibold text-tp-slate-700">Generating dynamic UI output</p>
                   </div>
@@ -1582,7 +1856,7 @@ function AgentDynamicOutputCard({
     <div className="rounded-xl border border-tp-violet-100 bg-white p-2.5 shadow-[0_8px_20px_-14px_rgba(103,58,172,0.45)]">
       <div className="mb-2 flex items-center gap-2">
         <span className="inline-flex size-6 items-center justify-center rounded-md" style={{ background: AI_GRADIENT_SOFT }}>
-          <AiBrandSparkIcon size={14} />
+          <AiBrandSparkIcon size={16} />
         </span>
         <div className="min-w-0">
           <p className="truncate text-[11px] font-semibold text-tp-slate-700">{title}</p>
@@ -1823,9 +2097,9 @@ function CommonFilterPanel({
   )
 }
 
-// ─── Video Consultation Tooltip ───────────────────────────────────────────────
+// ─── Symptom Tooltip (portal-based, z-index safe) ────────────────────────────
 
-function VideoConsultTooltip({ children }: { children: React.ReactNode }) {
+function SymptomTooltip({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
   const [visible, setVisible] = useState(false)
   const [style, setStyle] = useState<React.CSSProperties>({})
   const triggerRef = useRef<HTMLSpanElement | null>(null)
@@ -1837,7 +2111,71 @@ function VideoConsultTooltip({ children }: { children: React.ReactNode }) {
       const rect = triggerRef.current.getBoundingClientRect()
       setStyle({
         position: "fixed",
-        // Center above the icon, with a small gap
+        top: rect.top - 8,
+        left: rect.left + rect.width / 2,
+        transform: "translate(-50%, -100%)",
+        zIndex: 9999,
+      })
+    }
+    setVisible(true)
+  }
+
+  function hide() { setVisible(false) }
+
+  return (
+    <>
+      <span
+        ref={triggerRef}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        className="inline-flex cursor-pointer"
+      >
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onClick() }}
+          className="inline-flex flex-shrink-0 items-center justify-center transition-opacity hover:opacity-70"
+        >
+          {children}
+        </button>
+      </span>
+      {visible && mounted &&
+        createPortal(
+          <div
+            style={style}
+            className="whitespace-nowrap rounded-[6px] bg-tp-slate-800 px-[8px] py-[4px] text-[10px] font-medium text-white shadow-md"
+          >
+            Symptoms collected — Click to view
+            <span className="absolute left-1/2 top-full -translate-x-1/2 border-[3px] border-transparent border-t-tp-slate-800" />
+          </div>,
+          document.body,
+        )}
+    </>
+  )
+}
+
+// ─── Video Consultation Tooltip (hoverable + accessible) ─────────────────────
+
+function VideoConsultTooltip({ children }: { children: React.ReactNode }) {
+  const [visible, setVisible] = useState(false)
+  const [style, setStyle] = useState<React.CSSProperties>({})
+  const triggerRef = useRef<HTMLSpanElement | null>(null)
+  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
+  function clearHideTimeout() {
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current)
+      hideTimeoutRef.current = null
+    }
+  }
+
+  function show() {
+    clearHideTimeout()
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      setStyle({
+        position: "fixed",
         top: rect.top - 8,
         left: rect.left + rect.width / 2,
         transform: "translate(-50%, -100%)",
@@ -1848,8 +2186,12 @@ function VideoConsultTooltip({ children }: { children: React.ReactNode }) {
   }
 
   function hide() {
-    setVisible(false)
+    hideTimeoutRef.current = setTimeout(() => setVisible(false), 150)
   }
+
+  useEffect(() => {
+    return () => { if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current) }
+  }, [])
 
   return (
     <>
@@ -1860,6 +2202,8 @@ function VideoConsultTooltip({ children }: { children: React.ReactNode }) {
         createPortal(
           <div
             style={style}
+            onMouseEnter={clearHideTimeout}
+            onMouseLeave={hide}
             className="w-[208px] overflow-hidden rounded-[12px] border border-tp-slate-200 bg-white shadow-[0_8px_24px_-4px_rgba(23,23,37,0.16)]"
           >
             {/* Header */}
@@ -1902,32 +2246,6 @@ function VideoConsultTooltip({ children }: { children: React.ReactNode }) {
   )
 }
 
-// ─── Hexagonal play-button icon (VideoTutorialIcon) ───────────────────────────
-
-function VideoTutorialIcon({
-  size = 24,
-  color = "#000000",
-}: {
-  size?: number
-  color?: string
-}) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill={color}
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M19.5099 5.85L13.5699 2.42C12.5999 1.86 11.3999 1.86 10.4199 2.42L4.48992 5.85C3.51992 6.41 2.91992 7.45 2.91992 8.58V15.42C2.91992 16.54 3.51992 17.58 4.48992 18.15L10.4299 21.58C11.3999 22.14 12.5999 22.14 13.5799 21.58L19.5199 18.15C20.4899 17.59 21.0899 16.55 21.0899 15.42V8.58C21.0799 7.45 20.4799 6.42 19.5099 5.85ZM14.2499 13.4L13.2099 14L12.1699 14.6C10.8399 15.37 9.74992 14.74 9.74992 13.2V12V10.8C9.74992 9.26 10.8399 8.63 12.1699 9.4L13.2099 10L14.2499 10.6C15.5799 11.37 15.5799 12.63 14.2499 13.4Z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
-
 // ─── Clinic data ──────────────────────────────────────────────────────────────
 
 const DUMMY_CLINICS = [
@@ -1941,6 +2259,7 @@ const DUMMY_CLINICS = [
 // ─── TopHeader ────────────────────────────────────────────────────────────────
 
 function TopHeader() {
+  const router = useRouter()
   const [isClinicMenuOpen, setClinicMenuOpen] = useState(false)
   const [activeClinic, setActiveClinic] = useState(DUMMY_CLINICS[0].id)
   const [clinicSearch, setClinicSearch] = useState("")
@@ -2006,7 +2325,7 @@ function TopHeader() {
           className="flex size-[42px] items-center justify-center rounded-[10px] bg-tp-slate-100 transition-colors hover:bg-tp-slate-200"
           aria-label="Play tutorial"
         >
-          <VideoTutorialIcon size={20} color="#BA7DE9" />
+          <VideoCircle size={20} variant="Linear" color="#BA7DE9" />
         </button>
 
         <button
@@ -2017,6 +2336,14 @@ function TopHeader() {
           <Notification size={20} variant="Linear" strokeWidth={1.5} />
           <span className="absolute -top-0.5 right-1 size-2.5 rounded-full border-2 border-white bg-red-500" />
         </button>
+
+        <TPIconButton
+          icon={<InfoCircle size={20} variant="Linear" strokeWidth={1.5} />}
+          theme="neutral"
+          size="md"
+          aria-label="Demo Scenarios"
+          onClick={() => router.push("/tp-appointment-screen/scenarios")}
+        />
 
         <div className="h-[42px] w-px bg-tp-slate-300 opacity-80" />
 

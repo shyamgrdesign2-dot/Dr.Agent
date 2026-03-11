@@ -2,6 +2,7 @@
 
 import { type ReactNode } from "react"
 import { cn } from "@/lib/utils"
+import { NoiseOverlay } from "@/components/tp-ui/noise-overlay"
 
 interface AppointmentBannerProps {
   title: string
@@ -29,23 +30,18 @@ export function AppointmentBanner({ title, actions, className }: AppointmentBann
           "radial-gradient(99.09% 59.99% at 50% 55.44%, #46286C 0%, #25113E 39.08%, #372153 78.16%, #6C4F90 100%)",
       }}
     >
-      {/* Dot texture */}
-      <svg
-        className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.05]"
-        xmlns="http://www.w3.org/2000/svg"
+      {/* Geometric line pattern — right-aligned, scaled to banner height */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/assets/8b46197b8125e32aedb152d3d430b818c39f3157.svg"
+        alt=""
         aria-hidden="true"
-      >
-        <defs>
-          <pattern id="appt-banner-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-            <circle cx="2" cy="2" r="1.5" fill="currentColor" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#appt-banner-dots)" />
-      </svg>
+        className="pointer-events-none absolute right-0 top-0 h-full w-auto opacity-[0.75]"
+        style={{ mixBlendMode: "screen" }}
+      />
 
-      {/* Decorative circles */}
-      <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/[0.05]" />
-      <div className="pointer-events-none absolute -bottom-8 right-1/4 h-32 w-32 rounded-full bg-white/[0.03]" />
+      {/* Noise grain texture */}
+      <NoiseOverlay opacity={0.06} />
 
       {/* Content */}
       <div className="relative h-full px-3 pt-6 sm:px-6 lg:px-[18px]">

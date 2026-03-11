@@ -14,7 +14,7 @@ import {
   ChevronDown,
   User,
   Building2,
-  BookOpen,
+  Play,
   Save,
   LayoutTemplate,
   StickyNote,
@@ -234,7 +234,7 @@ export function TPTopNavBar({
           <div className="flex items-center gap-[14px] shrink-0">
             {/* Tutorial icon */}
             <div className="shrink-0" style={{ width: 42, height: 42 }}>
-              <BookOpen size={25} color="#8A4DBB" className="opacity-80" />
+              <Play size={20} color="#8A4DBB" fill="#8A4DBB" className="opacity-70" />
             </div>
 
             <NavDivider />
@@ -377,7 +377,7 @@ export function TPTopNavBar({
         <div className="flex items-center gap-[14px] shrink-0">
           {/* Tutorial */}
           <div className="shrink-0 flex items-center justify-center" style={{ width: 42, height: 42 }}>
-            <BookOpen size={25} color="#8A4DBB" className="opacity-80" />
+            <Play size={20} color="#8A4DBB" fill="#8A4DBB" className="opacity-70" />
           </div>
 
           <NavDivider />

@@ -10,6 +10,7 @@ import {
   Sep,
   Red,
 } from "../detail-shared";
+import { AiTriggerIcon } from "../../dr-agent/shared/AiTriggerIcon";
 
 function VaccineItemRow({
   week,
@@ -102,6 +103,15 @@ export function VaccineContent() {
           title="Pending Vaccine (4)"
           expanded={expandedState.pending}
           onToggle={() => setExpandedState((prev) => ({ ...prev, pending: !prev.pending }))}
+          titleAddon={
+            <AiTriggerIcon
+              tooltip="Analyze pending vaccines"
+              signalLabel="Analyze Pending Vaccines"
+              sectionId="vaccine"
+              size={12}
+              as="span"
+            />
+          }
         >
           <VaccineItemRow week="12-18 Weeks" name="HPV 1" status="Due" statusColor="due" />
           <div className="w-full border-t border-tp-slate-100" />
@@ -112,6 +122,15 @@ export function VaccineContent() {
           title="Upcoming Vaccine (2)"
           expanded={expandedState.upcoming}
           onToggle={() => setExpandedState((prev) => ({ ...prev, upcoming: !prev.upcoming }))}
+          titleAddon={
+            <AiTriggerIcon
+              tooltip="Analyze upcoming vaccines"
+              signalLabel="Analyze Upcoming Vaccines"
+              sectionId="vaccine"
+              size={12}
+              as="span"
+            />
+          }
         >
           <VaccineItemRow week="13 Weeks" name="PPSV23" status="Overdue" statusColor="overdue" />
           <div className="w-full border-t border-tp-slate-100" />
@@ -122,6 +141,15 @@ export function VaccineContent() {
           title="Given Vaccine (20)"
           expanded={expandedState.given}
           onToggle={() => setExpandedState((prev) => ({ ...prev, given: !prev.given }))}
+          titleAddon={
+            <AiTriggerIcon
+              tooltip="Analyze given vaccines"
+              signalLabel="Analyze Given Vaccines"
+              sectionId="vaccine"
+              size={12}
+              as="span"
+            />
+          }
         >
           <GivenVaccineGroup week="Birth" vaccines={["IPV B-1"]} />
           <div className="w-full border-t border-tp-slate-100" />

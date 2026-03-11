@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { ArrowSquareDown, ArrowSquareUp } from "iconsax-reactjs";
 import { ActionButton, useStickyHeaderState } from "../detail-shared";
 import { tpSectionCardStyle } from "../tokens";
+import { AiTriggerIcon } from "../../dr-agent/shared/AiTriggerIcon";
 
 type GrowthRow = { label: string; unit: string; value: string };
 type GrowthEntry = { id: string; dateLabel: string; rows: GrowthRow[] };
@@ -106,7 +107,7 @@ function GrowthDateCard({
         type="button"
         onClick={onToggle}
         className={clsx(
-          "bg-tp-slate-100 sticky top-0 z-[2] shrink-0 w-full text-left",
+          "group bg-tp-slate-100 sticky top-0 z-[2] shrink-0 w-full text-left",
           expanded
             ? isStuck
               ? "rounded-tl-none rounded-tr-none"
@@ -118,12 +119,23 @@ function GrowthDateCard({
           <p className="font-['Inter',sans-serif] font-semibold leading-[20px] text-tp-slate-700 text-[14px] whitespace-nowrap">
             {entry.dateLabel}
           </p>
-          <div className="relative shrink-0 size-[18px]">
-            {expanded ? (
-              <ArrowSquareUp color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
-            ) : (
-              <ArrowSquareDown color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
-            )}
+          <div className="flex items-center gap-1.5">
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <AiTriggerIcon
+                tooltip="Analyze growth"
+                signalLabel={`Analyze growth for ${entry.dateLabel}`}
+                sectionId="growth"
+                size={12}
+                as="span"
+              />
+            </span>
+            <div className="relative shrink-0 size-[18px]">
+              {expanded ? (
+                <ArrowSquareUp color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
+              ) : (
+                <ArrowSquareDown color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
+              )}
+            </div>
           </div>
         </div>
       </button>

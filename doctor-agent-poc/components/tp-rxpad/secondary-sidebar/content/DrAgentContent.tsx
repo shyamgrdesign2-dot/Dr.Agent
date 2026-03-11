@@ -52,7 +52,7 @@ function DynamicOutputCard({
     <div className="rounded-[10px] border border-tp-violet-100 bg-white p-2 shadow-[0_8px_16px_-14px_rgba(103,58,172,0.55)]">
       <div className="mb-1.5 flex items-center gap-1.5">
         <span className="inline-flex size-5 items-center justify-center rounded-md" style={{ background: AI_GRADIENT_SOFT }}>
-          <AiBrandSparkIcon size={12} />
+          <AiBrandSparkIcon size={14} />
         </span>
         <div className="min-w-0">
           <p className="truncate text-[10px] font-semibold text-tp-slate-700">{title}</p>
@@ -154,7 +154,7 @@ export function DrAgentContent() {
       <div className="border-b border-tp-slate-100 px-[10px] py-[8px]">
         <div className="mb-[7px] flex items-center gap-[6px]">
           <span className="inline-flex size-[20px] items-center justify-center rounded-[6px]" style={{ background: AI_GRADIENT_SOFT }}>
-            <AiBrandSparkIcon size={12} />
+            <AiBrandSparkIcon size={14} />
           </span>
           <p className="text-[11px] font-semibold text-tp-slate-700">Doctor Agent</p>
         </div>
@@ -225,7 +225,7 @@ export function DrAgentContent() {
             <div className="rounded-[10px] border border-tp-violet-100 bg-white p-[8px]">
               <div className="mb-2 flex items-center gap-1.5">
                 <span className="inline-flex size-5 items-center justify-center rounded-md" style={{ background: AI_GRADIENT_SOFT }}>
-                  <AiBrandSparkIcon size={12} />
+                  <AiBrandSparkIcon size={14} />
                 </span>
                 <p className="text-[10px] font-semibold text-tp-slate-700">Generating dynamic output</p>
               </div>

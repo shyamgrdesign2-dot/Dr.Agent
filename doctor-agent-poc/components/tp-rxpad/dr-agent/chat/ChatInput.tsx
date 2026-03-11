@@ -1,0 +1,430 @@
+"use client"
+
+import { useCallback, useState, useEffect, useRef, useId, type KeyboardEvent } from "react"
+// KeyboardEvent used for both HTMLInputElement and HTMLTextAreaElement
+import { cn } from "@/lib/utils"
+import { Plus } from "lucide-react"
+import { SecuritySafe } from "iconsax-reactjs"
+import { AI_GRADIENT } from "../constants"
+
+interface ChatInputProps {
+  value: string
+  onChange: (value: string) => void
+  onSend: () => void
+  onAttach?: () => void
+  onVoiceTranscription?: (text: string) => void
+  disabled?: boolean
+  placeholder?: string
+  className?: string
+}
+
+/* ── Inline SVG Icons (14-16px) ── */
+
+function PaperclipIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
+    </svg>
+  )
+}
+
+/** Voice-circle Bulk icon with AI gradient fill */
+function AiVoiceIcon({ size = 24 }: { size?: number }) {
+  const gid = useId().replace(/[:]/g, "")
+  const grad = `url(#aiv${gid})`
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <defs>
+        <linearGradient id={`aiv${gid}`} x1="0%" y1="50%" x2="100%" y2="50%">
+          <stop offset="3.04%" stopColor="#D565EA" />
+          <stop offset="66.74%" stopColor="#673AAC" />
+          <stop offset="130.45%" stopColor="#1A1994" />
+        </linearGradient>
+      </defs>
+      <path opacity="0.4" d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill={grad} />
+      <path d="M6 14.8896C5.59 14.8896 5.25 14.5496 5.25 14.1396V9.84961C5.25 9.43961 5.59 9.09961 6 9.09961C6.41 9.09961 6.75 9.43961 6.75 9.84961V14.1396C6.75 14.5596 6.41 14.8896 6 14.8896Z" fill={grad} />
+      <path d="M9 16.3197C8.59 16.3197 8.25 15.9797 8.25 15.5697V8.42969C8.25 8.01969 8.59 7.67969 9 7.67969C9.41 7.67969 9.75 8.01969 9.75 8.42969V15.5697C9.75 15.9897 9.41 16.3197 9 16.3197Z" fill={grad} />
+      <path d="M12 17.75C11.59 17.75 11.25 17.41 11.25 17V7C11.25 6.59 11.59 6.25 12 6.25C12.41 6.25 12.75 6.59 12.75 7V17C12.75 17.41 12.41 17.75 12 17.75Z" fill={grad} />
+      <path d="M15 16.3197C14.59 16.3197 14.25 15.9797 14.25 15.5697V8.42969C14.25 8.01969 14.59 7.67969 15 7.67969C15.41 7.67969 15.75 8.01969 15.75 8.42969V15.5697C15.75 15.9897 15.41 16.3197 15 16.3197Z" fill={grad} />
+      <path d="M18 14.8896C17.59 14.8896 17.25 14.5496 17.25 14.1396V9.84961C17.25 9.43961 17.59 9.09961 18 9.09961C18.41 9.09961 18.75 9.43961 18.75 9.84961V14.1396C18.75 14.5596 18.41 14.8896 18 14.8896Z" fill={grad} />
+    </svg>
+  )
+}
+
+/** Arrow-up-04 Bulk icon with AI gradient fill */
+function AiSendIcon({ size = 24 }: { size?: number }) {
+  const gid = useId().replace(/[:]/g, "")
+  const grad = `url(#ais${gid})`
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <defs>
+        <linearGradient id={`ais${gid}`} x1="0%" y1="50%" x2="100%" y2="50%">
+          <stop offset="3.04%" stopColor="#D565EA" />
+          <stop offset="66.74%" stopColor="#673AAC" />
+          <stop offset="130.45%" stopColor="#1A1994" />
+        </linearGradient>
+      </defs>
+      <path opacity="0.4" d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" fill={grad} />
+      <path d="M15.53 10.9704L12.53 7.97043C12.24 7.68043 11.76 7.68043 11.47 7.97043L8.47 10.9704C8.18 11.2604 8.18 11.7404 8.47 12.0304C8.76 12.3204 9.24 12.3204 9.53 12.0304L11.25 10.3104V15.5004C11.25 15.9104 11.59 16.2504 12 16.2504C12.41 16.2504 12.75 15.9104 12.75 15.5004V10.3104L14.47 12.0304C14.62 12.1804 14.81 12.2504 15 12.2504C15.19 12.2504 15.38 12.1804 15.53 12.0304C15.82 11.7404 15.82 11.2604 15.53 10.9704Z" fill={grad} />
+    </svg>
+  )
+}
+
+function MicIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
+      <path d="M19 10v2a7 7 0 01-14 0v-2" />
+      <line x1="12" y1="19" x2="12" y2="23" />
+      <line x1="8" y1="23" x2="16" y2="23" />
+    </svg>
+  )
+}
+
+function PauseIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <rect x="6" y="4" width="4" height="16" rx="1" />
+      <rect x="14" y="4" width="4" height="16" rx="1" />
+    </svg>
+  )
+}
+
+/** Play/Resume triangle icon — right-facing filled triangle */
+function ResumeIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M8 5.14v13.72a1 1 0 001.5.86l11.04-6.86a1 1 0 000-1.72L9.5 4.28a1 1 0 00-1.5.86z" />
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="5 13 10 18 19 6" />
+    </svg>
+  )
+}
+
+function CrossIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  )
+}
+
+/* ── Recording wave animation bars ── */
+function WaveAnimation() {
+  return (
+    <div className="flex items-center gap-[3px] h-[20px]">
+      {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
+        <div
+          key={i}
+          className="w-[2.5px] rounded-full"
+          style={{
+            background: AI_GRADIENT,
+            animation: `wave-bar 1s ease-in-out ${i * 0.1}s infinite alternate`,
+            height: "6px",
+          }}
+        />
+      ))}
+      <style jsx>{`
+        @keyframes wave-bar {
+          0% { height: 4px; opacity: 0.4; }
+          50% { height: 16px; opacity: 1; }
+          100% { height: 6px; opacity: 0.5; }
+        }
+      `}</style>
+    </div>
+  )
+}
+
+/* ── Recording timer — pauses when isPaused is true ── */
+function RecordingTimer({ isPaused }: { isPaused: boolean }) {
+  const [elapsed, setElapsed] = useState(0)
+  const lastTickRef = useRef(Date.now())
+
+  useEffect(() => {
+    if (isPaused) return // Don't tick when paused
+    lastTickRef.current = Date.now()
+    const interval = setInterval(() => {
+      const now = Date.now()
+      setElapsed((prev) => prev + Math.round((now - lastTickRef.current) / 1000))
+      lastTickRef.current = now
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [isPaused])
+
+  const mm = String(Math.floor(elapsed / 60)).padStart(2, "0")
+  const ss = String(elapsed % 60).padStart(2, "0")
+
+  return (
+    <span className="text-[11px] font-medium tabular-nums text-tp-slate-500">
+      {mm}:{ss}
+    </span>
+  )
+}
+
+export function ChatInput({
+  value,
+  onChange,
+  onSend,
+  onAttach,
+  onVoiceTranscription,
+  disabled = false,
+  placeholder = "Ask about this patient...",
+  className,
+}: ChatInputProps) {
+  const hasText = value.trim().length > 0
+  const [isRecording, setIsRecording] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Auto-resize textarea
+  const autoResize = useCallback(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = "auto"
+    const maxH = 120 // ~5 lines
+    el.style.height = `${Math.min(el.scrollHeight, maxH)}px`
+    el.style.overflowY = el.scrollHeight > maxH ? "auto" : "hidden"
+  }, [])
+
+  useEffect(() => {
+    autoResize()
+  }, [value, autoResize])
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Enter" && !e.shiftKey && hasText && !disabled) {
+        e.preventDefault()
+        onSend()
+      }
+    },
+    [hasText, disabled, onSend],
+  )
+
+  const handleMicClick = useCallback(() => {
+    setIsRecording(true)
+    setIsPaused(false)
+  }, [])
+
+  const handlePause = useCallback(() => {
+    setIsPaused((prev) => !prev)
+  }, [])
+
+  const handleDiscard = useCallback(() => {
+    setIsRecording(false)
+    setIsPaused(false)
+  }, [])
+
+  const handleSendRecording = useCallback(() => {
+    const mockTranscribedText =
+      "Patient complaining of fever since 3 days, dry cough and body ache since 2 days. " +
+      "On examination, throat congested, bilateral chest clear, no lymphadenopathy. " +
+      "Diagnosis: Acute viral pharyngitis with allergic rhinitis. " +
+      "Prescribing Paracetamol 650mg 1-0-1 after food for 5 days, Cetirizine 10mg 0-0-1 for 5 days, Pantoprazole 40mg 1-0-0 before breakfast for 5 days. " +
+      "Advising rest, warm fluids, steam inhalation, salt gargle twice daily. " +
+      "Suggest test CBC, ESR if fever persists. " +
+      "Follow up in 5 days if not better."
+
+    if (onVoiceTranscription) {
+      onVoiceTranscription(mockTranscribedText)
+    } else {
+      onChange(mockTranscribedText)
+    }
+    setIsRecording(false)
+    setIsPaused(false)
+  }, [onChange, onVoiceTranscription])
+
+  return (
+    <div
+      className={cn(
+        "sticky bottom-0 bg-white px-[10px] pt-[8px] pb-[4px]",
+        className,
+      )}
+    >
+      {/* ── Recording mode ── */}
+      {isRecording ? (
+        <div className="flex items-center gap-[6px]">
+          <div
+            className={cn(
+              "flex h-[36px] flex-1 items-center gap-[10px] rounded-[10px] border px-[12px]",
+              isPaused
+                ? "border-tp-slate-300 bg-tp-slate-50"
+                : "border-purple-300/60 bg-gradient-to-r from-purple-50/40 to-blue-50/40",
+            )}
+          >
+            <span
+              className={cn(
+                "h-[6px] w-[6px] shrink-0 rounded-full",
+                isPaused ? "bg-tp-slate-400" : "bg-red-500 animate-pulse",
+              )}
+            />
+            {isPaused ? (
+              <span className="text-[11px] text-tp-slate-400">Paused</span>
+            ) : (
+              <WaveAnimation />
+            )}
+            <span className="flex-1" />
+            <RecordingTimer isPaused={isPaused} />
+            <button
+              type="button"
+              onClick={handlePause}
+              className="flex h-[24px] w-[24px] items-center justify-center rounded-full text-tp-slate-500 transition-colors hover:bg-tp-slate-100"
+              title={isPaused ? "Resume recording" : "Pause recording"}
+            >
+              {isPaused ? <ResumeIcon /> : <PauseIcon />}
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={handleSendRecording}
+            className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full text-tp-success-600 transition-colors hover:bg-tp-success-50"
+            title="Submit for transcription"
+          >
+            <CheckIcon />
+          </button>
+          <button
+            type="button"
+            onClick={handleDiscard}
+            className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full text-tp-slate-400 transition-colors hover:bg-tp-slate-100 hover:text-tp-slate-600"
+            title="Discard recording"
+          >
+            <CrossIcon />
+          </button>
+        </div>
+      ) : (
+        /* ── Normal input mode — multi-line textarea with animated AI gradient border ── */
+        <div
+          className={cn(
+            "chat-input-border flex items-center gap-[8px] rounded-[12px] px-[10px] py-[8px]",
+            disabled && "opacity-50",
+          )}
+        >
+          <style jsx>{`
+            .chat-input-border {
+              border: 1.6px solid var(--tp-slate-200, #E2E8F0);
+              transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            }
+            .chat-input-border:hover {
+              border-color: var(--tp-slate-300, #CBD5E1);
+            }
+            .chat-input-border:focus-within {
+              border-color: var(--tp-blue-500, #3B82F6);
+              box-shadow: 0 0 0 2px rgba(59,130,246,0.10);
+            }
+          `}</style>
+          {/* Attach */}
+          <button
+            type="button"
+            onClick={onAttach}
+            disabled={disabled}
+            className={cn(
+              "flex shrink-0 items-center justify-center",
+              "text-tp-slate-600 transition-colors hover:text-tp-slate-800",
+              disabled && "pointer-events-none",
+            )}
+            title="Add files and more"
+          >
+            <Plus size={18} strokeWidth={1.5} />
+          </button>
+
+          {/* Textarea — expands from 1 line to ~5 lines max */}
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={disabled}
+            placeholder={placeholder}
+            rows={1}
+            className={cn(
+              "flex-1 resize-none bg-transparent",
+              "text-[12px] leading-[1.5] text-tp-slate-800",
+              "placeholder:text-tp-slate-300",
+              "focus:outline-none",
+            )}
+            style={{ minHeight: 20, maxHeight: 120 }}
+          />
+
+          {/* Voice / Send toggle — inside the box */}
+          {hasText ? (
+            <button
+              type="button"
+              onClick={onSend}
+              disabled={disabled}
+              className={cn(
+                "flex shrink-0 items-center justify-center transition-all",
+                disabled && "pointer-events-none",
+              )}
+              title="Send message"
+            >
+              <AiSendIcon size={24} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleMicClick}
+              disabled={disabled}
+              className={cn(
+                "flex shrink-0 items-center justify-center transition-all",
+                disabled && "pointer-events-none",
+              )}
+              title="Use voice to dictate"
+            >
+              <AiVoiceIcon size={24} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Trust indicator — centered */}
+      <div className="mt-[4px] mb-[14px] flex items-center justify-center gap-[4px]">
+        <SecuritySafe size={14} variant="Bulk" className="shrink-0 text-tp-slate-300" />
+        <span className="text-[10px] leading-[1.3] text-tp-slate-300">
+          AI-assisted insights — always verify with clinical judgement
+        </span>
+      </div>
+    </div>
+  )
+}

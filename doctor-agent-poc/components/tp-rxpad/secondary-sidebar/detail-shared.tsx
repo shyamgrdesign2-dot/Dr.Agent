@@ -145,7 +145,7 @@ function SectionCardHeader({
       type={onToggle ? "button" : undefined}
       onClick={onToggle}
       className={clsx(
-        "bg-tp-slate-100 sticky top-0 z-[2] shrink-0 w-full text-left",
+        "group bg-tp-slate-100 sticky top-0 z-[2] shrink-0 w-full text-left",
         radiusClass,
         onToggle ? "cursor-pointer" : "",
       )}
@@ -156,7 +156,11 @@ function SectionCardHeader({
             <div className={`flex flex-col font-semibold justify-end leading-[0] not-italic relative shrink-0 text-tp-slate-700 ${rxSidebarTokens.bodyStrongClass}`}>
               <p className="leading-[18px] whitespace-pre-wrap">{title}</p>
             </div>
-            {titleAddon}
+            {titleAddon && (
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                {titleAddon}
+              </span>
+            )}
           </div>
           {!hideChevron ? (
             <div className="flex items-center justify-center relative shrink-0">

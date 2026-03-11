@@ -55,10 +55,20 @@ export interface RxPadCopyRequest {
 
 export interface RxPadSignal {
   id: number
-  type: "symptoms_changed" | "medications_changed" | "section_focus" | "sidebar_pill_tap"
+  type:
+    | "symptoms_changed"
+    | "medications_changed"
+    | "diagnosis_changed"
+    | "examination_changed"
+    | "advice_changed"
+    | "lab_investigation_changed"
+    | "section_focus"
+    | "sidebar_pill_tap"
+    | "ai_trigger"
   label?: string
   count?: number
   sectionId?: string
+  contextPayload?: string
 }
 
 interface RxPadSyncContextValue {
@@ -66,6 +76,9 @@ interface RxPadSyncContextValue {
   lastSignal: RxPadSignal | null
   requestCopyToRxPad: (payload: RxPadCopyPayload) => void
   publishSignal: (signal: Omit<RxPadSignal, "id">) => void
+  /** Current patient's known allergies (drug + other), set by DrAgentPanel */
+  patientAllergies: string[]
+  setPatientAllergies: (allergies: string[]) => void
 }
 
 const RxPadSyncContext = createContext<RxPadSyncContextValue>({
@@ -73,6 +86,8 @@ const RxPadSyncContext = createContext<RxPadSyncContextValue>({
   lastSignal: null,
   requestCopyToRxPad: () => {},
   publishSignal: () => {},
+  patientAllergies: [],
+  setPatientAllergies: () => {},
 })
 
 export function RxPadSyncProvider({ children }: { children: React.ReactNode }) {
@@ -80,6 +95,7 @@ export function RxPadSyncProvider({ children }: { children: React.ReactNode }) {
   const [lastSignal, setLastSignal] = useState<RxPadSignal | null>(null)
   const [copySequence, setCopySequence] = useState(0)
   const [signalSequence, setSignalSequence] = useState(0)
+  const [patientAllergies, setPatientAllergies] = useState<string[]>([])
 
   const requestCopyToRxPad = useCallback((payload: RxPadCopyPayload) => {
     setCopySequence((prev) => {
@@ -98,8 +114,8 @@ export function RxPadSyncProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const value = useMemo(
-    () => ({ lastCopyRequest, lastSignal, requestCopyToRxPad, publishSignal }),
-    [lastCopyRequest, lastSignal, requestCopyToRxPad, publishSignal],
+    () => ({ lastCopyRequest, lastSignal, requestCopyToRxPad, publishSignal, patientAllergies, setPatientAllergies }),
+    [lastCopyRequest, lastSignal, requestCopyToRxPad, publishSignal, patientAllergies],
   )
 
   return <RxPadSyncContext.Provider value={value}>{children}</RxPadSyncContext.Provider>

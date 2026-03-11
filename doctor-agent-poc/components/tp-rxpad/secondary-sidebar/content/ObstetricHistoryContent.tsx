@@ -11,10 +11,22 @@ import {
   Grey,
   Sep,
 } from "../detail-shared";
+import { AiTriggerIcon } from "../../dr-agent/shared/AiTriggerIcon";
 
 function PatientInfoCard() {
   return (
-    <SectionCard title="Patient Info" hideChevron>
+    <SectionCard
+      title="Patient Info"
+      hideChevron
+      titleAddon={
+        <AiTriggerIcon
+          tooltip="Analyze patient info"
+          signalLabel="Analyze Patient Info"
+          sectionId="obstetric"
+          size={12}
+        />
+      }
+    >
       <ContentRow>
         <p className="whitespace-pre-wrap leading-[20px]">
           <Grey>LMP: </Grey><span>14 Jan'26 </span>
@@ -34,9 +46,17 @@ function GPLAECard() {
       title="GPLAE"
       hideChevron
       titleAddon={(
-        <span className="inline-flex items-center rounded-full border border-tp-blue-200 bg-tp-blue-50 px-[8px] py-[2px] font-sans text-[10px] font-medium leading-[14px] text-tp-blue-600">
-          Primigravida
-        </span>
+        <>
+          <span className="inline-flex items-center rounded-full border border-tp-blue-200 bg-tp-blue-50 px-[8px] py-[2px] font-sans text-[10px] font-medium leading-[14px] text-tp-blue-600">
+            Primigravida
+          </span>
+          <AiTriggerIcon
+            tooltip="Analyze GPLAE"
+            signalLabel="Analyze GPLAE"
+            sectionId="obstetric"
+            size={12}
+          />
+        </>
       )}
     >
       <ContentRow>
@@ -100,7 +120,20 @@ function PregnancyHistoryCard({
   onToggle: () => void;
 }) {
   return (
-    <SectionCard title="Pregnancy History" expanded={expanded} onToggle={onToggle}>
+    <SectionCard
+      title="Pregnancy History"
+      expanded={expanded}
+      onToggle={onToggle}
+      titleAddon={
+        <AiTriggerIcon
+          tooltip="Analyze pregnancy history"
+          signalLabel="Analyze Pregnancy History"
+          sectionId="obstetric"
+          size={12}
+          as="span"
+        />
+      }
+    >
       <GravidaEntry no={1} />
       <div className="w-full border-t border-tp-slate-100" />
       <GravidaEntry no={2} hasRemarks />
@@ -116,7 +149,20 @@ function ExaminationCard({
   onToggle: () => void;
 }) {
   return (
-    <SectionCard title="Examination" expanded={expanded} onToggle={onToggle}>
+    <SectionCard
+      title="Examination"
+      expanded={expanded}
+      onToggle={onToggle}
+      titleAddon={
+        <AiTriggerIcon
+          tooltip="Analyze examination"
+          signalLabel="Analyze Examination"
+          sectionId="obstetric"
+          as="span"
+          size={12}
+        />
+      }
+    >
       <div className="relative shrink-0 w-full px-[10px] py-[8px] flex flex-col gap-[4px]">
         <p className="font-sans font-semibold text-[14px] leading-[20px] text-tp-slate-700">
           17 Jan'26

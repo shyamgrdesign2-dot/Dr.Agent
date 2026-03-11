@@ -10,6 +10,7 @@ import {
   Grey,
   Sep,
 } from "../detail-shared";
+import { AiTriggerIcon } from "../../dr-agent/shared/AiTriggerIcon";
 
 type GynecSection = {
   id: string;
@@ -117,6 +118,14 @@ export function GynecHistoryContent() {
             key={section.id}
             title={section.title}
             hideChevron
+            titleAddon={
+              <AiTriggerIcon
+                tooltip={`Analyze ${section.title.toLowerCase()}`}
+                signalLabel={`Analyze ${section.title}`}
+                sectionId="gynec"
+                size={12}
+              />
+            }
           >
             <ContentRow>{section.content}</ContentRow>
           </SectionCard>
