@@ -370,6 +370,7 @@ export interface FollowUpListCardData { title: string; items: FollowUpListItem[]
 export interface RevenueBarDay { label: string; paid: number; due: number; refunded?: number }
 export interface RevenueBarCardData {
   title: string
+  mode?: "billing" | "deposit"
   totalRevenue: number
   totalPaid: number
   totalDue: number
@@ -412,17 +413,16 @@ export interface HeatmapCardData { title: string; rows: string[]; cols: string[]
 // ═══════════════ NEW CARD TYPES ═══════════════
 
 export interface ReferralItem {
-  patientName: string
-  patientId?: string
-  specialist: string
-  department: string
-  urgency: "routine" | "urgent" | "emergency"
-  reason: string
+  doctorName: string
+  doctorPhone: string
+  specialty: string
+  patientsReferred: number
+  topReason: string
 }
 export interface ReferralCardData {
   title: string
-  totalCount: number
-  urgentCount: number
+  totalReferrers: number
+  totalPatients: number
   items: ReferralItem[]
 }
 
@@ -471,17 +471,24 @@ export interface RxPreviewCardData {
 }
 
 export interface BillingItem {
-  service: string
+  referenceNo: string
+  patientName: string
   amount: number
-  status: "paid" | "pending" | "waived"
+  billedAmount?: number
+  paidAmount?: number
+  status: "paid_fully" | "due" | "refunded" | "deposited" | "debited"
 }
 export interface BillingSummaryCardData {
+  title: string
+  mode: "billing" | "deposit" | "combined"
   items: BillingItem[]
-  totalAmount: number
-  totalPaid: number
-  balance: number
-  advanceDeposits: number
-  refunded: number
+  totalBilledAmount: number
+  totalPaidFullyAmount: number
+  totalDueAmount: number
+  totalRefundedAmount: number
+  totalAdvanceReceived: number
+  totalAdvanceRefunded: number
+  totalAdvanceDebited: number
 }
 
 // ═══════════════ VACCINATION DUE/OVERDUE LIST ═══════════════

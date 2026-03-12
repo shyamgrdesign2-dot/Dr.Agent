@@ -14,8 +14,8 @@ type HomepageTab = "queue" | "finished" | "cancelled" | "draft" | "pending-digit
 // so every homepage card kind has a discoverable entry-point.
 const ALL_HOMEPAGE_PILLS: CannedPill[] = [
   /* ① follow_up_list     */ { id: "hp-followups",       label: "Follow-ups due",         priority: 12, layer: 3, tone: "primary" },
-  /* ② revenue_bar        */ { id: "hp-revenue-week",    label: "Revenue this week",      priority: 14, layer: 3, tone: "primary" },
-  /* ③ revenue_compare    */ { id: "hp-revenue-compare", label: "Compare revenue dates",  priority: 16, layer: 3, tone: "primary" },
+  /* ② revenue_bar        */ { id: "hp-billing-week",    label: "This week's billing",    priority: 14, layer: 3, tone: "primary" },
+  /* ②b deposits_week     */ { id: "hp-deposits-week",   label: "This week's deposits",   priority: 15, layer: 3, tone: "primary" },
   /* ④ bulk_action        */ { id: "hp-reminders",       label: "Send reminders",          priority: 18, layer: 3, tone: "primary" },
   /* ⑤ donut_chart        */ { id: "hp-demographics",    label: "Patient demographics",    priority: 20, layer: 3, tone: "primary" },
   /* ⑥ pie_chart          */ { id: "hp-diagnosis-dist",  label: "Diagnosis breakdown",     priority: 22, layer: 3, tone: "primary" },
@@ -36,11 +36,12 @@ const TAB_OVERRIDES: Record<HomepageTab, CannedPill[]> = {
     ALL_HOMEPAGE_PILLS[0],  // Follow-ups due
     ALL_HOMEPAGE_PILLS[7],  // Weekly KPIs
     ALL_HOMEPAGE_PILLS[6],  // Patient trends
-    ALL_HOMEPAGE_PILLS[1],  // Revenue this week
+    ALL_HOMEPAGE_PILLS[1],  // This week's billing
+    ALL_HOMEPAGE_PILLS[2],  // This week's deposits
   ],
   finished: [
     ALL_HOMEPAGE_PILLS[5],  // Diagnosis breakdown
-    ALL_HOMEPAGE_PILLS[1],  // Revenue this week
+    ALL_HOMEPAGE_PILLS[1],  // This week's billing
     ALL_HOMEPAGE_PILLS[4],  // Patient demographics
     ALL_HOMEPAGE_PILLS[8],  // Chronic conditions
   ],
@@ -48,7 +49,7 @@ const TAB_OVERRIDES: Record<HomepageTab, CannedPill[]> = {
     ALL_HOMEPAGE_PILLS[9],  // Peak hours
     ALL_HOMEPAGE_PILLS[6],  // Patient trends
     ALL_HOMEPAGE_PILLS[7],  // Weekly KPIs
-    ALL_HOMEPAGE_PILLS[3],  // Send reminders
+    ALL_HOMEPAGE_PILLS[4],  // Send reminders
   ],
   draft: [
     ALL_HOMEPAGE_PILLS[11], // Vaccination schedule
@@ -59,7 +60,7 @@ const TAB_OVERRIDES: Record<HomepageTab, CannedPill[]> = {
   "pending-digitisation": [
     ALL_HOMEPAGE_PILLS[10], // Referral summary
     ALL_HOMEPAGE_PILLS[12], // Billing & deposits
-    ALL_HOMEPAGE_PILLS[1],  // Revenue this week
+    ALL_HOMEPAGE_PILLS[1],  // This week's billing
     ALL_HOMEPAGE_PILLS[0],  // Follow-ups due
   ],
 }

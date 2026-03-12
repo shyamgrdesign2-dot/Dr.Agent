@@ -15,7 +15,7 @@ const RULES: KeywordRule[] = [
   // ── Operational (Homepage) — checked first because multi-word phrases must win over single-word matches ──
   { keywords: ["today's schedule", "appointments today", "who's next", "queue status", "queue list"], intent: "operational", format: "card" },
   { keywords: ["follow-ups due", "overdue follow", "callback", "follow up due"], intent: "operational", format: "card" },
-  { keywords: ["revenue", "billing", "collection", "payment", "income", "earnings", "refund", "deposit"], intent: "operational", format: "card" },
+  { keywords: ["revenue", "billing", "collection", "payment", "income", "earnings", "refund", "deposit", "this week's billing", "this week's deposits"], intent: "operational", format: "card" },
   { keywords: ["send sms", "send reminder", "remind all", "bulk sms", "notify"], intent: "operational", format: "card" },
   { keywords: ["demographics", "age group", "gender split", "patient composition"], intent: "operational", format: "card" },
   { keywords: ["diagnosis distribution", "diagnosis breakdown", "top diagnos", "common conditions"], intent: "operational", format: "card" },
@@ -160,7 +160,8 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "Follow-ups due": "operational",
   "Revenue today": "operational",
   "Revenue this week": "operational",
-  "Compare revenue dates": "comparison",
+  "This week's billing": "operational",
+  "This week's deposits": "operational",
   "Compare with another date": "comparison",
   "Weekly KPIs": "operational",
   "Upload document": "document_analysis",

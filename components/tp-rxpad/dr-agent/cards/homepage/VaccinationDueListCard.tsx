@@ -23,9 +23,9 @@ export function VaccinationDueListCard({ data, onPillTap }: Props) {
     onPillTap?.("Send reminder to all")
   }
 
-  const handleScheduleItem = (index: number, name: string) => {
+  const handleRemindItem = (index: number, name: string) => {
     setDisabledItems(prev => new Set(prev).add(index))
-    onPillTap?.(`Schedule vaccine for ${name}`)
+    onPillTap?.(`Remind vaccine due for ${name}`)
   }
 
   return (
@@ -71,9 +71,9 @@ export function VaccinationDueListCard({ data, onPillTap }: Props) {
                 type="button"
                 disabled={isDisabled}
                 className="flex-shrink-0 rounded-[6px] border border-tp-blue-400 bg-transparent px-[10px] py-[3px] text-[9px] font-medium text-tp-blue-600 transition-colors hover:bg-tp-blue-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                onClick={() => handleScheduleItem(i, item.patientName)}
+                onClick={() => handleRemindItem(i, item.patientName)}
               >
-                Schedule
+                Remind
               </button>
             </div>
           )

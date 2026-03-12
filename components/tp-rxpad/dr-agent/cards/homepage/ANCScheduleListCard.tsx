@@ -23,9 +23,9 @@ export function ANCScheduleListCard({ data, onPillTap }: Props) {
     onPillTap?.("Send reminder to all")
   }
 
-  const handleScheduleItem = (index: number, name: string) => {
+  const handleRemindItem = (index: number, name: string) => {
     setDisabledItems(prev => new Set(prev).add(index))
-    onPillTap?.(`Schedule ANC for ${name}`)
+    onPillTap?.(`Remind ANC due for ${name}`)
   }
 
   return (
@@ -74,9 +74,9 @@ export function ANCScheduleListCard({ data, onPillTap }: Props) {
                 type="button"
                 disabled={isDisabled}
                 className="flex-shrink-0 rounded-[6px] border border-tp-violet-400 bg-transparent px-[10px] py-[3px] text-[9px] font-medium text-tp-violet-600 transition-colors hover:bg-tp-violet-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                onClick={() => handleScheduleItem(i, item.patientName)}
+                onClick={() => handleRemindItem(i, item.patientName)}
               >
-                Schedule
+                Remind
               </button>
             </div>
           )

@@ -94,9 +94,9 @@ export function VaccinationScheduleCard({ data, onSidebarNav, onPillTap }: Props
               {vax.status !== "given" ? (
                 <button
                   className="shrink-0 ml-2 rounded-[6px] border border-tp-blue-200 bg-white px-2 py-[2px] text-[10px] font-medium text-tp-blue-600 hover:bg-tp-blue-50 transition-colors"
-                  onClick={() => onPillTap?.(`Schedule ${vax.patientName} ${vax.name}`)}
+                  onClick={() => onPillTap?.(`Remind ${vax.patientName} ${vax.name}`)}
                 >
-                  Schedule
+                  Remind
                 </button>
               ) : (
                 <span className="shrink-0 ml-2 text-[10px] text-tp-green-500 font-medium">✓ Done</span>

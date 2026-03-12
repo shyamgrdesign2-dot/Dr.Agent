@@ -774,16 +774,21 @@ export const CATALOG_ENTRIES: CatalogEntry[] = [
 
   // F12 — Billing Summary
   entry("billing_summary", "F12 — Billing Summary", "F", "Homepage Cards", {
+    title: "Advance Deposits: This Week",
+    mode: "deposit",
     items: [
-      { service: "Consultation", amount: 800, status: "paid" },
-      { service: "CBC Test", amount: 350, status: "pending" },
-      { service: "X-Ray", amount: 600, status: "paid" },
+      { referenceNo: "ADV-2900567", patientName: "Tony Danza", amount: 500, status: "deposited" },
+      { referenceNo: "ADV-2900571", patientName: "Templeton Peck", amount: 500, status: "deposited" },
+      { referenceNo: "ADV-2900572", patientName: "Capt. Trunk", amount: 500, status: "debited" },
+      { referenceNo: "ADV-2900573", patientName: "Michael Knight", amount: 800, status: "refunded" },
     ],
-    totalAmount: 1750,
-    totalPaid: 1400,
-    balance: 350,
-    advanceDeposits: 500,
-    refunded: 70,
+    totalBilledAmount: 3892,
+    totalPaidFullyAmount: 1500,
+    totalDueAmount: 500,
+    totalRefundedAmount: 800,
+    totalAdvanceReceived: 1500,
+    totalAdvanceRefunded: 800,
+    totalAdvanceDebited: 500,
   }),
 
   // F13 — Vaccination Due List
