@@ -68,8 +68,8 @@ const RULES: KeywordRule[] = [
   { keywords: ["ask me anything", "ask anything", "pre-consult"], intent: "ambiguous", format: "text" },
 
   // Rail-specific operational queries
-  { keywords: ["overdue follow-up", "send reminder", "this week's follow-up", "follow-up rate", "follow up rate"], intent: "operational", format: "card" },
-  { keywords: ["pending payment", "today's collection", "generate invoice", "outstanding due"], intent: "operational", format: "card" },
+  { keywords: ["overall follow-ups today", "follow-up dues this week", "follow-up dues today", "overdue follow-ups today", "this week follow-ups", "overdue follow-up", "send reminder", "this week's follow-up", "follow-up rate", "follow up rate"], intent: "operational", format: "card" },
+  { keywords: ["patients with due", "due this week", "due till now", "dues till date", "total bill today", "today's billing", "today's deposit", "today's collection", "overall collection", "past 30 days collection", "generate invoice", "open billing", "open opd billing"], intent: "operational", format: "card" },
   { keywords: ["low stock", "pending prescription", "dispense history", "expiring medicine"], intent: "operational", format: "card" },
   { keywords: ["draft campaign", "delivery stat", "template library", "scheduled message"], intent: "operational", format: "card" },
   // Patient-context pills
@@ -165,7 +165,6 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "Compare with another date": "comparison",
   "Weekly KPIs": "operational",
   "Upload document": "document_analysis",
-  "Send reminders": "operational",
   "Patient demographics": "operational",
   "Diagnosis breakdown": "operational",
   "Busiest hours": "operational",
@@ -178,7 +177,7 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "Send reminder to all": "operational",
   "Follow-up analytics": "operational",
   "Compare with last week": "comparison",
-  "Weekday breakdown": "operational",
+  "Compare with yesterday": "operational",
   "Gender split": "operational",
   "Condition breakdown": "operational",
   "Show all fever patients": "operational",
@@ -190,12 +189,20 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "Payment reminders": "operational",
   // Rail-specific pill labels
   "Overdue follow-ups": "operational",
+  "Overdue follow-ups today": "operational",
   "This week's follow-ups": "operational",
+  "This week follow-ups": "operational",
+  "Overall follow-ups today": "operational",
+  "Follow-up dues this week": "operational",
+  "Follow-up dues today": "operational",
   "Follow-up rate": "operational",
-  "Pending payments": "operational",
+  "Patients with due this week": "operational",
+  "Patients with due till now": "operational",
   "Today's collection": "operational",
+  "Today's billing": "operational",
+  "Today's deposits": "operational",
+  "Past 30 days collection": "operational",
   "Generate invoice": "operational",
-  "Outstanding dues": "operational",
   "Low stock alerts": "operational",
   "Pending prescriptions": "operational",
   "Dispense history": "operational",
@@ -209,7 +216,6 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "Vaccination schedule": "operational",
   // Clinical guidelines removed from homepage pills
   "Billing overview": "operational",
-  "Billing & deposits": "operational",
   "Patient timeline": "data_retrieval",  // patient-specific → redirected in homepage
   "Patient trends": "operational",
   "Peak hours": "operational",

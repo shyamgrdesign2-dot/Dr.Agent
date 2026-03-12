@@ -13,10 +13,8 @@ type HomepageTab = "queue" | "finished" | "cancelled" | "draft" | "pending-digit
 // most relevant subset. This master list is the exhaustive catalogue
 // so every homepage card kind has a discoverable entry-point.
 const ALL_HOMEPAGE_PILLS: CannedPill[] = [
-  /* ① follow_up_list     */ { id: "hp-followups",       label: "Follow-ups due",         priority: 12, layer: 3, tone: "primary" },
-  /* ② revenue_bar        */ { id: "hp-billing-week",    label: "This week's billing",    priority: 14, layer: 3, tone: "primary" },
-  /* ②b deposits_week     */ { id: "hp-deposits-week",   label: "This week's deposits",   priority: 15, layer: 3, tone: "primary" },
-  /* ④ bulk_action        */ { id: "hp-reminders",       label: "Send reminders",          priority: 18, layer: 3, tone: "primary" },
+  /* ① follow_up_list     */ { id: "hp-followups",       label: "Follow-up dues today",   priority: 12, layer: 3, tone: "primary" },
+  /* ② follow_up_week     */ { id: "hp-followups-week",  label: "Follow-up dues this week", priority: 14, layer: 3, tone: "primary" },
   /* ⑤ donut_chart        */ { id: "hp-demographics",    label: "Patient demographics",    priority: 20, layer: 3, tone: "primary" },
   /* ⑥ pie_chart          */ { id: "hp-diagnosis-dist",  label: "Diagnosis breakdown",     priority: 22, layer: 3, tone: "primary" },
   /* ⑦ line_graph         */ { id: "hp-patient-volume",  label: "Patient trends",          priority: 24, layer: 3, tone: "primary" },
@@ -25,7 +23,6 @@ const ALL_HOMEPAGE_PILLS: CannedPill[] = [
   /* ⑩ heatmap            */ { id: "hp-peak-hours",      label: "Peak hours",              priority: 30, layer: 3, tone: "primary" },
   /* ⑪ referral           */ { id: "hp-referrals",       label: "Referral summary",        priority: 32, layer: 3, tone: "primary" },
   /* ⑫ vaccination_sched  */ { id: "hp-vaccine-schedule",label: "Vaccination schedule",    priority: 34, layer: 3, tone: "primary" },
-  /* ⑬ billing_summary    */ { id: "hp-billing",         label: "Billing & deposits",      priority: 36, layer: 3, tone: "primary" },
   /* ⑭ vaccination_due    */ { id: "hp-vaccine-due",     label: "Vaccination due list",    priority: 38, layer: 3, tone: "warning" },
   /* ⑮ anc_schedule_list  */ { id: "hp-anc-schedule",    label: "ANC schedule",            priority: 40, layer: 3, tone: "warning" },
 ]
@@ -33,34 +30,41 @@ const ALL_HOMEPAGE_PILLS: CannedPill[] = [
 // ─── Tab overrides: pick the 4 most relevant pills per tab ──────
 const TAB_OVERRIDES: Record<HomepageTab, CannedPill[]> = {
   queue: [
-    ALL_HOMEPAGE_PILLS[0],  // Follow-ups due
-    ALL_HOMEPAGE_PILLS[7],  // Weekly KPIs
-    ALL_HOMEPAGE_PILLS[6],  // Patient trends
-    ALL_HOMEPAGE_PILLS[1],  // This week's billing
-    ALL_HOMEPAGE_PILLS[2],  // This week's deposits
+    ALL_HOMEPAGE_PILLS[2],  // Patient demographics
+    ALL_HOMEPAGE_PILLS[3],  // Diagnosis breakdown
+    ALL_HOMEPAGE_PILLS[4],  // Patient trends
+    ALL_HOMEPAGE_PILLS[5],  // Weekly KPIs
+    ALL_HOMEPAGE_PILLS[6],  // Chronic conditions
+    ALL_HOMEPAGE_PILLS[7],  // Peak hours
+    ALL_HOMEPAGE_PILLS[8],  // Referral summary
+    ALL_HOMEPAGE_PILLS[9],  // Vaccination schedule
+    ALL_HOMEPAGE_PILLS[10], // Vaccination due list
+    ALL_HOMEPAGE_PILLS[11], // ANC schedule
+    ALL_HOMEPAGE_PILLS[0],  // Follow-up dues today
+    ALL_HOMEPAGE_PILLS[1],  // Follow-up dues this week
   ],
   finished: [
-    ALL_HOMEPAGE_PILLS[5],  // Diagnosis breakdown
-    ALL_HOMEPAGE_PILLS[1],  // This week's billing
-    ALL_HOMEPAGE_PILLS[4],  // Patient demographics
-    ALL_HOMEPAGE_PILLS[8],  // Chronic conditions
+    ALL_HOMEPAGE_PILLS[4],  // Diagnosis breakdown
+    ALL_HOMEPAGE_PILLS[1],  // Follow-up dues this week
+    ALL_HOMEPAGE_PILLS[3],  // Patient demographics
+    ALL_HOMEPAGE_PILLS[7],  // Chronic conditions
   ],
   cancelled: [
-    ALL_HOMEPAGE_PILLS[9],  // Peak hours
-    ALL_HOMEPAGE_PILLS[6],  // Patient trends
-    ALL_HOMEPAGE_PILLS[7],  // Weekly KPIs
-    ALL_HOMEPAGE_PILLS[4],  // Send reminders
+    ALL_HOMEPAGE_PILLS[8],  // Peak hours
+    ALL_HOMEPAGE_PILLS[5],  // Patient trends
+    ALL_HOMEPAGE_PILLS[6],  // Weekly KPIs
+    ALL_HOMEPAGE_PILLS[4],  // Patient demographics
   ],
   draft: [
-    ALL_HOMEPAGE_PILLS[11], // Vaccination schedule
-    ALL_HOMEPAGE_PILLS[12], // Billing & deposits
-    ALL_HOMEPAGE_PILLS[10], // Referral summary
-    ALL_HOMEPAGE_PILLS[13], // Vaccination due list
+    ALL_HOMEPAGE_PILLS[10], // Vaccination schedule
+    ALL_HOMEPAGE_PILLS[9],  // Referral summary
+    ALL_HOMEPAGE_PILLS[11], // Vaccination due list
+    ALL_HOMEPAGE_PILLS[12], // ANC schedule
   ],
   "pending-digitisation": [
-    ALL_HOMEPAGE_PILLS[10], // Referral summary
-    ALL_HOMEPAGE_PILLS[12], // Billing & deposits
-    ALL_HOMEPAGE_PILLS[1],  // This week's billing
+    ALL_HOMEPAGE_PILLS[9],  // Referral summary
+    ALL_HOMEPAGE_PILLS[1],  // Follow-up dues this week
+    ALL_HOMEPAGE_PILLS[6],  // Weekly KPIs
     ALL_HOMEPAGE_PILLS[0],  // Follow-ups due
   ],
 }
@@ -68,16 +72,33 @@ const TAB_OVERRIDES: Record<HomepageTab, CannedPill[]> = {
 // Rail-specific pills — shown when a non-appointments rail item is active
 const RAIL_PILLS: Record<string, CannedPill[]> = {
   "follow-ups": [
-    { id: "rail-overdue", label: "Overdue follow-ups", priority: 10, layer: 3, tone: "warning" },
-    { id: "rail-reminders", label: "Send reminders", priority: 12, layer: 3, tone: "primary" },
-    { id: "rail-thisweek", label: "This week's follow-ups", priority: 14, layer: 3, tone: "primary" },
-    { id: "rail-rate", label: "Follow-up rate", priority: 16, layer: 3, tone: "info" },
+    { id: "rail-overall-today", label: "Overall follow-ups today", priority: 10, layer: 3, tone: "primary" },
+    { id: "rail-due-today", label: "Follow-up dues today", priority: 12, layer: 3, tone: "primary" },
+    { id: "rail-overdue-today", label: "Overdue follow-ups today", priority: 14, layer: 3, tone: "warning" },
+    { id: "rail-thisweek", label: "This week follow-ups", priority: 16, layer: 3, tone: "primary" },
+    { id: "rail-rate", label: "Follow-up rate", priority: 18, layer: 3, tone: "info" },
   ],
   "opd-billing": [
-    { id: "rail-pending", label: "Pending payments", priority: 10, layer: 3, tone: "warning" },
-    { id: "rail-collection", label: "Today's collection", priority: 12, layer: 3, tone: "primary" },
-    { id: "rail-invoice", label: "Generate invoice", priority: 14, layer: 3, tone: "primary" },
-    { id: "rail-outstanding", label: "Outstanding dues", priority: 16, layer: 3, tone: "danger" },
+    { id: "rail-collection", label: "Today's collection", priority: 10, layer: 3, tone: "primary" },
+    { id: "rail-billing-today", label: "Today's billing", priority: 12, layer: 3, tone: "primary" },
+    { id: "rail-deposits-today", label: "Today's deposits", priority: 14, layer: 3, tone: "primary" },
+    { id: "rail-invoice", label: "Generate invoice", priority: 16, layer: 3, tone: "primary" },
+    { id: "rail-due-week", label: "Patients with due this week", priority: 18, layer: 3, tone: "warning" },
+    { id: "rail-due-till", label: "Patients with due till now", priority: 20, layer: 3, tone: "warning" },
+  ],
+  "all-patients": [
+    { id: "rail-demographics", label: "Patient demographics", priority: 10, layer: 3, tone: "primary" },
+    { id: "rail-diagnosis", label: "Diagnosis breakdown", priority: 12, layer: 3, tone: "primary" },
+    { id: "rail-trends", label: "Patient trends", priority: 14, layer: 3, tone: "primary" },
+    { id: "rail-kpis", label: "Weekly KPIs", priority: 16, layer: 3, tone: "primary" },
+    { id: "rail-chronic", label: "Chronic conditions", priority: 18, layer: 3, tone: "primary" },
+    { id: "rail-peak", label: "Peak hours", priority: 20, layer: 3, tone: "primary" },
+    { id: "rail-referrals", label: "Referral summary", priority: 22, layer: 3, tone: "primary" },
+    { id: "rail-vaccine", label: "Vaccination schedule", priority: 24, layer: 3, tone: "primary" },
+    { id: "rail-vaccine-due", label: "Vaccination due list", priority: 26, layer: 3, tone: "warning" },
+    { id: "rail-anc", label: "ANC schedule", priority: 28, layer: 3, tone: "warning" },
+    { id: "rail-fu-due-today", label: "Follow-up dues today", priority: 30, layer: 3, tone: "primary" },
+    { id: "rail-fu-due-week", label: "Follow-up dues this week", priority: 32, layer: 3, tone: "primary" },
   ],
   pharmacy: [
     { id: "rail-lowstock", label: "Low stock alerts", priority: 10, layer: 3, tone: "danger" },

@@ -57,6 +57,8 @@ import { AnalyticsTableCard } from "./homepage/AnalyticsTableCard"
 import { ConditionBarCard } from "./homepage/ConditionBarCard"
 import { HeatmapCard } from "./homepage/HeatmapCard"
 import { WelcomeCard } from "./homepage/WelcomeCard"
+import { DuePatientsCard } from "./homepage/DuePatientsCard"
+import { FollowUpRateCard } from "./homepage/FollowUpRateCard"
 
 // Utility & Safety Cards (E1-E2 + CDSS)
 import { TranslationCard } from "./utility/TranslationCard"
@@ -302,6 +304,12 @@ export function CardRenderer({ output, onPillTap, onCopy, onSidebarNav }: CardRe
     case "heatmap":
       return <HeatmapCard data={output.data} onPillTap={onPillTap} />
 
+    case "due_patients":
+      return <DuePatientsCard data={output.data} />
+
+    case "follow_up_rate":
+      return <FollowUpRateCard data={output.data} />
+
     case "welcome_card":
       return <WelcomeCard data={output.data} onPillTap={onPillTap} />
 
@@ -322,7 +330,7 @@ export function CardRenderer({ output, onPillTap, onCopy, onSidebarNav }: CardRe
       return <RxPreviewCard data={output.data} onPillTap={onPillTap} />
 
     case "billing_summary":
-      return <BillingSummaryCard data={output.data} />
+      return <BillingSummaryCard data={output.data} onSidebarNav={onSidebarNav} />
 
     case "vaccination_due_list":
       return <VaccinationDueListCard data={output.data} onPillTap={onPillTap} />

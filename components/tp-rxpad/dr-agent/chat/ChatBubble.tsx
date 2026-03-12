@@ -10,14 +10,47 @@ import { AiGradientBg } from "../shared/AiGradientBg"
 import { DocumentCopy, Edit2 } from "iconsax-reactjs"
 import { DocumentAttachmentBubble } from "./DocumentAttachmentBubble"
 
-/** Convert **bold** markdown syntax to <strong> elements. */
-function renderMarkdownBold(text: string): React.ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g)
-  return parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={i} className="font-semibold text-tp-slate-900">{part.slice(2, -2)}</strong>
+/** Convert light markdown (bold + links) into rich text. */
+function renderAssistantMarkdown(text: string, onPillTap?: (label: string) => void): React.ReactNode {
+  const tokens = text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g)
+  return tokens.map((token, i) => {
+    if (token.startsWith("**") && token.endsWith("**")) {
+      return <strong key={i} className="font-semibold text-tp-slate-900">{token.slice(2, -2)}</strong>
     }
-    return <span key={i}>{part}</span>
+
+    if (token.startsWith("[") && token.includes("](") && token.endsWith(")")) {
+      const match = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+      if (!match) return <span key={i}>{token}</span>
+      const [, label, href] = match
+
+      if (href.startsWith("action:")) {
+        const actionLabel = decodeURIComponent(href.slice("action:".length))
+        return (
+          <button
+            key={i}
+            type="button"
+            onClick={() => onPillTap?.(actionLabel || label)}
+            className="font-medium text-tp-blue-600 underline underline-offset-2 transition-colors hover:text-tp-blue-700"
+          >
+            {label}
+          </button>
+        )
+      }
+
+      return (
+        <a
+          key={i}
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-tp-blue-600 underline underline-offset-2 transition-colors hover:text-tp-blue-700"
+        >
+          {label}
+        </a>
+      )
+    }
+
+    return <span key={i}>{token}</span>
   })
 }
 
@@ -119,7 +152,7 @@ export function ChatBubble({
 
             {/* Plain text (no bubble/border/bg) */}
             <p className="text-[12px] leading-[18px] text-tp-slate-700 whitespace-pre-wrap break-words">
-              {renderMarkdownBold(message.text)}
+              {renderAssistantMarkdown(message.text, onPillTap)}
             </p>
           </div>
         )}

@@ -1198,7 +1198,7 @@ export function DrAgentPage() {
                               </button>
                             </th>
                             <th className={cn(
-                              "relative sticky right-0 z-20 w-[1%] whitespace-nowrap rounded-r-[12px] bg-tp-slate-100 pl-3 pr-2 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700",
+                              "relative sticky right-0 z-20 w-[1%] whitespace-nowrap rounded-tr-[12px] rounded-br-[12px] bg-tp-slate-100 pl-3 pr-2 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700",
                               stickyActionHeaderClass,
                             )}>
                               Action

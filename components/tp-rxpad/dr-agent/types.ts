@@ -409,6 +409,25 @@ export interface ConditionBarCardData { title: string; items: ConditionBarItem[]
 
 export interface HeatmapCell { value: number; intensity: "low" | "medium" | "high" }
 export interface HeatmapCardData { title: string; rows: string[]; cols: string[]; cells: HeatmapCell[][] }
+export interface DuePatientsCardData {
+  title: string
+  periodLabel: string
+  patientCount: number
+  totalDueAmount: number
+  asOf: string
+  ctaLabel: string
+}
+export interface FollowUpRatePoint { label: string; rate: number }
+export interface FollowUpRateCardData {
+  title: string
+  currentRate: number
+  lastWeekRate: number
+  dueToday: number
+  overdueToday: number
+  completedThisWeek: number
+  scheduledThisWeek: number
+  trend: FollowUpRatePoint[]
+}
 
 // ═══════════════ NEW CARD TYPES ═══════════════
 
@@ -482,6 +501,8 @@ export interface BillingSummaryCardData {
   title: string
   mode: "billing" | "deposit" | "combined"
   items: BillingItem[]
+  todayBilledAmount?: number
+  todayCollectedAmount?: number
   totalBilledAmount: number
   totalPaidFullyAmount: number
   totalDueAmount: number
@@ -489,6 +510,10 @@ export interface BillingSummaryCardData {
   totalAdvanceReceived: number
   totalAdvanceRefunded: number
   totalAdvanceDebited: number
+  footerCtaLabel?: string
+  footerCtaAction?: string
+  minimal?: boolean
+  insight?: string
 }
 
 // ═══════════════ VACCINATION DUE/OVERDUE LIST ═══════════════
@@ -569,6 +594,8 @@ export type RxAgentOutput =
   | { kind: "analytics_table"; data: AnalyticsTableCardData }
   | { kind: "condition_bar"; data: ConditionBarCardData }
   | { kind: "heatmap"; data: HeatmapCardData }
+  | { kind: "due_patients"; data: DuePatientsCardData }
+  | { kind: "follow_up_rate"; data: FollowUpRateCardData }
   | { kind: "welcome_card"; data: WelcomeCardData }
   // New Card Variants
   | { kind: "referral"; data: ReferralCardData }

@@ -360,8 +360,8 @@ export function ChatInput({
             onClick={onAttach}
             disabled={disabled}
             className={cn(
-              "flex shrink-0 items-center justify-center",
-              "text-tp-slate-700 transition-colors hover:text-tp-slate-900",
+              "flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full",
+              "text-tp-slate-600 transition-all hover:bg-gradient-to-r hover:from-purple-50/80 hover:to-blue-50/80 hover:text-tp-blue-600 hover:shadow-[0_0_0_1px_rgba(59,130,246,0.15)]",
               disabled && "pointer-events-none",
             )}
             title="Add files and more"
