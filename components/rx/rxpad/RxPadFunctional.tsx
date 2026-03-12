@@ -1640,27 +1640,29 @@ function EditableTableModule({
           </div>
         ) : null}
 
-        <TPRxPadSearchInput
-          ref={searchInputRef}
-          data-rx-module-search="true"
-          value={searchText}
-          onFocus={() => {
-            openSearchMenu(searchText)
-          }}
-          onClick={() => {
-            openSearchMenu(searchText)
-          }}
-          onChange={(event) => {
-            const next = event.currentTarget.value
-            setSearchText(next)
-            openSearchMenu(next)
-          }}
-          onBlur={() => {
-            window.setTimeout(() => {
-              setActiveMenu((current) => (current?.mode === "search" ? null : current))
-            }, 90)
-          }}
-          onKeyDown={(event) => {
+        <div className="relative">
+          <TPRxPadSearchInput
+            ref={searchInputRef}
+            data-rx-module-search="true"
+            value={searchText}
+            className={afterSearch ? "pr-[220px]" : undefined}
+            onFocus={() => {
+              openSearchMenu(searchText)
+            }}
+            onClick={() => {
+              openSearchMenu(searchText)
+            }}
+            onChange={(event) => {
+              const next = event.currentTarget.value
+              setSearchText(next)
+              openSearchMenu(next)
+            }}
+            onBlur={() => {
+              window.setTimeout(() => {
+                setActiveMenu((current) => (current?.mode === "search" ? null : current))
+              }, 90)
+            }}
+            onKeyDown={(event) => {
             const searchMenuOpen = activeMenu?.mode === "search" && optionsForMenu.length > 0
 
             if (searchMenuOpen && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
@@ -1738,9 +1740,17 @@ function EditableTableModule({
               event.preventDefault()
               focusPreviousModuleSearch()
             }
-          }}
-          placeholder={searchPlaceholder}
-        />
+            }}
+            placeholder={searchPlaceholder}
+          />
+          {afterSearch ? (
+            <div className="pointer-events-none absolute inset-y-0 right-2 z-20 flex items-center">
+              <div className="pointer-events-auto flex max-w-[200px] items-center justify-end gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {afterSearch}
+              </div>
+            </div>
+          ) : null}
+        </div>
 
         {isTablet ? (
           <div className="flex flex-wrap gap-3">
@@ -1757,12 +1767,6 @@ function EditableTableModule({
           </div>
         ) : null}
 
-        {/* AI trigger chips — right-aligned after search area */}
-        {afterSearch && (
-          <div className="flex justify-end mt-[6px]">
-            {afterSearch}
-          </div>
-        )}
       </div>
 
       {activeMenu && menuPosition && optionsForMenu.length > 0 && typeof document !== "undefined"
@@ -1970,6 +1974,33 @@ function checkMedicationAlerts(
   return alerts
 }
 
+function tokenizeKeywords(input: string): string[] {
+  return input
+    .toLowerCase()
+    .split(/[^a-z0-9]+/g)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 3)
+}
+
+function bestMatchPercent(option: string, candidates: string[]): number {
+  const optionTokens = tokenizeKeywords(option)
+  if (optionTokens.length === 0 || candidates.length === 0) return 0
+
+  let best = 0
+  for (const candidate of candidates) {
+    const candidateTokens = tokenizeKeywords(candidate)
+    if (candidateTokens.length === 0) continue
+    const overlap = candidateTokens.filter((token) => optionTokens.includes(token)).length
+    const score = Math.round((overlap / candidateTokens.length) * 100)
+    if (score > best) best = score
+  }
+  return best
+}
+
+function hasFilledPrimaryValue(rows: TableRow[], primaryKey: string): boolean {
+  return rows.some((row) => (row[primaryKey] ?? "").trim().length > 0)
+}
+
 export function RxPadFunctional({ patientId = "__patient__" }: { patientId?: string }) {
   const { lastCopyRequest, publishSignal, patientAllergies } = useRxPadSync()
   const lastHandledCopyId = useRef<number>(0)
@@ -2085,6 +2116,22 @@ export function RxPadFunctional({ patientId = "__patient__" }: { patientId?: str
   const interactionRowIds = useMemo(
     () => new Set(tableInteractions.map((t) => t.rowId)),
     [tableInteractions],
+  )
+  const hasFilledSymptoms = useMemo(
+    () => hasFilledPrimaryValue(symptomRows, "name"),
+    [symptomRows],
+  )
+  const hasFilledDiagnosis = useMemo(
+    () => hasFilledPrimaryValue(diagnosisRows, "name"),
+    [diagnosisRows],
+  )
+  const hasFilledMedication = useMemo(
+    () => hasFilledPrimaryValue(medicationRows, "medicine"),
+    [medicationRows],
+  )
+  const hasFilledAdvice = useMemo(
+    () => hasFilledPrimaryValue(adviceRows, "advice"),
+    [adviceRows],
   )
 
   /* Existing med names for search dropdown interaction check */
@@ -2440,7 +2487,7 @@ export function RxPadFunctional({ patientId = "__patient__" }: { patientId?: str
         searchSuggestions={symptomSuggestions}
         cannedChips={symptomSuggestions.slice(0, 12)}
         afterSearch={
-          symptomRows.length >= 1 ? (
+          hasFilledSymptoms ? (
             <AiTriggerChip
               label="Suggest DDX"
               signalLabel="Generate differential diagnosis based on current symptoms"
@@ -2481,16 +2528,29 @@ export function RxPadFunctional({ patientId = "__patient__" }: { patientId?: str
         cannedChips={diagnosisSuggestions.slice(0, 12)}
         moduleDataAttr="diagnosis"
         getOptionTag={(option) => {
-          const match = ddxSuggestions.some((d) => option.toLowerCase().includes(d.toLowerCase()) || d.toLowerCase().includes(option.toLowerCase()))
-          return match ? (
-            <span className="shrink-0 inline-flex items-center gap-0.5 rounded bg-tp-blue-50 px-1.5 py-0.5 text-[9px] font-semibold text-tp-blue-600 whitespace-nowrap">
-              <svg width={9} height={9} viewBox="0 0 24 24" fill="none" className="flex-shrink-0"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z" fill="currentColor" opacity={0.7} /></svg>
-              DDx Match
-            </span>
-          ) : null
+          const score = bestMatchPercent(option, ddxSuggestions)
+          if (score < 50) return null
+          return (
+            <TPTooltip
+              title={`AI relevance: ${score}% match against differential diagnosis suggestions from symptoms.`}
+              placement="top"
+              arrow
+            >
+              <span
+                className="shrink-0 inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-semibold whitespace-nowrap"
+                style={{
+                  background: "linear-gradient(135deg, rgba(213,101,234,0.14) 0%, rgba(103,58,172,0.14) 50%, rgba(26,25,148,0.14) 100%)",
+                  border: "1px solid rgba(103,58,172,0.15)",
+                  color: "var(--tp-violet-700, #6D28D9)",
+                }}
+              >
+                DDx {score}% match
+              </span>
+            </TPTooltip>
+          )
         }}
         afterSearch={
-          diagnosisRows.length >= 1 ? (
+          hasFilledDiagnosis ? (
             <AiTriggerChip
               label="Suggest lab tests"
               signalLabel="Suggest lab investigations based on diagnosis"
@@ -2513,7 +2573,22 @@ export function RxPadFunctional({ patientId = "__patient__" }: { patientId?: str
         getOptionTag={(option) => {
           const hit = checkDrugInteraction(option, existingMedNames)
           return hit ? (
-            <span className="shrink-0 text-[9px] text-tp-warning-600 whitespace-nowrap">⚠ Interacts with {hit.interactsWith.split(" ")[0]}</span>
+            <TPTooltip
+              title={`Potential interaction with ${hit.interactsWith}. Review before prescribing.`}
+              placement="top"
+              arrow
+            >
+              <span
+                className="shrink-0 inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-semibold whitespace-nowrap"
+                style={{
+                  background: "linear-gradient(135deg, rgba(213,101,234,0.14) 0%, rgba(103,58,172,0.14) 50%, rgba(26,25,148,0.14) 100%)",
+                  border: "1px solid rgba(103,58,172,0.15)",
+                  color: "var(--tp-violet-700, #6D28D9)",
+                }}
+              >
+                DDI match
+              </span>
+            </TPTooltip>
           ) : null
         }}
         highlightedRowIds={interactionRowIds}
@@ -2529,24 +2604,13 @@ export function RxPadFunctional({ patientId = "__patient__" }: { patientId?: str
           "Ibuprofen 400mg",
         ]}
         afterSearch={
-          <div className="flex items-center gap-2 flex-wrap">
-            {medicationAlerts.map((alert) => (
-              <AiTriggerChip
-                key={alert.rowId}
-                label={`⚠ ${alert.medName} — Allergy: ${alert.allergen}`}
-                signalLabel={`Check drug interaction for ${alert.medName} — patient has ${alert.allergen} allergy`}
-                sectionId="medication"
-                className="!border-tp-amber-300 !text-[10px]"
-              />
-            ))}
-            {medicationRows.length >= 2 && (
-              <AiTriggerChip
-                label="Check interactions"
-                signalLabel="Check drug interactions for current medications"
-                sectionId="medication"
-              />
-            )}
-          </div>
+          hasFilledMedication ? (
+            <AiTriggerChip
+              label="Check interactions"
+              signalLabel="Check drug interactions for current medications"
+              sectionId="medication"
+            />
+          ) : null
         }
       />
 
@@ -2561,20 +2625,13 @@ export function RxPadFunctional({ patientId = "__patient__" }: { patientId?: str
         searchPlaceholder="Search & Add Advice"
         cannedChips={ADVICE_SUGGESTIONS}
         afterSearch={
-          <div className="flex items-center gap-2">
-            {adviceRows.length >= 1 && (
-              <AiTriggerChip
-                label="Translate advices"
-                signalLabel="Translate advice to patient's language"
-                sectionId="advice"
-              />
-            )}
+          hasFilledAdvice ? (
             <AiTriggerChip
-              label="Generate advices"
-              signalLabel="Generate advice based on this consultation"
+              label="Translate advice"
+              signalLabel="Translate advice to patient's language"
               sectionId="advice"
             />
-          </div>
+          ) : null
         }
       />
 
@@ -2588,8 +2645,33 @@ export function RxPadFunctional({ patientId = "__patient__" }: { patientId?: str
         onChangeRows={setLabRows}
         searchPlaceholder="Search & Add Lab Investigation"
         cannedChips={LAB_INVESTIGATION_BASE_OPTIONS}
+        getOptionTag={(option) => {
+          const score = bestMatchPercent(
+            option,
+            diagnosisRows.map((row) => (row.name ?? "").trim()).filter(Boolean),
+          )
+          if (score < 40) return null
+          return (
+            <TPTooltip
+              title={`AI relevance: ${score}% match with current diagnosis list.`}
+              placement="top"
+              arrow
+            >
+              <span
+                className="shrink-0 inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-semibold whitespace-nowrap"
+                style={{
+                  background: "linear-gradient(135deg, rgba(213,101,234,0.14) 0%, rgba(103,58,172,0.14) 50%, rgba(26,25,148,0.14) 100%)",
+                  border: "1px solid rgba(103,58,172,0.15)",
+                  color: "var(--tp-violet-700, #6D28D9)",
+                }}
+              >
+                Investigation {score}% match
+              </span>
+            </TPTooltip>
+          )
+        }}
         afterSearch={
-          diagnosisRows.length >= 1 ? (
+          hasFilledDiagnosis ? (
             <AiTriggerChip
               label="Suggest investigations"
               signalLabel="Suggest lab investigations based on diagnosis"
