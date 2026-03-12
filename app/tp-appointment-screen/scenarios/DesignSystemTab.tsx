@@ -493,6 +493,16 @@ const CARD_CATALOG: CardSpec[] = [
     collapsible: true,
     constraints: ["Uses ACTION badge (tp-warning) instead of header variant", "Confirm changes to success state"],
   },
+  {
+    kind: "external_cta", family: "Homepage", title: "External CTA",
+    tpIcon: null, iconsaxIcon: "Link1",
+    dataType: "ExternalCtaCardData",
+    features: ["Single-line description", "One primary CTA link", "Opens external file/page (Excel/Word/etc.)"],
+    copyActions: [],
+    pillActions: [],
+    collapsible: true,
+    constraints: ["Used for export-only responses", "CTA can open in new tab", "No extra chart/table content"],
+  },
 ]
 
 // ═══════ INTENT MAPPING ═══════
@@ -533,8 +543,8 @@ const INTENT_MAP: IntentRoute[] = [
   },
   {
     intent: "operational", format: "card", context: "Homepage",
-    cardKinds: ["patient_list", "follow_up_list", "revenue_bar", "donut_chart", "pie_chart", "line_graph", "analytics_table", "condition_bar", "heatmap", "bulk_action"],
-    triggers: ["queue", "follow-ups", "revenue", "demographics", "diagnosis distribution", "footfall", "KPIs", "conditions", "busiest hours", "send SMS"],
+    cardKinds: ["patient_list", "follow_up_list", "revenue_bar", "donut_chart", "pie_chart", "line_graph", "analytics_table", "condition_bar", "heatmap", "bulk_action", "external_cta"],
+    triggers: ["queue", "follow-ups", "revenue", "demographics", "diagnosis distribution", "footfall", "KPIs", "conditions", "busiest hours", "send SMS", "excel export", "word export"],
   },
   {
     intent: "clinical_question", format: "text", context: "Either",

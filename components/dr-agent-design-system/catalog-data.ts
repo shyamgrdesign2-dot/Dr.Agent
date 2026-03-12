@@ -538,23 +538,23 @@ export const CATALOG_ENTRIES: CatalogEntry[] = [
 
   // E6 — Referral
   entry("referral", "E6 — Referral", "E", "Utility & Safety Cards", {
-    title: "Pending Referrals",
-    totalCount: 3,
-    urgentCount: 1,
+    title: "Doctor Referral Summary (Incoming)",
+    totalReferrers: 2,
+    totalPatients: 5,
     items: [
       {
-        patientName: "Shyam GR",
-        specialist: "Dr. Mehra",
-        department: "Cardiology",
-        urgency: "urgent",
-        reason: "Elevated creatinine + HTN \u2014 rule out renal artery stenosis",
+        doctorName: "Dr. Mehra",
+        doctorPhone: "98XXXXXX11",
+        specialty: "Cardiology",
+        patientsReferred: 3,
+        topReason: "Elevated creatinine + HTN review",
       },
       {
-        patientName: "Lakshmi K",
-        specialist: "Dr. Priya",
-        department: "Endocrinology",
-        urgency: "routine",
-        reason: "Thyroid optimization in pregnancy",
+        doctorName: "Dr. Priya",
+        doctorPhone: "98XXXXXX22",
+        specialty: "Endocrinology",
+        patientsReferred: 2,
+        topReason: "Thyroid optimization in pregnancy",
       },
     ],
   }),
@@ -603,27 +603,25 @@ export const CATALOG_ENTRIES: CatalogEntry[] = [
 
   // F3 — Follow Up List
   entry("follow_up_list", "F3 — Follow Up List", "F", "Homepage Cards", {
-    title: "Follow-ups Due",
+    title: "Follow-up dues today",
     items: [
-      { name: "Shyam GR", scheduledDate: "02 Mar'26", reason: "DM + HTN review", isOverdue: true },
-      { name: "Priya Rao", scheduledDate: "10 Mar'26", reason: "ANC checkup", isOverdue: false },
+      { name: "Vikram Singh", scheduledDate: "11:15 AM", reason: "HTN medication review", isOverdue: false },
+      { name: "Lakshmi K", scheduledDate: "4:10 PM", reason: "Hb recheck", isOverdue: true },
+      { name: "Neha Gupta", scheduledDate: "5:30 PM", reason: "Asthma follow-up", isOverdue: false },
     ],
     overdueCount: 1,
   }),
 
   // F4 — Revenue Bar
   entry("revenue_bar", "F4 — Revenue Bar", "F", "Homepage Cards", {
-    title: "This Week's Revenue",
-    totalRevenue: 45000,
-    totalPaid: 38000,
-    totalDue: 7000,
-    totalRefunded: 900,
+    title: "Today's Billing",
+    mode: "billing",
+    totalRevenue: 7800,
+    totalPaid: 5400,
+    totalDue: 1800,
+    totalRefunded: 600,
     days: [
-      { label: "Mon", paid: 8000, due: 1500, refunded: 120 },
-      { label: "Tue", paid: 7500, due: 1000, refunded: 110 },
-      { label: "Wed", paid: 6000, due: 2000, refunded: 260 },
-      { label: "Thu", paid: 9000, due: 1500, refunded: 180 },
-      { label: "Fri", paid: 7500, due: 1000, refunded: 230 },
+      { label: "Today", paid: 5400, due: 1800, refunded: 600 },
     ],
   }),
 
@@ -774,21 +772,59 @@ export const CATALOG_ENTRIES: CatalogEntry[] = [
 
   // F12 — Billing Summary
   entry("billing_summary", "F12 — Billing Summary", "F", "Homepage Cards", {
-    title: "Advance Deposits: This Week",
-    mode: "deposit",
+    title: "Today's collection",
+    mode: "combined",
     items: [
-      { referenceNo: "ADV-2900567", patientName: "Tony Danza", amount: 500, status: "deposited" },
-      { referenceNo: "ADV-2900571", patientName: "Templeton Peck", amount: 500, status: "deposited" },
-      { referenceNo: "ADV-2900572", patientName: "Capt. Trunk", amount: 500, status: "debited" },
-      { referenceNo: "ADV-2900573", patientName: "Michael Knight", amount: 800, status: "refunded" },
+      { referenceNo: "BIL-2900567", patientName: "Shyam GR", amount: 2400, status: "paid_fully" },
+      { referenceNo: "BIL-2900571", patientName: "Vikram Singh", amount: 1800, status: "due" },
+      { referenceNo: "BIL-2900572", patientName: "Lakshmi K", amount: 600, status: "refunded" },
+      { referenceNo: "ADV-2900573", patientName: "Neha Gupta", amount: 900, status: "deposited" },
     ],
-    totalBilledAmount: 3892,
-    totalPaidFullyAmount: 1500,
-    totalDueAmount: 500,
-    totalRefundedAmount: 800,
-    totalAdvanceReceived: 1500,
-    totalAdvanceRefunded: 800,
+    totalBilledAmount: 7800,
+    totalPaidFullyAmount: 5400,
+    totalDueAmount: 1800,
+    totalRefundedAmount: 600,
+    totalAdvanceReceived: 2100,
+    totalAdvanceRefunded: 300,
     totalAdvanceDebited: 500,
+    footerCtaLabel: "Open OPD billing section",
+    insight: "Billing and advance metrics shown for today only.",
+  }),
+
+  // F15 — Due Patients
+  entry("due_patients", "F15 — Due Patients", "F", "Homepage Cards", {
+    title: "Patients with due",
+    periodLabel: "This week",
+    patientCount: 6,
+    totalDueAmount: 18400,
+    asOf: "Today, 12:30 PM",
+    ctaLabel: "View in detail",
+  }),
+
+  // F16 — Follow-up Rate
+  entry("follow_up_rate", "F16 — Follow-up Rate", "F", "Homepage Cards", {
+    title: "Follow-up rate",
+    currentRate: 74,
+    lastWeekRate: 69,
+    dueToday: 9,
+    overdueToday: 3,
+    completedThisWeek: 31,
+    scheduledThisWeek: 42,
+    trend: [
+      { label: "W1", rate: 66 },
+      { label: "W2", rate: 71 },
+      { label: "W3", rate: 69 },
+      { label: "W4", rate: 74 },
+    ],
+  }),
+
+  // F17 — External CTA
+  entry("external_cta", "F17 — External CTA", "F", "Homepage Cards", {
+    title: "Export ready: Excel",
+    description: "Your requested data is prepared in spreadsheet format. Use the link below to open or download the file.",
+    ctaLabel: "Open Excel file",
+    ctaUrl: "https://example.com/exports/daily-collection.xlsx",
+    openInNewTab: true,
   }),
 
   // F13 — Vaccination Due List

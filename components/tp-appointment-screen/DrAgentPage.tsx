@@ -155,24 +155,8 @@ const appointmentTabs: AppointmentTab[] = [
 
 const queueAppointments: AppointmentRow[] = [
   {
-    id: "apt-zerodata",
-    serial: 1,
-    name: "Ramesh M",
-    gender: "M",
-    age: 35,
-    contact: "+91-9812700001",
-    visitType: "Walk-in",
-    visitBadge: { text: "New", tone: "info" },
-    slotTime: "10:15 am",
-    slotDate: "9 Mar'26",
-    hasVideo: false,
-    status: "queue",
-    dateKey: "today",
-    hasSymptoms: true,
-  },
-  {
     id: "apt-neha",
-    serial: 2,
+    serial: 1,
     name: "Neha Gupta",
     gender: "F",
     age: 32,
@@ -185,6 +169,22 @@ const queueAppointments: AppointmentRow[] = [
     status: "queue",
     dateKey: "today",
     // No hasSymptoms — patient did NOT fill symptom collector
+  },
+  {
+    id: "apt-zerodata",
+    serial: 2,
+    name: "Ramesh M",
+    gender: "M",
+    age: 35,
+    contact: "+91-9812700001",
+    visitType: "Walk-in",
+    visitBadge: { text: "New", tone: "info" },
+    slotTime: "10:15 am",
+    slotDate: "9 Mar'26",
+    hasVideo: false,
+    status: "queue",
+    dateKey: "today",
+    hasSymptoms: true,
   },
   {
     id: "__patient__",

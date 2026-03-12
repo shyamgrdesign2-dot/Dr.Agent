@@ -417,6 +417,13 @@ export interface DuePatientsCardData {
   asOf: string
   ctaLabel: string
 }
+export interface ExternalCtaCardData {
+  title: string
+  description: string
+  ctaLabel: string
+  ctaUrl: string
+  openInNewTab?: boolean
+}
 export interface FollowUpRatePoint { label: string; rate: number }
 export interface FollowUpRateCardData {
   title: string
@@ -595,6 +602,7 @@ export type RxAgentOutput =
   | { kind: "condition_bar"; data: ConditionBarCardData }
   | { kind: "heatmap"; data: HeatmapCardData }
   | { kind: "due_patients"; data: DuePatientsCardData }
+  | { kind: "external_cta"; data: ExternalCtaCardData }
   | { kind: "follow_up_rate"; data: FollowUpRateCardData }
   | { kind: "welcome_card"; data: WelcomeCardData }
   // New Card Variants

@@ -19,6 +19,7 @@ import type {
   ConditionBarCardData,
   HeatmapCardData,
   DuePatientsCardData,
+  ExternalCtaCardData,
   ReferralCardData,
   VaccinationScheduleCardData,
   ClinicalGuidelineCardData,
@@ -483,12 +484,47 @@ function mockANCScheduleList(): ANCScheduleListCardData {
   }
 }
 
+function mockExternalExportCard(format: "excel" | "word"): ExternalCtaCardData {
+  const isExcel = format === "excel"
+  return {
+    title: isExcel ? "Export ready: Excel" : "Export ready: Word",
+    description: isExcel
+      ? "Your requested data is prepared in spreadsheet format. Use the link below to open or download the file."
+      : "Your requested document is prepared in Word format. Use the link below to open or download the file.",
+    ctaLabel: isExcel ? "Open Excel file" : "Open Word document",
+    ctaUrl: isExcel ? "https://example.com/exports/daily-collection.xlsx" : "https://example.com/exports/daily-collection.docx",
+    openInNewTab: true,
+  }
+}
+
 // ═══════════════ MAIN BUILDER ═══════════════
 
 export function buildHomepageReply(input: string, intent: IntentResult): ReplyResult {
   const n = input.toLowerCase()
 
   // ── Multi-word phrase handlers (must come before single-word matches like "schedule") ──
+
+  // External export CTA (single-view response card)
+  if (n.includes("excel") || n.includes("xlsx") || n.includes("sheet format") || n.includes("spreadsheet")) {
+    return {
+      text: "I prepared an Excel output for this request.",
+      rxOutput: { kind: "external_cta", data: mockExternalExportCard("excel") },
+      followUpPills: [
+        { id: "hp-billing-today", label: "Today's billing", priority: 10, layer: 3, tone: "primary" as const },
+        { id: "hp-collection-today", label: "Today's collection", priority: 12, layer: 3, tone: "primary" as const },
+      ],
+    }
+  }
+  if (n.includes("word") || n.includes("docx") || n.includes("document format")) {
+    return {
+      text: "I prepared a Word document output for this request.",
+      rxOutput: { kind: "external_cta", data: mockExternalExportCard("word") },
+      followUpPills: [
+        { id: "hp-billing-today", label: "Today's billing", priority: 10, layer: 3, tone: "primary" as const },
+        { id: "hp-collection-today", label: "Today's collection", priority: 12, layer: 3, tone: "primary" as const },
+      ],
+    }
+  }
 
   // Referral Summary
   if (n.includes("referral") || n.includes("refer") || n.includes("specialist referral")) {

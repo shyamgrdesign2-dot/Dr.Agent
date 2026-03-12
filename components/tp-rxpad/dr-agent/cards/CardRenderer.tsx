@@ -58,6 +58,7 @@ import { ConditionBarCard } from "./homepage/ConditionBarCard"
 import { HeatmapCard } from "./homepage/HeatmapCard"
 import { WelcomeCard } from "./homepage/WelcomeCard"
 import { DuePatientsCard } from "./homepage/DuePatientsCard"
+import { ExternalCtaCard } from "./homepage/ExternalCtaCard"
 import { FollowUpRateCard } from "./homepage/FollowUpRateCard"
 
 // Utility & Safety Cards (E1-E2 + CDSS)
@@ -306,6 +307,9 @@ export function CardRenderer({ output, onPillTap, onCopy, onSidebarNav }: CardRe
 
     case "due_patients":
       return <DuePatientsCard data={output.data} />
+
+    case "external_cta":
+      return <ExternalCtaCard data={output.data} />
 
     case "follow_up_rate":
       return <FollowUpRateCard data={output.data} />

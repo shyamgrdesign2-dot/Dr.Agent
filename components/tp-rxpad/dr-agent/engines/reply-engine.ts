@@ -32,6 +32,35 @@ export function buildReply(
 ): ReplyResult {
   const normalized = input.toLowerCase().replace(/[\u2080-\u2089]/g, (ch) => String(ch.charCodeAt(0) - 0x2080))
 
+  // === EXTERNAL EXPORT CTA (Excel / Word) ===
+  if (
+    normalized.includes("excel")
+    || normalized.includes("xlsx")
+    || normalized.includes("spreadsheet")
+    || normalized.includes("word")
+    || normalized.includes("docx")
+    || normalized.includes("document format")
+  ) {
+    const isExcel = normalized.includes("excel") || normalized.includes("xlsx") || normalized.includes("spreadsheet")
+    return {
+      text: isExcel
+        ? "Here's an exportable Excel output for this view."
+        : "Here's an exportable Word document for this view.",
+      rxOutput: {
+        kind: "external_cta",
+        data: {
+          title: isExcel ? "Export ready: Excel" : "Export ready: Word",
+          description: isExcel
+            ? "The requested data is ready in spreadsheet format. Open the file using the link below."
+            : "The requested data is ready in Word format. Open the document using the link below.",
+          ctaLabel: isExcel ? "Open Excel file" : "Open Word document",
+          ctaUrl: isExcel ? "https://example.com/exports/patient-view.xlsx" : "https://example.com/exports/patient-view.docx",
+          openInNewTab: true,
+        },
+      },
+    }
+  }
+
   // === OBSTETRIC SUMMARY (before generic summary) ===
   if ((normalized.includes("obstetric") || normalized.includes("ob summary") || normalized.includes("obstetric history") || normalized.includes("obstetric summary") || normalized.includes("pregnancy summary") || normalized.includes("pregnancy") || normalized.includes("anc summary") || normalized.includes("anc")) && summary.obstetricData) {
     return {

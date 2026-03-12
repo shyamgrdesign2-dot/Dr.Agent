@@ -445,6 +445,7 @@ const CARD_FAMILIES: CardFamily[] = [
       { kind: "condition_bar", description: "Condition frequency bar chart" },
       { kind: "heatmap", description: "Hour-by-day appointment density heatmap" },
       { kind: "bulk_action", description: "Bulk SMS/notification actions" },
+      { kind: "external_cta", description: "Single-CTA response card for external exports (Excel/Word/link)" },
     ],
   },
 ]

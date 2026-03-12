@@ -903,6 +903,21 @@ const CATALOG: CatalogEntry[] = [
       },
     },
   },
+  {
+    kind: "external_cta",
+    family: "Homepage",
+    label: "External CTA (Excel/Word Link)",
+    output: {
+      kind: "external_cta",
+      data: {
+        title: "Export ready: Excel",
+        description: "Your requested data is prepared in spreadsheet format. Use the link below to open or download the file.",
+        ctaLabel: "Open Excel file",
+        ctaUrl: "https://example.com/exports/daily-collection.xlsx",
+        openInNewTab: true,
+      },
+    },
+  },
 
   // ── I. New Text Variants ─────────────────────────────────
 

@@ -72,6 +72,7 @@ const RULES: KeywordRule[] = [
   { keywords: ["patients with due", "due this week", "due till now", "dues till date", "total bill today", "today's billing", "today's deposit", "today's collection", "overall collection", "past 30 days collection", "generate invoice", "open billing", "open opd billing"], intent: "operational", format: "card" },
   { keywords: ["low stock", "pending prescription", "dispense history", "expiring medicine"], intent: "operational", format: "card" },
   { keywords: ["draft campaign", "delivery stat", "template library", "scheduled message"], intent: "operational", format: "card" },
+  { keywords: ["excel", "xlsx", "word", "docx", "export format", "download file"], intent: "operational", format: "card" },
   // Patient-context pills
   { keywords: ["patient snapshot", "pre-consult prep", "abnormal lab"], intent: "operational", format: "card" },
 
@@ -202,6 +203,8 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "Today's deposits": "operational",
   "Past 30 days collection": "operational",
   "Generate invoice": "operational",
+  "Open Excel file": "operational",
+  "Open Word document": "operational",
   "Low stock alerts": "operational",
   "Pending prescriptions": "operational",
   "Dispense history": "operational",
