@@ -26,7 +26,6 @@ import {
   Shop,
   TickCircle,
   Video,
-  VideoCircle,
 } from "iconsax-reactjs"
 import { Check, ChevronDown, ListFilter, Mic, MoreVertical, Plus, Search, SendHorizontal, ShieldCheck, Star, X } from "lucide-react"
 
@@ -2319,14 +2318,30 @@ function TopHeader() {
       </div>
 
       <div className="flex items-center gap-3.5">
-        {/* Tutorial icon — hexagonal play button */}
+        {/* Tutorial icon — same as RxPad header, 42×42, #8A4DBB */}
         <button
           type="button"
-          className="flex size-[42px] items-center justify-center rounded-[10px] bg-tp-slate-100 transition-colors hover:bg-tp-slate-200"
+          className="flex shrink-0 items-center justify-center"
+          style={{ width: 42, height: 42 }}
           aria-label="Play tutorial"
         >
-          <VideoCircle size={20} variant="Linear" color="#BA7DE9" />
+          <svg width={42} height={42} viewBox="0 0 42 42" fill="none" className="block">
+            <g opacity="0.8">
+              <path clipRule="evenodd" d="M21.0002 8.71582C27.7849 8.7159 33.2854 14.2163 33.2854 21.001C33.2851 27.7856 27.7848 33.2851 21.0002 33.2852C14.2156 33.2851 8.71524 27.7855 8.71499 21.001C8.71499 14.2163 14.2155 8.71596 21.0002 8.71582ZM18.8356 16.6175C18.3239 16.3321 17.6842 16.6895 17.6841 17.2614V24.9867C17.6843 25.5585 18.3239 25.916 18.8356 25.6307L25.7467 21.768C26.2583 21.4819 26.2583 20.7663 25.7467 20.4801L18.8356 16.6175Z" fill="#8A4DBB" fillRule="evenodd" />
+              <path clipRule="evenodd" d="M21.0002 2.1C31.4384 2.1 39.9002 10.5618 39.9002 21C39.9002 31.4382 31.4384 39.9 21.0002 39.9C10.5621 39.8999 2.1002 31.4381 2.1002 21C2.1002 10.5619 10.5621 2.10014 21.0002 2.1ZM21.0002 4.43481C11.8516 4.43495 4.43501 11.8513 4.43501 21C4.43501 30.1487 11.8516 37.565 21.0002 37.5652C30.149 37.5652 37.5654 30.1488 37.5654 21C37.5654 11.8512 30.149 4.43481 21.0002 4.43481Z" fill="#8A4DBB" fillRule="evenodd" />
+            </g>
+          </svg>
         </button>
+
+        {/* Gradient divider */}
+        <div
+          className="shrink-0 opacity-80"
+          style={{
+            width: "1.05px",
+            height: 42,
+            background: "linear-gradient(to bottom, rgba(208,213,221,0.2) 0%, #d0d5dd 50%, rgba(208,213,221,0.2) 100%)",
+          }}
+        />
 
         <button
           type="button"
@@ -2345,7 +2360,15 @@ function TopHeader() {
           onClick={() => router.push("/tp-appointment-screen/scenarios")}
         />
 
-        <div className="h-[42px] w-px bg-tp-slate-300 opacity-80" />
+        {/* Gradient divider — matching tutorial divider */}
+        <div
+          className="shrink-0 opacity-80"
+          style={{
+            width: "1.05px",
+            height: 42,
+            background: "linear-gradient(to bottom, rgba(208,213,221,0.2) 0%, #d0d5dd 50%, rgba(208,213,221,0.2) 100%)",
+          }}
+        />
 
         {/* Clinic selector with search + scrollable list */}
         <div className="relative hidden sm:block" ref={clinicMenuRef}>
