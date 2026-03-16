@@ -2,9 +2,10 @@
 
 import React, { useState } from "react"
 import Link from "next/link"
-import { ArrowLeft2, Hospital, User, Activity, Microscope, Heart, Eye, Woman, DocumentText, Cpu, Brush2, ExportSquare } from "iconsax-reactjs"
+import { ArrowLeft2, Hospital, User, Activity, Microscope, Heart, Eye, Woman, DocumentText, Cpu, Brush2, ExportSquare, SearchNormal1 } from "iconsax-reactjs"
 import DesignSystemTab from "./DesignSystemTab"
 import PatientSummaryLogicTab from "./PatientSummaryLogicTab"
+import ClinicalResearchTab from "./ClinicalResearchTab"
 import { IntentClassificationContent } from "@/app/intent-classification/page"
 
 // ─────────────────────────────────────────────────────────────
@@ -365,6 +366,59 @@ const PATIENT_SCENARIOS: PatientScenario[] = [
     ],
     alerts: ["Aspirin allergy (Layer 1)", "2 lab flags (Layer 2)"],
   },
+  {
+    id: "apt-ramesh-ckd",
+    name: "Ramesh Kumar",
+    age: 76,
+    gender: "M" as const,
+    status: "Follow-up · Nephrology",
+    statusColor: "#EF4444",
+    specialty: "Nephrology + Cardiology + Endocrinology",
+    specialtyIcon: <Activity size={16} variant="Bold" />,
+    tagline: "CKD Stage 5 on peritoneal dialysis — multi-specialty chronic disease with SBAR/POMR/partial data provenance demo",
+    symptoms: ["Routine nephrology review", "Mild pedal oedema (1wk)", "Fatigue (increasing)"],
+    conditions: ["CKD Stage 5 — Diabetic Nephropathy (5yr)", "Type 2 DM (18yr)", "Hypertension (12yr)", "IHD post-MI (2021)", "Secondary Hyperparathyroidism", "Renal Anemia"],
+    keyData: [
+      "Allergy: Iodinated contrast (anaphylaxis), Metformin (contraindicated CKD5)",
+      "PD modality: CAPD 4x/day, 2L bags since Jan 2024",
+      "eGFR: 11 mL/min (declining — was 18 twelve months ago)",
+      "K+: 5.8 mEq/L (hyperkalaemia — critical)",
+      "Hb: 9.2 g/dL (renal anemia, below PD target 10-12)",
+      "HbA1c: 7.8% (AI-extracted from uploaded lab PDF)",
+      "PTH: 480 pg/mL (secondary hyperparathyroidism)",
+      "BP: 158/92 (uncontrolled), SpO₂: 94%",
+      "2 ER admissions in 12 months (fluid overload)",
+      "Kt/V, PET, Echo, Retinal screening: NOT AVAILABLE",
+      "11 active medications across 4 specialties",
+      "Family: CKD (Father), DM (Mother, Brother), Stroke (Uncle)",
+    ],
+    cannedPills: ["SBAR view", "Patient summary", "6 critical labs", "Cross-problem flags", "Missing investigations"],
+    cardsDemoed: [
+      "patient_summary — SBAR situation bar + POMR problem cards + source provenance tags",
+      "vitals_trend_line — eGFR trajectory: 18→16→14→11 over 12 months (declining)",
+      "abnormal_findings — 6 critical/high flags across CKD, diabetes, anemia domains",
+      "ddx — Fluid overload differentials: PD inadequacy vs cardiac vs dietary non-compliance",
+      "protocol_meds — 11 medications with cross-specialty interaction flags",
+      "investigation_bundle — PD adequacy (Kt/V), PET, Echo, Retinal screen, Iron panel",
+      "cascade — Multi-specialty management plan with gated recommendations",
+    ],
+    workflow: [
+      "Agent opens with SBAR situation bar: '76M CKD5 on PD — K+ 5.8, eGFR 11, BP 158/92'",
+      "PatientSummaryCard shows 3-segment data completeness bar (EMR/AI/missing)",
+      "Source provenance dots on every lab value (green=EMR, amber=AI-extracted, gray=missing)",
+      "Cross-problem flags: 'Metformin contraindicated in CKD5', 'K+ 5.8 + on antihypertensives'",
+      "Missing Expected Fields section: Kt/V, PET, Echo, Retinal screening surfaced as consultation agenda",
+      "Recommendation tiers: ACT (EMR-backed) → VERIFY (AI-extracted) → GATHER (missing data)",
+      "eGFR trend card shows accelerated decline — AI trajectory insight flagged",
+    ],
+    alerts: [
+      "Iodinated contrast allergy (Layer 1)",
+      "6 critical lab flags (Layer 1)",
+      "Cross-problem interaction: CKD-DM-HTN (Layer 2)",
+      "4 missing expected investigations (Layer 2)",
+      "eGFR declining faster than expected (Layer 3)",
+    ],
+  },
 ]
 
 // ─── Card Type Families ──────────────────────────────────────
@@ -464,11 +518,11 @@ const PHASES = [
 
 // ─── Page Component ──────────────────────────────────────────
 
-type PageTab = "summary-logic" | "intent-classification" | "design-system" | "scenarios"
+type PageTab = "clinical-research" | "summary-logic" | "intent-classification" | "design-system" | "scenarios"
 
 export default function ScenariosPage() {
   const [expandedPatient, setExpandedPatient] = useState<string | null>("apt-zerodata")
-  const [activeTab, setActiveTab] = useState<PageTab>("summary-logic")
+  const [activeTab, setActiveTab] = useState<PageTab>("clinical-research")
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -499,6 +553,7 @@ export default function ScenariosPage() {
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <div className="flex gap-1">
               {([
+                { id: "clinical-research" as PageTab, label: "Clinical Research", icon: <SearchNormal1 size={14} variant="Bold" /> },
                 { id: "summary-logic" as PageTab, label: "Patient Summary Logic", icon: <DocumentText size={14} variant="Bold" /> },
                 { id: "intent-classification" as PageTab, label: "Intent Classification", icon: <Cpu size={14} variant="Bold" /> },
                 { id: "design-system" as PageTab, label: "Design System", icon: <Brush2 size={14} variant="Bold" /> },
@@ -545,7 +600,11 @@ export default function ScenariosPage() {
       </div>
 
       {/* Tab content */}
-      {activeTab === "design-system" ? (
+      {activeTab === "clinical-research" ? (
+        <div className="mx-auto max-w-5xl px-6 py-8">
+          <ClinicalResearchTab />
+        </div>
+      ) : activeTab === "design-system" ? (
         <div className="mx-auto max-w-5xl px-6 py-8">
           <DesignSystemTab />
         </div>

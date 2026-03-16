@@ -473,6 +473,151 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
     // NOTE: No symptomCollectorData — patient came directly without filling intake form
     // Agent must generate summary from historical data only
   },
+
+  // ═══════════════ CKD STAGE 5 — SBAR/POMR/PARTIAL DATA DEMO ═══════════════
+  "apt-ramesh-ckd": {
+    specialtyTags: ["Nephrology", "Cardiology", "Endocrinology", "General Medicine"],
+    followUpOverdueDays: 8,
+    patientNarrative:
+      "76-year-old male with CKD Stage 5 (diabetic nephropathy) on peritoneal dialysis since Jan 2024. Type 2 DM for 18 years, hypertension 12 years, IHD post-MI (2021). 2 ER admissions in past 12 months for acute fluid overload. Routine nephrology review today.",
+    familyHistory: ["CKD (Father, died age 68)", "Diabetes (Mother, Brother)", "Stroke (Paternal Uncle)"],
+    lifestyleNotes: ["Non-smoker", "No alcohol", "Renal diet — low K+, low phosphate, protein restricted", "CAPD 4 exchanges/day, 2L bags"],
+    allergies: ["Iodinated contrast (anaphylaxis)", "Metformin (contraindicated — CKD5)"],
+    chronicConditions: [
+      "CKD Stage 5 — Diabetic Nephropathy (5yr)",
+      "Type 2 DM (18yr)",
+      "Hypertension (12yr)",
+      "IHD — Post-MI (2021)",
+      "Secondary Hyperparathyroidism",
+      "Renal Anemia",
+    ],
+    lastVisit: {
+      date: "02 Mar'26",
+      vitals: "BP 162/96, Pulse 84, SpO₂ 95%, Wt 73kg",
+      symptoms: "Routine nephrology review, mild pedal oedema",
+      examination: "Bilateral pitting oedema grade 1, JVP normal, lungs clear",
+      diagnosis: "CKD G5 on PD — stable",
+      medication: "Insulin Glargine 18U HS, Amlodipine 10mg, Telmisartan 40mg, Furosemide 40mg BD, EPO 4000U 2x/wk",
+      labTestsSuggested: "KFT, CBC, Iron panel, PTH, Phosphorus, HbA1c",
+      advice: "Continue renal diet, monitor BP daily, fluid intake <1.5L/day",
+      followUp: "2 weeks — review labs and PD adequacy",
+    },
+    labFlagCount: 12,
+    todayVitals: { bp: "158/92", pulse: "88", spo2: "94", temp: "98.2", weight: "72", height: "168", bmi: "25.5" },
+    activeMeds: [
+      "Insulin Glargine 18U HS",
+      "Insulin Aspart 8-8-8U AC",
+      "Amlodipine 10mg OD",
+      "Telmisartan 40mg OD",
+      "Furosemide 40mg BD",
+      "EPO 4000U SC 2x/wk",
+      "Calcium Acetate 667mg TID",
+      "Calcitriol 0.25mcg OD",
+      "Atorvastatin 40mg HS",
+      "Aspirin 75mg OD",
+      "Sevelamer 800mg TID",
+    ],
+    keyLabs: [
+      { name: "eGFR", value: "11", unit: "mL/min", flag: "critical", refRange: ">60" },
+      { name: "Creatinine", value: "8.2", unit: "mg/dL", flag: "high", refRange: "0.7-1.3" },
+      { name: "BUN", value: "68", unit: "mg/dL", flag: "high", refRange: "7-20" },
+      { name: "K+", value: "5.8", unit: "mEq/L", flag: "high", refRange: "3.5-5.0" },
+      { name: "Phosphorus", value: "6.2", unit: "mg/dL", flag: "high", refRange: "2.5-4.5" },
+      { name: "Calcium", value: "8.1", unit: "mg/dL", flag: "low", refRange: "8.5-10.5" },
+      { name: "PTH", value: "480", unit: "pg/mL", flag: "high", refRange: "10-65" },
+      { name: "Hb", value: "9.2", unit: "g/dL", flag: "low", refRange: "13-17" },
+      { name: "HbA1c", value: "7.8", unit: "%", flag: "high", refRange: "<7.0" },
+      { name: "Albumin", value: "3.1", unit: "g/dL", flag: "low", refRange: "3.5-5.5" },
+      { name: "Bicarbonate", value: "18", unit: "mEq/L", flag: "low", refRange: "22-28" },
+      { name: "Ferritin", value: "42", unit: "ng/mL", flag: "low", refRange: "100-500" },
+    ],
+    dueAlerts: [
+      "PD adequacy test (Kt/V) — quarterly, overdue",
+      "Peritoneal equilibration test (PET) — overdue",
+      "2D Echocardiogram — ordered post-ER, not done",
+      "Retinal screening — diabetic + CKD, >14 months overdue",
+      "Fistula maturity assessment — HD transition planning",
+    ],
+    recordAlerts: [
+      "ER discharge summary (Feb 2026) — fluid overload episode, not yet reviewed in EMR",
+      "Cardiology opinion from Dr. Mehta (Oct 2025) — uploaded as scanned PDF",
+    ],
+    concernTrend: { label: "eGFR", values: [18, 16, 14, 11], labels: ["Jun'25", "Sep'25", "Dec'25", "Mar'26"], unit: "mL/min", tone: "red" },
+    // ── SBAR / Provenance fields (Phase 3 — new for this patient) ──
+    sbarSituation:
+      "76M CKD5 on PD — K+ 5.8 (HIGH), eGFR 11 (declining), BP 158/92. 2 ER admissions in 12mo for fluid overload. Assess PD adequacy and fluid status.",
+    dataProvenance: {
+      "eGFR": { source: "emr", confidence: "high" },
+      "Creatinine": { source: "emr", confidence: "high" },
+      "BUN": { source: "emr", confidence: "high" },
+      "K+": { source: "emr", confidence: "high" },
+      "Phosphorus": { source: "emr", confidence: "high" },
+      "Calcium": { source: "emr", confidence: "high" },
+      "PTH": { source: "emr", confidence: "high" },
+      "Hb": { source: "ai_extracted", confidence: "medium", extractedFrom: "Lab report PDF (Feb 2026)" },
+      "HbA1c": { source: "ai_extracted", confidence: "medium", extractedFrom: "Printed lab report PDF (Feb 2026)" },
+      "Albumin": { source: "emr", confidence: "high" },
+      "Bicarbonate": { source: "emr", confidence: "high" },
+      "Ferritin": { source: "ai_extracted", confidence: "medium", extractedFrom: "External clinic report (Jan 2026)" },
+      "Furosemide": { source: "ai_extracted", confidence: "medium", extractedFrom: "Handwritten Rx, Aug 2025 — dose ambiguous" },
+      "bp": { source: "emr", confidence: "high" },
+      "spo2": { source: "emr", confidence: "high" },
+      "Kt/V": { source: "not_available" },
+      "PET": { source: "not_available" },
+      "Echo": { source: "not_available" },
+      "Retinal screening": { source: "not_available" },
+    },
+    sectionCompleteness: [
+      { sectionId: "vitals", filled: 7, total: 7, status: "complete" },
+      { sectionId: "labs-nephro", filled: 7, total: 9, status: "partial" },
+      { sectionId: "labs-diabetes", filled: 2, total: 3, status: "partial" },
+      { sectionId: "labs-anemia", filled: 2, total: 4, status: "partial" },
+      { sectionId: "cardiology", filled: 1, total: 3, status: "partial" },
+      { sectionId: "ophthalmology", filled: 0, total: 2, status: "missing" },
+    ],
+    crossProblemFlags: [
+      { text: "Metformin contraindicated in CKD5 — verify no prescriptions from other specialists", problems: ["CKD", "DM"], severity: "high" },
+      { text: "K+ 5.8 + on Telmisartan (ARB) — monitor closely, consider dose reduction", problems: ["CKD", "HTN"], severity: "high" },
+      { text: "Furosemide losing efficacy as eGFR declines below 15 — consider PD ultrafiltration adjustment", problems: ["CKD", "HTN"], severity: "medium" },
+      { text: "Insulin clearance reduced in dialysis — hypoglycaemia risk, monitor closely", problems: ["CKD", "DM"], severity: "medium" },
+    ],
+    missingExpectedFields: [
+      { field: "Kt/V (PD adequacy)", reason: "Quarterly PD adequacy test not found in EMR or uploads", prompt: "Order Kt/V sample this visit" },
+      { field: "Peritoneal Equilibration Test", reason: "PET overdue — membrane function assessment needed", prompt: "Schedule PET within 2 weeks" },
+      { field: "2D Echocardiogram", reason: "Ordered post-Feb 2026 ER admission, result not in EMR", prompt: "Chase echo result or re-order" },
+      { field: "Retinal screening", reason: "Diabetic + CKD patient — last screening >14 months ago", prompt: "Refer to ophthalmology" },
+      { field: "Transferrin saturation", reason: "Required for EPO dosing decisions — not in any source", prompt: "Order iron studies with next labs" },
+    ],
+    recommendationTiers: [
+      { text: "Hyperkalaemia (K+ 5.8) — review dietary compliance, adjust sevelamer dose", tier: "act", gatedBy: "K+ from EMR" },
+      { text: "BP uncontrolled at 158/92 — review antihypertensive regimen and PD fluid strategy", tier: "act", gatedBy: "BP from EMR" },
+      { text: "Metabolic acidosis (Bicarb 18) — consider oral sodium bicarbonate supplementation", tier: "act", gatedBy: "Bicarbonate from EMR" },
+      { text: "ESA dose review — Hb 9.2 g/dL below PD target 10-12. Confirm Hb from lab PDF before adjusting EPO", tier: "verify", gatedBy: "Hb from AI-extracted lab PDF" },
+      { text: "Glycaemic review — HbA1c 7.8%. Verify from uploaded lab report before endocrinology referral", tier: "verify", gatedBy: "HbA1c from AI-extracted report" },
+      { text: "Order Ferritin + Transferrin saturation — iron panel not in any source", tier: "gather", gatedBy: "Ferritin not available" },
+      { text: "Chase echo result — ordered post-ER Feb 2026, not returned to EMR", tier: "gather", gatedBy: "Echo not available" },
+      { text: "Refer ophthalmology — retinal screening overdue >14 months", tier: "gather", gatedBy: "Retinal screening not available" },
+    ],
+    symptomCollectorData: {
+      reportedAt: "15 Mar'26, 09:12 AM",
+      symptoms: [
+        { name: "Mild pedal oedema", duration: "1 week", severity: "mild" },
+        { name: "Fatigue", duration: "2 weeks", severity: "moderate" },
+        { name: "Reduced appetite", duration: "1 week", severity: "mild" },
+      ],
+      medicalHistory: [
+        "CKD Stage 5 on peritoneal dialysis since Jan 2024",
+        "Type 2 Diabetes for 18 years — on insulin",
+        "Heart attack in 2021 — stent placed",
+        "High blood pressure — on medications",
+      ],
+      familyHistory: ["Father had kidney disease", "Mother and brother have diabetes"],
+      allergies: ["Iodinated contrast dye (severe reaction)", "Cannot take Metformin (kidney)"],
+      lifestyle: ["Vegetarian, follows renal diet", "Dialysis at home — 4 exchanges daily"],
+      questionsToDoctor: ["Is my kidney function getting worse?", "Do I need to change my dialysis?", "Should I see a heart doctor?"],
+      currentMedications: ["Insulin injections", "Blood pressure pills", "EPO injections", "Phosphate binders", "Cholesterol tablet"],
+    },
+  },
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -498,6 +643,8 @@ export const PATIENT_TOOLTIP_SUMMARIES: Record<string, string> = {
     "New patient with Knee Pain and Morning Stiffness 1 week. Allergy: Sulfonamides, on Vit D3 60K (weekly).",
   "reg-suresh":
     "Patient with IHD post-angioplasty (2024), HTN 5yr, on Clopidogrel 75mg, Atorvastatin 40mg, last visited 10 Feb'26, stable IHD, LDL 118 (above target).",
+  "apt-ramesh-ckd":
+    "76M CKD Stage 5 on PD since Jan 2024. DM 18yr, HTN 12yr, IHD post-MI. eGFR 11 (declining), K+ 5.8, Hb 9.2. 2 ER admissions in 12mo (fluid overload). 11 active medications. Kt/V, Echo, Retinal screen overdue.",
 }
 
 // ═══════════════ PATIENT DOCUMENTS (per-patient EMR uploads) ═══════════════
@@ -547,5 +694,14 @@ export const PATIENT_DOCUMENTS: Record<string, PatientDocument[]> = {
     { id: "doc-ar3", fileName: "CBC_Report_Jan2026.pdf", docType: "pathology", uploadedAt: "20 Jan'26", uploadedBy: "Path Lab", pageCount: 2, size: "310 KB" },
     { id: "doc-ar4", fileName: "Hearing_Screen_Dec2025.pdf", docType: "other", uploadedAt: "10 Dec'25", uploadedBy: "ENT Clinic", pageCount: 1, size: "190 KB" },
     { id: "doc-ar5", fileName: "Previous_Rx_Nov2025.pdf", docType: "prescription", uploadedAt: "25 Nov'25", uploadedBy: "Dr. Nair", pageCount: 1, size: "140 KB" },
+  ],
+  "apt-ramesh-ckd": [
+    { id: "doc-rk1", fileName: "KFT_CBC_Panel_Mar2026.pdf", docType: "pathology", uploadedAt: "12 Mar'26", uploadedBy: "Apollo Diagnostics", pageCount: 3, size: "480 KB" },
+    { id: "doc-rk2", fileName: "ER_Discharge_Summary_Feb2026.pdf", docType: "discharge_summary", uploadedAt: "28 Feb'26", uploadedBy: "City Hospital", pageCount: 4, size: "1.3 MB" },
+    { id: "doc-rk3", fileName: "Cardiology_Opinion_Oct2025.pdf", docType: "other", uploadedAt: "18 Oct'25", uploadedBy: "Dr. Mehta (scanned)", pageCount: 2, size: "890 KB" },
+    { id: "doc-rk4", fileName: "HbA1c_Lab_Report_Feb2026.pdf", docType: "pathology", uploadedAt: "15 Feb'26", uploadedBy: "Patient (uploaded photo)", pageCount: 1, size: "340 KB" },
+    { id: "doc-rk5", fileName: "Handwritten_Rx_Aug2025.jpg", docType: "prescription", uploadedAt: "22 Aug'25", uploadedBy: "External Clinic", pageCount: 1, size: "1.1 MB" },
+    { id: "doc-rk6", fileName: "PD_Monthly_Log_Jan2026.pdf", docType: "other", uploadedAt: "05 Jan'26", uploadedBy: "Dr. Sharma", pageCount: 2, size: "420 KB" },
+    { id: "doc-rk7", fileName: "External_Lab_Iron_Panel_Jan2026.pdf", docType: "pathology", uploadedAt: "10 Jan'26", uploadedBy: "SRL Diagnostics (external)", pageCount: 1, size: "260 KB" },
   ],
 }

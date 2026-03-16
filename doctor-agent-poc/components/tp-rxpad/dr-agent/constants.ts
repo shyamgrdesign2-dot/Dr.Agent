@@ -25,6 +25,7 @@ export const RX_CONTEXT_OPTIONS: RxContextOption[] = [
   { id: "apt-arjun", label: "Arjun S", meta: "M, 4y · PAT0203 · 7788994455", kind: "patient", isToday: true, gender: "M", age: 4 },
   { id: "apt-lakshmi", label: "Lakshmi K", meta: "F, 45y · PAT0076 · 9911223344", kind: "patient", isToday: true, gender: "F", age: 45 },
   { id: "apt-zerodata", label: "Ramesh M", meta: "M, 35y · PAT0190 · Walk-in", kind: "patient", isToday: true, gender: "M", age: 35 },
+  { id: "apt-ramesh-ckd", label: "Ramesh Kumar", meta: "M, 76y · PAT0215 · Nephrology F/U", kind: "patient", isToday: true, gender: "M", age: 76 },
   // Registered patients without appointment
   { id: "reg-meera", label: "Meera Sharma", meta: "F, 32y · PAT0034 · 9123456780", kind: "patient", gender: "F", age: 32 },
   { id: "reg-suresh", label: "Suresh Nair", meta: "M, 58y · PAT0019 · 8877665544", kind: "patient", gender: "M", age: 58 },
