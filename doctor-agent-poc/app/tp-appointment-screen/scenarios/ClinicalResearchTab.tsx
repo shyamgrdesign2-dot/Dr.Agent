@@ -9,35 +9,151 @@ import React, { useState } from "react"
 // implement these clinical communication standards.
 // ─────────────────────────────────────────────────────────────
 
-// ── Research Process ────────────────────────────────────────
+// ── Consultation Time Dissection (Internal Research) ──────────
 
-const RESEARCH_PROCESS = [
+const CONSULTATION_DISSECTION = {
+  title: "How Doctors Actually Spend Their Consultation Time",
+  description:
+    "Through our in-depth research with practicing doctors — shadowing consultations and timing each phase — we observed how a typical 8-12 minute outpatient consultation actually breaks down. This time dissection became the foundation for everything Dr.Agent optimises.",
+  phases: [
+    {
+      label: "Reading & Context-Building",
+      minutes: "2–3 min",
+      percent: 25,
+      color: "#3B82F6",
+      bgColor: "#EFF6FF",
+      description:
+        "The doctor opens the patient file, scans previous visit notes, checks lab results, and pieces together the clinical picture. For a chronic patient, this involves flipping between multiple tabs, deciphering handwritten referrals, and mentally constructing the patient's trajectory. This is where the most time is wasted.",
+      agentRole: "Dr.Agent eliminates this by pre-building the PatientSummaryCard — the complete picture is ready before the patient walks in.",
+    },
+    {
+      label: "Patient Interview & Examination",
+      minutes: "3–4 min",
+      percent: 35,
+      color: "#8B5CF6",
+      bgColor: "#F5F3FF",
+      description:
+        "Active clinical time — asking about symptoms, current complaints, medication compliance, lifestyle changes. This is the irreducible core of the consultation that cannot and should not be automated. The doctor's clinical judgment and patient rapport happen here.",
+      agentRole: "The Symptom Collector pre-captures structured symptom data before the consultation, so the doctor starts the interview with context instead of from scratch.",
+    },
+    {
+      label: "Diagnosis & Decision-Making",
+      minutes: "1–2 min",
+      percent: 15,
+      color: "#059669",
+      bgColor: "#ECFDF5",
+      description:
+        "Forming a differential diagnosis, deciding on investigations, choosing treatment protocols. Experienced doctors do this rapidly through pattern recognition — but miss edge cases when fatigued or rushed.",
+      agentRole: "Dr.Agent surfaces DDX suggestions, flags drug interactions, and highlights cross-problem risks — acting as a safety net for clinical decision-making.",
+    },
+    {
+      label: "Prescribing & Documentation",
+      minutes: "2–3 min",
+      percent: 25,
+      color: "#D97706",
+      bgColor: "#FFFBEB",
+      description:
+        "Writing prescriptions, ordering investigations, documenting findings, typing advice. This is mechanical work that consumes a quarter of the consultation — time that could be spent with the patient.",
+      agentRole: "One-click copy from Dr.Agent to RxPad — medications, investigations, and advice generated contextually and ready to review, not type from scratch.",
+    },
+  ],
+  keyInsight:
+    "The fundamental insight: doctors spend 50% of consultation time on information retrieval and documentation — tasks that AI can handle — and only 50% on irreducible clinical work (examination + decision-making). Dr.Agent's job is to compress the first 50% to near-zero, giving the doctor back 4-5 minutes per patient.",
+}
+
+// ── Research Process (Dual Track) ────────────────────────────
+
+const RESEARCH_TRACKS = [
   {
-    phase: "Discovery",
-    label: "Doctor Interviews",
-    color: "#8B5CF6",
+    track: "Consultation",
+    label: "Doctor Shadowing & Symptom Collection",
+    color: "#3B82F6",
+    bgColor: "#EFF6FF",
+    borderColor: "#BFDBFE",
     description:
-      "Javed and team conducted in-depth interviews with nephrologists, cardiologists, endocrinologists, and general practitioners to understand how specialists communicate patient information across departments. The core question: when a chronic disease patient walks into your consultation room, what do you need to know in the first 30 seconds vs. the first 5 minutes?",
+      "Through in-depth research with doctors during live consultations, we shadowed GPs and specialists to understand the real consultation workflow — timing each phase, identifying bottlenecks, and discovering that pre-consultation symptom collection could save 2-3 minutes per patient. This led to the Symptom Collector feature and the time-dissection model that drives Dr.Agent's architecture.",
+    findings: [
+      "Doctors spend ~25% of consultation time just reading and building context from fragmented records",
+      "Symptom collection before the consultation saves 2-3 minutes of doctor's active interview time",
+      "Documentation and prescription writing consumes another 25% — most of it is mechanical and repetitive",
+      "The irreducible clinical core (examination + decision) is only ~50% of actual consultation time",
+      "Pre-built patient summaries transform consultations from 'information gathering' to 'clinical discussion'",
+    ],
+  },
+  {
+    track: "Cross-Specialty",
+    label: "Javed & Team — Specialist Interviews",
+    color: "#8B5CF6",
+    bgColor: "#F5F3FF",
+    borderColor: "#DDD6FE",
+    description:
+      "Javed and team conducted in-depth interviews with nephrologists, cardiologists, endocrinologists, and general practitioners, focusing on how specialists consume patient information across departments. The core question: when a chronic disease patient walks into your consultation room, what do you need to know in the first 30 seconds vs. the first 5 minutes?",
     findings: [
       "Doctors think in layers — fast triage first, then structured problem review, then deep-dive trajectory analysis",
       "Cross-specialty handovers follow the ISBAR (Introduction-Situation-Background-Assessment-Recommendation) framework",
       "Most specialist EMR views are fragmented — doctors see only their own department's recent notes",
       "Redundant investigations are ordered because previous results from other departments are buried in the record",
       "Trend data (disease trajectory over months) is almost never available in a consumable format",
+      "A confident display of uncertain data is more dangerous than showing no data at all — provenance matters",
+    ],
+  },
+]
+
+const RESEARCH_CONVERGENCE = {
+  title: "Where Both Research Tracks Converge",
+  description:
+    "The consultation dissection and Javed's cross-specialty interviews independently arrived at the same core problem: doctors waste too much cognitive effort on information assembly. Our doctor shadowing quantified it (50% of time on non-clinical tasks), while Javed's specialist interviews qualified it (layered cognition, provenance needs, cross-specialty gaps). Together, they shaped Dr.Agent's three-layer architecture.",
+  convergencePoints: [
+    {
+      internal: "Pre-consultation context building takes 2-3 minutes",
+      external: "SBAR gives the 30-second triage scan doctors actually need",
+      outcome: "PatientSummaryCard with SBAR situation bar — replaces 3 minutes of file-reading with a 30-second scan",
+    },
+    {
+      internal: "Symptom Collector pre-captures structured patient input",
+      external: "Doctors think in problems, not data types (POMR framework)",
+      outcome: "AI-generated DDX and per-problem cards that connect symptoms to diagnosis workflow",
+    },
+    {
+      internal: "Documentation phase is mechanical and time-consuming",
+      external: "AI recommendations must be gated by data quality",
+      outcome: "One-click copy to RxPad with ACT/VERIFY/GATHER tiers — fast but safe",
+    },
+    {
+      internal: "Doctors miss patterns when rushed (15-20 patients/day)",
+      external: "Longitudinal trajectory is invisible in snapshot views",
+      outcome: "VitalsTrendCard and ConcernTrend — AI surfaces declining patterns the doctor might miss at 4pm",
+    },
+  ],
+}
+
+const RESEARCH_PROCESS = [
+  {
+    phase: "Discovery",
+    label: "Doctor Interviews & Consultation Shadowing",
+    color: "#8B5CF6",
+    description:
+      "Two parallel research tracks ran simultaneously. Through our research with doctors, we shadowed live consultations to time and dissect each phase — reading records, interviewing patients, examining, prescribing. Javed and team focused on cross-specialty communication, interviewing nephrologists, cardiologists, endocrinologists, and GPs about how they consume patient information across departments.",
+    findings: [
+      "From doctor shadowing: doctors spend ~50% of consultation time on non-clinical tasks (reading records + documentation)",
+      "From specialist interviews: each specialist sees only their own department's notes — no cross-specialty view exists",
+      "From doctor shadowing: pre-consultation symptom collection saves 2-3 minutes of interview time per patient",
+      "From specialist interviews: chronic disease patients carry data in phone photos, printed Rx, and scanned PDFs",
+      "Converging insight: the fundamental bottleneck is information assembly, not clinical decision-making",
     ],
   },
   {
     phase: "Analysis",
-    label: "Framework Evaluation",
+    label: "Framework Evaluation & Time Modelling",
     color: "#3B82F6",
     description:
-      "From these interviews, three evidence-based clinical communication frameworks were evaluated against the identified audience needs: POMR (Weed, 1968), SBAR (IHI/WHO), and longitudinal timeline visualisation (Croskerry, 2002). The conclusion: no single format serves all clinical contexts — a layered approach is required.",
+      "From our doctor shadowing, we built a consultation time model (context-building → interview → diagnosis → documentation), while Javed's team evaluated evidence-based clinical communication frameworks: POMR (Weed, 1968), SBAR (IHI/WHO), and longitudinal timeline (Croskerry, 2002). The conclusion: no single format serves all contexts — a layered approach that maps to the consultation timeline is required.",
     findings: [
-      "POMR (Problem-Oriented Medical Record) maps 1:1 to specialist cognition — doctors think in problems, not data types",
-      "SBAR is the gold standard for emergency/on-call handovers — ultra-fast comprehension in under 30 seconds",
-      "Longitudinal timelines reveal disease trajectory — critical for treating physicians doing follow-up reviews",
-      "Indian clinic reality: significant patient data exists outside structured EMR (phone photos, printed prescriptions, scanned PDFs)",
-      "A confident display of uncertain data is more dangerous than showing no data at all — provenance matters",
+      "POMR maps 1:1 to specialist cognition — doctors think in problems, not data types",
+      "SBAR is the gold standard for emergency/on-call handovers — 30-second comprehension",
+      "Longitudinal timelines reveal disease trajectory — critical for follow-up reviews",
+      "The consultation time model showed the biggest ROI is in the 'context-building' phase (first 2-3 minutes)",
+      "Indian clinic reality: significant data exists outside structured EMR — provenance tagging is essential",
     ],
   },
   {
@@ -45,11 +161,12 @@ const RESEARCH_PROCESS = [
     label: "Tiered Summary Architecture",
     color: "#059669",
     description:
-      "The final design uses a tiered summary that mirrors how clinical cognition actually works: fast heuristic triage → structured problem framing → pattern-based temporal reasoning. Each layer serves a distinct audience with different time constraints.",
+      "Both research tracks converged into a single design: a tiered summary architecture that mirrors clinical cognition (fast triage → structured problems → deep-dive trajectory) while mapping to the consultation timeline (pre-consult summary → active consultation support → post-consult documentation). Every data point carries source provenance.",
     findings: [
-      "Layer 1 (SBAR) → 30-second emergency/on-call scan — critical flags, situation summary",
-      "Layer 2 (POMR) → 2-minute specialist first-visit review — per-problem cards with cross-problem interaction flags",
-      "Layer 3 (Timeline) → 5-minute treating physician deep dive — lab trends, clinical events, medication cause-effect",
+      "Layer 1 (SBAR) → 30-second pre-consultation scan — replaces 3 minutes of record-reading",
+      "Layer 2 (POMR) → 2-minute specialist view — per-problem cards with cross-problem interaction flags",
+      "Layer 3 (Timeline) → 5-minute deep dive — lab trends, clinical events, medication cause-effect",
+      "Symptom Collector feeds directly into the SBAR situation line and DDX generation",
       "Partial data handling → every data point carries source provenance: [EMR], [AI-extracted], [not available]",
       "AI recommendations gated by data quality — never make confident suggestions on uncertain data",
     ],
@@ -423,13 +540,121 @@ export default function ClinicalResearchTab() {
           Clinical Summary Design — From Doctor Research to Product
         </h2>
         <p className="text-[13px] leading-relaxed text-slate-600">
-          Javed and team conducted in-depth interviews with nephrologists, cardiologists, endocrinologists, and general
-          practitioners to understand how specialists consume patient information across departments. Two key problems
-          emerged: <strong>fragmented views</strong> (each specialist sees only their own department&apos;s notes) and <strong>uncertain
-          data</strong> (patients carry printed prescriptions, phone photos of lab reports, scanned PDFs from external clinics).
-          From these insights, two design concepts were developed that drive our Dr.Agent clinical summary architecture.
+          Dr.Agent&apos;s architecture is shaped by two parallel research tracks. Through our research with doctors —
+          shadowing live consultations, timing each phase of the patient encounter — we discovered that doctors spend
+          nearly half their consultation time on information assembly and documentation rather than clinical work. Simultaneously,
+          Javed and team conducted in-depth interviews with nephrologists, cardiologists, endocrinologists, and GPs to understand
+          cross-specialty communication gaps. Both tracks converged on the same insight: the biggest bottleneck is not clinical
+          decision-making — it&apos;s <strong>getting the right information to the right doctor at the right time</strong>.
+          From these combined insights, we developed the tiered summary architecture and partial data framework that drive Dr.Agent.
         </p>
       </div>
+
+      {/* ── Consultation Time Dissection ───────────────────── */}
+      <section>
+        <h3 className="mb-1 text-[14px] font-bold text-slate-800">{CONSULTATION_DISSECTION.title}</h3>
+        <p className="mb-3 text-[12px] text-slate-500">{CONSULTATION_DISSECTION.description}</p>
+
+        {/* Time breakdown visual */}
+        <div className="mb-3 rounded-xl border border-slate-200 bg-white p-4">
+          {/* Stacked bar */}
+          <div className="mb-3 flex h-5 overflow-hidden rounded-full">
+            {CONSULTATION_DISSECTION.phases.map((ph) => (
+              <div
+                key={ph.label}
+                className="flex items-center justify-center text-[8px] font-bold text-white"
+                style={{ width: `${ph.percent}%`, backgroundColor: ph.color }}
+                title={`${ph.label}: ${ph.minutes}`}
+              >
+                {ph.percent}%
+              </div>
+            ))}
+          </div>
+
+          {/* Phase cards */}
+          <div className="space-y-2">
+            {CONSULTATION_DISSECTION.phases.map((ph) => (
+              <div key={ph.label} className="rounded-lg border border-slate-100 p-3" style={{ backgroundColor: ph.bgColor + "40" }}>
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: ph.color }} />
+                  <span className="text-[12px] font-semibold text-slate-700">{ph.label}</span>
+                  <span className="rounded-md px-1.5 py-0.5 text-[10px] font-bold" style={{ backgroundColor: ph.color + "15", color: ph.color }}>
+                    {ph.minutes}
+                  </span>
+                </div>
+                <p className="mb-1.5 text-[11px] leading-relaxed text-slate-600">{ph.description}</p>
+                <div className="flex items-start gap-1.5 rounded-md bg-white/60 px-2 py-1.5">
+                  <span className="mt-0.5 text-[10px]" style={{ color: ph.color }}>→</span>
+                  <span className="text-[11px] text-slate-500"><strong className="text-slate-600">Dr.Agent:</strong> {ph.agentRole}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Key insight */}
+          <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50/60 px-3 py-2">
+            <p className="text-[11px] font-semibold text-blue-700">Key Insight</p>
+            <p className="text-[11px] leading-relaxed text-blue-600">{CONSULTATION_DISSECTION.keyInsight}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Dual Research Tracks ─────────────────────────────── */}
+      <section>
+        <h3 className="mb-1 text-[14px] font-bold text-slate-800">Two Research Tracks — One Architecture</h3>
+        <p className="mb-3 text-[12px] text-slate-500">
+          Our research ran on two parallel tracks: internal consultation shadowing (understanding how doctors spend their time)
+          and Javed and team&apos;s cross-specialty interviews (understanding what information doctors need across departments).
+          Both independently arrived at the same problem — and their convergence shaped Dr.Agent.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {RESEARCH_TRACKS.map((track) => (
+            <div key={track.track} className="rounded-xl border p-4" style={{ borderColor: track.borderColor, backgroundColor: track.bgColor + "30" }}>
+              <div className="mb-2 flex items-center gap-2">
+                <span className="rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: track.color + "15", color: track.color }}>
+                  {track.track}
+                </span>
+                <span className="text-[12px] font-semibold text-slate-700">{track.label}</span>
+              </div>
+              <p className="mb-2 text-[11px] leading-relaxed text-slate-600">{track.description}</p>
+              <div className="space-y-1.5">
+                {track.findings.map((f, i) => (
+                  <div key={i} className="flex items-start gap-1.5">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: track.color }} />
+                    <span className="text-[11px] text-slate-600">{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Convergence */}
+        <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50/30 p-4">
+          <h4 className="mb-1 text-[12px] font-bold text-emerald-700">{RESEARCH_CONVERGENCE.title}</h4>
+          <p className="mb-3 text-[11px] text-slate-600">{RESEARCH_CONVERGENCE.description}</p>
+          <div className="space-y-2">
+            {RESEARCH_CONVERGENCE.convergencePoints.map((cp, i) => (
+              <div key={i} className="rounded-lg border border-emerald-100 bg-white px-3 py-2">
+                <div className="mb-1 grid gap-1 sm:grid-cols-2">
+                  <div className="flex items-start gap-1.5">
+                    <span className="mt-0.5 rounded px-1 py-0 text-[8px] font-bold text-blue-600 bg-blue-50">INT</span>
+                    <span className="text-[10px] text-slate-500">{cp.internal}</span>
+                  </div>
+                  <div className="flex items-start gap-1.5">
+                    <span className="mt-0.5 rounded px-1 py-0 text-[8px] font-bold text-violet-600 bg-violet-50">EXT</span>
+                    <span className="text-[10px] text-slate-500">{cp.external}</span>
+                  </div>
+                </div>
+                <div className="flex items-start gap-1.5">
+                  <span className="mt-0.5 text-[10px] text-emerald-600">→</span>
+                  <span className="text-[11px] font-medium text-emerald-700">{cp.outcome}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ── Research Process ────────────────────────────────── */}
       <section>
