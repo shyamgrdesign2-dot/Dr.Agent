@@ -2,8 +2,10 @@
 
 import React, { useState } from "react"
 import Link from "next/link"
-import { ArrowLeft2, Hospital, User, Activity, Microscope, Heart, Eye, Woman, DocumentText, Cpu, Brush2 } from "iconsax-reactjs"
+import { ArrowLeft2, Hospital, User, Activity, Microscope, Heart, Eye, Woman, DocumentText, Cpu, Brush2, ExportSquare } from "iconsax-reactjs"
 import DesignSystemTab from "./DesignSystemTab"
+import PatientSummaryLogicTab from "./PatientSummaryLogicTab"
+import { IntentClassificationContent } from "@/app/intent-classification/page"
 
 // ─────────────────────────────────────────────────────────────
 // Scenarios Documentation Page
@@ -462,11 +464,11 @@ const PHASES = [
 
 // ─── Page Component ──────────────────────────────────────────
 
-type PageTab = "scenarios" | "design-system"
+type PageTab = "summary-logic" | "intent-classification" | "design-system" | "scenarios"
 
 export default function ScenariosPage() {
   const [expandedPatient, setExpandedPatient] = useState<string | null>("apt-zerodata")
-  const [activeTab, setActiveTab] = useState<PageTab>("scenarios")
+  const [activeTab, setActiveTab] = useState<PageTab>("summary-logic")
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
@@ -488,7 +490,7 @@ export default function ScenariosPage() {
                 </span>
               </div>
               <p className="text-[12px] text-slate-500">
-                Demo scenarios, card catalog, and UI design system &middot; Not for production or client-facing use
+                Demo scenarios, card catalog, summary generation logic, and UI design system &middot; Not for production or client-facing use
               </p>
             </div>
           </div>
@@ -497,8 +499,9 @@ export default function ScenariosPage() {
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <div className="flex gap-1">
               {([
-                { id: "scenarios" as PageTab, label: "Demo Scenarios", icon: <User size={14} variant="Bold" /> },
-                { id: "design-system" as PageTab, label: "UI Card Design System", icon: <Brush2 size={14} variant="Bold" /> },
+                { id: "summary-logic" as PageTab, label: "Patient Summary Logic", icon: <DocumentText size={14} variant="Bold" /> },
+                { id: "intent-classification" as PageTab, label: "Intent Classification", icon: <Cpu size={14} variant="Bold" /> },
+                { id: "design-system" as PageTab, label: "Design System", icon: <Brush2 size={14} variant="Bold" /> },
               ]).map(tab => (
                 <button
                   key={tab.id}
@@ -515,13 +518,28 @@ export default function ScenariosPage() {
                 </button>
               ))}
             </div>
-            <Link
-              href="/dr-agent-design-system"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-[12px] font-semibold text-violet-700 transition-colors hover:bg-violet-100"
-            >
-              <Brush2 size={14} variant="Bold" />
-              Open Dr. Agent Design System
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/dr-agent-design-system"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-[12px] font-semibold text-violet-700 transition-colors hover:bg-violet-100"
+                target="_blank"
+              >
+                <ExportSquare size={14} variant="Bold" />
+                Full Design Spec
+              </Link>
+              <button
+                type="button"
+                onClick={() => setActiveTab("scenarios")}
+                className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                  activeTab === "scenarios"
+                    ? "bg-amber-100 text-amber-700"
+                    : "bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600"
+                }`}
+                title="Demo Scenarios (internal)"
+              >
+                <Eye size={16} variant="Bold" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -530,6 +548,14 @@ export default function ScenariosPage() {
       {activeTab === "design-system" ? (
         <div className="mx-auto max-w-5xl px-6 py-8">
           <DesignSystemTab />
+        </div>
+      ) : activeTab === "intent-classification" ? (
+        <div className="mx-auto max-w-7xl px-6 py-8">
+          <IntentClassificationContent />
+        </div>
+      ) : activeTab === "summary-logic" ? (
+        <div className="mx-auto max-w-5xl px-6 py-8">
+          <PatientSummaryLogicTab />
         </div>
       ) : (
       <div className="mx-auto max-w-5xl px-6 py-8">
