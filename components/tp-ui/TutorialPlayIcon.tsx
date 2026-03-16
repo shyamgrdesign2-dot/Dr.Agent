@@ -5,13 +5,13 @@
  * matching the Dr. Agent design system tutorial icon spec.
  *
  * Features:
- *   - Outer purple ring (gradient stroke)
+ *   - Outer purple ring
  *   - Inner filled purple circle
  *   - White play triangle
  *
- * Default size: 28px (toolbar use without background container)
+ * Default color: #8A4DBB
  */
-export function TutorialPlayIcon({ size = 28 }: { size?: number }) {
+export function TutorialPlayIcon({ size = 28, color = "#8A4DBB" }: { size?: number; color?: string }) {
   return (
     <svg
       width={size}
@@ -26,7 +26,7 @@ export function TutorialPlayIcon({ size = 28 }: { size?: number }) {
         cx="24"
         cy="24"
         r="21"
-        stroke="url(#tpTutRing)"
+        stroke={color}
         strokeWidth="3.5"
         fill="none"
       />
@@ -35,23 +35,13 @@ export function TutorialPlayIcon({ size = 28 }: { size?: number }) {
         cx="24"
         cy="24"
         r="15"
-        fill="url(#tpTutFill)"
+        fill={color}
       />
       {/* Play triangle */}
       <path
         d="M20.5 15L33 24L20.5 33V15Z"
         fill="white"
       />
-      <defs>
-        <linearGradient id="tpTutRing" x1="3" y1="3" x2="45" y2="45">
-          <stop stopColor="#7C3AED" />
-          <stop offset="1" stopColor="#A855F7" />
-        </linearGradient>
-        <radialGradient id="tpTutFill" cx="0.45" cy="0.4" r="0.55">
-          <stop stopColor="#8B5CF6" />
-          <stop offset="1" stopColor="#6D28D9" />
-        </radialGradient>
-      </defs>
     </svg>
   )
 }

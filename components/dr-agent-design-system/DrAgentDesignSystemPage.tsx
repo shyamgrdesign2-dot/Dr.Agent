@@ -1,6 +1,8 @@
 "use client"
 
 import React from "react"
+import { useRouter } from "next/navigation"
+import { ArrowLeft } from "lucide-react"
 import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
 import { AI_GRADIENT } from "@/components/tp-rxpad/dr-agent/constants"
 
@@ -9,6 +11,7 @@ import { CardAnatomySection } from "./sections/CardAnatomySection"
 import { CardCatalogSection } from "./sections/CardCatalogSection"
 import { ChatShellSection } from "./sections/ChatShellSection"
 import { CardRulesSection } from "./sections/CardRulesSection"
+import { IntentClassificationSection } from "./sections/IntentClassificationSection"
 import { ExportButton } from "./ExportButton"
 import { CATALOG_ENTRIES } from "./catalog-data"
 
@@ -22,16 +25,26 @@ const NAV_ITEMS = [
   { id: "card-anatomy", label: "Card Anatomy" },
   { id: "card-catalog", label: "Card Catalog" },
   { id: "chat-shell", label: "Chat Shell" },
+  { id: "intent-classification", label: "Intent Classification" },
   { id: "card-rules", label: "Card Rules" },
 ]
 
 export function DrAgentDesignSystemPage() {
+  const router = useRouter()
+
   return (
     <div className="min-h-screen bg-[#FAFAFE]">
       {/* ── Sticky Header Bar ── */}
       <header className="sticky top-0 z-50 border-b border-tp-slate-200 bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => router.push("/tp-appointment-screen/scenarios")}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-tp-slate-200 bg-white text-tp-slate-500 transition-colors hover:bg-tp-slate-50 hover:text-tp-slate-700"
+            >
+              <ArrowLeft size={16} strokeWidth={2} />
+            </button>
             <div
               className="flex h-9 w-9 items-center justify-center rounded-[10px]"
               style={{ background: AI_GRADIENT }}
@@ -102,6 +115,7 @@ export function DrAgentDesignSystemPage() {
         <CardAnatomySection />
         <CardCatalogSection entries={CATALOG_ENTRIES} />
         <ChatShellSection />
+        <IntentClassificationSection />
         <CardRulesSection />
 
         {/* Footer */}
