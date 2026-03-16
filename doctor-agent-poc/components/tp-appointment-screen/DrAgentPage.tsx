@@ -155,24 +155,8 @@ const appointmentTabs: AppointmentTab[] = [
 
 const queueAppointments: AppointmentRow[] = [
   {
-    id: "apt-zerodata",
-    serial: 1,
-    name: "Ramesh M",
-    gender: "M",
-    age: 35,
-    contact: "+91-9812700001",
-    visitType: "Walk-in",
-    visitBadge: { text: "New", tone: "info" },
-    slotTime: "10:15 am",
-    slotDate: "9 Mar'26",
-    hasVideo: false,
-    status: "queue",
-    dateKey: "today",
-    hasSymptoms: true,
-  },
-  {
     id: "apt-neha",
-    serial: 2,
+    serial: 1,
     name: "Neha Gupta",
     gender: "F",
     age: 32,
@@ -185,6 +169,22 @@ const queueAppointments: AppointmentRow[] = [
     status: "queue",
     dateKey: "today",
     // No hasSymptoms — patient did NOT fill symptom collector
+  },
+  {
+    id: "apt-zerodata",
+    serial: 2,
+    name: "Ramesh M",
+    gender: "M",
+    age: 35,
+    contact: "+91-9812700001",
+    visitType: "Walk-in",
+    visitBadge: { text: "New", tone: "info" },
+    slotTime: "10:15 am",
+    slotDate: "9 Mar'26",
+    hasVideo: false,
+    status: "queue",
+    dateKey: "today",
+    hasSymptoms: true,
   },
   {
     id: "__patient__",
@@ -654,15 +654,42 @@ export function DrAgentPage() {
     setTabDateFilters((prev) => ({ ...prev, [activeTab]: id }))
   }
   const tableOverflowRef = useRef<HTMLDivElement | null>(null)
-  const [isTableScrolled, setIsTableScrolled] = useState(false)
+  const [isActionSticky, setIsActionSticky] = useState(false)
 
   useEffect(() => {
-    const el = tableOverflowRef.current
-    if (!el) return
-    const handler = () => setIsTableScrolled(el.scrollLeft > 0)
-    el.addEventListener("scroll", handler, { passive: true })
-    return () => el.removeEventListener("scroll", handler)
+    const wrapper = tableOverflowRef.current
+    if (!wrapper) return
+    const update = () => {
+      const hasOverflow = wrapper.scrollWidth > wrapper.clientWidth + 1
+      // Shadow only visible when content is hidden behind the Action column.
+      // When scrolled all the way to the right (or no overflow), remove shadow.
+      const isScrolledToEnd = wrapper.scrollLeft + wrapper.clientWidth >= wrapper.scrollWidth - 1
+      setIsActionSticky(hasOverflow && !isScrolledToEnd)
+    }
+    update()
+    window.addEventListener("resize", update)
+    wrapper.addEventListener("scroll", update, { passive: true })
+    let observer: ResizeObserver | null = null
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(update)
+      observer.observe(wrapper)
+      const table = wrapper.querySelector("table")
+      if (table) observer.observe(table)
+    }
+    return () => {
+      window.removeEventListener("resize", update)
+      wrapper.removeEventListener("scroll", update)
+      observer?.disconnect()
+    }
   }, [])
+
+  const stickyActionHeaderClass = isActionSticky
+    ? "border-l border-tp-slate-200/80 shadow-[-8px_7px_14px_-12px_rgba(15,23,42,0.18)] before:pointer-events-none before:absolute before:inset-y-0 before:-left-3 before:w-3 before:content-[''] before:bg-gradient-to-l before:from-tp-slate-900/[0.06] before:to-transparent"
+    : ""
+
+  const stickyActionCellClass = isActionSticky
+    ? "border-l border-tp-slate-200/80 shadow-[-8px_7px_14px_-12px_rgba(15,23,42,0.18)] before:pointer-events-none before:absolute before:inset-y-0 before:-left-3 before:w-3 before:content-[''] before:bg-gradient-to-l before:from-tp-slate-900/[0.06] before:to-transparent"
+    : ""
 
   // ── Column sort + unified filter ─────────────────────────────────────────
   const [slotSort, setSlotSort] = useState<"none" | "asc" | "desc">("none")
@@ -944,7 +971,9 @@ export function DrAgentPage() {
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => setActiveRailItem(item.id)}
+                      onClick={() => {
+                        setActiveRailItem(item.id)
+                      }}
                       className={cn(
                         "whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
                         isActive
@@ -1171,9 +1200,8 @@ export function DrAgentPage() {
                               </button>
                             </th>
                             <th className={cn(
-                              "sticky right-0 z-20 w-[1%] whitespace-nowrap rounded-r-[12px] bg-tp-slate-100 pl-3 pr-2 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700",
-                              "shadow-[-6px_0_12px_-4px_rgba(0,0,0,0.06)]",
-                              isTableScrolled && "shadow-[-6px_0_14px_-2px_rgba(0,0,0,0.12)]",
+                              "relative sticky right-0 z-20 w-[1%] whitespace-nowrap rounded-tr-[12px] rounded-br-[12px] bg-tp-slate-100 pl-3 pr-2 py-3 text-left text-[12px] font-semibold uppercase text-tp-slate-700",
+                              stickyActionHeaderClass,
                             )}>
                               Action
                             </th>
@@ -1312,9 +1340,8 @@ export function DrAgentPage() {
                                 </td>
 
                                 <td className={cn(
-                                  "sticky right-0 z-10 w-[1%] whitespace-nowrap bg-white pl-3 pr-2 py-3 align-middle",
-                                  "shadow-[-6px_0_12px_-4px_rgba(0,0,0,0.06)]",
-                                  isTableScrolled && "shadow-[-6px_0_14px_-2px_rgba(0,0,0,0.12)]",
+                                  "relative sticky right-0 z-10 w-[1%] whitespace-nowrap bg-white pl-3 pr-2 py-3 align-middle",
+                                  stickyActionCellClass,
                                 )}>
                                   <div className="flex items-center gap-3 whitespace-nowrap">
                                     {/* Tab-specific CTA */}
@@ -2319,25 +2346,16 @@ function TopHeader() {
       </div>
 
       <div className="flex items-center gap-3.5">
-        {/* Tutorial icon — same as RxPad header, 42×42, #8A4DBB */}
+        {/* Tutorial icon — concentric-circle play button */}
         <button
           type="button"
-          className="flex shrink-0 items-center justify-center"
-          style={{ width: 42, height: 42 }}
+          className="flex size-[42px] items-center justify-center"
           aria-label="Play tutorial"
         >
           <TutorialPlayIcon size={42} />
         </button>
 
-        {/* Gradient divider */}
-        <div
-          className="shrink-0 opacity-80"
-          style={{
-            width: "1.05px",
-            height: 42,
-            background: "linear-gradient(to bottom, rgba(208,213,221,0.2) 0%, #d0d5dd 50%, rgba(208,213,221,0.2) 100%)",
-          }}
-        />
+        <div className="bg-gradient-to-b from-[rgba(208,213,221,0.2)] h-[42px] opacity-80 shrink-0 to-[rgba(208,213,221,0.2)] via-1/2 via-[#d0d5dd] w-[1.05px]" />
 
         <button
           type="button"
@@ -2348,16 +2366,6 @@ function TopHeader() {
           <span className="absolute -top-0.5 right-1 size-2.5 rounded-full border-2 border-white bg-red-500" />
         </button>
 
-        {/* Gradient divider — matching tutorial divider */}
-        <div
-          className="shrink-0 opacity-80"
-          style={{
-            width: "1.05px",
-            height: 42,
-            background: "linear-gradient(to bottom, rgba(208,213,221,0.2) 0%, #d0d5dd 50%, rgba(208,213,221,0.2) 100%)",
-          }}
-        />
-
         <TPIconButton
           icon={<InfoCircle size={20} variant="Linear" strokeWidth={1.5} />}
           theme="neutral"
@@ -2366,15 +2374,7 @@ function TopHeader() {
           onClick={() => router.push("/tp-appointment-screen/scenarios")}
         />
 
-        {/* Gradient divider — matching tutorial divider */}
-        <div
-          className="shrink-0 opacity-80"
-          style={{
-            width: "1.05px",
-            height: 42,
-            background: "linear-gradient(to bottom, rgba(208,213,221,0.2) 0%, #d0d5dd 50%, rgba(208,213,221,0.2) 100%)",
-          }}
-        />
+        <div className="bg-gradient-to-b from-[rgba(208,213,221,0.2)] h-[42px] opacity-80 shrink-0 to-[rgba(208,213,221,0.2)] via-1/2 via-[#d0d5dd] w-[1.05px]" />
 
         {/* Clinic selector with search + scrollable list */}
         <div className="relative hidden sm:block" ref={clinicMenuRef}>

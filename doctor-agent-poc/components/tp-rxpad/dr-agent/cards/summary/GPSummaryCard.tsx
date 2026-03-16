@@ -280,19 +280,6 @@ export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed 
       icon={<span />}
       tpIconName="stethoscope"
       title="Patient Summary"
-      copyAll={() => {
-        const parts: string[] = []
-        if (data.chronicConditions?.length) parts.push(`Chronic: ${data.chronicConditions.join(", ")}`)
-        if (data.allergies?.length) parts.push(`Allergies: ${data.allergies.join(", ")}`)
-        if (data.todayVitals) {
-          const v = data.todayVitals
-          parts.push(`Vitals: BP ${v.bp ?? "-"}, Pulse ${v.pulse ?? "-"}, SpO2 ${v.spo2 ?? "-"}%`)
-        }
-        if (data.keyLabs?.length) parts.push(`Labs: ${data.keyLabs.map(l => `${l.name}: ${l.value}`).join(", ")}`)
-        if (data.activeMeds?.length) parts.push(`Meds: ${data.activeMeds.join(", ")}`)
-        navigator.clipboard?.writeText(parts.join("\n"))
-      }}
-      copyAllTooltip="Copy patient summary to clipboard"
       collapsible
       defaultCollapsed={defaultCollapsed}
       sidebarLink={

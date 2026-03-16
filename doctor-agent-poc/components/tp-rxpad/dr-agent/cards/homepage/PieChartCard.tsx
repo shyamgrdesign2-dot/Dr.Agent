@@ -16,17 +16,10 @@ export function PieChartCard({ data, onPillTap }: Props) {
     return `${seg.color} ${start}% ${cumPercent}%`
   }).join(", ")
 
-  const copyAll = () => {
-    const text = data.segments.map(s => `${s.label}: ${s.value} (${((s.value / data.total) * 100).toFixed(0)}%)`).join("\n")
-    navigator.clipboard.writeText(`${data.title}\nTotal: ${data.total}\n${text}`)
-  }
-
   return (
     <CardShell
       icon={<Chart size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
       title={data.title}
-      copyAll={copyAll}
-      copyAllTooltip="Copy diagnosis data"
       actions={
         <>
           <ChatPillButton label="Show patients" onClick={() => onPillTap?.("Show all fever patients")} />

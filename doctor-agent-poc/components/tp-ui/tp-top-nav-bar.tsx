@@ -14,11 +14,11 @@ import {
   ChevronDown,
   User,
   Building2,
-  Play,
   Save,
   LayoutTemplate,
   StickyNote,
 } from "lucide-react"
+import { TutorialPlayIcon } from "@/components/tp-ui/TutorialPlayIcon"
 import { cn } from "@/lib/utils"
 
 /**
@@ -233,8 +233,8 @@ export function TPTopNavBar({
           {/* Toolbar actions */}
           <div className="flex items-center gap-[14px] shrink-0">
             {/* Tutorial icon */}
-            <div className="shrink-0" style={{ width: 42, height: 42 }}>
-              <Play size={20} color="#8A4DBB" fill="#8A4DBB" className="opacity-70" />
+            <div className="shrink-0 flex items-center justify-center" style={{ width: 42, height: 42 }}>
+              <TutorialPlayIcon size={28} />
             </div>
 
             <NavDivider />
@@ -377,7 +377,7 @@ export function TPTopNavBar({
         <div className="flex items-center gap-[14px] shrink-0">
           {/* Tutorial */}
           <div className="shrink-0 flex items-center justify-center" style={{ width: 42, height: 42 }}>
-            <Play size={20} color="#8A4DBB" fill="#8A4DBB" className="opacity-70" />
+            <TutorialPlayIcon size={28} />
           </div>
 
           <NavDivider />

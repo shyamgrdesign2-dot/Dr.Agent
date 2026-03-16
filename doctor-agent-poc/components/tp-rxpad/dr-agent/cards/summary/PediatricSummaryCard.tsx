@@ -93,15 +93,21 @@ export function PediatricSummaryCard({ data, onSidebarNav }: PediatricSummaryCar
       sidebarLink={
         onSidebarNav ? (
           <div className="flex items-center">
-            <SidebarLink
-              text="View growth chart"
+            <button
+              type="button"
               onClick={() => onSidebarNav("growth")}
-            />
-            <span className="mx-[2px] h-[12px] w-[1.5px] bg-tp-slate-200 flex-shrink-0" />
-            <SidebarLink
-              text="View vaccine history"
+              className="flex-1 inline-flex items-center justify-center gap-[4px] rounded-[10px] py-[5px] text-[11px] font-medium text-tp-blue-500 transition-colors hover:bg-tp-blue-50/60"
+            >
+              View growth chart
+            </button>
+            <div className="h-[20px] flex-shrink-0" style={{ width: "1px", background: "linear-gradient(180deg, transparent 0%, #CBD5E1 50%, transparent 100%)" }} />
+            <button
+              type="button"
               onClick={() => onSidebarNav("vaccine")}
-            />
+              className="flex-1 inline-flex items-center justify-center gap-[4px] rounded-[10px] py-[5px] text-[11px] font-medium text-tp-blue-500 transition-colors hover:bg-tp-blue-50/60"
+            >
+              View vaccine history
+            </button>
           </div>
         ) : undefined
       }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback } from "react"
-import { DocumentCopy } from "iconsax-reactjs"
+import { Copy } from "iconsax-reactjs"
 import { cn } from "@/lib/utils"
 
 interface CopyOption {
@@ -12,7 +12,7 @@ interface CopyOption {
 interface CopyTooltipProps {
   /** Individual copy options */
   options: CopyOption[]
-  /** Label for "Copy all" option */
+  /** Label for "Fill all" option */
   copyAllLabel?: string
   /** All values joined for copy-all */
   copyAllValue: string
@@ -23,7 +23,7 @@ interface CopyTooltipProps {
 
 export function CopyTooltip({
   options,
-  copyAllLabel = "Copy all",
+  copyAllLabel = "Fill all",
   copyAllValue,
   iconSize = 10,
   className,
@@ -66,13 +66,13 @@ export function CopyTooltip({
       <button
         type="button"
         className={cn(
-          "inline-flex items-center text-tp-slate-600 hover:text-tp-slate-500 transition-all cursor-pointer",
+          "inline-flex items-center text-tp-blue-500 hover:text-tp-blue-600 transition-all cursor-pointer",
           className,
         )}
         onClick={() => handleCopy(copyAllValue, "all")}
-        title={options[0]?.label ? `Copy ${options[0].label}` : "Copy"}
+        title={options[0]?.label ? `Fill ${options[0].label}` : "Fill"}
       >
-        <DocumentCopy size={iconSize} variant="Linear" />
+        <Copy size={iconSize} variant="Linear" />
       </button>
     )
   }
@@ -82,12 +82,12 @@ export function CopyTooltip({
       {/* Trigger icon */}
       <button
         type="button"
-        className="inline-flex items-center text-tp-slate-600 hover:text-tp-slate-500 transition-all cursor-pointer"
+        className="inline-flex items-center text-tp-blue-500 hover:text-tp-blue-600 transition-all cursor-pointer"
         onClick={() => setOpen((prev) => !prev)}
         onMouseEnter={() => setOpen(true)}
-        title="Copy options"
+        title="Fill options"
       >
-        <DocumentCopy size={iconSize} variant={open ? "Bulk" : "Linear"} />
+        <Copy size={iconSize} variant={open ? "Bulk" : "Linear"} />
       </button>
 
       {/* Tooltip dropdown */}
@@ -114,7 +114,7 @@ export function CopyTooltip({
                 copied === opt.label && "text-tp-success-600 bg-tp-success-50",
               )}
             >
-              <DocumentCopy size={14} variant="Linear" className="flex-shrink-0" />
+              <Copy size={14} variant="Linear" className="flex-shrink-0 text-tp-blue-500" />
               <span className="truncate">{opt.label}</span>
             </button>
           ))}
@@ -122,7 +122,7 @@ export function CopyTooltip({
           {/* Divider */}
           <div className="my-[2px] h-px bg-tp-slate-100" />
 
-          {/* Copy all */}
+          {/* Fill all */}
           <button
             type="button"
             onClick={() => handleCopy(copyAllValue, "all")}
@@ -133,7 +133,7 @@ export function CopyTooltip({
               copied === "all" && "text-tp-success-600 bg-tp-success-50",
             )}
           >
-            <DocumentCopy size={14} variant="Bulk" className="flex-shrink-0" />
+            <Copy size={14} variant="Bulk" className="flex-shrink-0 text-tp-blue-500" />
             <span>{copyAllLabel}</span>
           </button>
         </div>

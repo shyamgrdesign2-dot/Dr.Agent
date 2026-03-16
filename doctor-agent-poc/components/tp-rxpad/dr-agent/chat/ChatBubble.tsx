@@ -5,18 +5,54 @@ import { cn } from "@/lib/utils"
 import type { RxAgentChatMessage } from "../types"
 import { CardRenderer } from "../cards/CardRenderer"
 import { FeedbackRow } from "../cards/FeedbackRow"
-import { AiBrandSparkIcon, AI_GRADIENT_SOFT } from "@/components/doctor-agent/ai-brand"
-import { DocumentCopy, Edit2 } from "iconsax-reactjs"
+import { CopyIcon } from "../cards/CopyIcon"
+import { ActionableTooltip } from "../cards/ActionableTooltip"
+import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
+import { AiGradientBg } from "../shared/AiGradientBg"
+import { Edit2 } from "iconsax-reactjs"
 import { DocumentAttachmentBubble } from "./DocumentAttachmentBubble"
 
-/** Convert **bold** markdown syntax to <strong> elements. */
-function renderMarkdownBold(text: string): React.ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g)
-  return parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={i} className="font-semibold text-tp-slate-900">{part.slice(2, -2)}</strong>
+/** Convert light markdown (bold + links) into rich text. */
+function renderAssistantMarkdown(text: string, onPillTap?: (label: string) => void): React.ReactNode {
+  const tokens = text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g)
+  return tokens.map((token, i) => {
+    if (token.startsWith("**") && token.endsWith("**")) {
+      return <strong key={i} className="font-semibold text-tp-slate-900">{token.slice(2, -2)}</strong>
     }
-    return <span key={i}>{part}</span>
+
+    if (token.startsWith("[") && token.includes("](") && token.endsWith(")")) {
+      const match = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+      if (!match) return <span key={i}>{token}</span>
+      const [, label, href] = match
+
+      if (href.startsWith("action:")) {
+        const actionLabel = decodeURIComponent(href.slice("action:".length))
+        return (
+          <button
+            key={i}
+            type="button"
+            onClick={() => onPillTap?.(actionLabel || label)}
+            className="font-medium text-tp-blue-600 underline underline-offset-2 transition-colors hover:text-tp-blue-700"
+          >
+            {label}
+          </button>
+        )
+      }
+
+      return (
+        <a
+          key={i}
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-tp-blue-600 underline underline-offset-2 transition-colors hover:text-tp-blue-700"
+        >
+          {label}
+        </a>
+      )
+    }
+
+    return <span key={i}>{token}</span>
   })
 }
 
@@ -82,14 +118,12 @@ export function ChatBubble({
           )}
           {/* Hover action icons */}
           <div className="flex items-center gap-[2px] opacity-0 group-hover/msg:opacity-100 transition-opacity">
-            <button
-              type="button"
-              onClick={() => navigator.clipboard?.writeText(message.text)}
-              className="flex h-[16px] w-[16px] items-center justify-center text-tp-slate-300 transition-colors hover:text-tp-slate-500"
-              title="Copy"
+            <ActionableTooltip
+              label="Fill to RxPad"
+              onAction={() => navigator.clipboard?.writeText(message.text)}
             >
-              <DocumentCopy size={14} variant="Linear" />
-            </button>
+              <CopyIcon onClick={() => navigator.clipboard?.writeText(message.text)} />
+            </ActionableTooltip>
             <button
               type="button"
               onClick={() => {}}
@@ -112,16 +146,13 @@ export function ChatBubble({
         {message.text && (
           <div className="flex items-start gap-[6px]">
             {/* AI Spark icon */}
-            <div
-              className="mt-0.5 flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-[6px]"
-              style={{ background: AI_GRADIENT_SOFT }}
-            >
+            <AiGradientBg size={20} borderRadius={6} className="mt-0.5">
               <AiBrandSparkIcon size={13} />
-            </div>
+            </AiGradientBg>
 
             {/* Plain text (no bubble/border/bg) */}
             <p className="text-[12px] leading-[18px] text-tp-slate-700 whitespace-pre-wrap break-words">
-              {renderMarkdownBold(message.text)}
+              {renderAssistantMarkdown(message.text, onPillTap)}
             </p>
           </div>
         )}
@@ -129,12 +160,9 @@ export function ChatBubble({
         {/* If there is no text but we have a card, still show the icon row */}
         {!message.text && message.rxOutput && (
           <div className="flex items-start gap-[6px]">
-            <div
-              className="mt-0.5 flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded-[6px]"
-              style={{ background: AI_GRADIENT_SOFT }}
-            >
+            <AiGradientBg size={20} borderRadius={6} className="mt-0.5">
               <AiBrandSparkIcon size={13} />
-            </div>
+            </AiGradientBg>
           </div>
         )}
 

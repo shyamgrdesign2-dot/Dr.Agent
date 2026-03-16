@@ -6,6 +6,7 @@ import type { SpecialtyTabId } from "../types"
 import { SidebarRight } from "iconsax-reactjs"
 import { AI_GRADIENT } from "../constants"
 import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
+import { AiGradientBg } from "../shared/AiGradientBg"
 import { NoiseOverlay } from "@/components/tp-ui/noise-overlay"
 
 // -----------------------------------------------------------------
@@ -79,12 +80,13 @@ export function AgentHeader({
     <div className={cn("relative z-20", className)}>
       {/* Header — AI gradient bg with blur */}
       <div
-        className="relative overflow-hidden flex items-center justify-between px-[14px] py-[14px]"
+        className="relative overflow-visible flex items-center justify-between px-[14px]"
         style={{
-          background: "linear-gradient(135deg, rgba(213,101,234,0.22) 0%, rgba(103,58,172,0.18) 40%, rgba(26,25,148,0.22) 100%)",
-          boxShadow: "0 1px 3px rgba(103,58,172,0.06), 0 2px 8px rgba(26,25,148,0.04)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
+          height: 52,
+          background: "linear-gradient(135deg, rgba(213,101,234,0.12) 0%, rgba(103,58,172,0.10) 40%, rgba(26,25,148,0.12) 100%)",
+          boxShadow: "0 1px 2px rgba(103,58,172,0.04), 0 2px 6px rgba(26,25,148,0.03)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
         }}
       >
         {/* Subtle noise grain */}
@@ -92,7 +94,9 @@ export function AgentHeader({
 
         {/* Left: spark icon + title + specialty dropdown */}
         <div className="relative z-10 flex items-center gap-[6px]">
-          <AiBrandSparkIcon size={18} className="flex-shrink-0" />
+          <AiGradientBg size={28} borderRadius={8}>
+            <AiBrandSparkIcon size={16} className="flex-shrink-0" />
+          </AiGradientBg>
           <span
             className="text-[16px] font-semibold leading-[1.2]"
             style={{
@@ -112,10 +116,10 @@ export function AgentHeader({
               onClick={() => setDropdownOpen((v) => !v)}
               className={cn(
                 "flex items-center gap-[3px] rounded-full px-[7px] py-[2px]",
-                "text-[10px] leading-[1.3] text-tp-slate-500",
-                "bg-tp-slate-50 transition-colors duration-150",
-                "hover:bg-tp-slate-100 hover:text-tp-slate-700",
-                dropdownOpen && "bg-tp-slate-100 text-tp-slate-700",
+                "text-[10px] leading-[1.3] text-tp-slate-400",
+                "bg-white/30 backdrop-blur-sm transition-colors duration-150",
+                "hover:bg-white/50 hover:text-tp-slate-600",
+                dropdownOpen && "bg-white/50 text-tp-slate-600",
               )}
             >
               <span>{activeLabel}</span>
@@ -143,9 +147,9 @@ export function AgentHeader({
             {dropdownOpen && (
               <div
                 className={cn(
-                  "absolute left-0 top-full z-50 mt-[4px]",
-                  "min-w-[110px] rounded-[8px] border border-tp-slate-200/60",
-                  "bg-white py-[4px] shadow-[0_4px_16px_rgba(0,0,0,0.08)]",
+                  "absolute left-0 top-full z-[120] mt-[4px]",
+                  "min-w-[110px] rounded-[8px] border border-tp-slate-100/80",
+                  "bg-white/90 backdrop-blur-md py-[4px] shadow-[0_4px_12px_rgba(0,0,0,0.05)]",
                 )}
               >
                 {/* Demo notice */}
@@ -162,12 +166,12 @@ export function AgentHeader({
                       key={opt.id}
                       type="button"
                       onClick={() => handleSpecialtySelect(opt.id)}
-                      className={cn(
+              className={cn(
                         "flex w-full items-center px-[10px] py-[5px] text-left text-[11px] leading-[1.3]",
                         "transition-colors duration-100",
                         isActive
-                          ? "font-medium text-tp-slate-800 bg-tp-slate-50"
-                          : "text-tp-slate-600 hover:bg-tp-slate-50 hover:text-tp-slate-800",
+                          ? "font-medium text-tp-slate-700 bg-tp-slate-50/60"
+                          : "text-tp-slate-500 hover:bg-tp-slate-50/40 hover:text-tp-slate-700",
                       )}
                     >
                       {opt.label}
@@ -200,7 +204,7 @@ export function AgentHeader({
         <button
           type="button"
           onClick={onClose}
-          className="relative z-10 text-tp-slate-400 transition-colors hover:text-tp-slate-600"
+          className="relative z-10 text-tp-slate-500 transition-colors hover:text-tp-slate-700"
           aria-label="Minimize agent"
         >
           <SidebarRight size={18} variant="Linear" />

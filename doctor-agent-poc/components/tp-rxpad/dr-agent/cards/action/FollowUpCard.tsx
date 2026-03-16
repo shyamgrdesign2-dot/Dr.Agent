@@ -28,7 +28,7 @@ export function FollowUpCard({ data, onSelect, onCopyToFollowUp }: FollowUpCardP
           ? () => onCopyToFollowUp?.(recommended.days, recommended.label)
           : undefined
       }
-      copyAllTooltip="Copy follow-up to RxPad"
+      copyAllTooltip="Fill follow-up to RxPad"
     >
       {/* Context line */}
       <p className="mb-2 text-[10px] leading-[1.4] text-tp-slate-400">

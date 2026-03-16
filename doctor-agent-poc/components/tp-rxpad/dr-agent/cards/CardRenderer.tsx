@@ -48,6 +48,7 @@ import { OCRFullExtractionCard } from "./analysis/OCRFullExtractionCard"
 import { PatientListCard } from "./homepage/PatientListCard"
 import { FollowUpListCard } from "./homepage/FollowUpListCard"
 import { RevenueBarCard } from "./homepage/RevenueBarCard"
+import { RevenueComparisonCard } from "./homepage/RevenueComparisonCard"
 import { BulkActionCard } from "./homepage/BulkActionCard"
 import { DonutChartCard } from "./homepage/DonutChartCard"
 import { PieChartCard } from "./homepage/PieChartCard"
@@ -56,6 +57,9 @@ import { AnalyticsTableCard } from "./homepage/AnalyticsTableCard"
 import { ConditionBarCard } from "./homepage/ConditionBarCard"
 import { HeatmapCard } from "./homepage/HeatmapCard"
 import { WelcomeCard } from "./homepage/WelcomeCard"
+import { DuePatientsCard } from "./homepage/DuePatientsCard"
+import { ExternalCtaCard } from "./homepage/ExternalCtaCard"
+import { FollowUpRateCard } from "./homepage/FollowUpRateCard"
 
 // Utility & Safety Cards (E1-E2 + CDSS)
 import { TranslationCard } from "./utility/TranslationCard"
@@ -264,7 +268,6 @@ export function CardRenderer({ output, onPillTap, onCopy, onSidebarNav }: CardRe
         <VoiceStructuredRxCard
           data={output.data}
           onCopy={onCopy as ((payload: import("@/components/tp-rxpad/rxpad-sync-context").RxPadCopyPayload) => void) | undefined}
-          onPillTap={onPillTap}
         />
       )
 
@@ -277,6 +280,9 @@ export function CardRenderer({ output, onPillTap, onCopy, onSidebarNav }: CardRe
 
     case "revenue_bar":
       return <RevenueBarCard data={output.data} onPillTap={onPillTap} />
+
+    case "revenue_comparison":
+      return <RevenueComparisonCard data={output.data} onPillTap={onPillTap} />
 
     case "bulk_action":
       return <BulkActionCard data={output.data} onPillTap={onPillTap} />
@@ -299,6 +305,15 @@ export function CardRenderer({ output, onPillTap, onCopy, onSidebarNav }: CardRe
     case "heatmap":
       return <HeatmapCard data={output.data} onPillTap={onPillTap} />
 
+    case "due_patients":
+      return <DuePatientsCard data={output.data} />
+
+    case "external_cta":
+      return <ExternalCtaCard data={output.data} />
+
+    case "follow_up_rate":
+      return <FollowUpRateCard data={output.data} />
+
     case "welcome_card":
       return <WelcomeCard data={output.data} onPillTap={onPillTap} />
 
@@ -319,7 +334,7 @@ export function CardRenderer({ output, onPillTap, onCopy, onSidebarNav }: CardRe
       return <RxPreviewCard data={output.data} onPillTap={onPillTap} />
 
     case "billing_summary":
-      return <BillingSummaryCard data={output.data} />
+      return <BillingSummaryCard data={output.data} onSidebarNav={onSidebarNav} />
 
     case "vaccination_due_list":
       return <VaccinationDueListCard data={output.data} onPillTap={onPillTap} />

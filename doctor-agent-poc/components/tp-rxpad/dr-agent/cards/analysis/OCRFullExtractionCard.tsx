@@ -4,7 +4,7 @@ import { CardShell } from "../CardShell"
 import { InsightBox } from "../InsightBox"
 import { SidebarLink } from "../SidebarLink"
 import { TPMedicalIcon } from "@/components/tp-ui"
-import { DocumentCopy } from "iconsax-reactjs"
+import { Copy } from "iconsax-reactjs"
 import type { OCRSection } from "../../types"
 
 interface OCRFullExtractionCardProps {
@@ -41,7 +41,7 @@ export function OCRFullExtractionCard({
         const text = data.sections.map(s => `${s.heading}:\n${s.items.map(i => `  • ${i}`).join('\n')}`).join('\n\n')
         navigator.clipboard?.writeText(text)
       }}
-      copyAllTooltip="Copy complete digitized report to Medical Records"
+      copyAllTooltip="Fill complete digitized report to Medical Records"
       sidebarLink={<SidebarLink text="View original" />}
     >
       {/* Category line */}
@@ -68,9 +68,9 @@ export function OCRFullExtractionCard({
                 )
               }
               className="flex h-[20px] items-center gap-1 rounded-[6px] border border-tp-slate-200 bg-white px-1.5 text-tp-slate-600 transition-all hover:text-tp-slate-500 hover:border-tp-slate-300 hover:bg-tp-slate-50"
-              title={`Copy all ${section.heading} to ${section.copyDestination}`}
+              title={`Fill all ${section.heading} to ${section.copyDestination}`}
             >
-              <DocumentCopy size={10} variant="Linear" />
+              <Copy size={10} variant="Linear" className="text-tp-blue-500" />
             </button>
           </div>
 
@@ -86,9 +86,9 @@ export function OCRFullExtractionCard({
                   type="button"
                   onClick={() => onCopyItem?.(item, section.copyDestination)}
                   className="mt-[1px] flex-shrink-0 opacity-0 transition-opacity group-hover/item:opacity-100 text-tp-slate-600 hover:text-tp-slate-500"
-                  title={`Copy to ${section.copyDestination}`}
+                  title={`Fill to ${section.copyDestination}`}
                 >
-                  <DocumentCopy size={14} variant="Linear" />
+                  <Copy size={14} variant="Linear" className="text-tp-blue-500" />
                 </button>
               </div>
             ))}

@@ -56,7 +56,7 @@ export function OCRPathologyCard({ data, onPillTap, onCopy }: OCRPathologyCardPr
           labInvestigations: data.parameters.map((p) => `${p.name}: ${p.value}${p.refRange ? ` (ref: ${p.refRange})` : ""}`),
         })
       }
-      copyAllTooltip="Copy complete digitized report to Lab Results"
+      copyAllTooltip="Fill complete digitized report to Lab Results"
       actions={
         <ChatPillButton label="Compare with previous" onClick={() => onPillTap?.("Compare with previous")} />
       }
@@ -78,7 +78,7 @@ export function OCRPathologyCard({ data, onPillTap, onCopy }: OCRPathologyCardPr
             !showNormal && i === flaggedParams.length - 1
           }
           onCopy={() => handleCopyParam(param)}
-          copyTooltip={`Copy ${param.name} to Lab Results`}
+          copyTooltip={`Fill ${param.name} to Lab Results`}
         />
       ))}
 
@@ -105,7 +105,7 @@ export function OCRPathologyCard({ data, onPillTap, onCopy }: OCRPathologyCardPr
             refRange={param.refRange}
             isLast={i === normalParams.length - 1}
             onCopy={() => handleCopyParam(param)}
-            copyTooltip={`Copy ${param.name} to Lab Results`}
+            copyTooltip={`Fill ${param.name} to Lab Results`}
           />
         ))}
 

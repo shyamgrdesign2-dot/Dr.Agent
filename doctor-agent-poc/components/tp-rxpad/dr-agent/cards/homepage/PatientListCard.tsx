@@ -14,19 +14,12 @@ const TONE_COLORS: Record<BadgeTone, { bg: string; color: string }> = {
 interface Props { data: PatientListCardData; onPillTap?: (label: string) => void }
 
 export function PatientListCard({ data, onPillTap }: Props) {
-  const copyAll = () => {
-    const text = data.items.map(i => `${i.name} (${i.gender}/${i.age}y) — ${i.time} — ${i.status}`).join("\n")
-    navigator.clipboard.writeText(text)
-  }
-
   return (
     <CardShell
       icon={<span />}
       tpIconName="clipboard-activity"
       title={data.title}
       badge={{ label: `${data.totalCount}`, color: "#6D28D9", bg: "#EDE9FE" }}
-      copyAll={copyAll}
-      copyAllTooltip="Copy patient list"
     >
       <div className="space-y-[4px]">
         {data.items.map((item, i) => {

@@ -20,13 +20,6 @@ const INTENSITY_TEXT: Record<string, string> = {
 interface Props { data: HeatmapCardData; onPillTap?: (label: string) => void }
 
 export function HeatmapCard({ data, onPillTap }: Props) {
-  const copyAll = () => {
-    const lines = data.rows.map((row, ri) =>
-      `${row}: ${data.cells[ri].map((c, ci) => `${data.cols[ci]}=${c.value}`).join(", ")}`
-    )
-    navigator.clipboard.writeText(`${data.title}\n${lines.join("\n")}`)
-  }
-
   const handleDownload = () => {
     const headers = ["Time Slot", ...data.cols]
     const rows = data.rows.map((row, ri) => [row, ...data.cells[ri].map(c => String(c.value))])
@@ -37,8 +30,6 @@ export function HeatmapCard({ data, onPillTap }: Props) {
     <CardShell
       icon={<Calendar2 size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
       title={data.title}
-      copyAll={copyAll}
-      copyAllTooltip="Copy heatmap data"
       sidebarLink={<SidebarLink text="Download as Excel" onClick={handleDownload} />}
     >
       <div className="py-[2px]">

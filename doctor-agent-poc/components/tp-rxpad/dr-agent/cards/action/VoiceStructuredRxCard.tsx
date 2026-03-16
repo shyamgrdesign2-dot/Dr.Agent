@@ -4,17 +4,14 @@ import React, { useState } from "react"
 import { CardShell } from "../CardShell"
 import { CopyIcon } from "../CopyIcon"
 import { ActionableTooltip } from "../ActionableTooltip"
-import { ChatPillButton } from "../ActionRow"
 import { TPMedicalIcon } from "@/components/tp-ui"
 import { Microphone2 } from "iconsax-reactjs"
-import { AI_GRADIENT } from "../../constants"
 import type { VoiceStructuredRxData, VoiceRxItem } from "../../types"
 import type { RxPadCopyPayload } from "@/components/tp-rxpad/rxpad-sync-context"
 
 interface VoiceStructuredRxCardProps {
   data: VoiceStructuredRxData
   onCopy?: (payload: RxPadCopyPayload) => void
-  onPillTap?: (label: string) => void
 }
 
 /** Format a VoiceRxItem to a plain text string for clipboard copy */
@@ -22,7 +19,7 @@ function formatVoiceItem(item: VoiceRxItem): string {
   return item.detail ? `${item.name} (${item.detail})` : item.name
 }
 
-export function VoiceStructuredRxCard({ data, onCopy, onPillTap }: VoiceStructuredRxCardProps) {
+export function VoiceStructuredRxCard({ data, onCopy }: VoiceStructuredRxCardProps) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
   const [showOriginal, setShowOriginal] = useState(false)
 
@@ -45,15 +42,9 @@ export function VoiceStructuredRxCard({ data, onCopy, onPillTap }: VoiceStructur
       title="Structured Transcript"
       badge={{ label: "Just now", color: "#64748B", bg: "#F1F5F9" }}
       copyAll={() => onCopy?.(data.copyAllPayload)}
-      copyAllTooltip="Copy structured transcript to RxPad"
+      copyAllTooltip="Fill structured transcript to RxPad"
       collapsible
       defaultCollapsed={false}
-      actions={
-        <ChatPillButton
-          label="Re-dictate"
-          onClick={() => onPillTap?.("Start a new voice dictation")}
-        />
-      }
     >
       <div className="flex flex-col gap-[8px]">
         {/* Toggle original voice text */}
@@ -87,7 +78,7 @@ export function VoiceStructuredRxCard({ data, onCopy, onPillTap }: VoiceStructur
               </span>
               <span className="opacity-0 group-hover/section-header:opacity-100 transition-opacity">
                 <ActionableTooltip
-                  label={`Copy ${section.title.toLowerCase()} to RxPad`}
+                  label={`Fill ${section.title.toLowerCase()} to RxPad`}
                   onAction={() => handleCopySection(section.sectionId, section.items)}
                 >
                   <CopyIcon size={14} onClick={() => handleCopySection(section.sectionId, section.items)} />
@@ -118,7 +109,7 @@ export function VoiceStructuredRxCard({ data, onCopy, onPillTap }: VoiceStructur
                         <span className="text-[10px] text-tp-success-500 font-medium">Copied</span>
                       ) : (
                         <ActionableTooltip
-                          label={`Copy to RxPad`}
+                          label={`Fill to RxPad`}
                           onAction={() => handleCopyItem(item, itemKey)}
                         >
                           <CopyIcon

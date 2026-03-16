@@ -6,6 +6,20 @@ This document standardizes the interaction patterns used across all Doctor Agent
 
 ---
 
+## Fill Eligibility Rules (Critical)
+
+- Show **Fill** controls only for content that is newly generated in the current workflow (voice parsing, OCR extraction, patient-reported intake, active Rx drafting).
+- Do **not** show Fill controls for already-fetched historical sections (`vitals`, `history`, `obstetric`, `gynec`, `ophthal`, `vaccine`, `growth`, older lab/history snapshots).
+- `Last Visit` is the one allowed exception from fetched context: fill into RxPad is allowed as a convenience for current prescription drafting.
+- Destination label must be explicit and context-bound:
+  - Rx drafting fields → `Fill to RxPad`
+  - Historical section targets → `Fill to Vitals`, `Fill to Medical History`, `Fill to Obstetric History`, etc.
+- If content is already persisted in the same destination section, hide fill controls to avoid duplicate writes.
+- RxPad-only section fills are limited to: `Symptoms`, `Examination`, `Diagnosis`, `Medication`, `Advice`, `Lab Investigation`, `Surgery`, `Additional Notes`, `Follow-up`.
+- Historical destinations (`Past Visits`, `Vitals`, `Medical History`, `Ophthal`, `Gynec`, `Obstetric`, `Vaccination`, `Growth`, `Lab Results`) must only expose fill when data is newly provided/generated in-session, not when fetched from records.
+
+---
+
 ## Pattern 1: Checkbox Multi-Select + Copy to RxPad
 
 **When to use:** The doctor needs to select multiple items from a list and copy them to the RxPad.
@@ -247,7 +261,7 @@ This document standardizes the interaction patterns used across all Doctor Agent
 
 1. **CTA placement:** Always in `sidebarLink` prop area, below a 0.5px divider with 10px padding
 2. **CTA style:** Secondary outline button — `border-[1.5px] border-tp-blue-500 bg-transparent text-tp-blue-600 rounded-[10px] h-[28px]`
-3. **Copy icon:** `text-tp-slate-600` default, `text-tp-slate-500` hover, Linear→Bulk on hover
+3. **Fill icon:** `Copy` icon from iconsax, `text-tp-blue-500` default, `text-tp-blue-600` hover, Linear→Bulk on hover
 4. **Dividers:** 0.5px, `var(--tp-slate-50)` or `var(--tp-slate-100)` for structural
 5. **Font weights:** Only `font-semibold` for card title and section tags; `font-medium` for all content
 6. **Pill buttons:** Always in `actions` prop area, using `ChatPillButton` component

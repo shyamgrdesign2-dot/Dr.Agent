@@ -13,9 +13,9 @@ interface KeywordRule {
 
 const RULES: KeywordRule[] = [
   // ── Operational (Homepage) — checked first because multi-word phrases must win over single-word matches ──
-  { keywords: ["today's schedule", "appointments today", "who's next", "queue status"], intent: "operational", format: "card" },
+  { keywords: ["today's schedule", "appointments today", "who's next", "queue status", "queue list"], intent: "operational", format: "card" },
   { keywords: ["follow-ups due", "overdue follow", "callback", "follow up due"], intent: "operational", format: "card" },
-  { keywords: ["revenue", "billing", "collection", "payment", "income", "earnings"], intent: "operational", format: "card" },
+  { keywords: ["revenue", "billing", "collection", "payment", "income", "earnings", "refund", "deposit", "this week's billing", "this week's deposits"], intent: "operational", format: "card" },
   { keywords: ["send sms", "send reminder", "remind all", "bulk sms", "notify"], intent: "operational", format: "card" },
   { keywords: ["demographics", "age group", "gender split", "patient composition"], intent: "operational", format: "card" },
   { keywords: ["diagnosis distribution", "diagnosis breakdown", "top diagnos", "common conditions"], intent: "operational", format: "card" },
@@ -49,7 +49,7 @@ const RULES: KeywordRule[] = [
   { keywords: ["investigation", "test", "order", "screening", "workup"], intent: "clinical_decision", format: "card" },
 
   // Action
-  { keywords: ["copy", "add", "fill", "generate advice", "draft"], intent: "action", format: "hybrid" },
+  { keywords: ["copy", "add", "fill", "draft"], intent: "action", format: "hybrid" },
   { keywords: ["translate", "hindi", "telugu", "kannada", "tamil", "marathi"], intent: "action", format: "card" },
   { keywords: ["follow-up", "follow up", "f/u", "next visit", "schedule"], intent: "action", format: "card" },
 
@@ -68,10 +68,11 @@ const RULES: KeywordRule[] = [
   { keywords: ["ask me anything", "ask anything", "pre-consult"], intent: "ambiguous", format: "text" },
 
   // Rail-specific operational queries
-  { keywords: ["overdue follow-up", "send reminder", "this week's follow-up", "follow-up rate", "follow up rate"], intent: "operational", format: "card" },
-  { keywords: ["pending payment", "today's collection", "generate invoice", "outstanding due"], intent: "operational", format: "card" },
+  { keywords: ["follow-up dues this week", "follow-up dues today", "overdue follow-ups today", "this week follow-ups", "overdue follow-up", "send reminder", "this week's follow-up", "follow-up rate", "follow up rate"], intent: "operational", format: "card" },
+  { keywords: ["patients with due", "due this week", "due till now", "dues till date", "total bill today", "today's billing", "today's deposit", "today's collection", "overall collection", "past 30 days collection", "generate invoice", "open billing", "open opd billing"], intent: "operational", format: "card" },
   { keywords: ["low stock", "pending prescription", "dispense history", "expiring medicine"], intent: "operational", format: "card" },
   { keywords: ["draft campaign", "delivery stat", "template library", "scheduled message"], intent: "operational", format: "card" },
+  { keywords: ["excel", "xlsx", "word", "docx", "export format", "download file"], intent: "operational", format: "card" },
   // Patient-context pills
   { keywords: ["patient snapshot", "pre-consult prep", "abnormal lab"], intent: "operational", format: "card" },
 
@@ -126,7 +127,6 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "Investigations": "clinical_decision",
   "Advice": "action",
   "F/U": "action",
-  "Generate advice": "action",
   "Translate": "action",
   "Follow-up": "action",
   "Completeness check": "operational",
@@ -159,9 +159,12 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "Today's schedule": "operational",
   "Follow-ups due": "operational",
   "Revenue today": "operational",
+  "Revenue this week": "operational",
+  "This week's billing": "operational",
+  "This week's deposits": "operational",
+  "Compare with another date": "comparison",
   "Weekly KPIs": "operational",
   "Upload document": "document_analysis",
-  "Send reminders": "operational",
   "Patient demographics": "operational",
   "Diagnosis breakdown": "operational",
   "Busiest hours": "operational",
@@ -174,7 +177,7 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "Send reminder to all": "operational",
   "Follow-up analytics": "operational",
   "Compare with last week": "comparison",
-  "Weekday breakdown": "operational",
+  "Compare with yesterday": "operational",
   "Gender split": "operational",
   "Condition breakdown": "operational",
   "Show all fever patients": "operational",
@@ -186,12 +189,21 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "Payment reminders": "operational",
   // Rail-specific pill labels
   "Overdue follow-ups": "operational",
+  "Overdue follow-ups today": "operational",
   "This week's follow-ups": "operational",
+  "This week follow-ups": "operational",
+  "Follow-up dues this week": "operational",
+  "Follow-up dues today": "operational",
   "Follow-up rate": "operational",
-  "Pending payments": "operational",
+  "Patients with due this week": "operational",
+  "Patients with due till now": "operational",
   "Today's collection": "operational",
+  "Today's billing": "operational",
+  "Today's deposits": "operational",
+  "Past 30 days collection": "operational",
   "Generate invoice": "operational",
-  "Outstanding dues": "operational",
+  "Open Excel file": "operational",
+  "Open Word document": "operational",
   "Low stock alerts": "operational",
   "Pending prescriptions": "operational",
   "Dispense history": "operational",

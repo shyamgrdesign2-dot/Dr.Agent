@@ -33,7 +33,7 @@ export function CheckboxRow({ label, rationale, checked = false, accentColor = "
           </svg>
         )}
       </button>
-      <strong className="font-medium text-tp-slate-800">{label}</strong>
+      <span className="font-medium text-tp-slate-800">{label}</span>
       {rationale && (
         <span className="ml-auto text-[10px] text-tp-slate-400">{rationale}</span>
       )}

@@ -156,25 +156,27 @@ function SectionCardHeader({
             <div className={`flex flex-col font-semibold justify-end leading-[0] not-italic relative shrink-0 text-tp-slate-700 ${rxSidebarTokens.bodyStrongClass}`}>
               <p className="leading-[18px] whitespace-pre-wrap">{title}</p>
             </div>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
             {titleAddon && (
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="opacity-0 transition-opacity group-hover/section-card:opacity-100">
                 {titleAddon}
               </span>
             )}
-          </div>
-          {!hideChevron ? (
-            <div className="flex items-center justify-center relative shrink-0">
-              <div className="flex-none transition-transform duration-150">
-                <div className="relative size-[18px]">
-                  {expanded ? (
-                    <ArrowSquareUp color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
-                  ) : (
-                    <ArrowSquareDown color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
-                  )}
+            {!hideChevron ? (
+              <div className="flex items-center justify-center relative shrink-0">
+                <div className="flex-none transition-transform duration-150">
+                  <div className="relative size-[18px]">
+                    {expanded ? (
+                      <ArrowSquareUp color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
+                    ) : (
+                      <ArrowSquareDown color="var(--tp-slate-500)" size={18} strokeWidth={1.5} variant="Linear" />
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </div>
       </div>
     </HeaderTag>
@@ -190,7 +192,7 @@ export function SectionCard({
   children,
 }: SectionCardProps) {
   return (
-    <div className="relative shrink-0 w-full" style={tpSectionCardStyle}>
+    <div className="group/section-card relative shrink-0 w-full" style={tpSectionCardStyle}>
       <SectionCardHeader title={title} titleAddon={titleAddon} expanded={expanded} onToggle={onToggle} hideChevron={hideChevron} />
       {expanded ? (
         <div className="content-stretch flex flex-col items-start relative shrink-0 w-full">

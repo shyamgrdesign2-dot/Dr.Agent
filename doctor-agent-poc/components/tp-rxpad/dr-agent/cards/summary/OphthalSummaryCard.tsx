@@ -66,17 +66,17 @@ export function OphthalSummaryCard({ data, onSidebarNav }: OphthalSummaryCardPro
       <div className="flex flex-col gap-1">
         {/* OD line */}
         {odValues.length > 0 && (
-          <InlineDataRow tag="OD (Right)" tagIcon="search" values={odValues} source="existing" />
+          <InlineDataRow tag="OD (Right)" tagIcon="eye" values={odValues} source="existing" />
         )}
 
         {/* OS line */}
         {osValues.length > 0 && (
-          <InlineDataRow tag="OS (Left)" tagIcon="search" values={osValues} source="existing" />
+          <InlineDataRow tag="OS (Left)" tagIcon="eye" values={osValues} source="existing" />
         )}
 
         {/* Supplementary findings */}
         {suppValues.length > 0 && (
-          <InlineDataRow tag="Findings" tagIcon="search" values={suppValues} source="existing" />
+          <InlineDataRow tag="Findings" tagIcon="stethoscope" values={suppValues} source="existing" />
         )}
 
         {/* Alerts */}

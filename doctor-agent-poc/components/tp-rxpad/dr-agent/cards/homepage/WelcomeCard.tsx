@@ -23,7 +23,7 @@ export function WelcomeCard({ data, onPillTap }: Props) {
   return (
     <CardShell
       icon={<Calendar size={14} variant="Bulk" />}
-      title="Today's Schedule"
+      title="Today's Clinic Overview"
       date={data.date}
     >
       {/* Clinic status line — non-repetitive, useful info */}

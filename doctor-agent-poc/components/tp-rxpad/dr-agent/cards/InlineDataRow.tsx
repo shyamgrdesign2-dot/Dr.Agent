@@ -23,6 +23,8 @@ interface InlineDataRowProps {
   source?: "existing" | "new" | "uploaded"
   /** Override: if true, show copy even for existing data */
   allowCopyToRxPad?: boolean
+  /** Fill destination label used in tooltips, defaults to "RxPad" */
+  copyDestination?: string
 }
 
 const FLAG_STYLES: Record<string, string> = {
@@ -35,17 +37,17 @@ const FLAG_STYLES: Record<string, string> = {
 
 /** Tooltip mapping for known tag labels */
 const TAG_TOOLTIPS: Record<string, { tooltip: string; copyTooltip: string }> = {
-  "Today's Vitals": { tooltip: "Open detailed vitals", copyTooltip: "Copy all vitals to RxPad" },
-  "Key Labs":       { tooltip: "Open lab results",     copyTooltip: "Copy all lab values to RxPad" },
-  "History":        { tooltip: "Open medical history",  copyTooltip: "Copy history to RxPad" },
-  "Last Visit":     { tooltip: "Open past visits",     copyTooltip: "Copy last visit to RxPad" },
-  "Symptoms":       { tooltip: "View symptoms",        copyTooltip: "Copy all symptoms to RxPad" },
-  "Examination":    { tooltip: "View examination",     copyTooltip: "Copy examination to RxPad" },
-  "Diagnosis":      { tooltip: "View diagnosis",       copyTooltip: "Copy diagnosis to RxPad" },
-  "Medication":     { tooltip: "View medication",      copyTooltip: "Copy medication to RxPad" },
-  "Investigation":  { tooltip: "View investigations",  copyTooltip: "Copy investigations to RxPad" },
-  "Advice":         { tooltip: "View advice",          copyTooltip: "Copy advice to RxPad" },
-  "Follow-up":      { tooltip: "View follow-up",       copyTooltip: "Copy follow-up to RxPad" },
+  "Today's Vitals": { tooltip: "Open detailed vitals", copyTooltip: "Fill all vitals to RxPad" },
+  "Key Labs":       { tooltip: "Open lab results",     copyTooltip: "Fill all lab values to RxPad" },
+  "History":        { tooltip: "Open medical history",  copyTooltip: "Fill history to RxPad" },
+  "Last Visit":     { tooltip: "Open past visits",     copyTooltip: "Fill last visit to RxPad" },
+  "Symptoms":       { tooltip: "View symptoms",        copyTooltip: "Fill all symptoms to RxPad" },
+  "Examination":    { tooltip: "View examination",     copyTooltip: "Fill examination to RxPad" },
+  "Diagnosis":      { tooltip: "View diagnosis",       copyTooltip: "Fill diagnosis to RxPad" },
+  "Medication":     { tooltip: "View medication",      copyTooltip: "Fill medication to RxPad" },
+  "Investigation":  { tooltip: "View investigations",  copyTooltip: "Fill investigations to RxPad" },
+  "Advice":         { tooltip: "View advice",          copyTooltip: "Fill advice to RxPad" },
+  "Follow-up":      { tooltip: "View follow-up",       copyTooltip: "Fill follow-up to RxPad" },
 }
 
 /** Truncate text for display */
@@ -71,10 +73,24 @@ function extractDisplayName(subValue: string): string {
   return match ? match[1].trim() : subValue.trim()
 }
 
-export function InlineDataRow({ tag, tagIcon, tagVariant, values, onTagClick, onTagCopy, className, source, allowCopyToRxPad }: InlineDataRowProps) {
+export function InlineDataRow({
+  tag,
+  tagIcon,
+  tagVariant,
+  values,
+  onTagClick,
+  onTagCopy,
+  className,
+  source,
+  allowCopyToRxPad,
+  copyDestination = "RxPad",
+}: InlineDataRowProps) {
   const showCopy = source !== "existing" || allowCopyToRxPad === true
   const tooltips = TAG_TOOLTIPS[tag]
-  const sectionCopyTooltip = tooltips?.copyTooltip || `Copy all ${tag.toLowerCase()} to RxPad`
+  const destinationLabel = copyDestination.trim() || "RxPad"
+  const sectionCopyTooltip = destinationLabel === "RxPad"
+    ? (tooltips?.copyTooltip || `Fill all ${tag.toLowerCase()} to RxPad`)
+    : `Fill all ${tag.toLowerCase()} to ${destinationLabel}`
 
   const handleCopyText = (text: string) => {
     navigator.clipboard?.writeText(text)
@@ -91,7 +107,7 @@ export function InlineDataRow({ tag, tagIcon, tagVariant, values, onTagClick, on
     const flagPrefix = v.flag === "high" ? "\u2191" : v.flag === "low" ? "\u2193" : ""
     const displayValue = `${flagPrefix}${v.value}`
     const copyText = `${v.key}: ${displayValue}`
-    const tooltipLabel = `Copy ${truncate(copyText)} to RxPad`
+    const tooltipLabel = `Fill ${truncate(copyText)} to ${destinationLabel}`
 
     if (!showCopy) {
       return (
@@ -123,7 +139,7 @@ export function InlineDataRow({ tag, tagIcon, tagVariant, values, onTagClick, on
   const renderCompoundValue = (v: InlineValue) => {
     const subValues = splitCompoundValue(v.value)
     const count = subValues.length
-    const keyTooltipLabel = `Copy ${count} ${v.key.toLowerCase()} to RxPad`
+    const keyTooltipLabel = `Fill ${count} ${v.key.toLowerCase()} to ${destinationLabel}`
     const keyCopyText = `${v.key}: ${v.value}`
 
     if (!showCopy) {
@@ -157,7 +173,7 @@ export function InlineDataRow({ tag, tagIcon, tagVariant, values, onTagClick, on
         {/* Each sub-value gets its own tooltip */}
         {subValues.map((sub, j) => {
           const displayName = extractDisplayName(sub)
-          const subTooltipLabel = `Copy ${truncate(displayName)} to RxPad`
+          const subTooltipLabel = `Fill ${truncate(displayName)} to ${destinationLabel}`
 
           return (
             <span key={j}>

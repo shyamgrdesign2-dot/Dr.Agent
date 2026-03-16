@@ -1,7 +1,8 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { AiBrandSparkIcon, AI_GRADIENT_SOFT } from "@/components/doctor-agent/ai-brand"
+import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
+import { AiGradientBg } from "../shared/AiGradientBg"
 
 // -----------------------------------------------------------------
 // TypingIndicator -- AI spark icon + bouncing dots
@@ -15,12 +16,9 @@ export function TypingIndicator({ className }: TypingIndicatorProps) {
   return (
     <div className={cn("flex items-center gap-[8px]", className)}>
       {/* AI Spark icon (same treatment as assistant bubbles) */}
-      <div
-        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[8px]"
-        style={{ background: AI_GRADIENT_SOFT }}
-      >
+      <AiGradientBg size={24} borderRadius={8}>
         <AiBrandSparkIcon size={15} />
-      </div>
+      </AiGradientBg>
 
       {/* Bouncing dots */}
       <div className="inline-flex items-center gap-[3px]">

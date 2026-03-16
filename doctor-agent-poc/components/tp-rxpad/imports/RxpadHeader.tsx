@@ -16,7 +16,7 @@ import {
 } from "iconsax-reactjs"
 import { ChevronLeft, MoreVertical } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import svgPaths from "./svg-gb0jbe9ifm";
+import { TutorialPlayIcon } from "@/components/tp-ui/TutorialPlayIcon"
 
 type RxpadHeaderProps = {
   className?: string
@@ -139,17 +139,10 @@ export default function RxpadHeader({ className, onBack, onVisitSummary, patient
             <button
               type="button"
               aria-label="Tutorial"
-              className="relative inline-flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[10.5px] transition-colors hover:bg-tp-slate-50"
+              className="content-stretch flex h-[42px] items-center justify-center relative shrink-0"
               data-name="Tutorial"
             >
-              <svg className="block h-[42px] w-[42px]" fill="none" preserveAspectRatio="none" viewBox="0 0 42 42">
-                <g id="Tutorial">
-                  <g id="Union" opacity="0.8">
-                    <path clipRule="evenodd" d={svgPaths.p3172ac80} fill="var(--fill-0, #8A4DBB)" fillRule="evenodd" />
-                    <path clipRule="evenodd" d={svgPaths.p2ee5cec0} fill="var(--fill-0, #8A4DBB)" fillRule="evenodd" />
-                  </g>
-                </g>
-              </svg>
+              <TutorialPlayIcon size={28} />
             </button>
             <div className="bg-gradient-to-b from-[rgba(208,213,221,0.2)] h-[42px] opacity-80 shrink-0 to-[rgba(208,213,221,0.2)] via-1/2 via-[#d0d5dd] w-[1.05px]" data-name="Divider" />
             <button

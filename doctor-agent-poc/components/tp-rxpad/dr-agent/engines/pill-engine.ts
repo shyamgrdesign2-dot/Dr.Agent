@@ -34,7 +34,7 @@ function getLayer2(summary: SmartSummaryData): CannedPill[] {
   }
 
   if (summary.followUpOverdueDays > 0) {
-    pills.push({ id: "flag-fu", label: `Follow-up overdue ${summary.followUpOverdueDays}d`, priority: 12, layer: 2, tone: "primary" })
+    pills.push({ id: "flag-fu", label: "Suggest follow-up", priority: 12, layer: 2, tone: "primary" })
   }
 
   const spo2 = summary.todayVitals?.spo2 ? parseFloat(summary.todayVitals.spo2) : null
@@ -129,7 +129,6 @@ function getLayer3(phase: ConsultPhase, summary: SmartSummaryData): CannedPill[]
       { id: "phase-followup", label: "Plan follow-up", priority: 36, layer: 3, tone: "primary" },
     ],
     meds_written: () => [
-      { id: "phase-advice-gen", label: "Generate advice", priority: 30, layer: 3, tone: "primary" },
       { id: "phase-translate", label: "Translate to regional", priority: 32, layer: 3, tone: "primary" },
       { id: "phase-followup", label: "Plan follow-up", priority: 34, layer: 3, tone: "primary" },
     ],

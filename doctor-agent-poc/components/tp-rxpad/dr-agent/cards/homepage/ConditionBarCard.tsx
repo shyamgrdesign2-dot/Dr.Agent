@@ -11,11 +11,6 @@ interface Props { data: ConditionBarCardData; onPillTap?: (label: string) => voi
 export function ConditionBarCard({ data, onPillTap }: Props) {
   const maxCount = Math.max(...data.items.map(i => i.count), 1)
 
-  const copyAll = () => {
-    const text = data.items.map(i => `${i.condition}: ${i.count}`).join("\n")
-    navigator.clipboard.writeText(`${data.title}\n${text}${data.note ? `\n${data.note}` : ""}`)
-  }
-
   const handleDownload = () => {
     downloadAsExcel(
       "condition_distribution",
@@ -29,8 +24,6 @@ export function ConditionBarCard({ data, onPillTap }: Props) {
       icon={<span />}
       tpIconName="medical-record"
       title={data.title}
-      copyAll={copyAll}
-      copyAllTooltip="Copy condition data"
       sidebarLink={<SidebarLink text="Download as Excel" onClick={handleDownload} />}
       actions={
         <>

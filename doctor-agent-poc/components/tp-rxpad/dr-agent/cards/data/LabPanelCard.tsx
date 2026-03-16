@@ -35,11 +35,6 @@ export function LabPanelCard({ data, onPillTap, onSidebarNav }: LabPanelCardProp
             }
           : undefined
       }
-      copyAll={() => {
-        const text = data.flagged.map(f => `${f.name}: ${f.value}${f.unit ? ` ${f.unit}` : ''}`).join('\n')
-        navigator.clipboard?.writeText(text)
-      }}
-      copyAllTooltip="Copy flagged lab values to clipboard"
       actions={
         <>
           <ChatPillButton label="Compare prev" onClick={() => onPillTap?.("Compare prev")} />

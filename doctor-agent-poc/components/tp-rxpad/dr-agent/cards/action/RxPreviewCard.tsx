@@ -35,9 +35,20 @@ export function RxPreviewCard({ data, onPillTap }: Props) {
         <ChatPillButton label="Edit Rx" onClick={() => onPillTap?.("Edit Rx")} />
       }
       sidebarLink={
-        <div className="flex gap-[6px]">
-          <SidebarLink text="Print prescription" />
-          <SidebarLink text="Share digitally" />
+        <div className="flex items-center">
+          <button
+            type="button"
+            className="flex-1 inline-flex items-center justify-center gap-[4px] rounded-[10px] py-[5px] text-[11px] font-medium text-tp-blue-500 transition-colors hover:bg-tp-blue-50/60"
+          >
+            Print prescription
+          </button>
+          <div className="h-[20px] flex-shrink-0" style={{ width: "1px", background: "linear-gradient(180deg, transparent 0%, #CBD5E1 50%, transparent 100%)" }} />
+          <button
+            type="button"
+            className="flex-1 inline-flex items-center justify-center gap-[4px] rounded-[10px] py-[5px] text-[11px] font-medium text-tp-blue-500 transition-colors hover:bg-tp-blue-50/60"
+          >
+            Share digitally
+          </button>
         </div>
       }
     >

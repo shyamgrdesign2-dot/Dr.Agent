@@ -37,7 +37,7 @@ export function AppointmentBanner({ title, actions, className }: AppointmentBann
         alt=""
         aria-hidden="true"
         className="pointer-events-none absolute right-0 top-0 h-full w-auto opacity-[0.75]"
-        style={{ mixBlendMode: "screen" }}
+        style={{ mixBlendMode: "screen", objectFit: "contain", objectPosition: "right center" }}
       />
 
       {/* Noise grain texture */}

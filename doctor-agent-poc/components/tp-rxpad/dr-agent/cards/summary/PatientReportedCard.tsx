@@ -53,7 +53,7 @@ const SECTION_DEFS: SectionDef[] = [
     id: "symptoms",
     tpIconName: "virus",
     title: "Symptom Reports",
-    copyTooltip: "Copy all symptoms to Symptoms",
+    copyTooltip: "Fill all symptoms to Symptoms",
     copyDest: "symptoms",
     getItems: (d) =>
       d.symptoms?.map((s) => ({
@@ -65,7 +65,7 @@ const SECTION_DEFS: SectionDef[] = [
     id: "medicalHistory",
     tpIconName: "medical-service",
     title: "Chronic Conditions",
-    copyTooltip: "Copy chronic conditions to History",
+    copyTooltip: "Fill chronic conditions to History",
     copyDest: "history",
     getItems: (d) => d.medicalHistory?.map((item) => ({ name: item })),
   },
@@ -73,7 +73,7 @@ const SECTION_DEFS: SectionDef[] = [
     id: "currentMedications",
     tpIconName: "pill",
     title: "Current Medications",
-    copyTooltip: "Copy medications to RxPad",
+    copyTooltip: "Fill medications to RxPad",
     copyDest: "medications",
     getItems: (d) => d.currentMedications?.map((item) => parseMedication(item)),
   },
@@ -81,7 +81,7 @@ const SECTION_DEFS: SectionDef[] = [
     id: "questionsToDoctor",
     tpIconName: "Diagnosis",
     title: "Questions to Doctor",
-    copyTooltip: "Copy questions",
+    copyTooltip: "Fill questions",
     copyDest: "notes",
     getItems: (d) => d.questionsToDoctor?.map((q) => ({ name: q })),
   },
@@ -282,7 +282,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed 
           : undefined
       }
       copyAll={() => onCopy?.("all", allItems)}
-      copyAllTooltip="Copy all patient-reported data to RxPad"
+      copyAllTooltip="Fill all patient-reported data to RxPad"
       collapsible
       defaultCollapsed={defaultCollapsed ?? false}
     >
@@ -352,7 +352,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed 
                         <span className="text-[10px] text-tp-success-500 font-medium">Copied</span>
                       ) : (
                         <ActionableTooltip
-                          label={`Copy "${item.name}" to RxPad`}
+                          label={`Fill "${item.name}" to RxPad`}
                           onAction={() => handleCopyItem(itemText, itemKey)}
                         >
                           <CopyIcon

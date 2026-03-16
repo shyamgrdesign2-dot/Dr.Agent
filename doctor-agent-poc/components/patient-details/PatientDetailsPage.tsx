@@ -19,7 +19,7 @@ import {
 import { AppointmentBanner } from "@/components/tp-ui/appointment-banner"
 import { AiBrandSparkIcon, AI_GRADIENT_SOFT } from "@/components/doctor-agent/ai-brand"
 import { PatientDetailAgentPanel } from "@/components/patient-details/PatientDetailAgentPanel"
-import { TPButton as Button } from "@/components/tp-ui/button-system"
+import { TPButton as Button, TPSplitButton } from "@/components/tp-ui/button-system"
 
 const SIDE_ITEMS = [
   { id: "visit-summary", label: "Visit Summary", icon: ClipboardList, active: true },
@@ -152,16 +152,23 @@ export function PatientDetailsPage({
                       >
                         Tutorial
                       </Button>
-                      <Button
+                      <TPSplitButton
+                        primaryAction={{
+                          label: "TypeRx",
+                          onClick: () => router.push("/Rxpad"),
+                        }}
+                        secondaryActions={[
+                          { id: "type-rx", label: "TypeRx", onClick: () => router.push("/Rxpad") },
+                          { id: "voice-rx", label: "VoiceRx", onClick: () => {} },
+                          { id: "snap-rx", label: "SnapRx", onClick: () => {} },
+                          { id: "smart-sync", label: "SmartSync", onClick: () => {} },
+                          { id: "tab-rx", label: "TabRx", onClick: () => {} },
+                        ]}
                         variant="solid"
                         theme="primary"
                         size="md"
                         surface="dark"
-                        className="whitespace-nowrap"
-                        leftIcon={<AiBrandSparkIcon size={16} className="[filter:brightness(0)_invert(1)]" />}
-                      >
-                        Smart Rx
-                      </Button>
+                      />
                     </>
                   }
                 />
@@ -259,9 +266,6 @@ export function PatientDetailsPage({
                                 <p className="text-base font-semibold text-tp-violet-500">Apex Ortho Clinic</p>
                                 <p className="text-sm text-tp-slate-600">Bengaluru, Karnataka</p>
                               </div>
-                              <span className="inline-flex size-12 items-center justify-center rounded-2xl" style={{ background: AI_GRADIENT_SOFT }}>
-                                <AiBrandSparkIcon size={18} />
-                              </span>
                               <div className="text-right">
                                 <p className="text-base font-semibold text-tp-violet-500">Dr Sheela BR</p>
                                 <p className="text-sm text-tp-slate-600">Paediatrics</p>

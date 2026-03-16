@@ -105,8 +105,8 @@ export function VaccineContent() {
           onToggle={() => setExpandedState((prev) => ({ ...prev, pending: !prev.pending }))}
           titleAddon={
             <AiTriggerIcon
-              tooltip="Analyze pending vaccines"
-              signalLabel="Analyze Pending Vaccines"
+              tooltip="Summarize pending vaccines"
+              signalLabel="Summarize pending vaccines"
               sectionId="vaccine"
               size={12}
               as="span"
@@ -124,8 +124,8 @@ export function VaccineContent() {
           onToggle={() => setExpandedState((prev) => ({ ...prev, upcoming: !prev.upcoming }))}
           titleAddon={
             <AiTriggerIcon
-              tooltip="Analyze upcoming vaccines"
-              signalLabel="Analyze Upcoming Vaccines"
+              tooltip="Summarize upcoming vaccines"
+              signalLabel="Summarize upcoming vaccines"
               sectionId="vaccine"
               size={12}
               as="span"
@@ -143,8 +143,8 @@ export function VaccineContent() {
           onToggle={() => setExpandedState((prev) => ({ ...prev, given: !prev.given }))}
           titleAddon={
             <AiTriggerIcon
-              tooltip="Analyze given vaccines"
-              signalLabel="Analyze Given Vaccines"
+              tooltip="Summarize given vaccines"
+              signalLabel="Summarize given vaccines"
               sectionId="vaccine"
               size={12}
               as="span"

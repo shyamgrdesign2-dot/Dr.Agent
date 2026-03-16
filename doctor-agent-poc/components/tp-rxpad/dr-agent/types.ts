@@ -367,8 +367,29 @@ export interface PatientListCardData { title: string; items: PatientListItem[]; 
 export interface FollowUpListItem { name: string; scheduledDate: string; reason: string; isOverdue: boolean; patientId?: string }
 export interface FollowUpListCardData { title: string; items: FollowUpListItem[]; overdueCount: number }
 
-export interface RevenueBarDay { label: string; paid: number; due: number }
-export interface RevenueBarCardData { title: string; totalRevenue: number; totalPaid: number; totalDue: number; days: RevenueBarDay[] }
+export interface RevenueBarDay { label: string; paid: number; due: number; refunded?: number }
+export interface RevenueBarCardData {
+  title: string
+  mode?: "billing" | "deposit"
+  totalRevenue: number
+  totalPaid: number
+  totalDue: number
+  totalRefunded: number
+  days: RevenueBarDay[]
+}
+
+export interface RevenueComparisonCardData {
+  title: string
+  primaryDateLabel: string
+  compareDateLabel: string
+  primaryRevenue: number
+  compareRevenue: number
+  primaryRefunded: number
+  compareRefunded: number
+  primaryDeposits: number
+  compareDeposits: number
+  insight: string
+}
 
 export interface BulkActionCardData { action: string; messagePreview: string; recipients: string[]; totalCount: number }
 
@@ -388,21 +409,46 @@ export interface ConditionBarCardData { title: string; items: ConditionBarItem[]
 
 export interface HeatmapCell { value: number; intensity: "low" | "medium" | "high" }
 export interface HeatmapCardData { title: string; rows: string[]; cols: string[]; cells: HeatmapCell[][] }
+export interface DuePatientsCardData {
+  title: string
+  periodLabel: string
+  patientCount: number
+  totalDueAmount: number
+  asOf: string
+  ctaLabel: string
+}
+export interface ExternalCtaCardData {
+  title: string
+  description: string
+  ctaLabel: string
+  ctaUrl: string
+  openInNewTab?: boolean
+}
+export interface FollowUpRatePoint { label: string; rate: number }
+export interface FollowUpRateCardData {
+  title: string
+  currentRate: number
+  lastWeekRate: number
+  dueToday: number
+  overdueToday: number
+  completedThisWeek: number
+  scheduledThisWeek: number
+  trend: FollowUpRatePoint[]
+}
 
 // ═══════════════ NEW CARD TYPES ═══════════════
 
 export interface ReferralItem {
-  patientName: string
-  patientId?: string
-  specialist: string
-  department: string
-  urgency: "routine" | "urgent" | "emergency"
-  reason: string
+  doctorName: string
+  doctorPhone: string
+  specialty: string
+  patientsReferred: number
+  topReason: string
 }
 export interface ReferralCardData {
   title: string
-  totalCount: number
-  urgentCount: number
+  totalReferrers: number
+  totalPatients: number
   items: ReferralItem[]
 }
 
@@ -451,15 +497,30 @@ export interface RxPreviewCardData {
 }
 
 export interface BillingItem {
-  service: string
+  referenceNo: string
+  patientName: string
   amount: number
-  status: "paid" | "pending" | "waived"
+  billedAmount?: number
+  paidAmount?: number
+  status: "paid_fully" | "due" | "refunded" | "deposited" | "debited"
 }
 export interface BillingSummaryCardData {
+  title: string
+  mode: "billing" | "deposit" | "combined"
   items: BillingItem[]
-  totalAmount: number
-  totalPaid: number
-  balance: number
+  todayBilledAmount?: number
+  todayCollectedAmount?: number
+  totalBilledAmount: number
+  totalPaidFullyAmount: number
+  totalDueAmount: number
+  totalRefundedAmount: number
+  totalAdvanceReceived: number
+  totalAdvanceRefunded: number
+  totalAdvanceDebited: number
+  footerCtaLabel?: string
+  footerCtaAction?: string
+  minimal?: boolean
+  insight?: string
 }
 
 // ═══════════════ VACCINATION DUE/OVERDUE LIST ═══════════════
@@ -532,6 +593,7 @@ export type RxAgentOutput =
   | { kind: "patient_list"; data: PatientListCardData }
   | { kind: "follow_up_list"; data: FollowUpListCardData }
   | { kind: "revenue_bar"; data: RevenueBarCardData }
+  | { kind: "revenue_comparison"; data: RevenueComparisonCardData }
   | { kind: "bulk_action"; data: BulkActionCardData }
   | { kind: "donut_chart"; data: DonutChartCardData }
   | { kind: "pie_chart"; data: PieChartCardData }
@@ -539,6 +601,9 @@ export type RxAgentOutput =
   | { kind: "analytics_table"; data: AnalyticsTableCardData }
   | { kind: "condition_bar"; data: ConditionBarCardData }
   | { kind: "heatmap"; data: HeatmapCardData }
+  | { kind: "due_patients"; data: DuePatientsCardData }
+  | { kind: "external_cta"; data: ExternalCtaCardData }
+  | { kind: "follow_up_rate"; data: FollowUpRateCardData }
   | { kind: "welcome_card"; data: WelcomeCardData }
   // New Card Variants
   | { kind: "referral"; data: ReferralCardData }
@@ -565,6 +630,20 @@ export interface WelcomeCardData {
   quickActions?: WelcomeCardQuickAction[]
   contextLine?: string
   tips?: string[]
+}
+
+// ═══════════════ PATIENT DOCUMENT (EMR uploads) ═══════════════
+
+export type PatientDocType = "pathology" | "radiology" | "prescription" | "discharge_summary" | "vaccination" | "other"
+
+export interface PatientDocument {
+  id: string
+  fileName: string
+  docType: PatientDocType
+  uploadedAt: string        // e.g. "05 Mar'26"
+  uploadedBy: string        // e.g. "Dr. Sharma", "Patient", "Apollo Diagnostics"
+  pageCount: number
+  size: string              // e.g. "340 KB"
 }
 
 // ═══════════════ CHAT ATTACHMENT ═══════════════

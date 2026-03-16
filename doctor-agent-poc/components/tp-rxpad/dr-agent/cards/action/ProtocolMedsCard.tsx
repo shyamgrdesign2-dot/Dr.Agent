@@ -33,7 +33,7 @@ export function ProtocolMedsCard({
       tpIconName="pill"
       title="Suggested Rx"
       copyAll={() => onCopy?.(data.copyPayload)}
-      copyAllTooltip="Copy medications to RxPad"
+      copyAllTooltip="Fill medications to RxPad"
     >
       {/* Diagnosis context */}
       <div className="mb-2 rounded-[6px] bg-tp-slate-50 px-2.5 py-[4px] text-[12px] text-tp-slate-500">

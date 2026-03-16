@@ -3,14 +3,23 @@
 import { useCallback, useState, useEffect, useRef, useId, type KeyboardEvent } from "react"
 // KeyboardEvent used for both HTMLInputElement and HTMLTextAreaElement
 import { cn } from "@/lib/utils"
-import { Plus } from "lucide-react"
+import { ChevronDown, Plus } from "lucide-react"
 import { SecuritySafe } from "iconsax-reactjs"
 import { AI_GRADIENT } from "../constants"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import type { CannedPill } from "../types"
 
 interface ChatInputProps {
   value: string
   onChange: (value: string) => void
   onSend: () => void
+  quickActions?: CannedPill[]
+  onQuickActionTap?: (label: string) => void
   onAttach?: () => void
   onVoiceTranscription?: (text: string) => void
   disabled?: boolean
@@ -208,6 +217,8 @@ export function ChatInput({
   value,
   onChange,
   onSend,
+  quickActions = [],
+  onQuickActionTap,
   onAttach,
   onVoiceTranscription,
   disabled = false,
@@ -360,14 +371,23 @@ export function ChatInput({
             onClick={onAttach}
             disabled={disabled}
             className={cn(
-              "flex shrink-0 items-center justify-center",
-              "text-tp-slate-600 transition-colors hover:text-tp-slate-800",
+              "flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full",
+              "text-tp-slate-600 transition-all hover:bg-gradient-to-r hover:from-purple-50/80 hover:to-blue-50/80 hover:text-tp-blue-600 hover:shadow-[0_0_0_1px_rgba(59,130,246,0.15)]",
               disabled && "pointer-events-none",
             )}
             title="Add files and more"
           >
-            <Plus size={18} strokeWidth={1.5} />
+            <Plus size={20} strokeWidth={2} />
           </button>
+
+          {/* Vertical divider between attach and textarea */}
+          <div
+            className="shrink-0 self-stretch"
+            style={{
+              width: 1,
+              background: "linear-gradient(180deg, transparent 0%, #CBD5E1 50%, transparent 100%)",
+            }}
+          />
 
           {/* Textarea — expands from 1 line to ~5 lines max */}
           <textarea
@@ -386,6 +406,39 @@ export function ChatInput({
             )}
             style={{ minHeight: 20, maxHeight: 120 }}
           />
+
+          {quickActions.length > 0 ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  disabled={disabled}
+                  className={cn(
+                    "inline-flex h-[24px] shrink-0 items-center gap-[2px] rounded-[8px] border border-tp-blue-200 bg-tp-blue-50/60 px-[6px] text-[10px] font-semibold text-tp-blue-600 transition-colors hover:bg-tp-blue-100",
+                    disabled && "pointer-events-none opacity-50",
+                  )}
+                  title="Quick clinical actions"
+                >
+                  AI
+                  <ChevronDown size={11} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side="top" className="w-[220px]">
+                {quickActions.map((pill) => (
+                  <DropdownMenuItem
+                    key={pill.id}
+                    className="text-[12px]"
+                    onSelect={(event) => {
+                      event.preventDefault()
+                      onQuickActionTap?.(pill.label)
+                    }}
+                  >
+                    {pill.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
 
           {/* Voice / Send toggle — inside the box */}
           {hasText ? (

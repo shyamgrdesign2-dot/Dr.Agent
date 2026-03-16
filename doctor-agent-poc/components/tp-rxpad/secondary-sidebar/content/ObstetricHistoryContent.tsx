@@ -20,8 +20,8 @@ function PatientInfoCard() {
       hideChevron
       titleAddon={
         <AiTriggerIcon
-          tooltip="Analyze patient info"
-          signalLabel="Analyze Patient Info"
+          tooltip="Summarize patient info"
+          signalLabel="Summarize patient info"
           sectionId="obstetric"
           size={12}
         />
@@ -51,8 +51,8 @@ function GPLAECard() {
             Primigravida
           </span>
           <AiTriggerIcon
-            tooltip="Analyze GPLAE"
-            signalLabel="Analyze GPLAE"
+            tooltip="Summarize GPLAE"
+            signalLabel="Summarize GPLAE"
             sectionId="obstetric"
             size={12}
           />
@@ -126,8 +126,8 @@ function PregnancyHistoryCard({
       onToggle={onToggle}
       titleAddon={
         <AiTriggerIcon
-          tooltip="Analyze pregnancy history"
-          signalLabel="Analyze Pregnancy History"
+          tooltip="Summarize pregnancy history"
+          signalLabel="Summarize pregnancy history"
           sectionId="obstetric"
           size={12}
           as="span"
@@ -155,8 +155,8 @@ function ExaminationCard({
       onToggle={onToggle}
       titleAddon={
         <AiTriggerIcon
-          tooltip="Analyze examination"
-          signalLabel="Analyze Examination"
+          tooltip="Summarize examination"
+          signalLabel="Summarize examination"
           sectionId="obstetric"
           as="span"
           size={12}

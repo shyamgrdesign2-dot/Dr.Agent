@@ -26,7 +26,7 @@ export function RadioRow({ name, label, detail, checked = false, onChange, isLas
         className="h-[14px] w-[14px] flex-shrink-0"
         style={{ accentColor: "var(--tp-blue-500)" }}
       />
-      <strong className="font-medium text-tp-slate-800">{label}</strong>
+      <span className="font-medium text-tp-slate-800">{label}</span>
       {detail && (
         <span className="ml-auto text-[10px] text-tp-slate-400">{detail}</span>
       )}

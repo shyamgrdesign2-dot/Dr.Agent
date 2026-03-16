@@ -31,6 +31,9 @@ import { ChatThread } from "./chat/ChatThread"
 import { PillBar } from "./chat/PillBar"
 import { ChatInput } from "./chat/ChatInput"
 import { AttachPanel } from "./chat/AttachPanel"
+import { DocumentBottomSheet } from "./chat/DocumentBottomSheet"
+import type { PatientDocument } from "./types"
+import { PATIENT_DOCUMENTS } from "./mock-data"
 
 // ═══════════════ HELPERS ═══════════════
 
@@ -149,6 +152,8 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [showAttachPanel, setShowAttachPanel] = useState(false)
+  const [showDocBottomSheet, setShowDocBottomSheet] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // ── Integration ──
   const { requestCopyToRxPad, lastSignal, publishSignal, setPatientAllergies } = useRxPadSync()
@@ -204,7 +209,7 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
         introMessages = [{
           id: uid(),
           role: "assistant",
-          text: `Welcome back, Doctor! Here's your schedule overview for today.`,
+          text: `Welcome back, Doctor! Here's your clinic overview for today.`,
           createdAt: new Date().toISOString(),
           rxOutput: {
             kind: "welcome_card",
@@ -355,7 +360,6 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
             },
           },
           followUpPills: [
-            { id: "grd-schedule", label: "Today's schedule", priority: 10, layer: 3, tone: "primary" as const },
             { id: "grd-kpis", label: "Weekly KPIs", priority: 12, layer: 3, tone: "primary" as const },
           ],
         }
@@ -414,7 +418,7 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
     })
   }, [selectedPatientId])
 
-  // ── Copy to RxPad ──
+  // ── Fill to RxPad ──
   const handleCopy = useCallback((payload: unknown) => {
     if (payload && typeof payload === "object" && "sourceDateLabel" in payload) {
       requestCopyToRxPad(payload as RxPadCopyPayload)
@@ -450,9 +454,82 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
     setIsTyping(false)
   }, [])
 
-  // ── Handle attach — open panel, then process selected doc type ──
+  // ── Handle attach — context-aware ──
+  // Homepage (Clinic Overview, no patient) → open native file picker
+  // Patient context → show bottom sheet with patient's documents
   const handleAttach = useCallback(() => {
+    if (mode === "homepage" && selectedPatientId === HOMEPAGE_COMMON_ID) {
+      // No patient context → trigger native file input
+      fileInputRef.current?.click()
+    } else {
+      // Patient context → show document bottom sheet
+      setShowDocBottomSheet(true)
+    }
+  }, [mode, selectedPatientId])
+
+  // ── Handle sending selected documents from bottom sheet ──
+  const handleSendDocuments = useCallback((docs: PatientDocument[]) => {
+    setShowDocBottomSheet(false)
+
+    const fileNames = docs.map(d => d.fileName)
+    const textPrefix = docs.length === 1
+      ? `Analyze this document: **${docs[0].fileName}**`
+      : `Analyze these ${docs.length} documents: ${fileNames.map(f => `**${f}**`).join(", ")}`
+
+    const userMsg: RxAgentChatMessage = {
+      id: uid(),
+      role: "user",
+      text: textPrefix,
+      createdAt: new Date().toISOString(),
+      attachment: {
+        type: "pdf",
+        fileName: docs[0].fileName,
+        pageCount: docs[0].pageCount,
+      },
+    }
+
+    setMessagesByPatient((prev) => ({
+      ...prev,
+      [selectedPatientId]: [...(prev[selectedPatientId] || []), userMsg],
+    }))
+    setIsTyping(true)
+
+    // Determine reply based on first doc's type
+    const docType = docs[0].docType === "radiology" ? "radiology"
+      : docs[0].docType === "prescription" ? "prescription"
+      : "pathology"
+
+    setTimeout(() => {
+      const reply = buildDocumentReply(docType, summary)
+      const assistantMsg: RxAgentChatMessage = {
+        id: uid(),
+        role: "assistant",
+        text: docs.length === 1
+          ? reply.text
+          : `I've analyzed ${docs.length} documents. Here's the key extraction from the primary report:\n\n${reply.text}`,
+        createdAt: new Date().toISOString(),
+        rxOutput: reply.rxOutput,
+        feedbackGiven: null,
+      }
+
+      setMessagesByPatient((prev) => ({
+        ...prev,
+        [selectedPatientId]: [...(prev[selectedPatientId] || []), assistantMsg],
+      }))
+      setIsTyping(false)
+    }, 1200)
+  }, [selectedPatientId, summary])
+
+  // ── Handle upload from bottom sheet or file input ──
+  const handleUploadNew = useCallback(() => {
+    setShowDocBottomSheet(false)
+    fileInputRef.current?.click()
+  }, [])
+
+  const handleFileInputChange = useCallback(() => {
+    // In POC, just open the old attach panel for doc type selection
     setShowAttachPanel(true)
+    if (fileInputRef.current) fileInputRef.current.value = ""
   }, [])
 
   const handleAttachSelect = useCallback((docType: "pathology" | "radiology" | "prescription") => {
@@ -570,8 +647,23 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
     }
   }, [])
 
+  // ── Patient documents for bottom sheet ──
+  const patientDocuments = useMemo(
+    () => PATIENT_DOCUMENTS[selectedPatientId] || [],
+    [selectedPatientId],
+  )
+
   return (
-    <div className="flex h-full flex-col bg-white">
+    <div className="relative flex h-full flex-col bg-white">
+      {/* Hidden file input for native upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+        className="hidden"
+        onChange={handleFileInputChange}
+      />
+
       {/* ── Header — white bg for differentiation ── */}
       <AgentHeader
         availableSpecialties={availableSpecialties}
@@ -692,6 +784,16 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
           placeholder={selectedPatientId === HOMEPAGE_COMMON_ID ? "Ask about today's clinic..." : `Ask about ${patient.label}...`}
         />
       </div>
+
+      {/* ── Document Bottom Sheet — overlays entire panel ── */}
+      {showDocBottomSheet && (
+        <DocumentBottomSheet
+          documents={patientDocuments}
+          onSendDocuments={handleSendDocuments}
+          onUploadNew={handleUploadNew}
+          onClose={() => setShowDocBottomSheet(false)}
+        />
+      )}
     </div>
   )
 }

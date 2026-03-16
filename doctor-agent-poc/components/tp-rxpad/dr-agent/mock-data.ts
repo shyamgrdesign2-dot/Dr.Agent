@@ -2,7 +2,7 @@
 // Doctor Agent v0 — Mock Patient Data (7 patients)
 // ─────────────────────────────────────────────────────────────
 
-import type { SmartSummaryData } from "./types"
+import type { SmartSummaryData, PatientDocument } from "./types"
 
 export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
   // ═══════════════ 1. SHYAM GR — GP (Viral Fever + DM + HTN) ═══════════════
@@ -498,4 +498,54 @@ export const PATIENT_TOOLTIP_SUMMARIES: Record<string, string> = {
     "New patient with Knee Pain and Morning Stiffness 1 week. Allergy: Sulfonamides, on Vit D3 60K (weekly).",
   "reg-suresh":
     "Patient with IHD post-angioplasty (2024), HTN 5yr, on Clopidogrel 75mg, Atorvastatin 40mg, last visited 10 Feb'26, stable IHD, LDL 118 (above target).",
+}
+
+// ═══════════════ PATIENT DOCUMENTS (per-patient EMR uploads) ═══════════════
+
+export const PATIENT_DOCUMENTS: Record<string, PatientDocument[]> = {
+  "__patient__": [
+    { id: "doc-1", fileName: "CBC_Report_Mar2026.pdf", docType: "pathology", uploadedAt: "05 Mar'26", uploadedBy: "Apollo Diagnostics", pageCount: 2, size: "340 KB" },
+    { id: "doc-2", fileName: "X-Ray_Chest_Feb2026.pdf", docType: "radiology", uploadedAt: "18 Feb'26", uploadedBy: "Dr. Sharma", pageCount: 1, size: "1.2 MB" },
+    { id: "doc-3", fileName: "Previous_Rx_Jan2026.pdf", docType: "prescription", uploadedAt: "10 Jan'26", uploadedBy: "Dr. Meera", pageCount: 1, size: "180 KB" },
+    { id: "doc-4", fileName: "Lipid_Panel_Dec2025.pdf", docType: "pathology", uploadedAt: "22 Dec'25", uploadedBy: "SRL Diagnostics", pageCount: 3, size: "520 KB" },
+    { id: "doc-5", fileName: "ECG_Report_Dec2025.pdf", docType: "other", uploadedAt: "15 Dec'25", uploadedBy: "Patient", pageCount: 1, size: "890 KB" },
+    { id: "doc-6", fileName: "Discharge_Summary_Nov2025.pdf", docType: "discharge_summary", uploadedAt: "02 Nov'25", uploadedBy: "City Hospital", pageCount: 4, size: "1.1 MB" },
+    { id: "doc-7", fileName: "Thyroid_Panel_Oct2025.pdf", docType: "pathology", uploadedAt: "18 Oct'25", uploadedBy: "Metropolis Lab", pageCount: 2, size: "280 KB" },
+    { id: "doc-8", fileName: "MRI_Brain_Sep2025.pdf", docType: "radiology", uploadedAt: "05 Sep'25", uploadedBy: "Dr. Reddy", pageCount: 6, size: "3.2 MB" },
+  ],
+  "apt-neha": [
+    { id: "doc-n1", fileName: "Lab_Results_Mar2026.pdf", docType: "pathology", uploadedAt: "09 Mar'26", uploadedBy: "Metropolis Lab", pageCount: 2, size: "420 KB" },
+    { id: "doc-n2", fileName: "Chest_Xray_Feb2026.pdf", docType: "radiology", uploadedAt: "27 Feb'26", uploadedBy: "City Imaging", pageCount: 1, size: "1.4 MB" },
+    { id: "doc-n3", fileName: "Pathology_Panel_Feb2026.pdf", docType: "pathology", uploadedAt: "25 Feb'26", uploadedBy: "Apollo Diagnostics", pageCount: 3, size: "560 KB" },
+    { id: "doc-n4", fileName: "Previous_Rx_Feb2026.pdf", docType: "prescription", uploadedAt: "18 Feb'26", uploadedBy: "Dr. Meera", pageCount: 1, size: "190 KB" },
+    { id: "doc-n5", fileName: "Insurance_PreAuth_Feb2026.pdf", docType: "other", uploadedAt: "16 Feb'26", uploadedBy: "Patient", pageCount: 2, size: "300 KB" },
+  ],
+  "apt-lakshmi": [
+    { id: "doc-l1", fileName: "Pap_Smear_Report_Feb2026.pdf", docType: "pathology", uploadedAt: "12 Feb'26", uploadedBy: "Path Lab", pageCount: 2, size: "410 KB" },
+    { id: "doc-l2", fileName: "Pelvic_Ultrasound_Jan2026.pdf", docType: "radiology", uploadedAt: "25 Jan'26", uploadedBy: "Dr. Anitha", pageCount: 3, size: "1.8 MB" },
+    { id: "doc-l3", fileName: "Hormone_Panel_Jan2026.pdf", docType: "pathology", uploadedAt: "18 Jan'26", uploadedBy: "Thyrocare", pageCount: 2, size: "320 KB" },
+    { id: "doc-l4", fileName: "Previous_Rx_Dec2025.pdf", docType: "prescription", uploadedAt: "10 Dec'25", uploadedBy: "Dr. Kavitha", pageCount: 1, size: "150 KB" },
+    { id: "doc-l5", fileName: "CA125_Report_Nov2025.pdf", docType: "pathology", uploadedAt: "28 Nov'25", uploadedBy: "SRL Diagnostics", pageCount: 1, size: "220 KB" },
+  ],
+  "apt-anjali": [
+    { id: "doc-a1", fileName: "OCT_Scan_Mar2026.pdf", docType: "radiology", uploadedAt: "03 Mar'26", uploadedBy: "Dr. Patel", pageCount: 4, size: "2.1 MB" },
+    { id: "doc-a2", fileName: "Visual_Field_Test_Feb2026.pdf", docType: "other", uploadedAt: "15 Feb'26", uploadedBy: "Eye Care Centre", pageCount: 2, size: "680 KB" },
+    { id: "doc-a3", fileName: "IOP_Chart_Jan2026.pdf", docType: "other", uploadedAt: "20 Jan'26", uploadedBy: "Dr. Patel", pageCount: 1, size: "180 KB" },
+    { id: "doc-a4", fileName: "Fundus_Photo_Dec2025.pdf", docType: "radiology", uploadedAt: "12 Dec'25", uploadedBy: "Retina Clinic", pageCount: 2, size: "3.5 MB" },
+  ],
+  "apt-priya": [
+    { id: "doc-p1", fileName: "NT_Scan_Report_Mar2026.pdf", docType: "radiology", uploadedAt: "08 Mar'26", uploadedBy: "Dr. Sunita", pageCount: 3, size: "1.6 MB" },
+    { id: "doc-p2", fileName: "First_Trimester_Screen_Feb2026.pdf", docType: "pathology", uploadedAt: "22 Feb'26", uploadedBy: "Metropolis Lab", pageCount: 2, size: "450 KB" },
+    { id: "doc-p3", fileName: "Blood_Group_Rh_Feb2026.pdf", docType: "pathology", uploadedAt: "10 Feb'26", uploadedBy: "Apollo Lab", pageCount: 1, size: "120 KB" },
+    { id: "doc-p4", fileName: "ANC_Registration_Jan2026.pdf", docType: "other", uploadedAt: "15 Jan'26", uploadedBy: "Dr. Rao", pageCount: 2, size: "340 KB" },
+    { id: "doc-p5", fileName: "Thyroid_Panel_Jan2026.pdf", docType: "pathology", uploadedAt: "12 Jan'26", uploadedBy: "Thyrocare", pageCount: 1, size: "210 KB" },
+    { id: "doc-p6", fileName: "Previous_Rx_Dec2025.pdf", docType: "prescription", uploadedAt: "28 Dec'25", uploadedBy: "Dr. Rao", pageCount: 1, size: "180 KB" },
+  ],
+  "apt-arjun": [
+    { id: "doc-ar1", fileName: "Vaccination_Record_Mar2026.pdf", docType: "vaccination", uploadedAt: "01 Mar'26", uploadedBy: "Dr. Nair", pageCount: 2, size: "280 KB" },
+    { id: "doc-ar2", fileName: "Growth_Chart_Feb2026.pdf", docType: "other", uploadedAt: "15 Feb'26", uploadedBy: "Dr. Nair", pageCount: 1, size: "350 KB" },
+    { id: "doc-ar3", fileName: "CBC_Report_Jan2026.pdf", docType: "pathology", uploadedAt: "20 Jan'26", uploadedBy: "Path Lab", pageCount: 2, size: "310 KB" },
+    { id: "doc-ar4", fileName: "Hearing_Screen_Dec2025.pdf", docType: "other", uploadedAt: "10 Dec'25", uploadedBy: "ENT Clinic", pageCount: 1, size: "190 KB" },
+    { id: "doc-ar5", fileName: "Previous_Rx_Nov2025.pdf", docType: "prescription", uploadedAt: "25 Nov'25", uploadedBy: "Dr. Nair", pageCount: 1, size: "140 KB" },
+  ],
 }

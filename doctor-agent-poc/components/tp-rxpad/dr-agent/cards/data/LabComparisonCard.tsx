@@ -50,13 +50,6 @@ export function LabComparisonCard({ data }: LabComparisonCardProps) {
       icon={<span />}
       tpIconName="Lab"
       title="Lab Comparison"
-      copyAll={() => {
-        const text = data.rows.map(r =>
-          `${r.parameter}: ${r.prevValue} (${r.prevDate}) → ${r.currValue} (${r.currDate}) [${r.delta}]`
-        ).join("\n")
-        navigator.clipboard?.writeText(text)
-      }}
-      copyAllTooltip="Copy lab comparison to clipboard"
       sidebarLink={<SidebarLink text="View full lab history" />}
     >
       {/* Grid-based comparison table */}

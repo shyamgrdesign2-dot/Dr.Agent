@@ -10,6 +10,7 @@ import type {
   PatientListCardData,
   FollowUpListCardData,
   RevenueBarCardData,
+  RevenueComparisonCardData,
   BulkActionCardData,
   DonutChartCardData,
   PieChartCardData,
@@ -17,6 +18,8 @@ import type {
   AnalyticsTableCardData,
   ConditionBarCardData,
   HeatmapCardData,
+  DuePatientsCardData,
+  ExternalCtaCardData,
   ReferralCardData,
   VaccinationScheduleCardData,
   ClinicalGuidelineCardData,
@@ -30,7 +33,7 @@ import type {
 
 function mockPatientList(): PatientListCardData {
   return {
-    title: "Today's Appointments",
+    title: "Queue List: Today",
     totalCount: 19,
     items: [
       { name: "Ramesh M", age: 35, gender: "M", time: "10:15 AM", status: "Queue", statusTone: "info", patientId: "apt-zerodata" },
@@ -45,7 +48,7 @@ function mockPatientList(): PatientListCardData {
 
 function mockFollowUpList(): FollowUpListCardData {
   return {
-    title: "Follow-ups Due Today",
+    title: "Follow-up Dues Today",
     overdueCount: 2,
     items: [
       { name: "Shyam GR", scheduledDate: "9 Mar'26", reason: "Review culture results", isOverdue: false, patientId: "__patient__" },
@@ -55,20 +58,110 @@ function mockFollowUpList(): FollowUpListCardData {
   }
 }
 
+function mockOverdueFollowUpsToday(): FollowUpListCardData {
+  return {
+    title: "Overdue Follow-ups Today",
+    overdueCount: 2,
+    items: [
+      { name: "Vikram Singh", scheduledDate: "Today · 11:15 AM", reason: "HTN medication review", isOverdue: true, patientId: "apt-vikram" },
+      { name: "Lakshmi K", scheduledDate: "Today · 4:10 PM", reason: "Hb recheck after iron therapy", isOverdue: true, patientId: "apt-lakshmi" },
+    ],
+  }
+}
+
+function mockThisWeekFollowUps(): FollowUpListCardData {
+  return {
+    title: "This Week Follow-ups",
+    overdueCount: 3,
+    items: [
+      { name: "Shyam GR", scheduledDate: "Mon · 10:30 AM", reason: "Review culture results", isOverdue: false, patientId: "__patient__" },
+      { name: "Vikram Singh", scheduledDate: "Tue · 11:15 AM", reason: "HTN medication review", isOverdue: true, patientId: "apt-vikram" },
+      { name: "Lakshmi K", scheduledDate: "Wed · 4:10 PM", reason: "Hb recheck after iron therapy", isOverdue: true, patientId: "apt-lakshmi" },
+      { name: "Neha Gupta", scheduledDate: "Thu · 9:50 AM", reason: "Asthma follow-up", isOverdue: false, patientId: "apt-neha" },
+      { name: "Priya Rao", scheduledDate: "Fri · 3:00 PM", reason: "ANC review", isOverdue: false, patientId: "apt-priya" },
+      { name: "Arjun S", scheduledDate: "Sat · 12:20 PM", reason: "Vaccination catch-up", isOverdue: true, patientId: "apt-arjun" },
+    ],
+  }
+}
+
 function mockRevenueBar(): RevenueBarCardData {
   return {
-    title: "Revenue: This Week",
+    title: "This Week's Billing",
+    mode: "billing",
     totalRevenue: 42500,
     totalPaid: 38200,
     totalDue: 4300,
+    totalRefunded: 1100,
     days: [
-      { label: "Mon", paid: 7200, due: 800 },
-      { label: "Tue", paid: 6500, due: 500 },
-      { label: "Wed", paid: 8100, due: 1200 },
-      { label: "Thu", paid: 5400, due: 600 },
-      { label: "Fri", paid: 6800, due: 700 },
-      { label: "Sat", paid: 4200, due: 500 },
+      { label: "Mon", paid: 7200, due: 800, refunded: 120 },
+      { label: "Tue", paid: 6500, due: 500, refunded: 140 },
+      { label: "Wed", paid: 8100, due: 1200, refunded: 180 },
+      { label: "Thu", paid: 5400, due: 600, refunded: 160 },
+      { label: "Fri", paid: 6800, due: 700, refunded: 210 },
+      { label: "Sat", paid: 4200, due: 500, refunded: 290 },
     ],
+  }
+}
+
+function mockDepositBar(): RevenueBarCardData {
+  return {
+    title: "This Week's Deposits",
+    mode: "deposit",
+    totalRevenue: 3600,
+    totalPaid: 3600,
+    totalDue: 500,
+    totalRefunded: 800,
+    days: [
+      { label: "Mon", paid: 600, due: 100, refunded: 120 },
+      { label: "Tue", paid: 700, due: 50, refunded: 90 },
+      { label: "Wed", paid: 500, due: 120, refunded: 160 },
+      { label: "Thu", paid: 650, due: 80, refunded: 110 },
+      { label: "Fri", paid: 650, due: 90, refunded: 170 },
+      { label: "Sat", paid: 500, due: 60, refunded: 150 },
+    ],
+  }
+}
+
+function mockTodayRevenueBar(): RevenueBarCardData {
+  return {
+    title: "Today's Billing",
+    mode: "billing",
+    totalRevenue: 7800,
+    totalPaid: 6400,
+    totalDue: 1200,
+    totalRefunded: 200,
+    days: [
+      { label: "Today", paid: 6400, due: 1200, refunded: 200 },
+    ],
+  }
+}
+
+function mockTodayDepositBar(): RevenueBarCardData {
+  return {
+    title: "Today's Deposits",
+    mode: "deposit",
+    totalRevenue: 2200,
+    totalPaid: 2200,
+    totalDue: 300,
+    totalRefunded: 150,
+    days: [
+      { label: "Today", paid: 2200, due: 300, refunded: 150 },
+    ],
+  }
+}
+
+function mockRevenueComparison(): RevenueComparisonCardData {
+  return {
+    title: "Billing Comparison",
+    primaryDateLabel: "Today (12 Mar)",
+    compareDateLabel: "Yesterday (11 Mar)",
+    primaryRevenue: 7800,
+    compareRevenue: 6950,
+    primaryRefunded: 180,
+    compareRefunded: 95,
+    primaryDeposits: 2200,
+    compareDeposits: 1800,
+    insight: "Today's billed amount is higher than yesterday. Deposits are tracked separately and excluded from this billing comparison.",
   }
 }
 
@@ -174,14 +267,14 @@ function mockHeatmap(): HeatmapCardData {
 
 function mockReferral(): ReferralCardData {
   return {
-    title: "Referrals Initiated This Week",
-    totalCount: 4,
-    urgentCount: 1,
+    title: "Doctor Referral Summary (Incoming)",
+    totalReferrers: 4,
+    totalPatients: 19,
     items: [
-      { patientName: "Priya Rao", patientId: "apt-priya", specialist: "Dr. Meena Iyer", department: "Obstetrics & Gynecology", urgency: "urgent", reason: "High-risk ANC — GDM + PIH at 38wk" },
-      { patientName: "Neha Gupta", patientId: "apt-neha", specialist: "Dr. Meena Iyer", department: "Obstetrics & Gynecology", urgency: "routine", reason: "ANC routine referral — NT Scan pending" },
-      { patientName: "Vikram Singh", patientId: "apt-vikram", specialist: "Dr. Ravi Mehta", department: "Cardiology", urgency: "routine", reason: "HTN uncontrolled — ECG borderline, needs echo" },
-      { patientName: "Lakshmi K", patientId: "apt-lakshmi", specialist: "Dr. Sanjay Nair", department: "Ophthalmology", urgency: "routine", reason: "Diabetic retinopathy screening — overdue 6 months" },
+      { doctorName: "Dr. Meena Iyer", doctorPhone: "9876501122", specialty: "OBG", patientsReferred: 7, topReason: "ANC and high-risk pregnancy follow-up" },
+      { doctorName: "Dr. Ravi Mehta", doctorPhone: "9899001134", specialty: "Cardiology", patientsReferred: 5, topReason: "HTN and chest pain workup" },
+      { doctorName: "Dr. Sanjay Nair", doctorPhone: "9822207711", specialty: "Ophthalmology", patientsReferred: 4, topReason: "Diabetic retinopathy screening" },
+      { doctorName: "Dr. Kiran Joshi", doctorPhone: "9966112200", specialty: "General Medicine", patientsReferred: 3, topReason: "Fever and chronic disease review" },
     ],
   }
 }
@@ -219,19 +312,132 @@ function mockClinicalGuideline(): ClinicalGuidelineCardData {
   }
 }
 
-function mockBillingSummary(): BillingSummaryCardData {
+function mockBillingSummary(mode: BillingSummaryCardData["mode"] = "combined"): BillingSummaryCardData {
   return {
+    title: mode === "billing"
+      ? "OPD Billing: This Week"
+      : mode === "deposit"
+        ? "Advance Deposits: This Week"
+        : "Billing & Deposits: This Week",
     items: [
-      { service: "Consultations (12)", amount: 6000, status: "paid" },
-      { service: "Lab Tests (8)", amount: 4800, status: "paid" },
-      { service: "Nebulizations (3)", amount: 900, status: "paid" },
-      { service: "Pending Consultations (4)", amount: 2000, status: "pending" },
-      { service: "Pending Labs (2)", amount: 1200, status: "pending" },
-      { service: "Waived (1)", amount: 500, status: "waived" },
+      mode === "deposit"
+        ? { referenceNo: "ADV-2900567", patientName: "Tony Danza", amount: 500, status: "deposited" }
+        : { referenceNo: "INV-2900567", patientName: "Tony Danza", amount: 500, billedAmount: 500, paidAmount: 500, status: "paid_fully" },
+      mode === "deposit"
+        ? { referenceNo: "ADV-2900571", patientName: "Templeton Peck", amount: 500, status: "deposited" }
+        : { referenceNo: "INV-2900569", patientName: "Jonathan Higgins", amount: 250, billedAmount: 750, paidAmount: 500, status: "due" },
+      mode === "deposit"
+        ? { referenceNo: "ADV-2900572", patientName: "Capt. Trunk", amount: 500, status: "debited" }
+        : { referenceNo: "INV-2900571", patientName: "Templeton Peck", amount: 500, billedAmount: 500, paidAmount: 500, status: "paid_fully" },
+      mode === "deposit"
+        ? { referenceNo: "ADV-2900573", patientName: "Michael Knight", amount: 800, status: "refunded" }
+        : { referenceNo: "INV-2900573", patientName: "Michael Knight", amount: 800, billedAmount: 800, paidAmount: 800, status: "refunded" },
     ],
-    totalAmount: 15400,
-    totalPaid: 11700,
-    balance: 3200,
+    mode,
+    totalBilledAmount: 42500,
+    totalPaidFullyAmount: 38200,
+    totalDueAmount: 4300,
+    totalRefundedAmount: 1100,
+    totalAdvanceReceived: 3600,
+    totalAdvanceRefunded: 800,
+    totalAdvanceDebited: 500,
+    footerCtaLabel: "Open OPD billing section",
+    footerCtaAction: "Open OPD billing section",
+    insight: "Quick billing snapshot for the current period.",
+  }
+}
+
+function mockTodayCollectionSummary(): BillingSummaryCardData {
+  return {
+    ...mockBillingSummary("combined"),
+    title: "Today's Collection Overview",
+    items: [
+      { referenceNo: "INV-2900611", patientName: "Neha Gupta", amount: 1200, billedAmount: 1200, paidAmount: 1200, status: "paid_fully" },
+      { referenceNo: "INV-2900612", patientName: "Vikram Singh", amount: 1500, billedAmount: 1500, paidAmount: 300, status: "due" },
+      { referenceNo: "INV-2900613", patientName: "Ramesh M", amount: 1000, billedAmount: 1000, paidAmount: 1000, status: "paid_fully" },
+      { referenceNo: "INV-2900614", patientName: "Priya Rao", amount: 800, billedAmount: 800, paidAmount: 800, status: "paid_fully" },
+      { referenceNo: "INV-2900615", patientName: "Sita R", amount: 400, billedAmount: 400, paidAmount: 0, status: "due" },
+      { referenceNo: "ADV-2900616", patientName: "Arjun S", amount: 500, status: "deposited" },
+      { referenceNo: "ADV-2900617", patientName: "Meera Nair", amount: 200, status: "debited" },
+      { referenceNo: "ADV-2900618", patientName: "Tony Danza", amount: 300, status: "refunded" },
+    ],
+    totalBilledAmount: 7800,
+    totalPaidFullyAmount: 6400,
+    totalDueAmount: 1200,
+    totalRefundedAmount: 200,
+    totalAdvanceReceived: 2200,
+    totalAdvanceDebited: 300,
+    totalAdvanceRefunded: 150,
+    footerCtaLabel: "View details",
+    footerCtaAction: "Open OPD billing section",
+    insight: "Today's collection only (billing + advance).",
+  }
+}
+
+function mockPast30DayCollectionSummary(): BillingSummaryCardData {
+  return {
+    ...mockBillingSummary("combined"),
+    title: "Past 30 Days Collection",
+    totalBilledAmount: 184000,
+    totalPaidFullyAmount: 161500,
+    totalDueAmount: 18500,
+    totalRefundedAmount: 4000,
+    totalAdvanceReceived: 27600,
+    totalAdvanceDebited: 4200,
+    totalAdvanceRefunded: 2100,
+    footerCtaLabel: "Open OPD billing section",
+    footerCtaAction: "Open OPD billing section",
+    insight: "Rolling 30-day collection snapshot.",
+  }
+}
+
+function mockGenerateInvoiceCard(): BillingSummaryCardData {
+  return {
+    ...mockBillingSummary("combined"),
+    title: "Generate Invoice",
+    minimal: true,
+    footerCtaLabel: "Open OPD billing section",
+    footerCtaAction: "Open OPD billing section",
+    insight: "Open OPD billing to choose patient, create invoice, and complete payment steps.",
+  }
+}
+
+function opdBillingTodayPills(): CannedPill[] {
+  return [
+    { id: "hp-collection-today", label: "Today's collection", priority: 8, layer: 3, tone: "primary" as const },
+    { id: "hp-billing-today", label: "Today's billing", priority: 10, layer: 3, tone: "primary" as const },
+    { id: "hp-deposits-today", label: "Today's deposits", priority: 12, layer: 3, tone: "primary" as const },
+    { id: "hp-generate-invoice", label: "Generate invoice", priority: 14, layer: 3, tone: "primary" as const },
+  ]
+}
+
+function mockDuePatients(period: "week" | "till_now"): DuePatientsCardData {
+  const isWeek = period === "week"
+  return {
+    title: isWeek ? "Patients With Due — This Week" : "Patients With Due — Till Now",
+    periodLabel: isWeek ? "Week to date" : "Cumulative (till now)",
+    patientCount: 10,
+    totalDueAmount: 18500,
+    asOf: isWeek ? "this week" : "today",
+    ctaLabel: "View in detail",
+  }
+}
+
+function mockFollowUpRateCard() {
+  return {
+    title: "Follow-up Rate",
+    currentRate: 72,
+    lastWeekRate: 68,
+    dueToday: 5,
+    overdueToday: 2,
+    completedThisWeek: 18,
+    scheduledThisWeek: 25,
+    trend: [
+      { label: "W1", rate: 61 },
+      { label: "W2", rate: 65 },
+      { label: "W3", rate: 68 },
+      { label: "W4", rate: 72 },
+    ],
   }
 }
 
@@ -278,6 +484,19 @@ function mockANCScheduleList(): ANCScheduleListCardData {
   }
 }
 
+function mockExternalExportCard(format: "excel" | "word"): ExternalCtaCardData {
+  const isExcel = format === "excel"
+  return {
+    title: isExcel ? "Export ready: Excel" : "Export ready: Word",
+    description: isExcel
+      ? "Your requested data is prepared in spreadsheet format. Use the link below to open or download the file."
+      : "Your requested document is prepared in Word format. Use the link below to open or download the file.",
+    ctaLabel: isExcel ? "Open Excel file" : "Open Word document",
+    ctaUrl: isExcel ? "https://example.com/exports/daily-collection.xlsx" : "https://example.com/exports/daily-collection.docx",
+    openInNewTab: true,
+  }
+}
+
 // ═══════════════ MAIN BUILDER ═══════════════
 
 export function buildHomepageReply(input: string, intent: IntentResult): ReplyResult {
@@ -285,14 +504,36 @@ export function buildHomepageReply(input: string, intent: IntentResult): ReplyRe
 
   // ── Multi-word phrase handlers (must come before single-word matches like "schedule") ──
 
+  // External export CTA (single-view response card)
+  if (n.includes("excel") || n.includes("xlsx") || n.includes("sheet format") || n.includes("spreadsheet")) {
+    return {
+      text: "I prepared an Excel output for this request.",
+      rxOutput: { kind: "external_cta", data: mockExternalExportCard("excel") },
+      followUpPills: [
+        { id: "hp-billing-today", label: "Today's billing", priority: 10, layer: 3, tone: "primary" as const },
+        { id: "hp-collection-today", label: "Today's collection", priority: 12, layer: 3, tone: "primary" as const },
+      ],
+    }
+  }
+  if (n.includes("word") || n.includes("docx") || n.includes("document format")) {
+    return {
+      text: "I prepared a Word document output for this request.",
+      rxOutput: { kind: "external_cta", data: mockExternalExportCard("word") },
+      followUpPills: [
+        { id: "hp-billing-today", label: "Today's billing", priority: 10, layer: 3, tone: "primary" as const },
+        { id: "hp-collection-today", label: "Today's collection", priority: 12, layer: 3, tone: "primary" as const },
+      ],
+    }
+  }
+
   // Referral Summary
   if (n.includes("referral") || n.includes("refer") || n.includes("specialist referral")) {
     return {
-      text: "4 specialist referrals initiated this week. Here's the latest referral summary.",
+      text: "Here is the incoming referral summary: doctors who referred patients to your clinic this week.",
       rxOutput: { kind: "referral", data: mockReferral() },
       followUpPills: [
-        { id: "hp-schedule", label: "Today's schedule", priority: 10, layer: 3, tone: "primary" as const },
-        { id: "hp-kpis", label: "Weekly KPIs", priority: 12, layer: 3, tone: "primary" as const },
+        { id: "hp-billing-week", label: "This week's billing", priority: 12, layer: 3, tone: "primary" as const },
+        { id: "hp-followups", label: "Follow-ups due", priority: 14, layer: 3, tone: "primary" as const },
       ],
     }
   }
@@ -346,13 +587,13 @@ export function buildHomepageReply(input: string, intent: IntentResult): ReplyRe
   }
 
   // Billing Overview
-  if (n.includes("billing") || n.includes("bill summary") || n.includes("billing overview") || n.includes("invoice summary")) {
+  if (n.includes("bill summary") || n.includes("billing overview") || n.includes("invoice summary")) {
     return {
-      text: "This week's billing summary: ₹15,400 total, ₹11,700 collected, ₹3,200 balance pending.",
-      rxOutput: { kind: "billing_summary", data: mockBillingSummary() },
+      text: "This week's billing (excluding deposits): ₹42,500 billed, ₹38,200 paid fully, ₹4,300 due, ₹1,100 refunded.",
+      rxOutput: { kind: "revenue_bar", data: mockRevenueBar() },
       followUpPills: [
-        { id: "hp-revenue", label: "Revenue today", priority: 10, layer: 3, tone: "primary" as const },
-        { id: "hp-kpis", label: "Weekly KPIs", priority: 12, layer: 3, tone: "primary" as const },
+        { id: "hp-billing-week", label: "This week's billing", priority: 10, layer: 3, tone: "primary" as const },
+        { id: "hp-deposits-week", label: "This week's deposits", priority: 12, layer: 3, tone: "primary" as const },
       ],
     }
   }
@@ -362,32 +603,211 @@ export function buildHomepageReply(input: string, intent: IntentResult): ReplyRe
   // Patient List / Schedule
   if (n.includes("schedule") || n.includes("queue") || n.includes("appointment") || n.includes("who's next") || n.includes("today's schedule")) {
     return {
-      text: "Here's today's appointment schedule. 18 patients total: 7 in queue, 3 finished, 2 drafts pending.",
+      text: "Appointments are already visible on screen. Current snapshot: 18 patients total, 7 in queue, 3 finished, 2 drafts pending.",
       rxOutput: { kind: "patient_list", data: mockPatientList() },
       followUpPills: [
         { id: "hp-fu-due", label: "Follow-ups due", priority: 10, layer: 3, tone: "primary" },
-        { id: "hp-revenue", label: "Revenue today", priority: 12, layer: 3, tone: "primary" },
+        { id: "hp-kpi-queue", label: "Weekly KPIs", priority: 12, layer: 3, tone: "primary" as const },
       ],
     }
   }
 
-  // Follow-ups
+  // Follow-ups (specific handlers first)
+  if (n.includes("follow-up dues this week") || n.includes("follow up dues this week")) {
+    return {
+      text: "Showing follow-up dues for this week.",
+      rxOutput: { kind: "follow_up_list", data: mockThisWeekFollowUps() },
+      followUpPills: [
+        { id: "hp-fu-due", label: "Follow-up dues today", priority: 10, layer: 3, tone: "primary" as const },
+        { id: "hp-fu-rate", label: "Follow-up rate", priority: 12, layer: 3, tone: "info" as const },
+      ],
+    }
+  }
+
+  if (n.includes("overdue follow-ups today") || n.includes("overdue follow up today")) {
+    return {
+      text: "Showing overdue follow-ups scheduled for today.",
+      rxOutput: { kind: "follow_up_list", data: mockOverdueFollowUpsToday() },
+      followUpPills: [
+        { id: "hp-fu-due", label: "Follow-up dues today", priority: 10, layer: 3, tone: "primary" as const },
+        { id: "hp-fu-week", label: "This week follow-ups", priority: 12, layer: 3, tone: "primary" as const },
+      ],
+    }
+  }
+
+  if (n.includes("this week follow-ups") || n.includes("this week's follow-up") || n.includes("this week follow-up")) {
+    return {
+      text: "Here's the follow-up roster for this week.",
+      rxOutput: { kind: "follow_up_list", data: mockThisWeekFollowUps() },
+      followUpPills: [
+        { id: "hp-fu-due", label: "Follow-up dues today", priority: 10, layer: 3, tone: "primary" as const },
+        { id: "hp-fu-rate", label: "Follow-up rate", priority: 12, layer: 3, tone: "info" as const },
+      ],
+    }
+  }
+
+  if (n.includes("follow-up rate") || n.includes("follow up rate")) {
+    return {
+      text: "Here is the current follow-up rate overview.",
+      rxOutput: { kind: "follow_up_rate", data: mockFollowUpRateCard() },
+      followUpPills: [
+        { id: "hp-fu-due", label: "Follow-up dues today", priority: 10, layer: 3, tone: "primary" as const },
+        { id: "hp-fu-week", label: "This week follow-ups", priority: 12, layer: 3, tone: "primary" as const },
+      ],
+    }
+  }
+
+  if (n.includes("follow-up dues today") || n.includes("follow-ups due today") || n.includes("follow up due today")) {
+    return {
+      text: "Showing follow-up dues scheduled for today.",
+      rxOutput: { kind: "follow_up_list", data: mockFollowUpList() },
+      followUpPills: [
+        { id: "hp-fu-overdue", label: "Overdue follow-ups today", priority: 10, layer: 3, tone: "warning" as const },
+        { id: "hp-fu-week", label: "This week follow-ups", priority: 12, layer: 3, tone: "primary" as const },
+      ],
+    }
+  }
+
+  // Follow-ups (fallback generic)
   if (n.includes("follow-up") || n.includes("follow up") || n.includes("overdue") || n.includes("callback") || n.includes("follow-ups due")) {
     return {
       text: "3 follow-ups scheduled today, 2 are overdue. You can send individual or bulk reminders.",
       rxOutput: { kind: "follow_up_list", data: mockFollowUpList() },
       followUpPills: [
-        { id: "hp-send-all", label: "Send reminder to all", priority: 10, layer: 3, tone: "primary" },
-        { id: "hp-analytics", label: "Follow-up analytics", priority: 12, layer: 3, tone: "primary" },
+        { id: "hp-fu-due", label: "Follow-up dues today", priority: 10, layer: 3, tone: "primary" },
+        { id: "hp-fu-rate", label: "Follow-up rate", priority: 12, layer: 3, tone: "info" as const },
       ],
+    }
+  }
+
+  if (
+    n.includes("this week's deposits")
+    || n.includes("this week deposits")
+    || n.includes("weekly deposits")
+    || n.includes("week deposits")
+    || n.includes("deposit this week")
+  ) {
+    return {
+      text: "This week's deposits: ₹3,600 received, ₹800 refunded, ₹500 debited.",
+      rxOutput: { kind: "revenue_bar", data: mockDepositBar() },
+      followUpPills: [
+        { id: "hp-billing-week", label: "This week's billing", priority: 10, layer: 3, tone: "primary" },
+        { id: "hp-compare-yday", label: "Compare with yesterday", priority: 12, layer: 3, tone: "primary" as const },
+      ],
+    }
+  }
+
+  if (
+    n.includes("this week's billing")
+    || n.includes("this week billing")
+    || n.includes("weekly billing")
+    || n.includes("week billing")
+  ) {
+    return {
+      text: "This week's billing (excluding advance deposits): ₹42,500 total billed, ₹38,200 collected, ₹4,300 due, ₹1,100 refunded.",
+      rxOutput: { kind: "revenue_bar", data: mockRevenueBar() },
+      followUpPills: [
+        { id: "hp-deposits-week", label: "This week's deposits", priority: 10, layer: 3, tone: "primary" },
+        { id: "hp-compare-yday", label: "Compare with yesterday", priority: 12, layer: 3, tone: "primary" as const },
+      ],
+    }
+  }
+
+  if (n.includes("compare with yesterday")) {
+    return {
+      text: "Here's today's billing versus yesterday for quick comparison.",
+      rxOutput: { kind: "revenue_comparison", data: mockRevenueComparison() },
+      followUpPills: [
+        { id: "hp-billing-week", label: "This week's billing", priority: 10, layer: 3, tone: "primary" as const },
+        { id: "hp-deposits-week", label: "This week's deposits", priority: 12, layer: 3, tone: "primary" as const },
+      ],
+    }
+  }
+
+  if (n.includes("revenue today") || n.includes("today revenue") || n.includes("today's revenue")) {
+    return {
+      text: "Top-level billing today: ₹7,800 billed, ₹180 refunded. Deposits are tracked separately.",
+      rxOutput: { kind: "billing_summary", data: mockTodayCollectionSummary() },
+      followUpPills: [
+        { id: "hp-collection-today", label: "Today's collection", priority: 8, layer: 3, tone: "primary" as const },
+        { id: "hp-billing-today", label: "Today's billing", priority: 10, layer: 3, tone: "primary" as const },
+        { id: "hp-deposits-today", label: "Today's deposits", priority: 12, layer: 3, tone: "primary" as const },
+        { id: "hp-collection-30d", label: "Past 30 days collection", priority: 14, layer: 3, tone: "primary" as const },
+      ],
+    }
+  }
+
+  // OPD Billing rail specifics (kept before generic revenue matcher)
+  if (n.includes("total bill today") || n.includes("today bill total") || n.includes("today's billing") || n.includes("todays billing")) {
+    return {
+      text: "Here's today's billing only.",
+      rxOutput: { kind: "revenue_bar", data: mockTodayRevenueBar() },
+      followUpPills: opdBillingTodayPills(),
+    }
+  }
+
+  if (n.includes("today's deposit") || n.includes("todays deposit") || n.includes("today deposit")) {
+    return {
+      text: "Here's today's deposits only.",
+      rxOutput: { kind: "revenue_bar", data: mockTodayDepositBar() },
+      followUpPills: opdBillingTodayPills(),
+    }
+  }
+
+  if (n.includes("overall collection") || n.includes("past 30 days collection") || n.includes("last 30 days collection")) {
+    return {
+      text: "Here's the overall collection snapshot for the past 30 days.",
+      rxOutput: { kind: "billing_summary", data: mockPast30DayCollectionSummary() },
+      followUpPills: [
+        { id: "hp-collection-today", label: "Today's collection", priority: 8, layer: 3, tone: "primary" as const },
+        { id: "hp-billing-week", label: "This week's billing", priority: 10, layer: 3, tone: "primary" as const },
+        { id: "hp-deposits-week", label: "This week's deposits", priority: 12, layer: 3, tone: "primary" as const },
+        { id: "hp-generate-invoice", label: "Generate invoice", priority: 14, layer: 3, tone: "primary" as const },
+      ],
+    }
+  }
+
+  if (n.includes("today's collection") || n.includes("todays collection")) {
+    return {
+      text: "Here's today's collection summary with billing, advance, and dues.",
+      rxOutput: { kind: "billing_summary", data: mockTodayCollectionSummary() },
+      followUpPills: opdBillingTodayPills(),
+    }
+  }
+
+  if (n.includes("patients with due") || n.includes("patient with due") || n.includes("dues this week") || n.includes("due this week")) {
+    return {
+      text: "Here are patients with due for this week.",
+      rxOutput: { kind: "due_patients", data: mockDuePatients("week") },
+      followUpPills: opdBillingTodayPills(),
+    }
+  }
+
+  if (n.includes("due till now") || n.includes("dues till now") || n.includes("dues till date")) {
+    return {
+      text: "Here are patients with due till now.",
+      rxOutput: { kind: "due_patients", data: mockDuePatients("till_now") },
+      followUpPills: opdBillingTodayPills(),
+    }
+  }
+
+  if (n.includes("open billing") || n.includes("open opd billing") || n.includes("billing section")) {
+    return {
+      text: "Opening OPD billing overview with dues and collection summary.",
+      rxOutput: { kind: "billing_summary", data: mockTodayCollectionSummary() },
+      followUpPills: opdBillingTodayPills(),
     }
   }
 
   // Revenue
   if (n.includes("revenue") || n.includes("billing") || n.includes("collection") || n.includes("payment") || n.includes("income") || n.includes("earnings")) {
     return {
-      text: "This week's revenue: ₹42,500 total, ₹38,200 collected, ₹4,300 due.",
+      text: "This week's billing (excluding advance deposits): ₹42,500 total billed, ₹38,200 paid fully, ₹4,300 due, ₹1,100 refunded.",
       rxOutput: { kind: "revenue_bar", data: mockRevenueBar() },
+      followUpPills: [
+        { id: "hp-deposits-week", label: "This week's deposits", priority: 10, layer: 3, tone: "primary" },
+        { id: "hp-compare-yday", label: "Compare with yesterday", priority: 12, layer: 3, tone: "primary" as const },
+      ],
     }
   }
 
@@ -453,8 +873,8 @@ export function buildHomepageReply(input: string, intent: IntentResult): ReplyRe
       text: "Here's this week's performance dashboard compared to last week.",
       rxOutput: { kind: "analytics_table", data: mockAnalyticsTable() },
       followUpPills: [
-        { id: "hp-revenue", label: "Revenue today", priority: 10, layer: 3, tone: "primary" as const },
-        { id: "hp-patient-volume", label: "Patient trends", priority: 12, layer: 3, tone: "primary" as const },
+        { id: "hp-billing-week", label: "This week's billing", priority: 10, layer: 3, tone: "primary" as const },
+        { id: "hp-deposits-week", label: "This week's deposits", priority: 12, layer: 3, tone: "primary" as const },
       ],
     }
   }
@@ -528,23 +948,24 @@ export function buildHomepageReply(input: string, intent: IntentResult): ReplyRe
   }
   if (n.includes("this week's follow-up") || n.includes("this week follow-up")) {
     return {
-      text: "This week: 8 follow-ups scheduled, 3 today (Mon), 2 Wednesday, 3 Friday. 2 are currently overdue.",
-      rxOutput: { kind: "follow_up_list", data: mockFollowUpList() },
+      text: "Here's the follow-up roster for this week.",
+      rxOutput: { kind: "follow_up_list", data: mockThisWeekFollowUps() },
     }
   }
   if (n.includes("follow-up rate") || n.includes("follow up rate")) {
-    return { text: "Follow-up compliance rate this month: 72% (up from 68% last month). 28% of patients miss their scheduled follow-ups. Common reasons: forgot (45%), felt better (30%), rescheduled (25%)." }
+    return {
+      text: "Here is the current follow-up rate overview.",
+      rxOutput: { kind: "follow_up_rate", data: mockFollowUpRateCard() },
+    }
   }
 
   // ── Rail-specific: OPD Billing ──
-  if (n.includes("pending payment") || n.includes("outstanding due")) {
-    return { text: "Outstanding dues: ₹4,300 across 6 patients. Largest: Vikram Singh ₹1,200 (3 visits pending), Meera Nair ₹800. Average payment delay: 4.2 days." }
-  }
-  if (n.includes("today's collection")) {
-    return { text: "Today's collection so far: ₹6,800 from 5 patients. Pending: 2 patients (₹1,400 combined). Target: ₹8,500. You're at 80% of daily target." }
-  }
   if (n.includes("generate invoice")) {
-    return { text: "Invoice generation is available from OPD Billing. Select a patient from the queue to generate their invoice. Bulk invoicing is available for completed consultations." }
+    return {
+      text: "Generate invoice from OPD billing for the selected patient.",
+      rxOutput: { kind: "billing_summary", data: mockGenerateInvoiceCard() },
+      followUpPills: opdBillingTodayPills(),
+    }
   }
 
   // ── Rail-specific: Pharmacy ──
@@ -588,12 +1009,12 @@ export function buildHomepageReply(input: string, intent: IntentResult): ReplyRe
 
   // Fallback
   return {
-    text: "I can help with today's schedule, follow-ups, revenue analytics, patient demographics, diagnosis trends, and more. Try asking about KPIs or chronic conditions.",
+    text: "I can help with follow-ups, weekly billing, weekly deposits, patient demographics, diagnosis trends, and more.",
     followUpPills: [
-      { id: "hp-schedule", label: "Today's schedule", priority: 10, layer: 3, tone: "primary" },
       { id: "hp-fu", label: "Follow-ups due", priority: 12, layer: 3, tone: "primary" },
-      { id: "hp-rev", label: "Revenue today", priority: 14, layer: 3, tone: "primary" },
-      { id: "hp-kpi", label: "Weekly KPIs", priority: 16, layer: 3, tone: "primary" },
+      { id: "hp-bill", label: "This week's billing", priority: 14, layer: 3, tone: "primary" },
+      { id: "hp-dep", label: "This week's deposits", priority: 16, layer: 3, tone: "primary" },
+      { id: "hp-kpi", label: "Weekly KPIs", priority: 18, layer: 3, tone: "primary" },
     ],
   }
 }

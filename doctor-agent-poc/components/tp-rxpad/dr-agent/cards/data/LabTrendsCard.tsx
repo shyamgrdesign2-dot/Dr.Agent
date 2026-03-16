@@ -5,6 +5,7 @@ import { CardShell } from "../CardShell"
 import { ChatPillButton } from "../ActionRow"
 import { SidebarLink } from "../SidebarLink"
 import { ViewToggle } from "../ViewToggle"
+import { ChartTypeToggle } from "../ChartTypeToggle"
 import type { VitalTrendSeries } from "../../types"
 
 interface LabTrendsCardProps {
@@ -21,6 +22,64 @@ function seriesColor(tone: VitalTrendSeries["tone"]): string {
   if (tone === "critical") return "#EF4444" // red-500
   if (tone === "warn") return "#F59E0B"     // amber-500
   return "#22C55E"                           // green-500
+}
+
+const TONE_BG: Record<"ok" | "warn" | "critical", string> = {
+  ok: "bg-tp-success-500",
+  warn: "bg-tp-warning-500",
+  critical: "bg-tp-error-500",
+}
+
+function getTrendSummary(series: VitalTrendSeries): string {
+  if (series.values.length < 2) return ""
+  const first = series.values[0]
+  const last = series.values[series.values.length - 1]
+  const overallDiff = last - first
+  const overallPct = Math.abs(overallDiff / (first || 1)) * 100
+  if (overallPct < 2) return "\u2192 Stable"
+  if (overallDiff > 0) return "\u2191 Increasing"
+  return "\u2193 Declining"
+}
+
+function LabBarChart({ series }: { series: VitalTrendSeries }) {
+  const maxVal = Math.max(...series.values, series.threshold ?? 0) * 1.15
+  const minVal = Math.min(...series.values) * 0.85
+  const chartH = 72
+  const trendText = getTrendSummary(series)
+
+  const barHeight = (val: number) => {
+    const ratio = maxVal > minVal ? (val - minVal) / (maxVal - minVal) : 0.5
+    return Math.max(4, ratio * chartH)
+  }
+
+  const thresholdBottom = series.threshold != null && maxVal > minVal
+    ? ((series.threshold - minVal) / (maxVal - minVal)) * chartH
+    : null
+
+  return (
+    <div className="mb-2">
+      <div className="mb-[6px] flex items-center gap-1.5">
+        <div className="h-[8px] w-[8px] rounded-full" style={{ backgroundColor: seriesColor(series.tone) }} />
+        <span className="text-[12px] font-semibold text-tp-slate-700">{series.label}</span>
+        <span className="text-[10px] text-tp-slate-400">{series.unit}</span>
+        {trendText && <span className="ml-auto text-[10px] font-medium text-tp-slate-500">{trendText}</span>}
+      </div>
+      <div className="relative flex items-end gap-[6px] px-[4px]" style={{ height: chartH + 20 }}>
+        {thresholdBottom != null && (
+          <div className="pointer-events-none absolute left-0 right-0 border-t border-dashed border-tp-error-300" style={{ bottom: thresholdBottom + 18 }}>
+            <span className="absolute -top-[12px] right-0 text-[8px] font-medium text-tp-error-400">{series.thresholdLabel ?? series.threshold}</span>
+          </div>
+        )}
+        {series.values.map((val, i) => (
+          <div key={i} className="flex flex-1 flex-col items-center gap-[2px]">
+            <span className="text-[9px] font-semibold text-tp-slate-600">{val}</span>
+            <div className={`w-full max-w-[32px] rounded-t-[4px] ${TONE_BG[series.tone]} transition-all`} style={{ height: barHeight(val) }} />
+            <span className="mt-[2px] text-[8px] text-tp-slate-400">{series.dates[i]}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function LabLineChart({ series: allSeries }: { series: VitalTrendSeries[] }) {
@@ -269,6 +328,7 @@ function LabTrendsTable({ series }: { series: VitalTrendSeries[] }) {
 
 export function LabTrendsCard({ data, onPillTap }: LabTrendsCardProps) {
   const [viewMode, setViewMode] = useState<"graph" | "text">("graph")
+  const [chartType, setChartType] = useState<"line" | "bar">("line")
   const totalVisits =
     data.series.length > 0 ? data.series[0].values.length : 0
 
@@ -278,13 +338,6 @@ export function LabTrendsCard({ data, onPillTap }: LabTrendsCardProps) {
       tpIconName="Lab"
       title={data.title}
       date={`${totalVisits} visits`}
-      copyAll={() => {
-        const text = data.series.map(s =>
-          `${s.label} (${s.unit}): ${s.dates.map((d, i) => `${d}: ${s.values[i]}`).join(", ")}`
-        ).join("\n")
-        navigator.clipboard?.writeText(text)
-      }}
-      copyAllTooltip="Copy lab trend to clipboard"
       actions={
         <>
           <ChatPillButton label="Compare labs" onClick={() => onPillTap?.("Compare labs")} />
@@ -295,11 +348,22 @@ export function LabTrendsCard({ data, onPillTap }: LabTrendsCardProps) {
     >
       {data.series.length > 0 ? (
         <>
-          {/* Shared segmented toggle */}
-          <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+          {/* Toggle row: Graph/Text on left, Line/Bar on right */}
+          <div className="mb-[6px] flex items-center justify-between">
+            <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+            {viewMode === "graph" && (
+              <ChartTypeToggle chartType={chartType} onChange={setChartType} />
+            )}
+          </div>
 
           {viewMode === "graph" ? (
-            <LabLineChart series={data.series} />
+            <>
+              {chartType === "line" ? (
+                <LabLineChart series={data.series} />
+              ) : (
+                data.series.map((s) => <LabBarChart key={s.label} series={s} />)
+              )}
+            </>
           ) : (
             <LabTrendsTable series={data.series} />
           )}

@@ -120,8 +120,8 @@ export function GynecHistoryContent() {
             hideChevron
             titleAddon={
               <AiTriggerIcon
-                tooltip={`Analyze ${section.title.toLowerCase()}`}
-                signalLabel={`Analyze ${section.title}`}
+                tooltip={`Summarize ${section.title.toLowerCase()}`}
+                signalLabel={`Summarize ${section.title.toLowerCase()}`}
                 sectionId="gynec"
                 size={12}
               />

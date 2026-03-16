@@ -169,7 +169,7 @@ export function PatientSelector({
                     : "border-l-[2px] border-l-transparent hover:bg-tp-slate-50",
                 )}
               >
-                <div className="flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center rounded-full bg-tp-violet-50 text-tp-violet-500">
+                <div className="flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center rounded-full bg-tp-slate-100 text-tp-slate-500">
                   <Hospital size={14} variant="Bulk" />
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col">
@@ -227,6 +227,9 @@ export function PatientSelector({
               filteredPatients.map((option) => {
                 const isSelected = option.id === selectedId
                 const genderAge = [option.gender === "M" ? "M" : option.gender === "F" ? "F" : "", option.age ? `${option.age}y` : ""].filter(Boolean).join(", ")
+                // Strip gender/age prefix from meta to avoid duplication (meta format: "M, 35y · PAT0190 · Walk-in")
+                const metaParts = option.meta.split("·").map((s) => s.trim())
+                const metaWithoutGenderAge = metaParts.length > 1 ? metaParts.slice(1).join(" · ") : option.meta
                 return (
                   <button
                     key={option.id}
@@ -250,7 +253,7 @@ export function PatientSelector({
                         {genderAge && <span className="text-[11px] font-normal text-tp-slate-400">({genderAge})</span>}
                       </span>
                       <span className="truncate text-[11px] leading-[1.3] text-tp-slate-400">
-                        {option.meta}
+                        {metaWithoutGenderAge}
                       </span>
                     </div>
 

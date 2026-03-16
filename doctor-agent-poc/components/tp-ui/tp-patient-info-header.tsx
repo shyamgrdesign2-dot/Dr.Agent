@@ -13,8 +13,8 @@ import {
   Save,
   LayoutTemplate,
   StickyNote,
-  BookOpen,
 } from "lucide-react"
+import { TutorialPlayIcon } from "@/components/tp-ui/TutorialPlayIcon"
 import { cn } from "@/lib/utils"
 
 /**
@@ -205,7 +205,7 @@ export function TPPatientInfoHeader({
         <div className="flex items-center gap-[14px] shrink-0">
           {/* Tutorial */}
           <div className="shrink-0 flex items-center justify-center" style={{ width: 42, height: 42 }}>
-            <BookOpen size={25} color="#8A4DBB" className="opacity-80" />
+            <TutorialPlayIcon size={28} />
           </div>
 
           <HeaderDivider />

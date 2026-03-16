@@ -16,7 +16,7 @@ interface ViewToggleProps {
 
 export function ViewToggle({ viewMode, onChange }: ViewToggleProps) {
   return (
-    <div className="mb-[6px] flex">
+    <div className="flex">
       <div className="relative h-[26px] rounded-[7px] bg-tp-slate-100 p-[2px] inline-flex">
         {/* Sliding background indicator */}
         <div

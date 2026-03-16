@@ -13,7 +13,7 @@ export function SidebarLink({ text, onClick }: SidebarLinkProps) {
     <button
       type="button"
       onClick={onClick}
-      className="group/link flex w-full items-center gap-[4px] rounded-[4px] py-1 text-left text-[10px] font-medium text-tp-blue-500 transition-all hover:bg-tp-blue-50/60 hover:text-tp-blue-600 px-1 -mx-1"
+      className="group/link inline-flex items-center gap-[4px] rounded-[10px] py-[5px] px-2 -mx-2 text-left text-[11px] font-medium text-tp-blue-500 transition-all hover:bg-tp-blue-50/60 hover:text-tp-blue-600"
     >
       <span className="group-hover/link:underline">{cleanText}</span>
       <svg

@@ -60,8 +60,8 @@ function HistoryCard({ title, items }: { title: string; items: HistoryItem[] }) 
       hideChevron
       titleAddon={
         <AiTriggerIcon
-          tooltip={`Analyze ${title.toLowerCase()}`}
-          signalLabel={`Analyze ${title}`}
+          tooltip={`Summarize ${title.toLowerCase()}`}
+          signalLabel={`Summarize ${title.toLowerCase()}`}
           sectionId="history"
           size={12}
         />

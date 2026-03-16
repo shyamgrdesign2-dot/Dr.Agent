@@ -118,32 +118,38 @@ export function DDXCard({ data, onAccept, onCopyToDiagnosis, onCopyToRxPad, onSe
           .map(([k]) => k)
         onCopyToDiagnosis?.(selectedNames)
       }}
-      copyAllTooltip="Copy selected diagnoses to RxPad"
+      copyAllTooltip="Fill selected diagnoses to RxPad"
       actions={
-        <>
-          <ChatPillButton
-            label={`Generate cascade${selectedCount > 0 ? ` (${selectedCount})` : ""}`}
-            onClick={() => {
-              const selectedNames = Object.entries(selected)
-                .filter(([, v]) => v)
-                .map(([k]) => k)
-              onSendCannedMessage?.(`Generate cascade for: ${selectedNames.join(", ")}`)
-            }}
-          />
-          <ChatPillButton
-            label="Suggest investigations"
-            onClick={() => onSendCannedMessage?.("Suggest investigations")}
-          />
-          <ChatPillButton
-            label="Compare with history"
-            onClick={() => onSendCannedMessage?.("Compare with history")}
-          />
-        </>
+        selectedCount > 0 ? (
+          <>
+            <ChatPillButton
+              label={`Generate cascade (${selectedCount})`}
+              onClick={() => {
+                const selectedNames = Object.entries(selected)
+                  .filter(([, v]) => v)
+                  .map(([k]) => k)
+                onSendCannedMessage?.(`Generate cascade for: ${selectedNames.join(", ")}`)
+              }}
+            />
+            <ChatPillButton
+              label="Suggest investigations"
+              onClick={() => onSendCannedMessage?.("Suggest investigations")}
+            />
+            <ChatPillButton
+              label="Compare with history"
+              onClick={() => onSendCannedMessage?.("Compare with history")}
+            />
+          </>
+        ) : (
+          <span className="text-[10px] text-tp-slate-400 italic px-1">
+            Select a diagnosis to see suggestions
+          </span>
+        )
       }
       sidebarLink={
         selectedCount > 0 ? (
           <SidebarLink
-            text={`Copy selected to RxPad (${selectedCount})`}
+            text={`Fill selected to RxPad (${selectedCount})`}
             onClick={() => {
               const selectedNames = Object.entries(selected)
                 .filter(([, v]) => v)

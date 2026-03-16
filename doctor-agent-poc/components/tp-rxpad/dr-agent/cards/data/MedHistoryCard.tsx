@@ -40,11 +40,6 @@ export function MedHistoryCard({ data, onPillTap }: MedHistoryCardProps) {
         color: "#92400E",
         bg: "#FEF3C7",
       }}
-      copyAll={() => {
-        const text = data.entries.map(e => `${e.drug} ${e.dosage} — ${e.diagnosis}`).join('\n')
-        navigator.clipboard?.writeText(text)
-      }}
-      copyAllTooltip="Copy medication history to clipboard"
       actions={
         <ChatPillButton label="Other drug classes" onClick={() => onPillTap?.("Other drug classes")} />
       }

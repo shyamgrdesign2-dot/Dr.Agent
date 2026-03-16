@@ -3,6 +3,7 @@
 import { type SidebarPill, SIDEBAR_TAB_PILLS } from "./sidebar-pills"
 import { useRxPadSync } from "@/components/tp-rxpad/rxpad-sync-context"
 import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
+import { AiGradientBg } from "@/components/tp-rxpad/dr-agent/shared/AiGradientBg"
 
 /**
  * Pill bar rendered at the bottom of each sidebar content panel.
@@ -43,9 +44,9 @@ export function SidebarPillBar({ sectionId }: { sectionId: string }) {
       <div className="sticky bottom-0 z-10 shrink-0 bg-white/95 px-2 pb-[14px] pt-1 backdrop-blur-sm">
         <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <div className="inline-flex min-w-max items-center gap-1.5">
-            <span className="mr-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-[5px] bg-[linear-gradient(91deg,rgba(213,101,234,0.2)_3%,rgba(103,58,172,0.18)_67%,rgba(26,25,148,0.15)_130%)]">
+            <AiGradientBg size={20} borderRadius={5} className="mr-0.5">
               <span className="text-[10px] leading-none">✦</span>
-            </span>
+            </AiGradientBg>
             {pills.map((pill) => (
               <button
                 key={pill.id}

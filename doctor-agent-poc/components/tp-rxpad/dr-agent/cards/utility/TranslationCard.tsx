@@ -22,7 +22,7 @@ export function TranslationCard({
       icon={<Translate size={14} variant="Bulk" />}
       title={data.targetLanguage}
       copyAll={() => onCopy?.(data.copyPayload)}
-      copyAllTooltip="Copy translation to RxPad"
+      copyAllTooltip="Fill translation to RxPad"
       actions={
         <>
           <ChatPillButton label="Hindi" onClick={() => onPillTap?.("Hindi")} />

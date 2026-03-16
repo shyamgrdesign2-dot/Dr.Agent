@@ -39,7 +39,7 @@ export function AdviceCard({ data, onCopy, onPillTap }: AdviceCardProps) {
       tpIconName="clipboard-activity"
       title={data.title}
       copyAll={() => onCopy?.(data.copyPayload)}
-      copyAllTooltip="Copy advice to RxPad"
+      copyAllTooltip="Fill advice to RxPad"
       collapsible
       actions={
         <>

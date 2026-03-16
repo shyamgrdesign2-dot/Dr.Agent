@@ -14,7 +14,7 @@ interface SectionTagProps {
   className?: string
   /** Tooltip shown on hover over the entire tag, e.g. "Open detailed vitals" */
   tooltip?: string
-  /** Tooltip shown on hover over the copy icon, e.g. "Copy all vitals" */
+  /** Tooltip shown on hover over the fill icon, e.g. "Fill all vitals" */
   copyTooltip?: string
 }
 
@@ -45,6 +45,7 @@ export function SectionTag({
       className={cn(
         "group/tag inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-[4px] px-1.5 py-[0.5px] text-[11px] font-medium align-middle transition-colors",
         bg,
+        hovered && variant === "specialty" && "bg-tp-violet-100",
         hovered && variant !== "specialty" && "bg-tp-slate-200",
         className,
       )}
@@ -62,6 +63,7 @@ export function SectionTag({
               name={icon}
               variant="bulk"
               size={11}
+              color={variant === "specialty" ? "var(--tp-violet-600, #7C3AED)" : undefined}
               className={cn(
                 "inline-block align-middle transition-opacity",
                 hovered ? "opacity-100" : "opacity-60",
@@ -70,7 +72,7 @@ export function SectionTag({
             />
           )
       )}
-      <span className={cn("transition-colors", hovered && variant !== "specialty" && "text-tp-slate-700")}>
+      <span className={cn("transition-colors", hovered && variant !== "specialty" && "text-tp-slate-700", hovered && variant === "specialty" && "text-tp-violet-700")}>
         {label}
       </span>
       {onCopy && hovered && (

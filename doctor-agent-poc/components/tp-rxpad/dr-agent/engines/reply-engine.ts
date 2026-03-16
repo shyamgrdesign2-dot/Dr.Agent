@@ -32,6 +32,35 @@ export function buildReply(
 ): ReplyResult {
   const normalized = input.toLowerCase().replace(/[\u2080-\u2089]/g, (ch) => String(ch.charCodeAt(0) - 0x2080))
 
+  // === EXTERNAL EXPORT CTA (Excel / Word) ===
+  if (
+    normalized.includes("excel")
+    || normalized.includes("xlsx")
+    || normalized.includes("spreadsheet")
+    || normalized.includes("word")
+    || normalized.includes("docx")
+    || normalized.includes("document format")
+  ) {
+    const isExcel = normalized.includes("excel") || normalized.includes("xlsx") || normalized.includes("spreadsheet")
+    return {
+      text: isExcel
+        ? "Here's an exportable Excel output for this view."
+        : "Here's an exportable Word document for this view.",
+      rxOutput: {
+        kind: "external_cta",
+        data: {
+          title: isExcel ? "Export ready: Excel" : "Export ready: Word",
+          description: isExcel
+            ? "The requested data is ready in spreadsheet format. Open the file using the link below."
+            : "The requested data is ready in Word format. Open the document using the link below.",
+          ctaLabel: isExcel ? "Open Excel file" : "Open Word document",
+          ctaUrl: isExcel ? "https://example.com/exports/patient-view.xlsx" : "https://example.com/exports/patient-view.docx",
+          openInNewTab: true,
+        },
+      },
+    }
+  }
+
   // === OBSTETRIC SUMMARY (before generic summary) ===
   if ((normalized.includes("obstetric") || normalized.includes("ob summary") || normalized.includes("obstetric history") || normalized.includes("obstetric summary") || normalized.includes("pregnancy summary") || normalized.includes("pregnancy") || normalized.includes("anc summary") || normalized.includes("anc")) && summary.obstetricData) {
     return {
@@ -178,31 +207,23 @@ export function buildReply(
 
   // === REFERRAL ===
   if (normalized.includes("referral") || normalized.includes("refer to") || normalized.includes("specialist referral") || normalized.includes("refer specialist")) {
-    const specialist = summary.obstetricData ? "Dr. Meena Iyer" :
-      summary.ophthalData ? "Dr. Ravi Kumar" :
-      "Dr. Sanjay Mehta"
-    const department = summary.obstetricData ? "Obstetrics & Gynecology" :
-      summary.ophthalData ? "Ophthalmology" : "Specialist Care"
-    const reason = summary.obstetricData
-      ? `Early pregnancy (${summary.obstetricData.gestationalWeeks}) with asthma — needs obstetric co-management`
-      : summary.ophthalData
-        ? `Visual acuity changes — needs refraction and fundoscopy review`
-        : `Multi-specialty evaluation needed for ${(summary.chronicConditions || []).join(", ")}`
     const patientName = "Current Patient"
     return {
-      text: `I've drafted a referral to ${department}. Please review and confirm.`,
+      text: `Here's the incoming referral summary for ${patientName}.`,
       rxOutput: {
         kind: "referral",
         data: {
-          title: "Referral",
-          totalCount: 1,
-          urgentCount: summary.obstetricData ? 1 : 0,
+          title: "Doctor Referral Summary (Incoming)",
+          totalReferrers: 1,
+          totalPatients: 1,
           items: [{
-            patientName,
-            specialist,
-            department,
-            urgency: summary.obstetricData ? "urgent" as const : "routine" as const,
-            reason,
+            doctorName: summary.obstetricData ? "Dr. Meena Iyer" : "Dr. Sanjay Mehta",
+            doctorPhone: "98XXXXXX11",
+            specialty: summary.obstetricData ? "OBG" : "General Medicine",
+            patientsReferred: 1,
+            topReason: summary.obstetricData
+              ? `Early pregnancy (${summary.obstetricData.gestationalWeeks}) with asthma`
+              : `Consultation support for ${(summary.chronicConditions || ["general review"]).join(", ")}`,
           }],
         },
       },
@@ -289,15 +310,21 @@ export function buildReply(
       rxOutput: {
         kind: "billing_summary",
         data: {
+          title: "OPD Billing: This Week",
+          mode: "billing",
           items: [
-            { service: "Consultation Fee", amount: 500, status: "paid" },
-            { service: "Lab Tests (TSH, IgE, CBC)", amount: 1200, status: "pending" },
-            { service: "Nebulization", amount: 300, status: "paid" },
-            { service: "USG (if ordered)", amount: 1500, status: "pending" },
+            { referenceNo: "INV-1001", patientName: "Current Patient", amount: 500, billedAmount: 500, paidAmount: 500, status: "paid_fully" },
+            { referenceNo: "INV-1002", patientName: "Current Patient", amount: 1200, billedAmount: 1200, paidAmount: 0, status: "due" },
+            { referenceNo: "INV-1003", patientName: "Current Patient", amount: 300, billedAmount: 300, paidAmount: 300, status: "paid_fully" },
+            { referenceNo: "INV-1004", patientName: "Current Patient", amount: 80, billedAmount: 80, paidAmount: 80, status: "refunded" },
           ],
-          totalAmount: 3500,
-          totalPaid: 800,
-          balance: 2700,
+          totalBilledAmount: 2080,
+          totalPaidFullyAmount: 1880,
+          totalDueAmount: 1200,
+          totalRefundedAmount: 80,
+          totalAdvanceReceived: 650,
+          totalAdvanceRefunded: 80,
+          totalAdvanceDebited: 200,
         },
       },
     }

@@ -10,11 +10,6 @@ import { downloadAsExcel } from "../../utils/downloadExcel"
 interface Props { data: AnalyticsTableCardData; onPillTap?: (label: string) => void }
 
 export function AnalyticsTableCard({ data, onPillTap }: Props) {
-  const copyAll = () => {
-    const text = data.kpis.map(k => `${k.metric}: ${k.thisWeek} (prev: ${k.lastWeek}, ${k.delta})`).join("\n")
-    navigator.clipboard.writeText(`${data.title}\n${text}${data.insight ? `\nInsight: ${data.insight}` : ""}`)
-  }
-
   const handleDownload = () => {
     downloadAsExcel(
       "weekly_kpis",
@@ -27,8 +22,6 @@ export function AnalyticsTableCard({ data, onPillTap }: Props) {
     <CardShell
       icon={<StatusUp size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
       title={data.title}
-      copyAll={copyAll}
-      copyAllTooltip="Copy KPI data"
       sidebarLink={<SidebarLink text="Download as Excel" onClick={handleDownload} />}
       actions={
         <>

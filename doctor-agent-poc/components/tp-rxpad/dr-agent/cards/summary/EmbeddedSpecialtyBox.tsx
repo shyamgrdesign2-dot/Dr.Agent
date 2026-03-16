@@ -48,6 +48,7 @@ export function EmbeddedSpecialtyBox({ data }: EmbeddedSpecialtyBoxProps) {
           tagIcon="Obstetric"
           tagVariant="specialty"
           values={values}
+          source="existing"
         />
       </div>
     )
@@ -91,6 +92,7 @@ export function EmbeddedSpecialtyBox({ data }: EmbeddedSpecialtyBoxProps) {
           tagIcon="empathy"
           tagVariant="specialty"
           values={values}
+          source="existing"
         />
       </div>
     )
@@ -125,6 +127,7 @@ export function EmbeddedSpecialtyBox({ data }: EmbeddedSpecialtyBoxProps) {
           tagIcon="Gynec"
           tagVariant="specialty"
           values={values}
+          source="existing"
         />
       </div>
     )
@@ -152,6 +155,7 @@ export function EmbeddedSpecialtyBox({ data }: EmbeddedSpecialtyBoxProps) {
           tagIcon="eye"
           tagVariant="specialty"
           values={values}
+          source="existing"
         />
       </div>
     )

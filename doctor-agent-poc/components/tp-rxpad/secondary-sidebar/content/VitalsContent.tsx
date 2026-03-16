@@ -109,7 +109,7 @@ function VitalsDateCard({
   const { headerRef, isStuck } = useStickyHeaderState();
 
   return (
-    <div className="relative shrink-0 w-full" style={tpSectionCardStyle}>
+    <div className="group/date-card relative shrink-0 w-full" style={tpSectionCardStyle}>
       <button
         type="button"
         ref={headerRef as React.Ref<HTMLButtonElement>}
@@ -129,10 +129,10 @@ function VitalsDateCard({
               {block.dateLabel}
             </p>
             <div className="flex items-center gap-1.5">
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="opacity-0 transition-opacity group-hover/date-card:opacity-100">
                 <AiTriggerIcon
-                  tooltip="Analyze vitals"
-                  signalLabel={`Analyze vitals for ${block.dateLabel}`}
+                  tooltip={`Summarize vitals from ${block.dateLabel}`}
+                  signalLabel={`Summarize ${block.dateLabel} vitals`}
                   sectionId="vitals"
                   size={12}
                   as="span"

@@ -15,6 +15,8 @@ interface AiTriggerIconProps {
   size?: number
   /** Use "span" when nested inside a <button> to avoid invalid HTML */
   as?: "button" | "span"
+  /** Visual tone for different backgrounds */
+  tone?: "default" | "inverse"
   className?: string
 }
 
@@ -28,6 +30,7 @@ export function AiTriggerIcon({
   sectionId,
   size = 14,
   as: Tag = "button",
+  tone = "default",
   className,
 }: AiTriggerIconProps) {
   const { publishSignal } = useRxPadSync()
@@ -58,10 +61,14 @@ export function AiTriggerIcon({
       style={{
         width: size + 8,
         height: size + 8,
-        background: AI_GRADIENT_SOFT,
+        background: tone === "inverse" ? "rgba(255,255,255,0.16)" : AI_GRADIENT_SOFT,
+        border: tone === "inverse" ? "1px solid rgba(255,255,255,0.28)" : undefined,
       }}
     >
-      <AiBrandSparkIcon size={size} />
+      <AiBrandSparkIcon
+        size={size}
+        className={tone === "inverse" ? "[filter:brightness(0)_invert(1)] opacity-95" : undefined}
+      />
     </Tag>
   )
 }

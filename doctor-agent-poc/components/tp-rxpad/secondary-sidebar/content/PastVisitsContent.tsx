@@ -303,7 +303,7 @@ function CopyAffordance({
   onCopy,
   showOnHover = true,
   hideOnTouch = false,
-  copyHint = "Copy to RxPad",
+  copyHint = "Fill to RxPad",
   copiedLabel = "Copied to RxPad",
   className,
 }: {
@@ -379,7 +379,7 @@ function CopyAffordance({
 
 function TapCopyTooltip({
   onCopy,
-  copyHint = "Copy to RxPad",
+  copyHint = "Fill to RxPad",
   copiedLabel = "Copied to RxPad",
   className,
   children,
@@ -443,7 +443,7 @@ function TapCopyTooltip({
               color={copied ? "var(--tp-success-600)" : "var(--tp-blue-500)"}
               variant={copied ? "Bulk" : "Linear"}
             />
-            <span>{copied ? "Done" : "Copy to RxPad"}</span>
+            <span>{copied ? "Done" : "Fill to RxPad"}</span>
           </button>
         </div>
       </TooltipContent>
@@ -520,17 +520,17 @@ function DateHeader({
             <CopyAffordance
               onCopy={onCopyDate}
               showOnHover={false}
-              copyHint={`Copy all details from ${dateLabel} to RxPad`}
+              copyHint={`Fill all details from ${dateLabel} to RxPad`}
               copiedLabel={`${dateLabel} copied to RxPad`}
             />
           ) : null}
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="opacity-0 transition-opacity group-hover/date-card:opacity-100">
             <AiTriggerIcon
               tooltip={`Ask Dr.Agent about ${dateLabel} visit`}
-              signalLabel={`Analyze visit from ${dateLabel}`}
+              signalLabel={`Summarize ${dateLabel} visit summary`}
               sectionId="past-visits"
               size={12}
               as="span"
@@ -557,7 +557,7 @@ function RxTabStrip({
   onSwitch: (value: RxTab) => void
 }) {
   return (
-    <div className="bg-white shrink-0 sticky top-[34px] w-full z-[3]">
+    <div className="bg-white shrink-0 sticky top-[40px] w-full z-[3]">
       <div className="flex items-center pb-[10px] pt-[10px] px-[8px] gap-0 w-full">
         <button
           onClick={() => onSwitch("digital")}
@@ -648,7 +648,7 @@ function ListSection({
         <div className="flex h-[16px] w-[16px] shrink-0 items-center justify-center">{icon}</div>
         <TapCopyTooltip
           onCopy={onCopySection}
-          copyHint={`Copy ${sectionDescriptions[title] ?? "all items"} to RxPad`}
+          copyHint={`Fill ${sectionDescriptions[title] ?? "all items"} to RxPad`}
           copiedLabel={`${title} copied to RxPad`}
         >
           <span className="font-sans font-semibold text-tp-slate-700 text-[14px] tracking-[0.012px] leading-[20px]">{title}</span>
@@ -658,7 +658,7 @@ function ListSection({
           className="ml-auto"
           showOnHover
           hideOnTouch
-          copyHint={`Copy ${sectionDescriptions[title] ?? "all items"} to RxPad`}
+          copyHint={`Fill ${sectionDescriptions[title] ?? "all items"} to RxPad`}
           copiedLabel={`${title} copied to RxPad`}
         />
       </div>
@@ -672,7 +672,7 @@ function ListSection({
               <div className="flex items-start justify-between gap-1.5">
                 <TapCopyTooltip
                   className="min-w-0 flex-1"
-                  copyHint={`Copy ${itemDescriptions[title] ?? "this item"} to RxPad`}
+                  copyHint={`Fill ${itemDescriptions[title] ?? "this item"} to RxPad`}
                   copiedLabel={`${item.label} copied to RxPad`}
                   onCopy={() => onCopyItem(item)}
                 >
@@ -687,7 +687,7 @@ function ListSection({
                   onCopy={() => onCopyItem(item)}
                   showOnHover
                   hideOnTouch
-                  copyHint={`Copy ${itemDescriptions[title] ?? "this item"} to RxPad`}
+                  copyHint={`Fill ${itemDescriptions[title] ?? "this item"} to RxPad`}
                   copiedLabel={`${item.label} copied to RxPad`}
                 />
               </div>
@@ -714,7 +714,7 @@ function AdviceSection({
         </div>
         <TapCopyTooltip
           onCopy={onCopy}
-          copyHint="Copy all advice to RxPad"
+          copyHint="Fill all advice to RxPad"
           copiedLabel="Advice copied to RxPad"
         >
           <span className="font-sans font-semibold text-tp-slate-700 text-[14px] tracking-[0.012px] leading-[20px]">Advice</span>
@@ -730,7 +730,7 @@ function AdviceSection({
       <TapCopyTooltip
         className="w-full pl-[18px]"
         onCopy={onCopy}
-        copyHint="Copy this advice to RxPad"
+        copyHint="Fill this advice to RxPad"
         copiedLabel="Advice copied to RxPad"
       >
         <span className="font-sans text-[14px] leading-[20px] text-tp-slate-600">{advice}</span>
@@ -754,7 +754,7 @@ function FollowUpSection({
         </div>
         <TapCopyTooltip
           onCopy={onCopy}
-          copyHint="Copy all follow-up details to RxPad"
+          copyHint="Fill all follow-up details to RxPad"
           copiedLabel="Follow-up copied to RxPad"
         >
           <span className="font-sans font-semibold text-tp-slate-700 text-[14px] tracking-[0.012px] leading-[20px]">Follow Up</span>
@@ -770,7 +770,7 @@ function FollowUpSection({
       <TapCopyTooltip
         className="w-full pl-[18px]"
         onCopy={onCopy}
-        copyHint="Copy this follow-up to RxPad"
+        copyHint="Fill this follow-up to RxPad"
         copiedLabel="Follow-up copied to RxPad"
       >
         <span className="font-sans text-[14px] leading-[20px] text-tp-slate-600">{followUp}</span>
@@ -906,8 +906,9 @@ export function PastVisitsContent() {
 
   return (
     <>
-      <div className="flex-[1_0_0] min-h-px min-w-px relative w-full overflow-y-auto" data-sticky-scroll-root="true">
-        <div className="content-stretch flex flex-col gap-[12px] items-start p-[12px] relative w-full">
+      <div className="content-stretch flex flex-col items-center relative size-full">
+        <div className="flex-[1_0_0] min-h-px min-w-px relative w-full overflow-y-auto" data-sticky-scroll-root="true">
+          <div className="content-stretch flex flex-col gap-[12px] items-start p-[12px] relative w-full">
           {orderedVisits.map((entry) => {
             const expanded = Boolean(expandedState[entry.id])
             const hasDigital = Boolean(entry.digitalRx)
@@ -917,7 +918,7 @@ export function PastVisitsContent() {
             const showWritten = expanded && hasWritten && (!hasDigital || activeTab === "written")
 
             return (
-              <div key={entry.id} className="relative shrink-0 w-full" style={tpSectionCardStyle}>
+              <div key={entry.id} className="group/date-card relative shrink-0 w-full" style={tpSectionCardStyle}>
                 <DateHeader
                   dateLabel={entry.dateLabel}
                   expanded={expanded}
@@ -1010,6 +1011,7 @@ export function PastVisitsContent() {
               </div>
             )
           })}
+          </div>
         </div>
       </div>
 

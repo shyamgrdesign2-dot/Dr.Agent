@@ -19,7 +19,17 @@ const SECTION_ICON_MAP: Record<string, string> = {
 }
 
 /** Sections where copy-to-RxPad makes sense */
-const COPYABLE_SECTIONS = new Set(["Symptoms", "Diagnosis", "Medication", "Investigation", "Advice"])
+const COPYABLE_SECTIONS = new Set([
+  "Symptoms",
+  "Examination",
+  "Diagnosis",
+  "Medication",
+  "Investigation",
+  "Advice",
+  "Follow-up",
+  "Surgery",
+  "Additional Notes",
+])
 
 interface LastVisitCardProps {
   data: LastVisitCardData
@@ -28,7 +38,7 @@ interface LastVisitCardProps {
   onCopy?: () => void
 }
 
-/* ── helper: copy text to clipboard ── */
+/* ── helper: fill text to RxPad ── */
 function copyText(text: string) {
   navigator.clipboard?.writeText(text)
 }
@@ -96,7 +106,7 @@ export function LastVisitCard({
           : undefined
       }
       copyAll={onCopy}
-      copyAllTooltip="Copy last visit data to RxPad"
+      copyAllTooltip="Fill last visit data to RxPad"
       collapsible
       actions={
         <ChatPillButton

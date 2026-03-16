@@ -53,7 +53,7 @@ export function InvestigationCard({
         const names = selectedCount > 0 ? selectedNames : data.items.map(i => i.name)
         navigator.clipboard?.writeText(names.join("\n"))
       }}
-      copyAllTooltip={selectedCount > 0 ? `Copy ${selectedCount} selected to clipboard` : "Copy all to clipboard"}
+      copyAllTooltip={selectedCount > 0 ? `Fill ${selectedCount} selected to RxPad` : "Fill all to RxPad"}
       actions={
         <>
           <ChatPillButton label="Suggest more" onClick={() => onPillTap?.("Suggest more investigations")} />
@@ -63,12 +63,12 @@ export function InvestigationCard({
       sidebarLink={
         selectedCount > 0 ? (
           <SidebarLink
-            text={`Copy selected to RxPad (${selectedCount})`}
+            text={`Fill selected to RxPad (${selectedCount})`}
             onClick={() => onCopy?.(data.copyPayload)}
           />
         ) : (
           <SidebarLink
-            text="Copy all to RxPad"
+            text="Fill all to RxPad"
             onClick={() => onCopy?.(data.copyPayload)}
           />
         )

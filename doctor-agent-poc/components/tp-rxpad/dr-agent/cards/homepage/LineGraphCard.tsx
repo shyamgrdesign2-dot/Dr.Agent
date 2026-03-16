@@ -31,11 +31,6 @@ export function LineGraphCard({ data, onPillTap }: Props) {
   const dirArrow = data.changeDirection === "up" ? "\u2191" : data.changeDirection === "down" ? "\u2193" : "\u2192"
   const dirColor = data.changeDirection === "up" ? "#15803D" : data.changeDirection === "down" ? "#DC2626" : "#6D28D9"
 
-  const copyAll = () => {
-    const text = data.points.map(p => `${p.label}: ${p.value}`).join("\n")
-    navigator.clipboard.writeText(`${data.title}\nAverage: ${data.average}\nChange: ${dirArrow} ${data.changePercent}\n${text}`)
-  }
-
   const handleDownload = () => {
     downloadAsExcel(
       "patient_volume",
@@ -49,8 +44,6 @@ export function LineGraphCard({ data, onPillTap }: Props) {
       icon={<TrendUp size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
       title={data.title}
       badge={{ label: `${dirArrow} ${data.changePercent}`, color: dirColor, bg: data.changeDirection === "up" ? "#DCFCE7" : data.changeDirection === "down" ? "#FEE2E2" : "#EDE9FE" }}
-      copyAll={copyAll}
-      copyAllTooltip="Copy volume data"
       sidebarLink={<SidebarLink text="Download as Excel" onClick={handleDownload} />}
       actions={
         <>

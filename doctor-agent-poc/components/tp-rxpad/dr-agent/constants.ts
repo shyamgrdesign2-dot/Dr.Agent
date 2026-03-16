@@ -146,7 +146,10 @@ export const SECTION_TAGS: Record<string, SectionTagConfig> = {
 export const AI_GRADIENT = "linear-gradient(91deg, #D565EA 3.04%, #673AAC 66.74%, #1A1994 130.45%)"
 export const AI_GRADIENT_SOFT = "linear-gradient(135deg, rgba(213,101,234,0.08) 0%, rgba(103,58,172,0.08) 50%, rgba(26,25,148,0.08) 100%)"
 export const AI_GRADIENT_BORDER = "linear-gradient(135deg, rgba(213,101,234,0.3) 0%, rgba(103,58,172,0.3) 50%, rgba(26,25,148,0.3) 100%)"
-export const AI_GRADIENT_SOFT_ANIMATED = "linear-gradient(135deg, rgba(213,101,234,0.10) 0%, rgba(180,80,220,0.08) 25%, rgba(103,58,172,0.10) 50%, rgba(60,40,160,0.08) 75%, rgba(26,25,148,0.10) 100%)"
+
+// ═══════════════ AI ANIMATED GRADIENT (subtle flow for canned message icons) ═══════════════
+export const AI_GRADIENT_SOFT_ANIMATED =
+  "linear-gradient(135deg, rgba(213,101,234,0.18) 0%, rgba(139,92,246,0.22) 25%, rgba(103,58,172,0.18) 50%, rgba(26,25,148,0.15) 75%, rgba(213,101,234,0.18) 100%)"
 
 // ═══════════════ AI PILL STYLING ═══════════════
 export const AI_PILL_BG = "linear-gradient(135deg, rgba(213,101,234,0.08) 0%, rgba(103,58,172,0.08) 50%, rgba(26,25,148,0.08) 100%)"

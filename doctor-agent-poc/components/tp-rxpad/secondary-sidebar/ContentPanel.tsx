@@ -4,6 +4,7 @@
  */
 import React from "react";
 import { SidebarLeft } from "iconsax-reactjs";
+import { AiTriggerIcon } from "@/components/tp-rxpad/dr-agent/shared/AiTriggerIcon";
 
 // ─── Content imports ──────────────────────────────────────────────────────────
 
@@ -43,18 +44,59 @@ const SECTION_TITLES: Record<NavItemId, string> = {
 
 // ─── Section header (gradient bar) ───────────────────────────────────────────
 
-function SectionHeader({ title, onClose }: { title: string; onClose?: () => void }) {
+function sectionHeaderAiLabel(activeId: NavItemId, title: string): string | null {
+  switch (activeId) {
+    case "pastVisits":
+      return "Summarize all past visits"
+    case "vitals":
+      return "Summarize all vitals"
+    case "history":
+      return "Summarize medical history"
+    case "gynec":
+      return "Summarize gynec history"
+    case "obstetric":
+      return "Summarize obstetric history"
+    case "vaccine":
+      return "Summarize vaccination history"
+    case "growth":
+      return "Summarize growth trends"
+    case "labResults":
+      return "Summarize all lab results"
+    case "personalNotes":
+      return "Summarize personal notes"
+    // Keep records unchanged as requested.
+    case "medicalRecords":
+      return null
+    default:
+      return `Summarize ${title.toLowerCase()}`
+  }
+}
+
+function SectionHeader({ title, activeId, onClose }: { title: string; activeId: NavItemId; onClose?: () => void }) {
+  const headerSignalLabel = sectionHeaderAiLabel(activeId, title)
   return (
     <div
-      className="h-[40px] shrink-0 w-full relative"
+      className="group/section-header h-[40px] shrink-0 w-full relative"
       style={{ backgroundImage: "linear-gradient(101.381deg, rgb(55,54,166) 2.0111%, rgb(38,38,136) 83.764%)" }}
     >
       <div className="content-stretch flex gap-[24px] items-center px-[12px] py-[8px] relative size-full">
         {/* Title */}
-        <div className="content-stretch flex flex-[1_0_0] items-center min-h-px min-w-px relative">
+        <div className="content-stretch flex flex-[1_0_0] items-center gap-[6px] min-h-px min-w-px relative">
           <p className={`${rxSidebarTokens.titleClass} not-italic relative shrink-0 text-white whitespace-nowrap`}>
             {title}
           </p>
+          {headerSignalLabel ? (
+            <span className="opacity-0 transition-opacity group-hover/section-header:opacity-100">
+              <AiTriggerIcon
+                tooltip={headerSignalLabel}
+                signalLabel={headerSignalLabel}
+                sectionId={activeId}
+                size={11}
+                as="span"
+                tone="inverse"
+              />
+            </span>
+          ) : null}
         </div>
         {/* Collapse icon */}
         <button
@@ -101,7 +143,7 @@ export function ContentPanel({ activeId, onClose }: Props) {
   return (
     <div className="bg-white content-stretch flex h-full w-[250px] min-w-[250px] max-w-[250px] shrink-0 flex-col items-center relative xl:w-[clamp(250px,26vw,350px)] xl:max-w-[350px]">
       <div aria-hidden="true" className={`absolute ${rxSidebarTokens.panelBorderClass} border-r border-solid inset-[0_-1px_0_0] pointer-events-none`} />
-      <SectionHeader title={SECTION_TITLES[activeId]} onClose={onClose} />
+      <SectionHeader title={SECTION_TITLES[activeId]} activeId={activeId} onClose={onClose} />
       {/* flex-[1_0_0] + min-h-px → constrains height so inner overflow-y-auto works */}
       <div className="flex-[1_0_0] min-h-px min-w-px relative w-full">
         <div className="absolute inset-0 flex flex-col">

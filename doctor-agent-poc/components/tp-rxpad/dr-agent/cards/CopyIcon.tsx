@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { DocumentCopy } from "iconsax-reactjs"
+import { Copy } from "iconsax-reactjs"
 import { cn } from "@/lib/utils"
 
 interface CopyIconProps {
@@ -21,11 +21,11 @@ export function CopyIcon({ size = 14, onClick, className }: CopyIconProps) {
       onMouseLeave={() => setHovered(false)}
       className={cn(
         "flex-shrink-0 cursor-pointer transition-colors",
-        hovered ? "text-tp-slate-500" : "text-tp-slate-600",
+        hovered ? "text-tp-blue-600" : "text-tp-blue-500",
         className,
       )}
     >
-      <DocumentCopy size={size} variant={hovered ? "Bulk" : "Linear"} />
+      <Copy size={size} variant={hovered ? "Bulk" : "Linear"} />
     </button>
   )
 }

@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { ChevronDown, SendHorizontal } from "lucide-react"
 
-import { AiBrandSparkIcon, AI_GRADIENT_SOFT } from "@/components/doctor-agent/ai-brand"
+import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
+import { AiGradientBg } from "@/components/tp-rxpad/dr-agent/shared/AiGradientBg"
 import {
   type AgentChatMessage,
   type AgentPatientContext,
@@ -51,9 +52,9 @@ function DynamicOutputCard({
   return (
     <div className="rounded-[10px] border border-tp-violet-100 bg-white p-2 shadow-[0_8px_16px_-14px_rgba(103,58,172,0.55)]">
       <div className="mb-1.5 flex items-center gap-1.5">
-        <span className="inline-flex size-5 items-center justify-center rounded-md" style={{ background: AI_GRADIENT_SOFT }}>
+        <AiGradientBg size={20} borderRadius={6}>
           <AiBrandSparkIcon size={14} />
-        </span>
+        </AiGradientBg>
         <div className="min-w-0">
           <p className="truncate text-[10px] font-semibold text-tp-slate-700">{title}</p>
           <p className="truncate text-[9px] text-tp-slate-500">{subtitle}</p>
@@ -153,9 +154,9 @@ export function DrAgentContent() {
     <div className="content-stretch flex size-full flex-col">
       <div className="border-b border-tp-slate-100 px-[10px] py-[8px]">
         <div className="mb-[7px] flex items-center gap-[6px]">
-          <span className="inline-flex size-[20px] items-center justify-center rounded-[6px]" style={{ background: AI_GRADIENT_SOFT }}>
+          <AiGradientBg size={20} borderRadius={6}>
             <AiBrandSparkIcon size={14} />
-          </span>
+          </AiGradientBg>
           <p className="text-[11px] font-semibold text-tp-slate-700">Doctor Agent</p>
         </div>
         <div className="relative">
@@ -177,9 +178,9 @@ export function DrAgentContent() {
       <div ref={scrollRef} className="flex-[1_0_0] space-y-[8px] overflow-y-auto p-[10px]">
         <div className="rounded-[10px] border border-tp-violet-100 bg-white p-[8px] shadow-[0_8px_16px_-14px_rgba(103,58,172,0.55)]">
           <div className="mb-[4px] flex items-center gap-[6px]">
-            <span className="inline-flex size-[18px] items-center justify-center rounded-[5px]" style={{ background: AI_GRADIENT_SOFT }}>
+            <AiGradientBg size={18} borderRadius={5}>
               <AiBrandSparkIcon size={11} />
-            </span>
+            </AiGradientBg>
             <p className="text-[10px] font-semibold text-tp-slate-700">Patient Summary</p>
           </div>
           <p className="text-[10px] leading-[15px] text-tp-slate-600">
@@ -224,9 +225,9 @@ export function DrAgentContent() {
             </div>
             <div className="rounded-[10px] border border-tp-violet-100 bg-white p-[8px]">
               <div className="mb-2 flex items-center gap-1.5">
-                <span className="inline-flex size-5 items-center justify-center rounded-md" style={{ background: AI_GRADIENT_SOFT }}>
+                <AiGradientBg size={20} borderRadius={6}>
                   <AiBrandSparkIcon size={14} />
-                </span>
+                </AiGradientBg>
                 <p className="text-[10px] font-semibold text-tp-slate-700">Generating dynamic output</p>
               </div>
               <div className="space-y-1">
