@@ -2352,8 +2352,10 @@ function TopHeader() {
           className="flex size-[42px] items-center justify-center"
           aria-label="Play tutorial"
         >
-          <TutorialPlayIcon size={28} />
+          <TutorialPlayIcon size={42} />
         </button>
+
+        <div className="bg-gradient-to-b from-[rgba(208,213,221,0.2)] h-[42px] opacity-80 shrink-0 to-[rgba(208,213,221,0.2)] via-1/2 via-[#d0d5dd] w-[1.05px]" />
 
         <button
           type="button"
@@ -2372,7 +2374,7 @@ function TopHeader() {
           onClick={() => router.push("/tp-appointment-screen/scenarios")}
         />
 
-        <div className="h-[42px] w-px bg-tp-slate-300 opacity-80" />
+        <div className="bg-gradient-to-b from-[rgba(208,213,221,0.2)] h-[42px] opacity-80 shrink-0 to-[rgba(208,213,221,0.2)] via-1/2 via-[#d0d5dd] w-[1.05px]" />
 
         {/* Clinic selector with search + scrollable list */}
         <div className="relative hidden sm:block" ref={clinicMenuRef}>
