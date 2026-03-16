@@ -1,0 +1,51 @@
+"use client"
+
+import { CardShell } from "../CardShell"
+import { ChatPillButton } from "../ActionRow"
+import type { ClinicalGuidelineCardData } from "../../types"
+
+interface Props {
+  data: ClinicalGuidelineCardData
+  onPillTap?: (label: string) => void
+}
+
+const EVIDENCE_BADGE: Record<string, { color: string; bg: string }> = {
+  A: { color: "#22C55E", bg: "#F0FDF4" },
+  B: { color: "#3B82F6", bg: "#EFF6FF" },
+  C: { color: "#F59E0B", bg: "#FFFBEB" },
+}
+
+export function ClinicalGuidelinesCard({ data, onPillTap }: Props) {
+  const badge = EVIDENCE_BADGE[data.evidenceLevel] ?? EVIDENCE_BADGE.C
+
+  return (
+    <CardShell
+      icon={<span />}
+      tpIconName="book"
+      title={data.title}
+      badge={{ label: `Evidence ${data.evidenceLevel}`, color: badge.color, bg: badge.bg }}
+      actions={
+        <ChatPillButton label="Apply to Rx" onClick={() => onPillTap?.("Apply to Rx")} />
+      }
+    >
+      {/* Condition */}
+      <div className="mb-[6px] rounded-[6px] bg-tp-slate-50 px-2.5 py-[4px] text-[12px] text-tp-slate-500">
+        <span className="font-medium text-tp-slate-600">Condition:</span>{" "}
+        {data.condition}
+      </div>
+
+      {/* Recommendations */}
+      <div className="mb-[6px] space-y-[3px]">
+        {data.recommendations.map((rec, i) => (
+          <div key={i} className="flex items-start gap-[6px] text-[12px] leading-[1.5] text-tp-slate-700">
+            <span className="mt-[2px] flex-shrink-0 text-tp-blue-400">•</span>
+            <span>{rec}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Source */}
+      <p className="text-[10px] text-tp-slate-400">Source: {data.source}</p>
+    </CardShell>
+  )
+}

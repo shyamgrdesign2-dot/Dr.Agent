@@ -1,0 +1,83 @@
+"use client"
+
+import React, { useState } from "react"
+import { CardShell } from "../CardShell"
+import { CopyIcon } from "../CopyIcon"
+import { ChatPillButton } from "../ActionRow"
+import { SidebarLink } from "../SidebarLink"
+import type { RxPadCopyPayload } from "@/components/tp-rxpad/rxpad-sync-context"
+
+interface AdviceCardProps {
+  data: {
+    title: string
+    items: string[]
+    shareMessage: string
+    copyPayload: RxPadCopyPayload
+  }
+  onCopy?: (payload: RxPadCopyPayload) => void
+  onPillTap?: (label: string) => void
+}
+
+export function AdviceCard({ data, onCopy, onPillTap }: AdviceCardProps) {
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+
+  const handleCopyItem = (item: string, index: number) => {
+    navigator.clipboard?.writeText(item)
+    setCopiedIndex(index)
+    setTimeout(() => setCopiedIndex(null), 1200)
+  }
+
+  const handleShare = () => {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      navigator.share({ text: data.shareMessage }).catch(() => {})
+    }
+  }
+
+  return (
+    <CardShell
+      icon={<span />}
+      tpIconName="clipboard-activity"
+      title={data.title}
+      copyAll={() => onCopy?.(data.copyPayload)}
+      copyAllTooltip="Fill advice to RxPad"
+      collapsible
+      actions={
+        <>
+          <ChatPillButton
+            label="Schedule follow-up"
+            onClick={() => onPillTap?.("Schedule follow-up")}
+          />
+          <ChatPillButton
+            label="Simplify language"
+            onClick={() => onPillTap?.("Simplify language")}
+          />
+        </>
+      }
+      sidebarLink={
+        <SidebarLink text="Share via WhatsApp" onClick={handleShare} />
+      }
+    >
+      <ul className="flex flex-col gap-[2px]">
+        {data.items.map((item, i) => (
+          <li
+            key={i}
+            className="group/advice-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[3px] text-[12px] leading-[1.5] text-tp-slate-700 transition-colors hover:bg-tp-slate-50"
+          >
+            <span className="mt-[1px] flex-shrink-0 text-tp-slate-400">•</span>
+            <span className="flex-1">{item}</span>
+            <span className="flex-shrink-0 opacity-0 group-hover/advice-item:opacity-100 transition-opacity">
+              {copiedIndex === i ? (
+                <span className="text-[10px] text-tp-success-500 font-medium">Copied</span>
+              ) : (
+                <CopyIcon
+                  size={14}
+                  onClick={() => handleCopyItem(item, i)}
+                />
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </CardShell>
+  )
+}
