@@ -502,7 +502,7 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       advice: "Continue renal diet, monitor BP daily, fluid intake <1.5L/day",
       followUp: "2 weeks — review labs and PD adequacy",
     },
-    labFlagCount: 12,
+    labFlagCount: 13,
     todayVitals: { bp: "158/92", pulse: "88", spo2: "94", temp: "98.2", weight: "72", height: "168", bmi: "25.5" },
     activeMeds: [
       "Insulin Glargine 18U HS",
@@ -530,6 +530,7 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       { name: "Albumin", value: "3.1", unit: "g/dL", flag: "low", refRange: "3.5-5.5" },
       { name: "Bicarbonate", value: "18", unit: "mEq/L", flag: "low", refRange: "22-28" },
       { name: "Ferritin", value: "42", unit: "ng/mL", flag: "low", refRange: "100-500" },
+      { name: "FBS", value: "186", unit: "mg/dL", flag: "high", refRange: "70-100" },
     ],
     dueAlerts: [
       "PD adequacy test (Kt/V) — quarterly, overdue",
@@ -546,6 +547,7 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
     // ── SBAR / Provenance fields (Phase 3 — new for this patient) ──
     sbarSituation:
       "76M CKD5 on PD — K+ 5.8 (HIGH), eGFR 11 (declining), BP 158/92. 2 ER admissions in 12mo for fluid overload. Assess PD adequacy and fluid status.",
+    dataCompleteness: { emr: 45, ai: 30, missing: 25 },
     dataProvenance: {
       "eGFR": { source: "emr", confidence: "high" },
       "Creatinine": { source: "emr", confidence: "high" },
@@ -559,6 +561,7 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       "Albumin": { source: "emr", confidence: "high" },
       "Bicarbonate": { source: "emr", confidence: "high" },
       "Ferritin": { source: "ai_extracted", confidence: "medium", extractedFrom: "External clinic report (Jan 2026)" },
+      "FBS": { source: "ai_extracted", confidence: "medium", extractedFrom: "Printed lab report PDF (Feb 2026)" },
       "Furosemide": { source: "ai_extracted", confidence: "medium", extractedFrom: "Handwritten Rx, Aug 2025 — dose ambiguous" },
       "bp": { source: "emr", confidence: "high" },
       "spo2": { source: "emr", confidence: "high" },
@@ -597,6 +600,44 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       { text: "Order Ferritin + Transferrin saturation — iron panel not in any source", tier: "gather", gatedBy: "Ferritin not available" },
       { text: "Chase echo result — ordered post-ER Feb 2026, not returned to EMR", tier: "gather", gatedBy: "Echo not available" },
       { text: "Refer ophthalmology — retinal screening overdue >14 months", tier: "gather", gatedBy: "Retinal screening not available" },
+    ],
+    pomrProblems: [
+      {
+        problem: "CKD Stage 5 / Peritoneal Dialysis",
+        status: "Active — critical",
+        statusColor: "#EF4444",
+        completeness: { emr: 70, ai: 15, missing: 15 },
+        labKeys: ["eGFR", "Creatinine", "BUN", "K+", "Phosphorus", "Bicarbonate"],
+        missingKeys: ["Kt/V", "PET"],
+      },
+      {
+        problem: "Hypertension",
+        status: "Uncontrolled",
+        statusColor: "#D97706",
+        completeness: { emr: 50, ai: 30, missing: 20 },
+        labKeys: [],
+        vitalKeys: ["bp"],
+        medKeys: ["Amlodipine 10mg OD", "Telmisartan 40mg OD", "Furosemide 40mg BD"],
+        missingKeys: ["Echo"],
+      },
+      {
+        problem: "Type 2 Diabetes Mellitus",
+        status: "Poorly controlled",
+        statusColor: "#D97706",
+        completeness: { emr: 30, ai: 55, missing: 15 },
+        labKeys: ["HbA1c", "FBS"],
+        medKeys: ["Insulin Glargine 18U HS", "Insulin Aspart 8-8-8U AC"],
+        missingKeys: ["Retinal screening"],
+      },
+      {
+        problem: "Anaemia of CKD",
+        status: "Suboptimal",
+        statusColor: "#D97706",
+        completeness: { emr: 40, ai: 20, missing: 40 },
+        labKeys: ["Hb", "Ferritin"],
+        medKeys: ["EPO 4000U SC 2x/wk"],
+        missingKeys: ["Transferrin saturation"],
+      },
     ],
     symptomCollectorData: {
       reportedAt: "15 Mar'26, 09:12 AM",

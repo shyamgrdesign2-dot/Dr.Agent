@@ -7027,7 +7027,7 @@ function buildClinicalAlerts(s: SmartSummaryData, specialty: SpecialtyTabId): Ar
 
 function buildCollapsedInfo(s: SmartSummaryData, specialty: SpecialtyTabId): { tokens: string[]; hasAllergy: boolean; abnormalLabCount: number; abnormalVitalCount: number } {
   const hasAllergy = !!s.allergies?.length
-  const abnormalLabCount = s.keyLabs?.filter((l) => l.flag === "high" || l.flag === "low").length ?? 0
+  const abnormalLabCount = s.keyLabs?.filter((l) => l.flag === "high" || l.flag === "low" || l.flag === "critical").length ?? 0
   let abnormalVitalCount = 0
   if (s.todayVitals) {
     for (const [key, value] of Object.entries(s.todayVitals)) {
@@ -7058,7 +7058,13 @@ function buildCollapsedInfo(s: SmartSummaryData, specialty: SpecialtyTabId): { t
     if (p.weightPercentile) tokens.push(`Wt ${p.weightPercentile}`)
     if (p.vaccinesOverdue) tokens.push(`${p.vaccinesOverdue} vax overdue`)
   } else {
-    if (s.chronicConditions?.length) tokens.push(s.chronicConditions.slice(0, 2).join(", "))
+    // For patients with SBAR data, show critical lab values as tokens for instant triage
+    if ((s as any).sbarSituation && s.keyLabs?.length) {
+      const criticals = s.keyLabs.filter(l => l.flag === "critical" || l.flag === "high").slice(0, 3)
+      if (criticals.length) tokens.push(...criticals.map(c => `${c.name} ${c.value}${c.flag === "critical" ? " ↑" : ""}`))
+    } else {
+      if (s.chronicConditions?.length) tokens.push(s.chronicConditions.slice(0, 2).join(", "))
+    }
     if (s.followUpOverdueDays > 0) tokens.push("F/U Overdue")
   }
   return { tokens, hasAllergy, abnormalLabCount, abnormalVitalCount }
@@ -7375,8 +7381,11 @@ function PatientSummaryCard({
                         <span
                           className="size-[4px] rounded-full"
                           style={{ backgroundColor: provDot }}
-                          title={prov?.source === "emr" ? "EMR data" : prov?.source === "ai_extracted" ? `AI-extracted: ${prov.extractedFrom || "uploaded document"}` : "Not available"}
+                          title={prov?.source === "emr" ? "Source: EMR (verified)" : prov?.source === "ai_extracted" ? `Source: AI-extracted from ${prov.extractedFrom || "uploaded document"} — verify before acting` : "Not available in any source — needs ordering"}
                         />
+                      )}
+                      {prov?.source === "ai_extracted" && prov.extractedFrom && (
+                        <span className="text-[8px] italic text-[#D97706]" title={prov.extractedFrom}>(from PDF)</span>
                       )}
                     </div>
                     <span className={cn("text-[12px] font-semibold",
@@ -7397,6 +7406,104 @@ function PatientSummaryCard({
             </div>
           )
         })() : null}
+
+        {/* ─── 3b. POMR PROBLEM CARDS (only for patients with pomrProblems) ─── */}
+        {(s as any).pomrProblems?.length > 0 && (() => {
+          const pomrProblems = (s as any).pomrProblems as Array<{
+            problem: string; status: string; statusColor: string
+            completeness: { emr: number; ai: number; missing: number }
+            labKeys: string[]; vitalKeys?: string[]; medKeys?: string[]; missingKeys?: string[]
+          }>
+          return (
+            <div className="mb-1">
+              <div className="mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]">
+                <span className="size-[6px] rounded-full bg-[#8B5CF6]" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E978B]">Problems (POMR)</span>
+                <span className="rounded-[4px] bg-[#8B5CF6]/10 px-1 py-[1px] text-[9px] font-semibold text-[#8B5CF6]">
+                  {pomrProblems.length}
+                </span>
+              </div>
+              <div className="space-y-1.5 px-3">
+                {pomrProblems.map((prob, pi) => {
+                  const resolvedLabs = prob.labKeys
+                    .map(k => s.keyLabs?.find(l => l.name === k))
+                    .filter(Boolean) as Array<{ name: string; value: string; flag: string }>
+                  return (
+                    <div key={pi} className="rounded-[8px] border border-[#E5E2DB] bg-white p-2">
+                      {/* Problem header + status */}
+                      <div className="mb-1 flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-[#1A1714]">{prob.problem}</span>
+                        <span
+                          className="rounded-[4px] px-1.5 py-[1px] text-[9px] font-semibold"
+                          style={{ backgroundColor: prob.statusColor + "15", color: prob.statusColor }}
+                        >
+                          {prob.status}
+                        </span>
+                      </div>
+                      {/* Per-problem completeness bar */}
+                      <div className="mb-1.5 flex items-center gap-2">
+                        <div className="flex h-[4px] flex-1 overflow-hidden rounded-full bg-gray-100">
+                          <div className="h-full bg-[#10B981]" style={{ width: `${prob.completeness.emr}%` }} />
+                          <div className="h-full bg-[#F59E0B]" style={{ width: `${prob.completeness.ai}%` }} />
+                          <div className="h-full bg-[#D1D5DB]" style={{ width: `${prob.completeness.missing}%` }} />
+                        </div>
+                        <span className="shrink-0 text-[9px] text-[#9E978B]">
+                          {prob.completeness.emr}% EMR
+                        </span>
+                      </div>
+                      {/* Labs for this problem */}
+                      {resolvedLabs.length > 0 && (
+                        <div className="space-y-[2px]">
+                          {resolvedLabs.map(l => {
+                            const prov2 = (s as any).dataProvenance?.[l.name] as { source: string; extractedFrom?: string } | undefined
+                            const dot2 = prov2 ? (prov2.source === "emr" ? "#10B981" : prov2.source === "ai_extracted" ? "#F59E0B" : "#9CA3AF") : undefined
+                            return (
+                              <div key={l.name} className="flex items-center justify-between">
+                                <div className="flex items-center gap-1">
+                                  <span className={cn("size-[5px] rounded-full",
+                                    l.flag === "critical" || l.flag === "high" || l.flag === "low" ? "bg-[#C42B2B]" : "bg-[#1B8C54]"
+                                  )} />
+                                  <span className="text-[10px] text-[#9E978B]">{l.name}</span>
+                                  {dot2 && (
+                                    <span className="size-[4px] rounded-full" style={{ backgroundColor: dot2 }}
+                                      title={prov2?.source === "emr" ? "EMR (verified)" : prov2?.source === "ai_extracted" ? `AI: ${prov2.extractedFrom || "document"}` : "Not available"} />
+                                  )}
+                                </div>
+                                <span className={cn("text-[11px] font-semibold",
+                                  l.flag === "critical" || l.flag === "high" || l.flag === "low" ? "text-[#C42B2B]" : "text-[#1B8C54]"
+                                )}>
+                                  {l.value}{l.flag === "high" || l.flag === "critical" ? " ↑" : l.flag === "low" ? " ↓" : ""}
+                                </span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                      {/* Medications for this problem */}
+                      {prob.medKeys?.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {prob.medKeys.map((mk: string) => (
+                            <span key={mk} className="rounded bg-blue-50 px-1.5 py-[1px] text-[9px] text-blue-600">{mk}</span>
+                          ))}
+                        </div>
+                      )}
+                      {/* Missing data for this problem */}
+                      {prob.missingKeys?.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {prob.missingKeys.map((mk: string) => (
+                            <span key={mk} className="rounded border border-dashed border-gray-200 bg-gray-50 px-1.5 py-[1px] text-[9px] italic text-gray-400">
+                              {mk} — not available
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })()}
 
         {/* ─── 4. HISTORY SECTION — condition & family chips ─── */}
         {(s.chronicConditions?.length || s.familyHistory?.length) ? (

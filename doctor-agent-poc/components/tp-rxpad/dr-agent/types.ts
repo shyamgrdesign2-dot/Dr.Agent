@@ -39,7 +39,7 @@ export type IntentCategory =
 
 export type ResponseFormat = "text" | "hybrid" | "card"
 
-export type FlagDirection = "high" | "low"
+export type FlagDirection = "high" | "low" | "critical"
 
 export type SeverityLevel = "critical" | "high" | "moderate" | "low"
 

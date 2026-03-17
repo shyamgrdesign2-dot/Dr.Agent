@@ -155,8 +155,24 @@ const appointmentTabs: AppointmentTab[] = [
 
 const queueAppointments: AppointmentRow[] = [
   {
-    id: "apt-neha",
+    id: "apt-ramesh-ckd",
     serial: 1,
+    name: "Ramesh Kumar",
+    gender: "M",
+    age: 76,
+    contact: "+91-9876012345",
+    visitType: "Follow-up",
+    visitBadge: { text: "Overdue", tone: "danger" },
+    slotTime: "10:00 am",
+    slotDate: "9 Mar'26",
+    hasVideo: false,
+    status: "queue",
+    dateKey: "today",
+    hasSymptoms: true,
+  },
+  {
+    id: "apt-neha",
+    serial: 2,
     name: "Neha Gupta",
     gender: "F",
     age: 32,
@@ -172,7 +188,7 @@ const queueAppointments: AppointmentRow[] = [
   },
   {
     id: "apt-zerodata",
-    serial: 2,
+    serial: 3,
     name: "Ramesh M",
     gender: "M",
     age: 35,
@@ -188,7 +204,7 @@ const queueAppointments: AppointmentRow[] = [
   },
   {
     id: "__patient__",
-    serial: 3,
+    serial: 4,
     name: "Shyam GR",
     gender: "M",
     age: 25,
@@ -204,7 +220,7 @@ const queueAppointments: AppointmentRow[] = [
   },
   {
     id: "apt-anjali",
-    serial: 4,
+    serial: 5,
     name: "Anjali Patel",
     gender: "F",
     age: 28,
@@ -219,7 +235,7 @@ const queueAppointments: AppointmentRow[] = [
   },
   {
     id: "apt-vikram",
-    serial: 5,
+    serial: 6,
     name: "Vikram Singh",
     gender: "M",
     age: 42,
@@ -235,7 +251,7 @@ const queueAppointments: AppointmentRow[] = [
   },
   {
     id: "apt-priya",
-    serial: 6,
+    serial: 7,
     name: "Priya Rao",
     gender: "F",
     age: 26,
@@ -250,7 +266,7 @@ const queueAppointments: AppointmentRow[] = [
   },
   {
     id: "apt-arjun",
-    serial: 7,
+    serial: 8,
     name: "Arjun S",
     gender: "M",
     age: 4,
@@ -265,7 +281,7 @@ const queueAppointments: AppointmentRow[] = [
   },
   {
     id: "apt-lakshmi",
-    serial: 8,
+    serial: 9,
     name: "Lakshmi K",
     gender: "F",
     age: 45,
