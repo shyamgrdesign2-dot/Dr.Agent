@@ -2,8 +2,9 @@
 
 import { useState } from "react"
 import { CardShell } from "../CardShell"
-import { cn } from "@/lib/utils"
+import { Danger } from "iconsax-reactjs"
 import type { AllergyConflictData } from "../../types"
+import { FooterCTA } from "../FooterCTA"
 
 interface AllergyConflictCardProps {
   data: AllergyConflictData
@@ -28,21 +29,13 @@ export function AllergyConflictCard({
       title="Allergy Conflict"
       badge={{ label: "DANGER", color: "#DC2626", bg: "#FEE2E2" }}
       sidebarLink={
-        <button
-          type="button"
+        <FooterCTA
+          label={overridden ? "Override applied" : "Override - I accept the risk"}
           onClick={handleOverride}
           disabled={overridden}
-          className={cn(
-            "inline-flex h-[28px] items-center rounded-[10px] px-4 text-[11px] font-medium transition-all",
-            overridden
-              ? "cursor-default border border-tp-slate-200 bg-tp-slate-50 text-tp-slate-400"
-              : "border-[1.5px] border-tp-error-500 bg-transparent text-tp-error-600 hover:bg-tp-error-50"
-          )}
-        >
-          {overridden
-            ? "Override applied"
-            : "Override — I accept the risk"}
-        </button>
+          tone={overridden ? "neutral" : "danger"}
+          iconLeft={!overridden ? <Danger size={14} variant="Linear" /> : undefined}
+        />
       }
     >
       {/* Drug → Allergen */}

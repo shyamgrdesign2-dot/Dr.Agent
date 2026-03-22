@@ -4,7 +4,9 @@ import React from "react"
 
 import { CardShell } from "../CardShell"
 import { InlineDataRow } from "../InlineDataRow"
+import { FooterCTA } from "../FooterCTA"
 import { InsightBox } from "../InsightBox"
+import { ArrowRight2 } from "iconsax-reactjs"
 import { SidebarLink } from "../SidebarLink"
 import type { PediatricsData } from "../../types"
 
@@ -89,25 +91,26 @@ export function PediatricSummaryCard({ data, onSidebarNav }: PediatricSummaryCar
       icon={<span />}
       tpIconName="health care"
       title="Pedia Summary"
+      dataSources={["EMR Records", "Growth Records"]}
       collapsible
       sidebarLink={
         onSidebarNav ? (
           <div className="flex items-center">
-            <button
-              type="button"
+            <FooterCTA
+              label="View growth chart"
               onClick={() => onSidebarNav("growth")}
-              className="flex-1 inline-flex items-center justify-center gap-[4px] rounded-[10px] py-[5px] text-[11px] font-medium text-tp-blue-500 transition-colors hover:bg-tp-blue-50/60"
-            >
-              View growth chart
-            </button>
+              iconRight={<ArrowRight2 size={14} variant="Linear" />}
+              fullWidth
+              align="center"
+            />
             <div className="h-[20px] flex-shrink-0" style={{ width: "1px", background: "linear-gradient(180deg, transparent 0%, #CBD5E1 50%, transparent 100%)" }} />
-            <button
-              type="button"
+            <FooterCTA
+              label="View vaccine history"
               onClick={() => onSidebarNav("vaccine")}
-              className="flex-1 inline-flex items-center justify-center gap-[4px] rounded-[10px] py-[5px] text-[11px] font-medium text-tp-blue-500 transition-colors hover:bg-tp-blue-50/60"
-            >
-              View vaccine history
-            </button>
+              iconRight={<ArrowRight2 size={14} variant="Linear" />}
+              fullWidth
+              align="center"
+            />
           </div>
         ) : undefined
       }

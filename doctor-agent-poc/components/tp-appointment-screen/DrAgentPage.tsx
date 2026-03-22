@@ -36,7 +36,7 @@ import { AppointmentBanner } from "@/components/tp-ui/appointment-banner"
 import { TutorialPlayIcon } from "@/components/tp-ui/TutorialPlayIcon"
 import { AiBrandSparkIcon, AI_GRADIENT_SOFT } from "@/components/doctor-agent/ai-brand"
 import { AiPatientTooltip } from "./AiPatientTooltip"
-import { PATIENT_TOOLTIP_SUMMARIES } from "@/components/tp-rxpad/dr-agent/mock-data"
+import { PATIENT_TOOLTIP_SUMMARIES, SMART_SUMMARY_BY_CONTEXT } from "@/components/tp-rxpad/dr-agent/mock-data"
 import { DrAgentPanel } from "@/components/tp-rxpad/dr-agent/DrAgentPanel"
 import { DrAgentFab } from "@/components/tp-rxpad/dr-agent/shell/DrAgentFab"
 import type { RxContextOption } from "@/components/tp-rxpad/dr-agent/types"
@@ -79,10 +79,10 @@ interface AppointmentRow {
   age: number
   contact: string
   visitType: string
-  visitBadge?: {
+  visitTags?: Array<{
     text: string
     tone: BadgeTone
-  }
+  }>
   contactBadge?: string
   slotTime: string
   slotDate: string
@@ -162,7 +162,7 @@ const queueAppointments: AppointmentRow[] = [
     age: 76,
     contact: "+91-9876012345",
     visitType: "Follow-up",
-    visitBadge: { text: "Overdue", tone: "danger" },
+    visitTags: [{ text: "Unbilled", tone: "warning" }, { text: "Overdue", tone: "danger" }],
     slotTime: "10:00 am",
     slotDate: "9 Mar'26",
     hasVideo: false,
@@ -178,7 +178,7 @@ const queueAppointments: AppointmentRow[] = [
     age: 32,
     contact: "+91-9876501234",
     visitType: "Follow-up",
-    visitBadge: { text: "Overdue", tone: "warning" },
+    visitTags: [{ text: "Unbilled", tone: "warning" }, { text: "Overdue", tone: "danger" }],
     slotTime: "10:20 am",
     slotDate: "9 Mar'26",
     hasVideo: true,
@@ -193,8 +193,8 @@ const queueAppointments: AppointmentRow[] = [
     gender: "M",
     age: 35,
     contact: "+91-9812700001",
-    visitType: "Walk-in",
-    visitBadge: { text: "New", tone: "info" },
+    visitType: "New",
+    visitTags: [{ text: "Unbilled", tone: "warning" }],
     slotTime: "10:15 am",
     slotDate: "9 Mar'26",
     hasVideo: false,
@@ -210,7 +210,7 @@ const queueAppointments: AppointmentRow[] = [
     age: 25,
     contact: "+91-9812734567",
     visitType: "Follow-up",
-    visitBadge: { text: "Unfulfilled", tone: "warning" },
+    visitTags: [{ text: "Unbilled", tone: "warning" }],
     slotTime: "10:30 am",
     slotDate: "9 Mar'26",
     hasVideo: true,
@@ -226,6 +226,7 @@ const queueAppointments: AppointmentRow[] = [
     age: 28,
     contact: "+91-9988771122",
     visitType: "New",
+    visitTags: [{ text: "Unbilled", tone: "warning" }],
     slotTime: "10:45 am",
     slotDate: "9 Mar'26",
     hasVideo: true,
@@ -241,13 +242,12 @@ const queueAppointments: AppointmentRow[] = [
     age: 42,
     contact: "+91-9001234567",
     visitType: "Follow-up",
-    visitBadge: { text: "Overdue", tone: "danger" },
+    visitTags: [{ text: "Unbilled", tone: "warning" }, { text: "Overdue", tone: "danger" }],
     slotTime: "11:00 am",
     slotDate: "9 Mar'26",
     hasVideo: true,
     status: "queue",
     dateKey: "today",
-    hasSymptoms: true,
   },
   {
     id: "apt-priya",
@@ -256,13 +256,13 @@ const queueAppointments: AppointmentRow[] = [
     gender: "F",
     age: 26,
     contact: "+91-9876543210",
-    visitType: "Routine",
+    visitType: "Follow-up",
+    visitTags: [{ text: "Billed", tone: "success" }],
     slotTime: "11:15 am",
     slotDate: "9 Mar'26",
     hasVideo: true,
     status: "queue",
     dateKey: "today",
-    hasSymptoms: true,
   },
   {
     id: "apt-arjun",
@@ -272,12 +272,12 @@ const queueAppointments: AppointmentRow[] = [
     age: 4,
     contact: "+91-9123456789",
     visitType: "Follow-up",
+    visitTags: [{ text: "Unbilled", tone: "warning" }],
     slotTime: "11:30 am",
     slotDate: "9 Mar'26",
     hasVideo: false,
     status: "queue",
     dateKey: "today",
-    hasSymptoms: true,
   },
   {
     id: "apt-lakshmi",
@@ -287,13 +287,13 @@ const queueAppointments: AppointmentRow[] = [
     age: 45,
     contact: "+91-9988776655",
     visitType: "Follow-up",
+    visitTags: [{ text: "Billed", tone: "success" }],
     slotTime: "11:45 am",
     slotDate: "9 Mar'26",
     hasVideo: true,
     status: "queue",
     dateKey: "today",
     starred: true,
-    hasSymptoms: true,
   },
   // ── Finished patients ──────────────────────────────────────────
   {
@@ -319,7 +319,7 @@ const queueAppointments: AppointmentRow[] = [
     age: 52,
     contact: "+91-9900112233",
     visitType: "Follow-up",
-    visitBadge: { text: "DM+HTN", tone: "warning" },
+    visitTags: [{ text: "DM+HTN", tone: "warning" }],
     slotTime: "9:00 am",
     slotDate: "9 Mar'26",
     hasVideo: true,
@@ -384,7 +384,7 @@ const queueAppointments: AppointmentRow[] = [
     age: 50,
     contact: "+91-9812345678",
     visitType: "Follow-up",
-    visitBadge: { text: "Partial", tone: "warning" },
+    visitTags: [{ text: "Partial", tone: "warning" }],
     slotTime: "1:15 pm",
     slotDate: "9 Mar'26",
     hasVideo: false,
@@ -416,7 +416,7 @@ const queueAppointments: AppointmentRow[] = [
     age: 62,
     contact: "+91-9811667788",
     visitType: "Inpatient",
-    visitBadge: { text: "IPD", tone: "info" },
+    visitTags: [{ text: "IPD", tone: "info" }],
     slotTime: "—",
     slotDate: "6 Mar'26",
     hasVideo: false,
@@ -432,7 +432,7 @@ const queueAppointments: AppointmentRow[] = [
     age: 45,
     contact: "+91-9900776655",
     visitType: "Inpatient",
-    visitBadge: { text: "Ready", tone: "success" },
+    visitTags: [{ text: "Ready", tone: "success" }],
     slotTime: "—",
     slotDate: "4 Mar'26",
     hasVideo: false,
@@ -624,7 +624,7 @@ function buildWorkspaceReply(
 
 // ─── Column sort / filter helpers ────────────────────────────────────────────
 
-const ALL_VISIT_TYPES = ["Follow-up", "New", "Routine"]
+const ALL_VISIT_TYPES = ["Follow-up", "New"]
 
 function parseSlotTime(t: string): number {
   const [time, mer] = t.split(" ")
@@ -1268,13 +1268,20 @@ export function DrAgentPage() {
 
                                 <td className="px-3 py-3 align-middle">
                                   <div className="overflow-hidden">
-                                    <button
-                                      type="button"
-                                      onClick={() => openPatientDetails(row)}
-                                      className="cursor-pointer truncate text-left text-sm font-semibold text-tp-blue-500 hover:underline"
-                                    >
-                                      {row.name}
-                                    </button>
+                                    <span className="inline-flex items-center gap-1">
+                                      <button
+                                        type="button"
+                                        onClick={() => openPatientDetails(row)}
+                                        className="cursor-pointer truncate text-left text-sm font-semibold text-tp-blue-500 hover:underline"
+                                      >
+                                        {row.name}
+                                      </button>
+                                      {row.hasSymptoms && (
+                                        <SymptomTooltip onClick={() => openAgentForPatient(row)}>
+                                          <TPMedicalIcon name="virus" variant="bulk" size={13} color="var(--tp-success-500)" />
+                                        </SymptomTooltip>
+                                      )}
+                                    </span>
                                     <p className="mt-1 truncate text-sm text-tp-slate-700">
                                       {row.gender}, {row.age}y
                                       {row.starred && (
@@ -1313,21 +1320,19 @@ export function DrAgentPage() {
                                   <div className="overflow-hidden">
                                     <span className="inline-flex items-center gap-1 whitespace-nowrap">
                                       {row.visitType}
-                                      {row.hasSymptoms && (
-                                        <SymptomTooltip onClick={() => openAgentForPatient(row)}>
-                                          <TPMedicalIcon name="virus" variant="bulk" size={13} color="var(--tp-success-500)" />
-                                        </SymptomTooltip>
-                                      )}
                                     </span>
-                                    {row.visitBadge && (
-                                      <div className="mt-1">
-                                        <TPTag
-                                          color={row.visitBadge.tone === "danger" ? "error" : row.visitBadge.tone === "warning" ? "warning" : row.visitBadge.tone === "info" ? "blue" : "success"}
-                                          variant="light"
-                                          size="sm"
-                                        >
-                                          {row.visitBadge.text}
-                                        </TPTag>
+                                    {row.visitTags && row.visitTags.length > 0 && (
+                                      <div className="mt-1 flex items-center gap-1">
+                                        {row.visitTags.map((tag, idx) => (
+                                          <TPTag
+                                            key={idx}
+                                            color={tag.tone === "danger" ? "error" : tag.tone === "warning" ? "warning" : tag.tone === "info" ? "blue" : "success"}
+                                            variant="light"
+                                            size="sm"
+                                          >
+                                            {tag.text}
+                                          </TPTag>
+                                        ))}
                                       </div>
                                     )}
                                   </div>
@@ -1416,7 +1421,7 @@ export function DrAgentPage() {
 
                                     <AiPatientTooltip
                                       patientId={row.id}
-                                      summary={PATIENT_TOOLTIP_SUMMARIES[row.id]}
+                                      summary={SMART_SUMMARY_BY_CONTEXT[row.id]?.patientNarrative || PATIENT_TOOLTIP_SUMMARIES[row.id]}
                                       tabVariant={activeTab}
                                       rowData={{
                                         finishedData: row.finishedData,

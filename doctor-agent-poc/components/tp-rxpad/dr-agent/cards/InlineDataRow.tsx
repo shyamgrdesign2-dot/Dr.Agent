@@ -25,14 +25,16 @@ interface InlineDataRowProps {
   allowCopyToRxPad?: boolean
   /** Fill destination label used in tooltips, defaults to "RxPad" */
   copyDestination?: string
+  /** Optional trailing note shown in lighter italic text (e.g. doctor name) */
+  trailingNote?: string
 }
 
 const FLAG_STYLES: Record<string, string> = {
-  normal: "text-tp-slate-800 font-medium",
-  high: "text-tp-error-600 font-semibold",
-  low: "text-tp-error-600 font-semibold",
-  warning: "text-tp-warning-600 font-semibold",
-  success: "text-tp-success-600 font-semibold",
+  normal: "text-tp-slate-800",
+  high: "text-tp-error-600 font-medium",
+  low: "text-tp-error-600 font-medium",
+  warning: "text-tp-warning-600 font-medium",
+  success: "text-tp-success-600 font-medium",
 }
 
 /** Tooltip mapping for known tag labels */
@@ -84,6 +86,7 @@ export function InlineDataRow({
   source,
   allowCopyToRxPad,
   copyDestination = "RxPad",
+  trailingNote,
 }: InlineDataRowProps) {
   const showCopy = source !== "existing" || allowCopyToRxPad === true
   const tooltips = TAG_TOOLTIPS[tag]
@@ -112,10 +115,11 @@ export function InlineDataRow({
     if (!showCopy) {
       return (
         <span className="inline-flex items-baseline">
-          <span className="text-tp-slate-400">{v.key}:</span>
+          <span className="text-tp-slate-400">{v.key}:&nbsp;</span>
           <span className={cn(FLAG_STYLES[v.flag || "normal"])}>
             {displayValue}
           </span>
+
         </span>
       )
     }
@@ -126,10 +130,11 @@ export function InlineDataRow({
         onAction={() => handleCopyText(copyText)}
       >
         <span className="inline-flex items-baseline cursor-pointer">
-          <span className="text-tp-slate-400">{v.key}:</span>
+          <span className="text-tp-slate-400">{v.key}:&nbsp;</span>
           <span className={cn(FLAG_STYLES[v.flag || "normal"])}>
             {displayValue}
           </span>
+
         </span>
       </ActionableTooltip>
     )
@@ -145,7 +150,7 @@ export function InlineDataRow({
     if (!showCopy) {
       return (
         <span className="inline">
-          <span className="text-tp-slate-400">{v.key}:</span>
+          <span className="text-tp-slate-400">{v.key}:&nbsp;</span>
           {subValues.map((sub, j) => (
             <span key={j}>
               <span className={cn(FLAG_STYLES[v.flag || "normal"])}>
@@ -167,7 +172,7 @@ export function InlineDataRow({
           label={keyTooltipLabel}
           onAction={() => handleCopyText(keyCopyText)}
         >
-          <span className="text-tp-slate-400 cursor-pointer">{v.key}:</span>
+          <span className="text-tp-slate-400 cursor-pointer">{v.key}:&nbsp;</span>
         </ActionableTooltip>
 
         {/* Each sub-value gets its own tooltip */}
@@ -228,6 +233,13 @@ export function InlineDataRow({
           )}
         </span>
       ))}
+
+      {/* Trailing note — lighter italic text (e.g. doctor name on last visit) */}
+      {trailingNote && (
+        <span className="ml-[4px] text-[10px] italic text-tp-slate-400 font-normal">
+          — {trailingNote}
+        </span>
+      )}
 
       {/* Section copy icon */}
       {showCopy && values.length > 0 && (

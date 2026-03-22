@@ -54,7 +54,7 @@ export function OCRFullExtractionCard({
         <div key={section.heading} className="mb-2">
           {/* Section header bar */}
           <div className="flex items-center gap-1.5 rounded-[6px] bg-tp-slate-50 px-2 py-[4px]">
-            <TPMedicalIcon name={section.icon} variant="bulk" size={11} className="text-tp-slate-500" />
+            <TPMedicalIcon name={section.icon} variant="bulk" size={12} className="text-tp-slate-500" />
             <span className="flex-1 text-[12px] font-semibold text-tp-slate-700">
               {section.heading}
             </span>

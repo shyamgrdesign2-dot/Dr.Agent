@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
-import type { RxAgentChatMessage } from "../types"
+import type { RxAgentChatMessage, SpecialtyTabId, PatientDocument } from "../types"
 import { ChatBubble } from "./ChatBubble"
 import { TypingIndicator } from "./TypingIndicator"
 
@@ -14,6 +14,12 @@ interface ChatThreadProps {
   onCopy?: (payload: unknown) => void
   onSidebarNav?: (tab: string) => void
   className?: string
+  /** Active specialty — passed through to card renderers for specialty-aware narratives */
+  activeSpecialty?: SpecialtyTabId
+  /** Patient documents — passed through for source provenance in ChatBubble */
+  patientDocuments?: PatientDocument[]
+  /** Callback when a patient is selected from search card */
+  onPatientSelect?: (patientId: string) => void
 }
 
 export function ChatThread({
@@ -24,6 +30,9 @@ export function ChatThread({
   onCopy,
   onSidebarNav,
   className,
+  activeSpecialty,
+  patientDocuments,
+  onPatientSelect,
 }: ChatThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -54,6 +63,9 @@ export function ChatThread({
               onPillTap={onPillTap}
               onCopy={onCopy}
               onSidebarNav={onSidebarNav}
+              activeSpecialty={activeSpecialty}
+              patientDocuments={patientDocuments}
+              onPatientSelect={onPatientSelect}
             />
           </div>
         )

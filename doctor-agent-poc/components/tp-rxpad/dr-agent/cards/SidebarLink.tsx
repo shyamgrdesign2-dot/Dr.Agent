@@ -13,12 +13,12 @@ export function SidebarLink({ text, onClick }: SidebarLinkProps) {
     <button
       type="button"
       onClick={onClick}
-      className="group/link inline-flex items-center gap-[4px] rounded-[10px] py-[5px] px-2 -mx-2 text-left text-[11px] font-medium text-tp-blue-500 transition-all hover:bg-tp-blue-50/60 hover:text-tp-blue-600"
+      className="group/link inline-flex h-[36px] items-center gap-[4px] rounded-[10px] px-2 text-left text-[12px] font-medium text-tp-blue-500 transition-all hover:bg-tp-blue-50/60 hover:text-tp-blue-600"
     >
       <span className="group-hover/link:underline">{cleanText}</span>
       <svg
-        width="10"
-        height="10"
+        width="14"
+        height="14"
         viewBox="0 0 16 16"
         fill="none"
         className="flex-shrink-0 transition-transform duration-200 group-hover/link:translate-x-[2px]"

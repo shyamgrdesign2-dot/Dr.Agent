@@ -50,6 +50,7 @@ export function GynecSummaryCard({ data, onSidebarNav }: GynecSummaryCardProps) 
       icon={<span />}
       tpIconName="Gynec"
       title="Gynec Summary"
+      dataSources={["EMR Records"]}
       collapsible
       sidebarLink={
         onSidebarNav ? (

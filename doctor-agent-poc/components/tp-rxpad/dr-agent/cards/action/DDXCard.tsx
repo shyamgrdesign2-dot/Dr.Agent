@@ -112,6 +112,7 @@ export function DDXCard({ data, onAccept, onCopyToDiagnosis, onCopyToRxPad, onSe
       tpIconName="Diagnosis"
       title="Differential Diagnosis"
       date="Ranked by clinical probability"
+      dataSources={["AI-Generated"]}
       copyAll={() => {
         const selectedNames = Object.entries(selected)
           .filter(([, v]) => v)

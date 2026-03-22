@@ -2,7 +2,9 @@
 
 import { CardShell } from "../CardShell"
 import { ChatPillButton } from "../ActionRow"
-import { SidebarLink } from "../SidebarLink"
+import { FooterCTA } from "../FooterCTA"
+import { SectionTag, SECTION_TAG_ICON_MAP } from "../SectionTag"
+import { Printer, ArrowRight2 } from "iconsax-reactjs"
 import type { RxPreviewCardData } from "../../types"
 
 interface Props {
@@ -14,8 +16,10 @@ function Section({ label, items }: { label: string; items: string[] }) {
   if (items.length === 0) return null
   return (
     <div className="mb-[6px]">
-      <p className="mb-[2px] text-[9px] font-medium uppercase tracking-wider text-tp-slate-400">{label}</p>
-      <div className="space-y-[1px]">
+      <div className="mb-[3px]">
+        <SectionTag label={label} icon={SECTION_TAG_ICON_MAP[label]} />
+      </div>
+      <div className="space-y-[1px] pl-[2px]">
         {items.map((item, i) => (
           <p key={i} className="text-[12px] leading-[1.45] text-tp-slate-700">• {item}</p>
         ))}
@@ -36,19 +40,19 @@ export function RxPreviewCard({ data, onPillTap }: Props) {
       }
       sidebarLink={
         <div className="flex items-center">
-          <button
-            type="button"
-            className="flex-1 inline-flex items-center justify-center gap-[4px] rounded-[10px] py-[5px] text-[11px] font-medium text-tp-blue-500 transition-colors hover:bg-tp-blue-50/60"
-          >
-            Print prescription
-          </button>
+          <FooterCTA
+            label="Print prescription"
+            iconLeft={<Printer size={14} variant="Linear" />}
+            fullWidth
+            align="center"
+          />
           <div className="h-[20px] flex-shrink-0" style={{ width: "1px", background: "linear-gradient(180deg, transparent 0%, #CBD5E1 50%, transparent 100%)" }} />
-          <button
-            type="button"
-            className="flex-1 inline-flex items-center justify-center gap-[4px] rounded-[10px] py-[5px] text-[11px] font-medium text-tp-blue-500 transition-colors hover:bg-tp-blue-50/60"
-          >
-            Share digitally
-          </button>
+          <FooterCTA
+            label="Share digitally"
+            iconRight={<ArrowRight2 size={14} variant="Linear" />}
+            fullWidth
+            align="center"
+          />
         </div>
       }
     >
@@ -65,8 +69,10 @@ export function RxPreviewCard({ data, onPillTap }: Props) {
 
       {data.followUp && (
         <div>
-          <p className="mb-[2px] text-[9px] font-medium uppercase tracking-wider text-tp-slate-400">Follow-up</p>
-          <p className="text-[12px] text-tp-slate-700">{data.followUp}</p>
+          <div className="mb-[3px]">
+            <SectionTag label="Follow-up" icon={SECTION_TAG_ICON_MAP["Follow-up"]} />
+          </div>
+          <p className="text-[12px] text-tp-slate-700 pl-[2px]">{data.followUp}</p>
         </div>
       )}
     </CardShell>

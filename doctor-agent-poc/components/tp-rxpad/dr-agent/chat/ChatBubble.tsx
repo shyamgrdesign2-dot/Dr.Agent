@@ -1,16 +1,581 @@
 "use client"
 
-import React, { useMemo } from "react"
+import React, { useMemo, useState, useRef, useCallback, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
-import type { RxAgentChatMessage } from "../types"
+import type { RxAgentChatMessage, RxAgentOutput, SpecialtyTabId, PatientDocument } from "../types"
 import { CardRenderer } from "../cards/CardRenderer"
 import { FeedbackRow } from "../cards/FeedbackRow"
 import { CopyIcon } from "../cards/CopyIcon"
 import { ActionableTooltip } from "../cards/ActionableTooltip"
 import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
 import { AiGradientBg } from "../shared/AiGradientBg"
-import { Edit2 } from "iconsax-reactjs"
+import { Edit2, DocumentText1 } from "iconsax-reactjs"
 import { DocumentAttachmentBubble } from "./DocumentAttachmentBubble"
+import { DataCompletenessDonut } from "../cards/DataCompletenessDonut"
+
+/**
+ * Derive data completeness from card kind — used for completeness ring.
+ * Only shown for cards where completeness is meaningful:
+ * - POMR problem cards (have actual completeness data)
+ * - Document extraction (OCR) — mix of AI extraction vs missing
+ * - SBAR — mix of EMR + AI assessment
+ * NOT shown for: patient summaries, labs, vitals, med history (pure EMR),
+ * DDX/protocol meds (pure AI), symptom collector (patient-reported), etc.
+ */
+function getCompletenessForOutput(output?: RxAgentOutput): { emr: number; ai: number; missing: number } | null {
+  if (!output) return null
+  // POMR cards have their own completeness data
+  if (output.kind === "pomr_problem_card") {
+    const d = output.data
+    return { emr: d.completeness.emr, ai: d.completeness.ai, missing: d.completeness.missing }
+  }
+  switch (output.kind) {
+    // Document extraction — meaningful: shows how much was extracted vs missing
+    case "ocr_extraction":
+    case "ocr_pathology":
+      return { emr: 0, ai: 90, missing: 10 }
+    // SBAR — meaningful: mix of EMR data + AI clinical assessment
+    case "sbar_critical":
+      return { emr: 70, ai: 20, missing: 10 }
+    // Everything else — no completeness ring (only source tag)
+    default:
+      return null
+  }
+}
+
+/** Rich source entry for the source tooltip */
+interface SourceEntry {
+  label: string
+  description: string
+  date?: string
+  /** Sidebar tab to navigate to when clicked */
+  navTarget?: string
+}
+
+/**
+ * Derive provenance-focused source references from card output data.
+ * Each entry answers "WHERE did this data come from?" — the origin, not the count.
+ *
+ * Provenance types:
+ * - EMR historical records (past visits, demographics, chronic conditions)
+ * - Uploaded documents (lab PDFs, prescriptions, discharge summaries)
+ * - AI extraction (from uploaded/scanned documents)
+ * - Patient-reported (symptom collector intake)
+ * - Clinical protocols (guidelines, treatment standards)
+ */
+function getSourcesForOutput(output?: RxAgentOutput, documents?: PatientDocument[]): SourceEntry[] | null {
+  if (!output) return null
+
+  /** Helper: readable doc name from fileName */
+  const docName = (doc: PatientDocument) =>
+    doc.fileName.replace(/_/g, " ").replace(/\.pdf$/i, "").replace(/\.jpg$/i, "")
+
+  switch (output.kind) {
+    case "patient_summary":
+    case "patient_narrative": {
+      const d = output.data
+      const entries: SourceEntry[] = [{ label: "EMR", description: "Patient's clinical data" }]
+
+      if (d.keyLabs?.length) {
+        const prov = d.dataProvenance
+        if (prov) {
+          const emrLabs = d.keyLabs.filter(l => prov[l.name]?.source === "emr")
+          if (emrLabs.length > 0) {
+            entries.push({ label: "Lab Results", description: `${emrLabs.length} lab results` })
+          }
+          const extractedLabs = d.keyLabs.filter(l => prov[l.name]?.source === "ai_extracted")
+          if (extractedLabs.length > 0) {
+            const sources = new Set(extractedLabs.map(l => prov[l.name]!.extractedFrom).filter(Boolean))
+            entries.push({ label: "Records", description: `${sources.size} uploaded record${sources.size > 1 ? "s" : ""} (${sources.size > 1 ? "multiple dates" : "1 date"})` })
+          }
+        } else {
+          const uploadedDocs = documents?.filter(doc =>
+            ["pathology", "radiology", "discharge_summary", "prescription", "other"].includes(doc.docType)
+          ) || []
+          if (uploadedDocs.length > 0) {
+            const uniqueDates = new Set(uploadedDocs.map(doc => doc.uploadedAt)).size
+            entries.push({ label: "Records", description: `${uploadedDocs.length} uploaded record${uploadedDocs.length > 1 ? "s" : ""} (${uniqueDates > 1 ? `${uniqueDates} dates` : uploadedDocs[0].uploadedAt})` })
+          } else {
+            entries.push({ label: "Lab Results", description: `${d.keyLabs.length} lab results` })
+          }
+        }
+      }
+
+      if (d.lastVisit) {
+        entries.push({ label: "Past Visits", description: `Consultation (${d.lastVisit.date})` })
+      }
+      if (d.symptomCollectorData) {
+        entries.push({ label: "Symptom Collector", description: `Patient's reported data (${d.symptomCollectorData.reportedAt})` })
+      }
+      return entries
+    }
+
+    case "symptom_collector":
+      return [{ label: "Symptom Collector", description: `Patient's reported data (${output.data.reportedAt || "today"})` }]
+
+    case "last_visit":
+      return [{ label: "Past Visits", description: `Last consultation (${output.data?.visitDate || "recent"})` }]
+
+    case "lab_panel": {
+      const d = output.data
+      const labDocs = documents?.filter(doc => doc.docType === "pathology") || []
+      const match = d?.panelDate ? labDocs.find(doc => doc.uploadedAt === d.panelDate) : labDocs[0]
+      return [{ label: match ? "Records" : "Lab Results", description: match ? `Uploaded report (${match.uploadedAt})` : `EMR lab results${d?.panelDate ? ` (${d.panelDate})` : ""}` }]
+    }
+
+    case "lab_trend": {
+      const dates = [...new Set((output.data?.series || []).flatMap(s => s.dates || []).map(d => d.trim()))]
+      const dateStr = dates.length > 1 ? `${dates.length} dates` : dates[0] || ""
+      return [{ label: "Lab Results", description: `${output.data?.series?.length || 0} parameters${dateStr ? ` (${dateStr})` : ""}` }]
+    }
+
+    case "lab_comparison":
+      return [{ label: "Lab Results", description: `${output.data.rows?.length || 0} parameters compared` }]
+
+    case "vitals_trend_bar":
+    case "vitals_trend_line": {
+      const series = output.data?.series || []
+      const dates = [...new Set(series.flatMap(s => s.dates || []).map(d => d.trim()))]
+      const dateStr = dates.length > 1 ? `${dates.length} dates` : dates[0] || ""
+      return [{ label: "Vitals", description: `${series.map(s => s.label).join(", ")}${dateStr ? ` (${dateStr})` : ""}` }]
+    }
+
+    case "med_history":
+      return [{ label: "History", description: "Medication history" }]
+
+    case "ddx":
+      return [
+        { label: "Context", description: output.data.context || "Patient's symptoms & history" },
+        { label: "Protocol", description: "Clinical DDx guidelines" },
+      ]
+
+    case "protocol_meds":
+      return [
+        { label: "Context", description: output.data.diagnosis },
+        { label: "Protocol", description: "Treatment protocols" },
+      ]
+
+    case "investigation_bundle":
+      return [
+        { label: "Context", description: "Patient's conditions & history" },
+        { label: "Protocol", description: "Investigation guidelines" },
+      ]
+
+    case "follow_up":
+      return [
+        { label: "Context", description: output.data.context || "Current conditions & treatment" },
+        { label: "Protocol", description: "Follow-up guidelines" },
+      ]
+
+    case "advice_bundle":
+      return [{ label: "Protocol", description: "Clinical care & lifestyle guidelines" }]
+
+    case "obstetric_summary":
+      return [{ label: "Obstetric", description: `ANC records${output.data.gestationalWeeks ? ` — ${output.data.gestationalWeeks}` : ""}` }]
+
+    case "gynec_summary":
+      return [{ label: "Gynec", description: "Gynaecology history & records" }]
+
+    case "ophthal_summary":
+      return [{ label: "Ophthal", description: "Ophthalmology records" }]
+
+    case "pediatric_summary":
+      return [{ label: "Growth", description: "Pediatric growth & development records" }]
+
+    case "pomr_problem_card": {
+      const d = output.data
+      const entries: SourceEntry[] = [{ label: "History", description: `${d.problem} clinical data` }]
+      if (d.labs?.length) entries.push({ label: "Lab Results", description: `${d.labs.length} results` })
+      if (d.sourceEntries?.some(se => se.type === "uploaded")) entries.push({ label: "Records", description: "Uploaded records" })
+      return entries
+    }
+
+    case "sbar_critical":
+      return [
+        { label: "History", description: "Clinical history & vitals" },
+        { label: "AI", description: "AI clinical assessment" },
+      ]
+
+    case "ocr_pathology":
+      return [{ label: "Records", description: "Uploaded report" }]
+
+    case "ocr_extraction":
+      return [{ label: "Records", description: "Uploaded document" }]
+
+    case "drug_interaction":
+      return [{ label: "History", description: "Active medications" }, { label: "Protocol", description: "Drug interaction check" }]
+
+    case "allergy_conflict":
+      return [{ label: "History", description: "Allergy records" }, { label: "Protocol", description: "Allergen contraindication check" }]
+
+    case "translation":
+      return [{ label: "Context", description: "Current consultation content" }]
+
+    case "completeness":
+      return [{ label: "EMR", description: "Current visit completeness check" }]
+
+    case "text_fact":
+      return [{ label: output.data.source ? "Reference" : "Context", description: output.data.source || "Patient's clinical context" }]
+
+    case "text_alert":
+      return [{ label: "AI", description: "Current clinical data & visit context" }]
+
+    case "text_list":
+      return [{ label: "Context", description: "Clinical history & current visit" }]
+
+    case "voice_structured_rx":
+      return [{ label: "Voice", description: "Doctor's voice input" }, { label: "Protocol", description: "Prescription format" }]
+
+    case "referral":
+      return [{ label: "History", description: "Clinical records & diagnosis" }, { label: "Context", description: "Current consultation" }]
+
+    case "vaccination_schedule":
+      return [{ label: "Vaccine", description: "Immunisation records" }, { label: "Protocol", description: "Immunisation schedule" }]
+
+    case "follow_up_question":
+      return [{ label: "AI", description: "Conversation context" }]
+
+    case "patient_list":
+    case "follow_up_list":
+    case "due_patients":
+      return [{ label: "EMR", description: "Clinic records" }]
+
+    case "revenue_bar":
+    case "revenue_comparison":
+    case "analytics_table":
+    case "line_graph":
+    case "donut_chart":
+    case "pie_chart":
+    case "condition_bar":
+    case "heatmap":
+    case "follow_up_rate":
+      return [{ label: "EMR", description: "Clinic analytics" }]
+
+    case "bulk_action":
+      return [{ label: "EMR", description: "Patient communication records" }]
+
+    case "welcome_card":
+    case "external_cta":
+    case "patient_search":
+      return null
+
+    default:
+      return [{ label: "AI", description: "Patient & clinical data" }]
+  }
+}
+
+/** Short badge text for each source type — maps to sidebar section names */
+function getSourceTag(label: string): string {
+  const TAG_MAP: Record<string, string> = {
+    "EMR": "EMR", "Lab Results": "Lab Results", "Records": "Records",
+    "Past Visits": "Past Visits", "History": "History", "Vitals": "Vitals",
+    "Obstetric": "Obstetric", "Gynec": "Gynec", "Ophthal": "Ophthal",
+    "Growth": "Growth", "Vaccine": "Vaccine",
+    "Symptom Collector": "Symptom Collector", "Receptionist Agent": "Receptionist Agent",
+    "AI": "AI", "Context": "Context", "Protocol": "Protocol",
+    "Rx": "Rx", "Voice": "Voice", "Reference": "Reference",
+  }
+  return TAG_MAP[label] || label
+}
+
+/**
+ * Portal-based tooltip with arrow — shared by SourceTag and DataCompletenessDonut.
+ * Renders above the trigger, arrow points to center of trigger, viewport-aware.
+ */
+function PortalTooltip({
+  isVisible,
+  triggerRef,
+  children,
+  width = 240,
+  onMouseEnter,
+  onMouseLeave,
+}: {
+  isVisible: boolean
+  triggerRef: React.RefObject<HTMLElement | null>
+  children: React.ReactNode
+  width?: number
+  onMouseEnter?: () => void
+  onMouseLeave?: () => void
+}) {
+  const tooltipRef = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState<{ top: number; left: number; arrowLeft: number } | null>(null)
+
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current || !tooltipRef.current) return
+    const triggerRect = triggerRef.current.getBoundingClientRect()
+    const tooltipEl = tooltipRef.current
+    const tooltipH = tooltipEl.offsetHeight
+    const MARGIN = 8
+    const GAP = 8
+
+    // Center tooltip horizontally on trigger
+    const triggerCenterX = triggerRect.left + triggerRect.width / 2
+    let left = triggerCenterX - width / 2
+
+    // Clamp to viewport
+    left = Math.max(MARGIN, Math.min(left, window.innerWidth - width - MARGIN))
+
+    // Arrow points at trigger center
+    const arrowLeft = Math.max(12, Math.min(triggerCenterX - left, width - 12))
+
+    // Position above trigger
+    const top = triggerRect.top - GAP - tooltipH
+
+    setPos({ top, left, arrowLeft })
+  }, [triggerRef, width])
+
+  useEffect(() => {
+    if (!isVisible) { setPos(null); return }
+    requestAnimationFrame(updatePosition)
+  }, [isVisible, updatePosition])
+
+  useEffect(() => {
+    if (!isVisible) return
+    const reposition = () => requestAnimationFrame(updatePosition)
+    window.addEventListener("scroll", reposition, true)
+    window.addEventListener("resize", reposition)
+    return () => {
+      window.removeEventListener("scroll", reposition, true)
+      window.removeEventListener("resize", reposition)
+    }
+  }, [isVisible, updatePosition])
+
+  if (!isVisible || typeof document === "undefined") return null
+
+  return createPortal(
+    <div
+      ref={tooltipRef}
+      className="fixed z-[9999]"
+      style={
+        pos
+          ? { top: pos.top, left: pos.left, width, opacity: 1, transition: "opacity 100ms ease-out" }
+          : { top: -9999, left: -9999, width, opacity: 0 }
+      }
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <div
+        className="rounded-[8px] bg-white overflow-hidden"
+        style={{
+          boxShadow: "0 2px 12px rgba(0,0,0,0.10)",
+          border: "1px solid rgba(148,163,184,0.2)",
+        }}
+      >
+        {children}
+      </div>
+      {/* Downward arrow */}
+      {pos && (
+        <div style={{ paddingLeft: pos.arrowLeft - 5 }}>
+          <div
+            style={{
+              width: 0,
+              height: 0,
+              borderLeft: "5px solid transparent",
+              borderRight: "5px solid transparent",
+              borderTop: "5px solid white",
+              filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.06))",
+            }}
+          />
+        </div>
+      )}
+    </div>,
+    document.body,
+  )
+}
+
+/** Dot color for each source type — subtle, meaningful differentiation */
+function getDotColor(label: string): string {
+  switch (label) {
+    case "EMR": return "#7C3AED"            // violet — primary clinical data
+    case "Lab Results": return "#2563EB"     // blue — lab/diagnostic
+    case "Records": return "#D97706"        // amber — uploaded documents
+    case "Past Visits": return "#059669"     // green — visit history
+    case "Symptom Collector":
+    case "Receptionist Agent": return "#DB2777" // pink — patient-reported
+    case "Vitals": return "#0891B2"         // teal — vitals
+    case "History": return "#7C3AED"        // violet — clinical history
+    case "Obstetric":
+    case "Gynec":
+    case "Ophthal":
+    case "Growth":
+    case "Vaccine": return "#7C3AED"        // violet — specialty sections
+    case "AI": return "#4F46E5"             // indigo — AI-generated
+    case "Protocol": return "#475569"       // slate — guidelines
+    case "Context": return "#475569"        // slate — context
+    default: return "#64748B"               // neutral
+  }
+}
+
+/**
+ * Source provenance — click-to-open dropdown below the Source button.
+ * Uses portal for proper layering. Positioned directly below the trigger.
+ * Shows WHERE data was fetched from — trust signal for doctors.
+ */
+function SourceDropdown({
+  isOpen,
+  onToggle,
+  sources,
+}: {
+  isOpen: boolean
+  onToggle: () => void
+  sources: SourceEntry[]
+}) {
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Hover handlers — show on hover after short delay, hide with grace period
+  const hoverShow = useCallback(() => {
+    if (hideTimer.current) clearTimeout(hideTimer.current)
+    if (isOpen) return
+    showTimer.current = setTimeout(() => onToggle(), 200)
+  }, [isOpen, onToggle])
+  const hoverHide = useCallback(() => {
+    if (showTimer.current) clearTimeout(showTimer.current)
+    hideTimer.current = setTimeout(() => {
+      if (isOpen) onToggle()
+    }, 250)
+  }, [isOpen, onToggle])
+  const keepOpen = useCallback(() => {
+    if (hideTimer.current) clearTimeout(hideTimer.current)
+    if (showTimer.current) clearTimeout(showTimer.current)
+  }, [])
+
+  useEffect(() => () => {
+    if (showTimer.current) clearTimeout(showTimer.current)
+    if (hideTimer.current) clearTimeout(hideTimer.current)
+  }, [])
+
+  // Position dropdown — above or below depending on viewport space
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current || !dropdownRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    const dropdownH = dropdownRef.current.offsetHeight
+    const dropdownWidth = 280
+    const GAP = 4
+    const MARGIN = 8
+
+    // Open above if not enough room below
+    const spaceBelow = window.innerHeight - rect.bottom
+    const openAbove = spaceBelow < dropdownH + GAP + MARGIN
+
+    const top = openAbove
+      ? rect.top - dropdownH - GAP
+      : rect.bottom + GAP
+
+    // Clamp left to stay in viewport
+    let left = rect.left
+    if (left + dropdownWidth > window.innerWidth - MARGIN) {
+      left = window.innerWidth - dropdownWidth - MARGIN
+    }
+    if (left < MARGIN) left = MARGIN
+
+    setPos({ top, left })
+  }, [])
+
+  useEffect(() => {
+    if (!isOpen) return
+    updatePosition()
+    const reposition = () => requestAnimationFrame(updatePosition)
+    window.addEventListener("scroll", reposition, true)
+    window.addEventListener("resize", reposition)
+    return () => {
+      window.removeEventListener("scroll", reposition, true)
+      window.removeEventListener("resize", reposition)
+    }
+  }, [isOpen, updatePosition])
+
+  // Close on outside click
+  useEffect(() => {
+    if (!isOpen) return
+    const handleClick = (e: MouseEvent) => {
+      if (
+        triggerRef.current?.contains(e.target as Node) ||
+        dropdownRef.current?.contains(e.target as Node)
+      ) return
+      onToggle()
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [isOpen, onToggle])
+
+  return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={onToggle}
+        onMouseEnter={hoverShow}
+        onMouseLeave={hoverHide}
+        className={cn(
+          "flex items-center gap-[3px] rounded-[4px] px-[5px] py-[2px] transition-colors",
+          isOpen
+            ? "text-tp-violet-600 bg-tp-violet-50"
+            : "text-tp-slate-400 hover:text-tp-slate-500 hover:bg-tp-slate-50",
+        )}
+        aria-label="View data sources"
+        aria-expanded={isOpen}
+      >
+        <DocumentText1 size={13} variant="Linear" />
+        <span className="text-[10px] font-medium leading-[1]">Source</span>
+      </button>
+
+      {/* Portal dropdown */}
+      {isOpen && typeof document !== "undefined" && createPortal(
+        <div
+          ref={dropdownRef}
+          className="fixed z-[9999] w-[280px] rounded-[8px] bg-white overflow-hidden"
+          onMouseEnter={keepOpen}
+          onMouseLeave={hoverHide}
+          style={{
+            top: pos?.top ?? -9999,
+            left: pos?.left ?? -9999,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.12), 0 0 0 1px rgba(148,163,184,0.12)",
+          }}
+        >
+          {/* Header — dynamic source count */}
+          <div
+            className="flex items-center gap-[5px] px-[12px] py-[7px]"
+            style={{ borderBottom: "1px solid rgba(148,163,184,0.10)" }}
+          >
+            <DocumentText1 size={12} variant="Bold" className="text-tp-slate-400" />
+            <p className="text-[10px] font-semibold text-tp-slate-500">
+              Compiled from {sources.length} source{sources.length > 1 ? "s" : ""}
+            </p>
+          </div>
+
+          {/* Source entries — colored dot + label + description */}
+          <div className="px-[10px] py-[6px] max-h-[240px] overflow-y-auto">
+            {sources.map((src, i) => {
+              const dotColor = getDotColor(src.label)
+              const tag = getSourceTag(src.label)
+              return (
+                <div key={i} className="flex items-start gap-[7px] py-[4px]">
+                  {/* Colored dot */}
+                  <span
+                    className="mt-[4px] flex-shrink-0 h-[5px] w-[5px] rounded-full"
+                    style={{ backgroundColor: dotColor }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] leading-[1.4] text-tp-slate-700">
+                      <span className="font-semibold">{tag}</span>
+                      <span className="text-tp-slate-400 mx-[4px]">&middot;</span>
+                      <span className="text-tp-slate-500">{src.description}</span>
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>,
+        document.body,
+      )}
+    </>
+  )
+}
 
 /** Convert light markdown (bold + links) into rich text. */
 function renderAssistantMarkdown(text: string, onPillTap?: (label: string) => void): React.ReactNode {
@@ -74,6 +639,12 @@ interface ChatBubbleProps {
   onPillTap?: (label: string) => void
   onCopy?: (payload: unknown) => void
   onSidebarNav?: (tab: string) => void
+  /** Active specialty — passed to narrative builders for specialty-aware content */
+  activeSpecialty?: SpecialtyTabId
+  /** Patient documents — used for source provenance references */
+  patientDocuments?: PatientDocument[]
+  /** Callback when a patient is selected from search card */
+  onPatientSelect?: (patientId: string) => void
 }
 
 function formatTime(iso: string): string {
@@ -96,9 +667,13 @@ export function ChatBubble({
   onPillTap,
   onCopy,
   onSidebarNav,
+  activeSpecialty,
+  patientDocuments,
+  onPatientSelect,
 }: ChatBubbleProps) {
   const isUser = message.role === "user"
   const timestamp = useMemo(() => formatTime(message.createdAt), [message.createdAt])
+  const [sourceOpen, setSourceOpen] = useState(false)
 
   // ---- USER bubble ----
   if (isUser) {
@@ -174,26 +749,75 @@ export function ChatBubble({
               onPillTap={onPillTap}
               onCopy={onCopy}
               onSidebarNav={onSidebarNav}
+              activeSpecialty={activeSpecialty}
+              onPatientSelect={onPatientSelect}
             />
           </div>
         )}
 
-        {/* Feedback row — thumbs up/down only */}
+        {/* Feedback row — thumbs up/down + source provenance */}
         <div className="ml-[26px] mt-[2px] flex items-center gap-[6px]">
-          {message.feedbackGiven === null && onFeedback && (
+          {(message.feedbackGiven === null && onFeedback) ? (
             <FeedbackRow
               messageId={message.id}
               initialFeedback={null}
               onFeedback={onFeedback}
             />
-          )}
-          {message.feedbackGiven && (
+          ) : message.feedbackGiven ? (
             <FeedbackRow
               messageId={message.id}
               initialFeedback={message.feedbackGiven}
               onFeedback={onFeedback}
             />
-          )}
+          ) : null}
+
+          {/* Completeness ring + divider + source tag */}
+          {(() => {
+            const output = message.rxOutput
+            if (!output) return null
+
+            const completeness = getCompletenessForOutput(output)
+            const sources = getSourcesForOutput(output, patientDocuments)
+
+            return (
+              <>
+                {/* Completeness ring */}
+                {completeness && (
+                  <>
+                    <div
+                      className="h-[12px] w-[1px] flex-shrink-0"
+                      style={{
+                        background: "linear-gradient(180deg, transparent 0%, rgba(148,163,184,0.25) 50%, transparent 100%)",
+                      }}
+                    />
+                    <DataCompletenessDonut
+                      emr={completeness.emr}
+                      ai={completeness.ai}
+                      missing={completeness.missing}
+                      size="sm"
+                    />
+                  </>
+                )}
+
+                {/* Source dropdown */}
+                {sources && (
+                  <>
+                    <div
+                      className="h-[12px] w-[1px] flex-shrink-0"
+                      style={{
+                        background: "linear-gradient(180deg, transparent 0%, rgba(148,163,184,0.25) 50%, transparent 100%)",
+                      }}
+                    />
+                    <SourceDropdown
+                      isOpen={sourceOpen}
+                      onToggle={() => setSourceOpen(v => !v)}
+                      sources={sources}
+                    />
+                  </>
+                )}
+              </>
+            )
+          })()}
         </div>
       </div>
     </div>

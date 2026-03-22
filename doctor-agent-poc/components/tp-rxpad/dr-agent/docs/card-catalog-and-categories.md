@@ -4,9 +4,27 @@
 
 The Doctor Agent renders **45+ card variants** organized into families. Each card has:
 - A **kind** (discriminated union tag in `RxAgentOutput`)
-- A **family** (logical grouping)
+- A **family** (logical grouping by clinical purpose)
 - A **data type** (TypeScript interface in `types.ts`)
 - A **component** (React component in `cards/` subdirectory)
+
+### Categorization Principle
+
+Cards are categorized by **what they serve the doctor**:
+
+| Category | Purpose | Donut Eligible? |
+|----------|---------|-----------------|
+| **Summary** | Patient overview at consultation start | No — displays available data |
+| **Data** | Lab/vital/med data display and trends | No — displays available data |
+| **Clinical** | Problem-oriented analysis with expected data sets | **Yes** — fixed expected fields |
+| **Action** | Decision support → copy to RxPad | No — generates suggestions |
+| **Analysis** | Document processing (OCR) | No — extracts from uploads |
+| **Utility** | Helper tools (translate, completeness, etc.) | No — utility functions |
+| **Safety** | Critical alerts that interrupt workflow | No — alert-only |
+| **Text** | Lightweight text responses (no card shell) | No — text-only |
+| **Homepage** | Clinic-level operational dashboard | No — operational data |
+
+**Donut chart rule**: Only show the data completeness donut on cards with a **fixed expected data set** where missing data is clinically meaningful. Currently only `pomr_problem_card` qualifies — it manages its own donut internally.
 
 ---
 
@@ -14,21 +32,30 @@ The Doctor Agent renders **45+ card variants** organized into families. Each car
 
 ### A. Summary Family (7 cards)
 
-Cards that present patient overviews and intake data. Shown at the start of a consultation or when the doctor asks for a patient snapshot.
+Cards that present patient overviews and intake data. Shown at consultation start or when the doctor asks for a snapshot. Content follows **SBAR conceptual ordering** (Situation → Background → Assessment → Recommendation).
 
 | Kind | Component | Description | When Shown |
 |------|-----------|-------------|------------|
-| `patient_summary` | PatientSummaryCard | Full patient overview with vitals, labs, history, trends | Consultation start, "Patient summary" pill |
-| `symptom_collector` | SymptomCollectorCard | Patient-reported symptoms from intake form | Consultation start (if intake data exists) |
+| `patient_summary` | GPSummaryCard | Full patient overview: history, labs, last visit, vitals (SBAR-ordered) | Consultation start, "Patient summary" pill |
+| `symptom_collector` | PatientReportedCard | Patient-reported symptoms from intake form | Consultation start (if intake data exists) |
 | `last_visit` | LastVisitCard | Previous visit summary with copy-to-rx | "Last visit" pill, data_retrieval intent |
 | `obstetric_summary` | ObstetricSummaryCard | Obstetric data (GP, EDD, ANC, vaccines) | Obstetric patients, specialty tab |
 | `gynec_summary` | GynecSummaryCard | Gynecological history | Gynec patients, specialty tab |
 | `pediatric_summary` | PediatricSummaryCard | Growth, milestones, vaccines | Pediatric patients, specialty tab |
 | `ophthal_summary` | OphthalSummaryCard | Visual acuity, IOP, fundus | Ophthal patients, specialty tab |
 
+**GPSummaryCard section order (SBAR):**
+1. Situation — Context line (chronic conditions + presenting symptoms, shown only when no PatientReportedCard)
+2. Background — History (chronic conditions, allergies)
+3. Assessment — Key Labs (with provenance dots: green=EMR, amber=AI-extracted)
+4. Last Visit — Previous care context (Sx, Dx, Rx — copyable)
+5. Recommendation — Today's Vitals (with abnormal flags)
+6. Specialty embed (if applicable)
+7. Cross-problem InsightBox flags (max 2 high-severity)
+
 ### B. Data Family (8 cards)
 
-Cards that display clinical data — labs, vitals, trends, timelines. Read-only or with copy functionality.
+Cards that display clinical data — labs, vitals, trends, timelines. Read-only or with copy functionality. These display **whatever data is available** — no fixed expected set.
 
 | Kind | Component | Description | When Shown |
 |------|-----------|-------------|------------|
@@ -41,7 +68,26 @@ Cards that display clinical data — labs, vitals, trends, timelines. Read-only 
 | `vaccination_schedule` | VaccinationScheduleCard | Vaccine schedule with status badges | Pediatric context, vaccine queries |
 | `patient_timeline` | PatientTimelineCard | Chronological event timeline | "View all records" navigation |
 
-### C. Action Family (7 cards)
+### C. Clinical Family (1 card + donut component)
+
+Problem-oriented cards for patients with chronic/multi-morbidity conditions. These are the **only cards with data completeness indicators** because they require a fixed expected data set.
+
+| Kind | Component | Description | When Shown |
+|------|-----------|-------------|------------|
+| `pomr_problem_card` | PomrProblemCard | Per-problem card (CKD, HTN, DM, Anaemia) with completeness donut, labs, meds, missing fields | POMR problem pills, clinical keyword queries |
+
+**PomrProblemCard structure:**
+- Header: Problem name + status badge + internal completeness donut (18px SVG)
+- Donut: 3 arcs — green (EMR), amber (AI-extracted), gray (missing) — with hover tooltip showing percentages + source documents
+- Body: InlineDataRows for relevant labs (with provenance dots), medication pills, missing field chips with prompts
+- Only rendered when `pomrProblems` data exists in the summary
+
+**Supporting component:**
+| Component | File | Purpose |
+|-----------|------|---------|
+| `DataCompletenessDonut` | `DataCompletenessDonut.tsx` | 18px SVG donut with 3 arcs (EMR/AI/missing) + hover tooltip |
+
+### D. Action Family (7 cards)
 
 Cards that drive clinical decisions — the doctor interacts, selects, and copies to RxPad.
 
@@ -55,7 +101,7 @@ Cards that drive clinical decisions — the doctor interacts, selects, and copie
 | `voice_structured_rx` | VoiceStructuredRxCard | Section-by-section Copy to RxPad | Voice dictation |
 | `rx_preview` | RxPreviewCard | Final prescription summary | "Visit summary" pill, near_complete phase |
 
-### D. Analysis Family (2 cards)
+### E. Analysis Family (2 cards)
 
 Cards that process uploaded documents using OCR.
 
@@ -64,7 +110,7 @@ Cards that process uploaded documents using OCR.
 | `ocr_pathology` | OCRPathologyCard | Structured lab report with parameters | Document upload (lab report) |
 | `ocr_extraction` | OCRFullExtractionCard | Multi-section document extraction | Document upload (discharge summary, etc.) |
 
-### E. Utility Family (5 cards)
+### F. Utility Family (5 cards)
 
 Helper cards for translation, completeness, guidelines, referrals, and follow-up questions.
 
@@ -76,7 +122,7 @@ Helper cards for translation, completeness, guidelines, referrals, and follow-up
 | `clinical_guideline` | ClinicalGuidelinesCard | Evidence-based recommendations | Clinical question intent |
 | `referral` | ReferralCard | Specialist referral with urgency | "Refer patient" action |
 
-### F. Safety Family (2 cards)
+### G. Safety Family (2 cards)
 
 Critical safety alerts that interrupt workflow.
 
@@ -85,7 +131,7 @@ Critical safety alerts that interrupt workflow.
 | `drug_interaction` | DrugInteractionCard | Drug-drug interaction alert | Medication entry triggers check |
 | `allergy_conflict` | AllergyConflictCard | Drug-allergy conflict alert | Medication entry triggers check |
 
-### G. Text Family (6 variants)
+### H. Text Family (6 variants)
 
 Lightweight text-only responses (no card shell needed for simple answers).
 
@@ -98,7 +144,7 @@ Lightweight text-only responses (no card shell needed for simple answers).
 | `text_quote` | Italic blockquote | Clinical reference quotation | Guideline citations |
 | `text_comparison` | Two-column grid | Side-by-side comparison | Drug/treatment comparisons |
 
-### H. Homepage / Operational Family (12 cards)
+### I. Homepage / Operational Family (12 cards)
 
 Clinic-level operational cards for the homepage dashboard.
 
@@ -127,7 +173,7 @@ All cards build on these primitives:
 
 | Component | File | Purpose |
 |-----------|------|---------|
-| `CardShell` | `CardShell.tsx` | Outer wrapper: header (icon + title + date + badge), copy button, children, actions (pills), sidebarLink (CTA) |
+| `CardShell` | `CardShell.tsx` | Outer wrapper: header (icon + title + date + badge + headerExtra), collapse/expand, copy button, children, actions (pills), sidebarLink (CTA) |
 | `ChatPillButton` | `ActionRow.tsx` | Follow-up action pill buttons below card content |
 | `SidebarLink` | `SidebarLink.tsx` | CTA below divider (e.g., "Copy to RxPad", "View full report") |
 | `InsightBox` | `InsightBox.tsx` | AI insight callout (red/amber/purple/teal variants) |
@@ -135,40 +181,58 @@ All cards build on these primitives:
 | `DataRow` | `DataRow.tsx` | Key-value row with optional copy |
 | `CheckboxRow` | `CheckboxRow.tsx` | Multi-select checkbox row |
 | `RadioRow` | `RadioRow.tsx` | Single-select radio row |
-| `InlineDataRow` | `InlineDataRow.tsx` | Inline key-value pair |
+| `InlineDataRow` | `InlineDataRow.tsx` | Inline key-value pairs with optional provenance dots and flags |
 | `SectionTag` | `SectionTag.tsx` | Section heading with icon |
+| `DataCompletenessDonut` | `DataCompletenessDonut.tsx` | 18px SVG donut for data completeness (used internally by POMR cards) |
+| `EmbeddedSpecialtyBox` | `EmbeddedSpecialtyBox.tsx` | Compact specialty data embed within Patient Summary |
+
+### Design System Elements
+
+| Element | Specification | Usage |
+|---------|--------------|-------|
+| **Provenance dot** | 5px circle, inline after value text | Green (#22c55e) = EMR, Amber (#f59e0b) = AI-extracted |
+| **Completeness donut** | 18px SVG, 3 arcs + hover tooltip | Green = EMR data, Amber = AI-extracted, Gray = missing |
+| **Flag colors** | Red = high/critical, Amber = warning, Green = normal | Used on InlineDataRow values |
+| **InsightBox variants** | Red, Amber, Purple, Teal | Cross-problem flags use Red (high) or Amber (medium) |
+| **CardShell headerExtra** | Slot between badge and collapse chevron, `ml-[4px]` spacing | Used for donut on POMR cards |
 
 ### File Organization
 
 ```
 cards/
-  CardShell.tsx           # Shared card wrapper
-  CardRenderer.tsx        # Discriminated union → component router
-  ActionRow.tsx           # ChatPillButton + row divider
-  SidebarLink.tsx         # CTA link component
-  InsightBox.tsx          # AI insight callout
-  CopyIcon.tsx            # Copy icon with variants
-  CopyTooltip.tsx         # Copy feedback tooltip
-  DataRow.tsx             # Key-value row
-  CheckboxRow.tsx         # Checkbox row
-  RadioRow.tsx            # Radio row
-  InlineDataRow.tsx       # Inline data pair
-  SectionTag.tsx          # Section heading
-  action/                 # Action family cards
+  CardShell.tsx              # Shared card wrapper (with headerExtra slot)
+  CardRenderer.tsx           # Discriminated union → component router
+  ActionRow.tsx              # ChatPillButton + row divider
+  SidebarLink.tsx            # CTA link component
+  InsightBox.tsx             # AI insight callout
+  CopyIcon.tsx               # Copy icon with variants
+  CopyTooltip.tsx            # Copy feedback tooltip
+  DataRow.tsx                # Key-value row
+  CheckboxRow.tsx            # Checkbox row
+  RadioRow.tsx               # Radio row
+  InlineDataRow.tsx          # Inline data pairs (with provenance dots)
+  SectionTag.tsx             # Section heading
+  DataCompletenessDonut.tsx  # Donut SVG component
+  action/                    # Action family cards
     DDXCard.tsx
     FollowUpCard.tsx
     InvestigationCard.tsx
     ProtocolMedsCard.tsx
     RxPreviewCard.tsx
     VoiceStructuredRxCard.tsx
-  data/                   # Data family cards
+  clinical/                  # Clinical family cards (POMR)
+    PomrProblemCard.tsx
+  data/                      # Data family cards
     LabComparisonCard.tsx
     LabPanelCard.tsx
     MedHistoryCard.tsx
     PatientTimelineCard.tsx
     VaccinationScheduleCard.tsx
     VitalsTrendChart.tsx
-  homepage/               # Homepage/operational cards
+  summary/                   # Summary family cards
+    GPSummaryCard.tsx
+    EmbeddedSpecialtyBox.tsx
+  homepage/                  # Homepage/operational cards
     AnalyticsTableCard.tsx
     BillingSummaryCard.tsx
     BulkActionCard.tsx
@@ -181,7 +245,7 @@ cards/
     PieChartCard.tsx
     RevenueBarCard.tsx
     WelcomeCard.tsx
-  utility/                # Utility & safety cards
+  utility/                   # Utility & safety cards
     AllergyConflictCard.tsx
     ClinicalGuidelinesCard.tsx
     CompletenessCard.tsx
@@ -200,7 +264,7 @@ cards/
 | Intent Category | Cards Produced |
 |----------------|---------------|
 | `data_retrieval` | patient_summary, last_visit, lab_panel, med_history, specialty summaries |
-| `clinical_decision` | ddx, protocol_meds, investigation_bundle, clinical_guideline |
+| `clinical_decision` | ddx, protocol_meds, investigation_bundle, clinical_guideline, pomr_problem_card |
 | `action` | follow_up, advice_bundle, translation, rx_preview |
 | `comparison` | lab_comparison, vitals_trend_bar, vitals_trend_line, lab_trend |
 | `document_analysis` | ocr_pathology, ocr_extraction |
@@ -208,3 +272,20 @@ cards/
 | `operational` | welcome_card, patient_list, follow_up_list, revenue_bar, analytics_table, etc. |
 | `follow_up` | follow_up_question |
 | `ambiguous` | text response (no card) |
+
+---
+
+## Donut Chart Eligibility Rules
+
+**Show donut when:**
+- The card requires a **fixed set of expected data fields** (e.g., a CKD problem card expects: Creatinine, GFR, Hemoglobin, Calcium, Phosphorus, PTH)
+- Missing data is **clinically meaningful** — the doctor should know what's not available
+
+**Do NOT show donut when:**
+- The card displays **whatever data is available** with no fixed expectation
+- Examples: Patient Summary (shows available vitals/labs/history), Lab Panel (shows available labs), Vital Trends (shows available vitals)
+
+**Currently donut-eligible cards:**
+- `pomr_problem_card` — manages its own donut internally in the CardShell header
+
+**Implementation note:** The donut is rendered by `DataCompletenessDonut.tsx` and passed as `headerExtra` prop to `CardShell`. CardRenderer does NOT apply donut overlays — each eligible card handles its own donut.

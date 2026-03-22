@@ -108,6 +108,7 @@ export function LastVisitCard({
       copyAll={onCopy}
       copyAllTooltip="Fill last visit data to RxPad"
       collapsible
+      dataSources={["EMR Records"]}
       actions={
         <ChatPillButton
           label="Compare previous visit"

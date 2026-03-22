@@ -53,6 +53,7 @@ export function OphthalSummaryCard({ data, onSidebarNav }: OphthalSummaryCardPro
       icon={<span />}
       tpIconName="eye"
       title="Ophthal Summary"
+      dataSources={["EMR Records"]}
       collapsible
       sidebarLink={
         onSidebarNav ? (

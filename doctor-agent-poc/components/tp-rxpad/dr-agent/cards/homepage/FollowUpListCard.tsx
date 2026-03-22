@@ -1,8 +1,9 @@
 "use client"
 import React, { useState } from "react"
-import { Calendar2 } from "iconsax-reactjs"
+import { Calendar2, NotificationBing } from "iconsax-reactjs"
 import { CardShell } from "../CardShell"
 import type { FollowUpListCardData } from "../../types"
+import { FooterCTA } from "../FooterCTA"
 
 interface Props { data: FollowUpListCardData; onPillTap?: (label: string) => void }
 
@@ -28,13 +29,12 @@ export function FollowUpListCard({ data, onPillTap }: Props) {
       badge={data.overdueCount > 0 ? { label: `${data.overdueCount} overdue`, color: "#DC2626", bg: "#FEE2E2" } : undefined}
       sidebarLink={
         data.items.length > 0 && !allDisabled ? (
-          <button
-            type="button"
-            className="inline-flex h-[28px] items-center rounded-[10px] border-[1.5px] border-tp-blue-500 bg-transparent px-4 text-[11px] font-medium text-tp-blue-600 hover:bg-tp-blue-50 transition-all"
+          <FooterCTA
+            label={`Send reminder to all (${data.items.length})`}
             onClick={handleSendAll}
-          >
-            Send reminder to all ({data.items.length})
-          </button>
+            tone="primary"
+            iconLeft={<NotificationBing size={14} variant="Bulk" />}
+          />
         ) : undefined
       }
     >
@@ -45,7 +45,7 @@ export function FollowUpListCard({ data, onPillTap }: Props) {
             <div key={i} className="flex items-center gap-[8px] rounded-[8px] bg-tp-slate-50 px-[8px] py-[6px] transition-colors">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-[4px]">
-                  <p className="truncate text-[11px] font-medium text-tp-slate-800">
+                  <p className="truncate text-[12px] font-medium text-tp-slate-800">
                     {item.name}
                   </p>
                   {item.isOverdue && (
@@ -59,7 +59,7 @@ export function FollowUpListCard({ data, onPillTap }: Props) {
               <button
                 type="button"
                 disabled={isDisabled}
-                className="flex-shrink-0 rounded-[6px] border border-tp-blue-400 bg-transparent px-[10px] py-[3px] text-[9px] font-medium text-tp-blue-600 transition-colors hover:bg-tp-blue-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-shrink-0 rounded-[6px] border border-tp-blue-400 bg-transparent px-[10px] py-[3px] text-[10px] font-medium text-tp-blue-600 transition-colors hover:bg-tp-blue-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={() => handleSendItem(i, item.name)}
               >
                 Remind

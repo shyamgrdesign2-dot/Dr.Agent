@@ -78,7 +78,7 @@ function BarChart({ series }: { series: VitalTrendSeries }) {
         )}
         {series.values.map((val, i) => (
           <div key={i} className="flex flex-1 flex-col items-center gap-[2px]">
-            <span className="text-[9px] font-semibold text-tp-slate-600">{val}</span>
+            <span className="text-[10px] font-semibold text-tp-slate-600">{val}</span>
             <div className={`w-full max-w-[32px] rounded-t-[4px] ${TONE_BG[series.tone]} transition-all`} style={{ height: barHeight(val) }} />
             <span className="mt-[2px] text-[8px] text-tp-slate-400">{series.dates[i]}</span>
           </div>
@@ -313,6 +313,7 @@ export function VitalTrendsLineCard({ data, onPillTap }: VitalTrendsLineCardProp
       tpIconName="Heart Rate"
       title={data.title}
       date={`${totalVisits} visits`}
+      dataSources={["EMR Records", "Vitals History"]}
       actions={
         <>
           <ChatPillButton label="Compare vitals" onClick={() => onPillTap?.("Compare vitals")} />
@@ -348,7 +349,7 @@ export function VitalTrendsLineCard({ data, onPillTap }: VitalTrendsLineCardProp
                               SERIES_COLORS[si % SERIES_COLORS.length],
                           }}
                         />
-                        <span className="text-[9px] text-tp-slate-500">
+                        <span className="text-[10px] text-tp-slate-500">
                           {s.label}{isMultiSeries ? ` (${s.unit})` : ""}
                         </span>
                       </div>

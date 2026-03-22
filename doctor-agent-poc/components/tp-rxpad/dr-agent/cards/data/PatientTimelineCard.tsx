@@ -21,7 +21,7 @@ export function PatientTimelineCard({ data, onSidebarNav }: Props) {
   return (
     <CardShell
       icon={<span />}
-      tpIconName="clock"
+      tpIconName="medical-record"
       title={data.title}
       sidebarLink={<SidebarLink text="View all records" onClick={() => onSidebarNav?.("pastVisits")} />}
     >
@@ -51,7 +51,7 @@ export function PatientTimelineCard({ data, onSidebarNav }: Props) {
                 <span className="w-[60px] flex-shrink-0 text-[10px] text-tp-slate-400">{event.date}</span>
                 <div className="flex-1">
                   <span
-                    className="mr-[4px] rounded-[3px] px-1 py-[0.5px] text-[9px] font-medium uppercase"
+                    className="mr-[4px] rounded-[3px] px-1 py-[0.5px] text-[10px] font-medium uppercase"
                     style={{ color: cfg.color, backgroundColor: cfg.bg }}
                   >
                     {event.type}

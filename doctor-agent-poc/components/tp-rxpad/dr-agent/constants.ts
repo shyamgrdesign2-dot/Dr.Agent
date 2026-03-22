@@ -36,6 +36,29 @@ export const RX_CONTEXT_OPTIONS: RxContextOption[] = [
 
 export const CONTEXT_PATIENT_ID = "__patient__"
 
+/**
+ * Find RX_CONTEXT_OPTIONS id by patient ID or name.
+ * Used when embedding DrAgentPanel in pages that use external patient identifiers.
+ */
+export function findContextIdByPatientId(patientId: string, patientName?: string): string | undefined {
+  // Direct match by id
+  const direct = RX_CONTEXT_OPTIONS.find((o) => o.id === patientId)
+  if (direct) return direct.id
+
+  // Match by embedded patient ID (PAT0061, etc.) in meta
+  const byMeta = RX_CONTEXT_OPTIONS.find((o) => o.meta?.includes(patientId))
+  if (byMeta) return byMeta.id
+
+  // Match by name (case-insensitive)
+  if (patientName) {
+    const lower = patientName.toLowerCase()
+    const byName = RX_CONTEXT_OPTIONS.find((o) => o.label.toLowerCase() === lower)
+    if (byName) return byName.id
+  }
+
+  return undefined
+}
+
 // ═══════════════ SPECIALTY CONFIG ═══════════════
 
 export interface SpecialtyVisualConfig {
@@ -129,7 +152,7 @@ export const SECTION_TAGS: Record<string, SectionTagConfig> = {
   labs: { id: "labs", label: "Key Labs", icon: "Lab", sidebarTab: "labResults", copyDestination: "labResults" },
   history: { id: "history", label: "Medical History", icon: "clipboard-activity", sidebarTab: "history", copyDestination: "history" },
   lastVisit: { id: "lastVisit", label: "Last Visit", icon: "medical-record", sidebarTab: "pastVisits", copyDestination: "rxpad" },
-  symptoms: { id: "symptoms", label: "Symptom Reports", icon: "thermometer", copyDestination: "rxpad" },
+  symptoms: { id: "symptoms", label: "Symptoms Reported", icon: "thermometer", copyDestination: "rxpad" },
   examination: { id: "examination", label: "Examination", icon: "stethoscope", copyDestination: "rxpad" },
   diagnosis: { id: "diagnosis", label: "Diagnosis", icon: "Diagnosis", copyDestination: "rxpad" },
   medication: { id: "medication", label: "Medication", icon: "pill", sidebarTab: "pastVisits", copyDestination: "rxpad" },
@@ -177,7 +200,7 @@ export const CARD = {
 // ═══════════════ PHASE PROMPTS (for prompt chips) ═══════════════
 
 export const PHASE_PROMPTS: Record<string, string[]> = {
-  empty: ["Patient snapshot", "Last visit", "Abnormal labs", "Current intake"],
+  empty: ["Patient's detailed summary", "Last visit", "Abnormal labs", "Current intake"],
   symptoms_entered: ["Generate DDX", "Last visit compare", "Vitals review", "Lab focus"],
   dx_accepted: ["Medication plan", "Investigations", "Advice draft", "Follow-up plan"],
   meds_written: ["Refine advice", "Translate advice", "Follow-up plan", "Completeness check"],
@@ -187,7 +210,7 @@ export const PHASE_PROMPTS: Record<string, string[]> = {
 // ═══════════════ TAB PROMPTS ═══════════════
 
 export const TAB_PROMPTS: Record<string, string[]> = {
-  "dr-agent": ["Patient snapshot", "Abnormal findings", "Last visit essentials"],
+  "dr-agent": ["Patient's detailed summary", "Abnormal findings", "Last visit essentials"],
   "past-visits": ["Last visit essentials", "Previous comparison", "Recurrence check"],
   vitals: ["Vitals overview", "Concerning vitals", "Trend if relevant"],
   history: ["Chronic history", "Allergy safety", "Family/lifestyle context"],

@@ -28,6 +28,7 @@ const RULES: KeywordRule[] = [
   { keywords: ["referral summary", "specialist referral", "referral this week"], intent: "operational", format: "card" },
   { keywords: ["vaccination due", "vaccine overdue", "immunization due", "vaccination overdue"], intent: "operational", format: "card" },
   { keywords: ["anc schedule", "anc due", "antenatal", "anc overdue", "obstetric schedule"], intent: "operational", format: "card" },
+  { keywords: ["details about", "search patient", "find patient", "show patient", "look up patient", "patient named", "who is"], intent: "operational", format: "card" },
   { keywords: ["vaccination schedule", "vaccine schedule", "immunization"], intent: "operational", format: "card" },
   // Clinical guidelines pill removed from homepage
   { keywords: ["billing overview", "bill summary", "billing summary"], intent: "operational", format: "card" },
@@ -74,7 +75,7 @@ const RULES: KeywordRule[] = [
   { keywords: ["draft campaign", "delivery stat", "template library", "scheduled message"], intent: "operational", format: "card" },
   { keywords: ["excel", "xlsx", "word", "docx", "export format", "download file"], intent: "operational", format: "card" },
   // Patient-context pills
-  { keywords: ["patient snapshot", "pre-consult prep", "abnormal lab"], intent: "operational", format: "card" },
+  { keywords: ["patient snapshot", "patient's detailed summary", "detailed summary", "pre-consult prep", "abnormal lab"], intent: "operational", format: "card" },
 
   // Operational (RxPad)
   { keywords: ["completeness", "checklist", "missing", "empty section", "documentation"], intent: "operational", format: "card" },
@@ -113,6 +114,7 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "Obstetric summary": "data_retrieval",
   "Pediatric summary": "data_retrieval",
   "Patient summary": "data_retrieval",
+  "Patient's detailed summary": "data_retrieval",
   "Vision summary": "data_retrieval",
   "Growth summary": "data_retrieval",
   "Lab trends": "comparison",
@@ -224,6 +226,7 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "ANC schedule": "operational",
   // Patient-context pill labels (data-aware)
   "Patient snapshot": "data_retrieval",
+  "Patient detail summary": "data_retrieval",
   "Last visit": "data_retrieval",
   "Last visit details": "data_retrieval",
   "Abnormal labs": "operational",
@@ -234,4 +237,11 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "Growth & vaccines": "data_retrieval",
   "Growth check": "data_retrieval",
   "Vision check": "data_retrieval",
+  // Doctor-type-aware pills (treating physician + emergency)
+  "eGFR trend": "comparison",
+  "Medication timeline": "data_retrieval",
+  "Plan follow-up": "action",
+  "Recent ER history": "data_retrieval",
+  "Key labs": "data_retrieval",
+  "Active medications": "data_retrieval",
 }

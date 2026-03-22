@@ -29,7 +29,7 @@ export function RevenueComparisonCard({ data, onPillTap }: Props) {
           <button
             type="button"
             onClick={() => onPillTap?.("Compare with another date")}
-            className="rounded-[6px] border border-tp-slate-200 px-[8px] py-[4px] text-[11px] font-medium text-tp-slate-600 hover:bg-tp-slate-50"
+            className="rounded-[6px] border border-tp-slate-200 px-[8px] py-[4px] text-[12px] font-medium text-tp-slate-600 hover:bg-tp-slate-50"
           >
             Compare another date
           </button>
@@ -52,10 +52,10 @@ export function RevenueComparisonCard({ data, onPillTap }: Props) {
       </div>
 
       <div className="mt-[8px] flex items-center justify-between rounded-[8px] px-[8px] py-[6px]" style={{ backgroundColor: deltaTone.bg }}>
-        <p className="text-[11px] font-medium text-tp-slate-700">Revenue change</p>
+        <p className="text-[12px] font-medium text-tp-slate-700">Revenue change</p>
         <div className="flex items-center gap-[4px]" style={{ color: deltaTone.text }}>
-          {deltaDirection === "up" ? <ArrowUp2 size={13} variant="Bold" /> : <ArrowDown2 size={13} variant="Bold" />}
-          <span className="text-[11px] font-semibold">{formatMoney(Math.abs(revenueDelta))}</span>
+          {deltaDirection === "up" ? <ArrowUp2 size={14} variant="Bold" /> : <ArrowDown2 size={14} variant="Bold" />}
+          <span className="text-[12px] font-semibold">{formatMoney(Math.abs(revenueDelta))}</span>
         </div>
       </div>
 

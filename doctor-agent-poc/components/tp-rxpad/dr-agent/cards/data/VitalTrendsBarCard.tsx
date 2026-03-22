@@ -93,7 +93,7 @@ function BarChart({ series }: { series: VitalTrendSeries }) {
             className="flex flex-1 flex-col items-center gap-[2px]"
           >
             {/* Value on top */}
-            <span className="text-[9px] font-semibold text-tp-slate-600">
+            <span className="text-[10px] font-semibold text-tp-slate-600">
               {val}
             </span>
             {/* Bar */}
@@ -234,6 +234,7 @@ export function VitalTrendsBarCard({ data, onPillTap }: VitalTrendsBarCardProps)
       tpIconName="Heart Rate"
       title={data.title}
       date={`${totalVisits} visits`}
+      dataSources={["EMR Records", "Vitals History"]}
       actions={
         <ChatPillButton label="All vitals" onClick={() => onPillTap?.("All vitals")} />
       }
@@ -260,7 +261,7 @@ export function VitalTrendsBarCard({ data, onPillTap }: VitalTrendsBarCardProps)
                     {data.series.map((s, si) => (
                       <div key={s.label} className="flex items-center gap-1">
                         <div className="h-[6px] w-[6px] rounded-full" style={{ backgroundColor: LINE_COLORS[si % LINE_COLORS.length] }} />
-                        <span className="text-[9px] text-tp-slate-500">{s.label}{isMultiSeries ? ` (${s.unit})` : ""}</span>
+                        <span className="text-[10px] text-tp-slate-500">{s.label}{isMultiSeries ? ` (${s.unit})` : ""}</span>
                       </div>
                     ))}
                   </div>

@@ -997,7 +997,7 @@ export function buildHomepageReply(input: string, intent: IntentResult): ReplyRe
   }
 
   // ── Patient-context pills ──
-  if (n.includes("patient snapshot")) {
+  if (n.includes("patient snapshot") || n.includes("patient's detailed summary") || n.includes("detailed summary")) {
     return { text: "Select a specific patient from the dropdown above to see their clinical snapshot, including vitals, recent visits, and active medications." }
   }
   if (n.includes("pre-consult prep")) {

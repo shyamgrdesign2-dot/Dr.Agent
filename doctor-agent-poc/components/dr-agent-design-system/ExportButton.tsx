@@ -1196,7 +1196,7 @@ const SECTION_TAGS = {
   labs:          { label: "Key Labs",           icon: "Lab",                sidebarTab: "labResults",   copyDestination: "labResults" },
   history:       { label: "Medical History",    icon: "clipboard-activity", sidebarTab: "history",      copyDestination: "history" },
   lastVisit:     { label: "Last Visit",         icon: "medical-record",     sidebarTab: "pastVisits",   copyDestination: "rxpad" },
-  symptoms:      { label: "Symptom Reports",    icon: "thermometer",        copyDestination: "rxpad" },
+  symptoms:      { label: "Symptoms Reported",   icon: "thermometer",        copyDestination: "rxpad" },
   examination:   { label: "Examination",        icon: "stethoscope",        copyDestination: "rxpad" },
   diagnosis:     { label: "Diagnosis",          icon: "Diagnosis",          copyDestination: "rxpad" },
   medication:    { label: "Medication",         icon: "pill",               sidebarTab: "pastVisits",   copyDestination: "rxpad" },

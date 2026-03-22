@@ -44,11 +44,11 @@ export function ReferralCard({ data, onPillTap }: Props) {
               {/* Row 1: Doctor + specialty + action */}
               <div className="flex items-center justify-between mb-[3px]">
                 <div className="flex items-center gap-[6px] min-w-0">
-                  <span className="text-[11px] font-medium text-tp-slate-800 truncate">
+                  <span className="text-[12px] font-medium text-tp-slate-800 truncate">
                     {item.doctorName}
                   </span>
                   <span
-                    className="shrink-0 rounded-[4px] px-1.5 py-[1px] text-[9px] font-medium uppercase"
+                    className="shrink-0 rounded-[4px] px-1.5 py-[1px] text-[10px] font-medium uppercase"
                     style={{ color: "#4B4AD5", backgroundColor: "#EEF2FF" }}
                   >
                     {item.specialty}

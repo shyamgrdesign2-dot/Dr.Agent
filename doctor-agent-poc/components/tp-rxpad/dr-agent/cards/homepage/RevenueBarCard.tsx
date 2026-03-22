@@ -42,35 +42,35 @@ export function RevenueBarCard({ data, onPillTap }: Props) {
       {/* Summary chips */}
       <div className="mb-[10px] grid grid-cols-2 gap-[6px]">
         <div className="rounded-[8px] bg-tp-slate-50 px-[8px] py-[7px]">
-          <span className="block truncate text-[13px] font-semibold leading-tight text-tp-slate-800">
+          <span className="block truncate text-[14px] font-semibold leading-tight text-tp-slate-800">
             &#x20B9;{data.totalRevenue.toLocaleString("en-IN")}
           </span>
-          <span className="mt-[3px] block text-[9px] font-medium text-tp-slate-500">
+          <span className="mt-[3px] block text-[10px] font-medium text-tp-slate-500">
             {isDepositMode ? "Total advance received" : "Total billed amount"}
           </span>
         </div>
         <div className="rounded-[8px] px-[8px] py-[7px]" style={{ backgroundColor: isDepositMode ? "rgba(239,68,68,0.08)" : "rgba(34,197,94,0.08)" }}>
-          <span className="block truncate text-[13px] font-semibold leading-tight" style={{ color: isDepositMode ? "var(--tp-error-600, #DC2626)" : "var(--tp-success-600, #16A34A)" }}>
+          <span className="block truncate text-[14px] font-semibold leading-tight" style={{ color: isDepositMode ? "var(--tp-error-600, #DC2626)" : "var(--tp-success-600, #16A34A)" }}>
             &#x20B9;{isDepositMode ? data.totalRefunded.toLocaleString("en-IN") : data.totalPaid.toLocaleString("en-IN")}
           </span>
-          <span className="mt-[3px] block text-[9px] font-medium" style={{ color: isDepositMode ? "var(--tp-error-500, #EF4444)" : "var(--tp-success-500, #22C55E)" }}>
+          <span className="mt-[3px] block text-[10px] font-medium" style={{ color: isDepositMode ? "var(--tp-error-500, #EF4444)" : "var(--tp-success-500, #22C55E)" }}>
             {isDepositMode ? "Total advance refunded" : "Paid fully"}
           </span>
         </div>
         <div className="rounded-[8px] px-[8px] py-[7px]" style={{ backgroundColor: "rgba(245,158,11,0.08)" }}>
-          <span className="block truncate text-[13px] font-semibold leading-tight" style={{ color: "var(--tp-warning-600, #D97706)" }}>
+          <span className="block truncate text-[14px] font-semibold leading-tight" style={{ color: "var(--tp-warning-600, #D97706)" }}>
             &#x20B9;{data.totalDue.toLocaleString("en-IN")}
           </span>
-          <span className="mt-[3px] block text-[9px] font-medium" style={{ color: "var(--tp-warning-500, #F59E0B)" }}>
+          <span className="mt-[3px] block text-[10px] font-medium" style={{ color: "var(--tp-warning-500, #F59E0B)" }}>
             {isDepositMode ? "Total advance debited" : "Due"}
           </span>
         </div>
         {!isDepositMode && (
           <div className="rounded-[8px] px-[8px] py-[7px]" style={{ backgroundColor: "rgba(239,68,68,0.08)" }}>
-            <span className="block truncate text-[13px] font-semibold leading-tight" style={{ color: "var(--tp-error-600, #DC2626)" }}>
+            <span className="block truncate text-[14px] font-semibold leading-tight" style={{ color: "var(--tp-error-600, #DC2626)" }}>
               &#x20B9;{data.totalRefunded.toLocaleString("en-IN")}
             </span>
-            <span className="mt-[3px] block text-[9px] font-medium" style={{ color: "var(--tp-error-500, #EF4444)" }}>
+            <span className="mt-[3px] block text-[10px] font-medium" style={{ color: "var(--tp-error-500, #EF4444)" }}>
               Refunded
             </span>
           </div>
@@ -118,7 +118,7 @@ export function RevenueBarCard({ data, onPillTap }: Props) {
                       />
                     )
                   })}
-                  <text x={x + barWidth / 2} y={chartHeight + 14} textAnchor="middle" className="text-[9px] fill-tp-slate-500" style={{ fontFamily: "DM Sans" }}>{day.label}</text>
+                  <text x={x + barWidth / 2} y={chartHeight + 14} textAnchor="middle" className="text-[10px] fill-tp-slate-500" style={{ fontFamily: "DM Sans" }}>{day.label}</text>
                 </g>
               )
             })}
@@ -129,7 +129,7 @@ export function RevenueBarCard({ data, onPillTap }: Props) {
 
       {/* Legend (multi-day only) */}
       {!isSinglePoint && (
-        <div className="mt-[8px] flex gap-[12px] text-[9px] text-tp-slate-400">
+        <div className="mt-[8px] flex gap-[12px] text-[10px] text-tp-slate-400">
           <span className="flex items-center gap-[3px]"><span className="inline-block h-[6px] w-[6px] rounded-[2px]" style={{ backgroundColor: "var(--tp-success-500, #22C55E)" }} /> {isDepositMode ? "Received" : "Paid fully"}</span>
           <span className="flex items-center gap-[3px]"><span className="inline-block h-[6px] w-[6px] rounded-[2px]" style={{ backgroundColor: "var(--tp-warning-500, #F59E0B)" }} /> {isDepositMode ? "Debited" : "Due"}</span>
           <span className="flex items-center gap-[3px]"><span className="inline-block h-[6px] w-[6px] rounded-[2px]" style={{ backgroundColor: "var(--tp-error-500, #EF4444)" }} /> Refunded</span>

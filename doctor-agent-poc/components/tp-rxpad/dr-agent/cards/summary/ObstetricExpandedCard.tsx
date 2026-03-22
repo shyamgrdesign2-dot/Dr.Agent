@@ -89,6 +89,7 @@ export function ObstetricExpandedCard({ data, onSidebarNav }: ObstetricExpandedC
       tpIconName="Obstetric"
       title="Obstetric Summary"
       badge={badge}
+      dataSources={["EMR Records", "ANC Records"]}
       collapsible
       sidebarLink={
         onSidebarNav ? (

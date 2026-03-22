@@ -28,7 +28,7 @@ export function VaccinationScheduleCard({ data, onSidebarNav, onPillTap }: Props
   return (
     <CardShell
       icon={<span />}
-      tpIconName="syringe"
+      tpIconName="injection"
       title={data.title}
       badge={
         data.overdueCount > 0
@@ -75,11 +75,11 @@ export function VaccinationScheduleCard({ data, onSidebarNav, onPillTap }: Props
               {/* Left: Patient + Vaccine info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-[6px]">
-                  <span className="text-[11px] font-medium text-tp-slate-800 truncate">
+                  <span className="text-[12px] font-medium text-tp-slate-800 truncate">
                     {vax.patientName}
                   </span>
                   <span
-                    className="shrink-0 rounded-[4px] px-1.5 py-[1px] text-[9px] font-medium"
+                    className="shrink-0 rounded-[4px] px-1.5 py-[1px] text-[10px] font-medium"
                     style={{ color: badge.color, backgroundColor: badge.bg }}
                   >
                     {badge.label}

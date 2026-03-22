@@ -86,25 +86,32 @@ Pills are generated across 4 layers, then sorted by priority (lower = higher pri
 - Triggered by critical vital signs or allergy presence
 - Examples: "Review SpO2" (SpO2 < 90), "Allergy Alert" (any allergies)
 
-#### Layer 2: Clinical Flags (Priority 10-29)
+#### Layer 2: Clinical Flags (Priority 10-51)
 - Triggered by abnormal patient data
 - Lab flags, overdue follow-ups, abnormal vitals
 - Specialty-specific pills (Obstetric, Gynec, Pediatric, Ophthal) when relevant data exists
+- **POMR per-problem pills** when `pomrProblems` are present — generates a pill per active problem (e.g., "CKD Stage 5", "Hypertension", "Type 2 Diabetes")
+- **Chronic disease pills** — CKD patients get: Dialysis adequacy, Fluid & electrolytes, Bone mineral status, CV risk assessment. DM patients get: Glycemic control, Insulin adjustment. Anaemia patients get: EPO dosing, Iron stores.
+- **Multi-morbidity pills** — when 3+ problems: Polypharmacy review, Medication timeline
+- **Cross-problem flags** — Drug interactions, missing tests, overdue items, action-needed alerts
 
-#### Layer 3: Consultation Phase (Priority 30-49)
+#### Layer 3: Consultation Phase (Priority 30-58)
 - **The core driver of contextual suggestions**
 - Changes based on where the doctor is in the consultation workflow:
 
 | Phase | Context | Pills Offered |
 |-------|---------|---------------|
 | `empty` (new patient) | No prior data | Review intake, Suggest DDX, Initial investigations, Ask anything |
-| `empty` (existing) | Has history | Patient summary, Vital trends, Lab overview, Last visit |
+| `empty` (existing) | Has history | Patient summary, Vital trends, Lab overview, Last visit, Ask anything |
 | `symptoms_entered` | Symptoms recorded | Suggest DDX, Compare with last visit, Vital trends |
 | `dx_accepted` | Diagnosis set | Suggest medications, Investigations, Draft advice, Plan follow-up |
-| `meds_written` | Medications added | Generate advice, Translate, Plan follow-up |
+| `meds_written` | Medications added | Translate to regional, Plan follow-up |
 | `near_complete` | Most fields filled | Completeness check, Translate advice, Visit summary |
 
-**Data-aware**: Layer 3 checks what data actually exists before offering pills. E.g., "Vital trends" only appears if vitals are recorded; "Last visit" only if there's a previous visit.
+**Always-available pills** (appended to every phase):
+- Patient detail summary, Lab comparison, Medication review, Chronic conditions
+
+**Data-aware**: Layer 3 checks what data actually exists before offering pills. E.g., "Vital trends" only appears if vitals are recorded; "Lab comparison" only if labs exist.
 
 #### Layer 4: Tab Lens (Priority 60-69)
 - Triggered by which sidebar tab is active
@@ -122,10 +129,19 @@ Deduplicate by label
        ↓
 Layer 1 force pills always included
        ↓
-Remaining slots filled from pool (max 4 total)
+Remaining slots filled from pool (max 35 total)
        ↓
 Final pill set displayed to doctor
 ```
+
+### POMR Problem Pill → Card Flow
+
+When a POMR problem pill is tapped (e.g., "CKD Stage 5"):
+1. Reply engine matches the problem name against `pomrProblems` array
+2. Builds a `pomr_problem_card` output with: problem name, status, completeness donut data, relevant labs (with provenance), medications, missing fields
+3. Card renders with its own internal donut — no overlay from CardRenderer
+
+Specific clinical term pills (e.g., "Dialysis adequacy", "Glycemic control") bypass POMR matching and generate targeted clinical text responses instead.
 
 ---
 
@@ -219,12 +235,14 @@ When building the real backend, the canned message system should be replaced wit
 
 ### Key Design Decisions
 
-- **Max 4 pills** — Prevents cognitive overload; forces prioritization
+- **Max 35 pills** — Scrollable pill bar accommodates chronic disease workflows with many actionable items
 - **Layer 1 cannot be displaced** — Safety-critical pills always visible
 - **Phase-awareness** — Pills change as the consultation progresses
 - **Data-awareness** — Don't offer "Lab trends" if no labs exist
 - **Pill bypass** — Tapping a pill skips NLU for reliability
 - **Tab lens** — Active sidebar tab influences suggestions
+- **POMR-aware** — Per-problem pills auto-generated from `pomrProblems` data
+- **Specific term priority** — Clinical terms (e.g., "dialysis adequacy") take priority over generic POMR problem matching
 
 ---
 

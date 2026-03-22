@@ -2,8 +2,9 @@
 
 import { useState } from "react"
 import { CardShell } from "../CardShell"
-import { cn } from "@/lib/utils"
+import { TickCircle } from "iconsax-reactjs"
 import type { DrugInteractionData, SeverityLevel } from "../../types"
+import { FooterCTA } from "../FooterCTA"
 
 interface DrugInteractionCardProps {
   data: DrugInteractionData
@@ -44,19 +45,13 @@ export function DrugInteractionCard({
       title="Drug Interaction"
       badge={{ label: "DANGER", color: "#DC2626", bg: "#FEE2E2" }}
       sidebarLink={
-        <button
-          type="button"
+        <FooterCTA
+          label={acknowledged ? "Acknowledged" : "Acknowledge"}
           onClick={handleAck}
           disabled={acknowledged}
-          className={cn(
-            "inline-flex h-[28px] items-center rounded-[10px] px-4 text-[11px] font-medium transition-all",
-            acknowledged
-              ? "cursor-default border border-tp-slate-200 bg-tp-slate-50 text-tp-slate-400"
-              : "border-[1.5px] border-tp-error-500 bg-transparent text-tp-error-600 hover:bg-tp-error-50"
-          )}
-        >
-          {acknowledged ? "Acknowledged" : "Acknowledge"}
-        </button>
+          tone={acknowledged ? "neutral" : "success"}
+          iconLeft={<TickCircle size={14} variant={acknowledged ? "Bold" : "Linear"} />}
+        />
       }
     >
       {/* Redesigned: white bg with left accent border */}
@@ -78,7 +73,7 @@ export function DrugInteractionCard({
 
         {/* Severity */}
         <div className="flex items-center gap-[6px]">
-          <span className="text-[9px] font-medium uppercase tracking-wider text-tp-slate-400">Severity</span>
+          <span className="text-[10px] font-medium uppercase tracking-wider text-tp-slate-400">Severity</span>
           <span
             className="rounded-[4px] px-1.5 py-[1px] text-[10px] font-semibold"
             style={{ color: badge.color, backgroundColor: badge.bg }}
@@ -89,13 +84,13 @@ export function DrugInteractionCard({
 
         {/* Risk */}
         <div>
-          <p className="mb-[2px] text-[9px] font-medium uppercase tracking-wider text-tp-slate-400">Risk</p>
+          <p className="mb-[2px] text-[10px] font-medium uppercase tracking-wider text-tp-slate-400">Risk</p>
           <p className="text-[12px] leading-[1.5] text-tp-slate-700">{data.risk}</p>
         </div>
 
         {/* Action */}
         <div>
-          <p className="mb-[2px] text-[9px] font-medium uppercase tracking-wider text-tp-slate-400">Recommended Action</p>
+          <p className="mb-[2px] text-[10px] font-medium uppercase tracking-wider text-tp-slate-400">Recommended Action</p>
           <p className="text-[12px] leading-[1.5] text-tp-slate-700">{data.action}</p>
         </div>
       </div>

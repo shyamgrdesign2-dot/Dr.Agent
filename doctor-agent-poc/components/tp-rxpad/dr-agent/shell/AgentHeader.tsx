@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import type { SpecialtyTabId } from "../types"
+import type { DoctorViewType, SpecialtyTabId } from "../types"
 import { SidebarRight } from "iconsax-reactjs"
 import { AI_GRADIENT } from "../constants"
 import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
@@ -30,7 +30,28 @@ const SPECIALTY_OPTIONS: { id: SpecialtyTabId; label: string }[] = [
 ]
 
 // -----------------------------------------------------------------
-// AgentHeader — Clean, minimal header
+// Doctor View Type options (controls summary depth per doctor context)
+// -----------------------------------------------------------------
+
+const DOCTOR_VIEW_OPTIONS: { id: DoctorViewType; label: string; shortLabel: string }[] = [
+  { id: "specialist_first_visit", label: "Specialist", shortLabel: "Specialist" },
+  { id: "treating_physician", label: "Treating Doctor", shortLabel: "Treating" },
+  { id: "emergency_oncall", label: "Emergency", shortLabel: "Emergency" },
+]
+
+// -----------------------------------------------------------------
+// Intake Mode options
+// -----------------------------------------------------------------
+
+export type IntakeMode = "with_intake" | "without_intake"
+
+const INTAKE_OPTIONS: { id: IntakeMode; label: string }[] = [
+  { id: "with_intake", label: "With previous intake" },
+  { id: "without_intake", label: "Without previous intake" },
+]
+
+// -----------------------------------------------------------------
+// AgentHeader — Clean, minimal header with unified dropdown
 // -----------------------------------------------------------------
 
 interface AgentHeaderProps {
@@ -41,6 +62,14 @@ interface AgentHeaderProps {
   selectedPatientId: string
   onClose: () => void
   className?: string
+  /** Doctor view type — controls summary depth and pill selection */
+  doctorViewType?: DoctorViewType
+  onDoctorViewChange?: (type: DoctorViewType) => void
+  /** Show doctor view selector (only for patients with POMR/SBAR data) */
+  showDoctorViewSelector?: boolean
+  /** Intake mode — with or without pre-visit intake */
+  intakeMode?: IntakeMode
+  onIntakeModeChange?: (mode: IntakeMode) => void
 }
 
 export function AgentHeader({
@@ -49,6 +78,11 @@ export function AgentHeader({
   onPatientChange,
   onClose,
   className,
+  doctorViewType,
+  onDoctorViewChange,
+  showDoctorViewSelector,
+  intakeMode = "with_intake",
+  onIntakeModeChange,
 }: AgentHeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -65,10 +99,17 @@ export function AgentHeader({
     return () => document.removeEventListener("mousedown", handleClick)
   }, [dropdownOpen])
 
-  const activeLabel = SPECIALTY_OPTIONS.find((o) => o.id === activeSpecialty)?.label ?? "GP"
+  const activeSpecLabel = SPECIALTY_OPTIONS.find((o) => o.id === activeSpecialty)?.label ?? "GP"
+  const activeDoctorLabel = DOCTOR_VIEW_OPTIONS.find((o) => o.id === doctorViewType)?.shortLabel
+  const activeIntakeLabel = intakeMode === "with_intake" ? "Intake" : "No intake"
+
+  // Build compact badge text for the dropdown trigger
+  const badgeParts: string[] = [activeSpecLabel]
+  if (showDoctorViewSelector && activeDoctorLabel) {
+    badgeParts.push(activeDoctorLabel)
+  }
 
   function handleSpecialtySelect(id: SpecialtyTabId) {
-    setDropdownOpen(false)
     onSpecialtyChange(id)
     const patientId = SPECIALTY_PATIENT_MAP[id]
     if (patientId) {
@@ -92,7 +133,7 @@ export function AgentHeader({
         {/* Subtle noise grain */}
         <NoiseOverlay opacity={0.04} />
 
-        {/* Left: spark icon + title + specialty dropdown */}
+        {/* Left: spark icon + title + unified dropdown */}
         <div className="relative z-10 flex items-center gap-[6px]">
           <AiGradientBg size={28} borderRadius={8}>
             <AiBrandSparkIcon size={16} className="flex-shrink-0" />
@@ -109,20 +150,26 @@ export function AgentHeader({
             Dr. Agent
           </span>
 
-          {/* Specialty Dropdown */}
+          {/* Unified Dropdown — Specialty + Doctor Type + Intake */}
           <div className="relative" ref={dropdownRef}>
             <button
               type="button"
               onClick={() => setDropdownOpen((v) => !v)}
               className={cn(
-                "flex items-center gap-[3px] rounded-full px-[7px] py-[2px]",
+                "flex items-center gap-[4px] rounded-full px-[7px] py-[2px]",
                 "text-[10px] leading-[1.3] text-tp-slate-400",
                 "bg-white/30 backdrop-blur-sm transition-colors duration-150",
                 "hover:bg-white/50 hover:text-tp-slate-600",
                 dropdownOpen && "bg-white/50 text-tp-slate-600",
               )}
             >
-              <span>{activeLabel}</span>
+              {/* Compact badge chips */}
+              {badgeParts.map((part, i) => (
+                <React.Fragment key={part}>
+                  {i > 0 && <span className="text-tp-slate-300">·</span>}
+                  <span>{part}</span>
+                </React.Fragment>
+              ))}
               <svg
                 width={8}
                 height={8}
@@ -143,13 +190,13 @@ export function AgentHeader({
               </svg>
             </button>
 
-            {/* Dropdown panel */}
+            {/* Dropdown panel — multi-section */}
             {dropdownOpen && (
               <div
                 className={cn(
                   "absolute left-0 top-full z-[120] mt-[4px]",
-                  "min-w-[110px] rounded-[8px] border border-tp-slate-100/80",
-                  "bg-white/90 backdrop-blur-md py-[4px] shadow-[0_4px_12px_rgba(0,0,0,0.05)]",
+                  "min-w-[180px] rounded-[10px] border border-tp-slate-100/80",
+                  "bg-white/95 backdrop-blur-md shadow-[0_6px_20px_rgba(0,0,0,0.08)]",
                 )}
               >
                 {/* Demo notice */}
@@ -159,42 +206,90 @@ export function AgentHeader({
                   </p>
                 </div>
 
-                {SPECIALTY_OPTIONS.map((opt) => {
-                  const isActive = opt.id === activeSpecialty
-                  return (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => handleSpecialtySelect(opt.id)}
-              className={cn(
-                        "flex w-full items-center px-[10px] py-[5px] text-left text-[11px] leading-[1.3]",
-                        "transition-colors duration-100",
-                        isActive
-                          ? "font-medium text-tp-slate-700 bg-tp-slate-50/60"
-                          : "text-tp-slate-500 hover:bg-tp-slate-50/40 hover:text-tp-slate-700",
-                      )}
-                    >
-                      {opt.label}
-                      {isActive && (
-                        <svg
-                          width={10}
-                          height={10}
-                          viewBox="0 0 10 10"
-                          fill="none"
-                          className="ml-auto flex-shrink-0 text-tp-slate-500"
+                {/* ── Section 1: Specialty ── */}
+                <div className="px-[10px] pt-[6px] pb-[2px]">
+                  <p className="text-[8px] font-semibold uppercase tracking-wider text-tp-slate-400 mb-[3px]">Specialty</p>
+                  <div className="flex flex-wrap gap-[4px] pb-[6px]">
+                    {SPECIALTY_OPTIONS.map((opt) => {
+                      const isActive = opt.id === activeSpecialty
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => handleSpecialtySelect(opt.id)}
+                          className={cn(
+                            "rounded-full px-[8px] py-[3px] text-[10px] leading-[1.3] transition-all duration-100",
+                            isActive
+                              ? "bg-tp-slate-700 text-white font-medium"
+                              : "bg-tp-slate-50 text-tp-slate-500 hover:bg-tp-slate-100 hover:text-tp-slate-700",
+                          )}
                         >
-                          <path
-                            d="M2 5.5L4 7.5L8 3"
-                            stroke="currentColor"
-                            strokeWidth={1.5}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      )}
-                    </button>
-                  )
-                })}
+                          {opt.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* ── Section 2: Doctor Type (View As) ── */}
+                {showDoctorViewSelector && doctorViewType && onDoctorViewChange && (
+                  <>
+                    <div className="mx-[10px] border-t border-tp-slate-100" />
+                    <div className="px-[10px] pt-[6px] pb-[2px]">
+                      <p className="text-[8px] font-semibold uppercase tracking-wider text-tp-slate-400 mb-[3px]">View as</p>
+                      <div className="flex flex-wrap gap-[4px] pb-[6px]">
+                        {DOCTOR_VIEW_OPTIONS.map((opt) => {
+                          const isActive = opt.id === doctorViewType
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => onDoctorViewChange(opt.id)}
+                              className={cn(
+                                "rounded-full px-[8px] py-[3px] text-[10px] leading-[1.3] transition-all duration-100",
+                                isActive
+                                  ? "bg-tp-violet-600 text-white font-medium"
+                                  : "bg-tp-slate-50 text-tp-slate-500 hover:bg-tp-violet-50 hover:text-tp-violet-700",
+                              )}
+                            >
+                              {opt.label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* ── Section 3: Intake Mode ── */}
+                {onIntakeModeChange && (
+                  <>
+                    <div className="mx-[10px] border-t border-tp-slate-100" />
+                    <div className="px-[10px] pt-[6px] pb-[6px]">
+                      <p className="text-[8px] font-semibold uppercase tracking-wider text-tp-slate-400 mb-[3px]">Intake</p>
+                      <div className="flex gap-[4px]">
+                        {INTAKE_OPTIONS.map((opt) => {
+                          const isActive = opt.id === intakeMode
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => onIntakeModeChange(opt.id)}
+                              className={cn(
+                                "rounded-full px-[8px] py-[3px] text-[10px] leading-[1.3] transition-all duration-100",
+                                isActive
+                                  ? "bg-tp-blue-600 text-white font-medium"
+                                  : "bg-tp-slate-50 text-tp-slate-500 hover:bg-tp-blue-50 hover:text-tp-blue-700",
+                              )}
+                            >
+                              {opt.label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>

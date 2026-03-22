@@ -34,6 +34,7 @@ export function ProtocolMedsCard({
       title="Suggested Rx"
       copyAll={() => onCopy?.(data.copyPayload)}
       copyAllTooltip="Fill medications to RxPad"
+      dataSources={["AI-Generated", "Clinical Guidelines"]}
     >
       {/* Diagnosis context */}
       <div className="mb-2 rounded-[6px] bg-tp-slate-50 px-2.5 py-[4px] text-[12px] text-tp-slate-500">

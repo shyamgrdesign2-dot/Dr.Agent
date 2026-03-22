@@ -34,7 +34,7 @@ export function HeatmapCard({ data, onPillTap }: Props) {
     >
       <div className="py-[2px]">
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-[9px]">
+        <table className="w-full border-collapse text-[10px]">
           <thead>
             <tr>
               <th className="p-[3px] text-left font-semibold text-tp-slate-400" />

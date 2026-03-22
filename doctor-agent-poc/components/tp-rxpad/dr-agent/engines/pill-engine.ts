@@ -3,9 +3,9 @@
 // Pure function: (summary, phase, tabLens) -> CannedPill[]
 // -----------------------------------------------------------------
 
-import type { CannedPill, ConsultPhase, RxTabLens, SmartSummaryData } from "../types"
+import type { CannedPill, ConsultPhase, DoctorViewType, RxTabLens, SmartSummaryData } from "../types"
 
-const MAX_PILLS = 4
+const MAX_PILLS = 35
 
 // =============== LAYER 1: SAFETY FORCE ===============
 function getLayer1(summary: SmartSummaryData): CannedPill[] {
@@ -31,10 +31,6 @@ function getLayer2(summary: SmartSummaryData): CannedPill[] {
 
   if (summary.labFlagCount >= 3) {
     pills.push({ id: "flag-labs", label: `${summary.labFlagCount} lab values flagged`, priority: 10, layer: 2, tone: "primary" })
-  }
-
-  if (summary.followUpOverdueDays > 0) {
-    pills.push({ id: "flag-fu", label: "Suggest follow-up", priority: 12, layer: 2, tone: "primary" })
   }
 
   const spo2 = summary.todayVitals?.spo2 ? parseFloat(summary.todayVitals.spo2) : null
@@ -74,6 +70,86 @@ function getLayer2(summary: SmartSummaryData): CannedPill[] {
     pills.push({ id: "specialty-ophthal", label: "Vision summary", priority: 26, layer: 2, tone: "primary" })
   }
 
+  // POMR per-problem pills (CKD, Hypertension, Diabetes, Anaemia, etc.)
+  if (summary.pomrProblems && summary.pomrProblems.length > 0) {
+    summary.pomrProblems.forEach((prob, i) => {
+      const shortLabel = prob.problem.split(/[/–—]/)[0].trim()
+      pills.push({
+        id: `pomr-${i}-${shortLabel.toLowerCase().replace(/\s+/g, "-")}`,
+        label: shortLabel,
+        priority: 28 + i,
+        layer: 2,
+        tone: "primary",
+      })
+    })
+
+    // Missing data pills
+    if (summary.missingExpectedFields && summary.missingExpectedFields.length > 0) {
+      pills.push({ id: "pomr-missing-data", label: `${summary.missingExpectedFields.length} missing tests`, priority: 35, layer: 2, tone: "primary" })
+    }
+
+    // Cross-problem interaction pills
+    if (summary.crossProblemFlags && summary.crossProblemFlags.length > 0) {
+      pills.push({ id: "pomr-cross-flags", label: "Drug interactions", priority: 36, layer: 2, tone: "primary" })
+    }
+
+    // Due alerts pills
+    if (summary.dueAlerts && summary.dueAlerts.length > 0) {
+      pills.push({ id: "pomr-due-alerts", label: `${summary.dueAlerts.length} overdue items`, priority: 37, layer: 2, tone: "primary" })
+    }
+
+    // Recommendation pills
+    if (summary.recommendationTiers) {
+      const actCount = summary.recommendationTiers.filter((r) => r.tier === "act").length
+      if (actCount > 0) {
+        pills.push({ id: "pomr-act-now", label: `${actCount} actions needed`, priority: 38, layer: 2, tone: "primary" })
+      }
+    }
+  }
+
+  // Record alerts
+  if (summary.recordAlerts && summary.recordAlerts.length > 0) {
+    pills.push({ id: "flag-records", label: "Pending records", priority: 39, layer: 2, tone: "primary" })
+  }
+
+  // ---- CKD / chronic-disease-aware clinical pills ----
+
+  // Dialysis-related pills
+  if (summary.pomrProblems?.some((p) => p.problem.toLowerCase().includes("ckd"))) {
+    pills.push({ id: "ckd-dialysis-adequacy", label: "Dialysis adequacy", priority: 40, layer: 2, tone: "primary" })
+    pills.push({ id: "ckd-fluid-balance", label: "Fluid & electrolytes", priority: 41, layer: 2, tone: "primary" })
+    pills.push({ id: "ckd-bone-mineral", label: "Bone mineral status", priority: 42, layer: 2, tone: "primary" })
+    pills.push({ id: "ckd-cardiovascular", label: "CV risk assessment", priority: 43, layer: 2, tone: "primary" })
+  }
+
+  // Diabetes-related pills
+  if (summary.pomrProblems?.some((p) => p.problem.toLowerCase().includes("diabetes"))) {
+    pills.push({ id: "dm-glycemic-control", label: "Glycemic control", priority: 44, layer: 2, tone: "primary" })
+    pills.push({ id: "dm-insulin-adjust", label: "Insulin adjustment", priority: 45, layer: 2, tone: "primary" })
+  }
+
+  // Anaemia-related pills
+  if (summary.pomrProblems?.some((p) => p.problem.toLowerCase().includes("anaemia") || p.problem.toLowerCase().includes("anemia"))) {
+    pills.push({ id: "anaemia-epo-dose", label: "EPO dosing", priority: 46, layer: 2, tone: "primary" })
+    pills.push({ id: "anaemia-iron-stores", label: "Iron stores", priority: 47, layer: 2, tone: "primary" })
+  }
+
+  // Multi-morbidity pills (when 3+ problems)
+  if (summary.pomrProblems && summary.pomrProblems.length >= 3) {
+    pills.push({ id: "pomr-polypharmacy", label: "Polypharmacy review", priority: 48, layer: 2, tone: "primary" })
+    pills.push({ id: "pomr-medication-timeline", label: "Medication timeline", priority: 49, layer: 2, tone: "primary" })
+  }
+
+  // Active medications review
+  if (summary.activeMeds && summary.activeMeds.length > 3) {
+    pills.push({ id: "flag-med-review", label: "Medication review", priority: 50, layer: 2, tone: "primary" })
+  }
+
+  // Chronic conditions
+  if (summary.chronicConditions && summary.chronicConditions.length > 0) {
+    pills.push({ id: "flag-chronic-summary", label: "Chronic conditions", priority: 51, layer: 2, tone: "primary" })
+  }
+
   return pills
 }
 
@@ -97,11 +173,8 @@ function getLayer3(phase: ConsultPhase, summary: SmartSummaryData): CannedPill[]
     }
     // Existing patient — show pills for data that actually exists
     const pills: CannedPill[] = []
-    // Show "Patient summary" pill only when Patient Reported card is the intro (symptomCollectorData exists)
-    // When no intake data, Patient Summary is already shown directly in intro — no pill needed
-    if (summary.symptomCollectorData) {
-      pills.push({ id: "phase-snapshot", label: "Patient summary", priority: 29, layer: 3, tone: "primary" })
-    }
+    // Always show "Patient's detailed summary" as the absolute first pill
+    pills.push({ id: "phase-detailed-summary", label: "Patient's detailed summary", priority: -1, layer: 3, force: true, tone: "primary" })
     if (hasVitals) pills.push({ id: "phase-vital-trends", label: "Vital trends", priority: 31, layer: 3, tone: "primary" })
     if (hasLabs) pills.push({ id: "phase-labs", label: "Lab overview", priority: 32, layer: 3, tone: "primary" })
     if (hasLastVisit) pills.push({ id: "phase-last-visit", label: "Last visit details", priority: 33, layer: 3, tone: "primary" })
@@ -143,7 +216,7 @@ function getLayer3(phase: ConsultPhase, summary: SmartSummaryData): CannedPill[]
 
   // Add lab comparison pill when labs are available (all phases)
   if (hasLabs && !base.some(p => p.id === "phase-lab-compare")) {
-    base.push({ id: "phase-lab-compare", label: "Lab comparison", priority: 35, layer: 3, tone: "primary" })
+    base.push({ id: "phase-lab-compare", label: "Lab comparison", priority: 55, layer: 3, tone: "primary" })
   }
 
   return base
@@ -181,13 +254,91 @@ function getLayer4(lens: RxTabLens): CannedPill[] {
   return map[lens] || []
 }
 
+// =============== TREATING PHYSICIAN — trend-focused pills ===============
+function getTreatingPhysicianPills(summary: SmartSummaryData): CannedPill[] {
+  const pills: CannedPill[] = []
+
+  // Always show detailed summary as the absolute first pill
+  pills.push({ id: "tp-detailed-summary", label: "Patient's detailed summary", priority: -1, layer: 3, force: true, tone: "primary" })
+  pills.push({ id: "tp-vital-trends", label: "Vital trends", priority: 30, layer: 3, tone: "primary" })
+
+  if (summary.keyLabs && summary.keyLabs.length > 0) {
+    pills.push({ id: "tp-lab-compare", label: "Lab comparison", priority: 31, layer: 3, tone: "primary" })
+  }
+
+  // CKD-specific trends
+  if (summary.pomrProblems?.some((p) => p.problem.toLowerCase().includes("ckd"))) {
+    pills.push({ id: "tp-egfr-trend", label: "eGFR trend", priority: 32, layer: 3, tone: "primary" })
+  }
+
+  // Diabetes-specific trends
+  if (summary.pomrProblems?.some((p) => p.problem.toLowerCase().includes("diabetes"))) {
+    pills.push({ id: "tp-hba1c-trend", label: "HbA1c trend", priority: 33, layer: 3, tone: "primary" })
+  }
+
+  pills.push({ id: "tp-med-timeline", label: "Medication timeline", priority: 34, layer: 3, tone: "primary" })
+  pills.push({ id: "tp-plan-followup", label: "Plan follow-up", priority: 35, layer: 3, tone: "primary" })
+  pills.push({ id: "tp-ask", label: "Ask me anything", priority: 36, layer: 3, tone: "primary" })
+
+  return pills
+}
+
+// =============== EMERGENCY — triage-only pills ===============
+function getEmergencyPills(summary: SmartSummaryData): CannedPill[] {
+  const pills: CannedPill[] = []
+
+  // Force allergy alert if allergies present
+  if (summary.allergies && summary.allergies.length > 0) {
+    pills.push({ id: "er-allergy", label: "Allergy Alert", priority: 0, layer: 1, force: true, tone: "primary" })
+  }
+
+  // Cross-problem interactions
+  if (summary.crossProblemFlags && summary.crossProblemFlags.length > 0) {
+    pills.push({ id: "er-interactions", label: "Drug interactions", priority: 10, layer: 2, tone: "primary" })
+  }
+
+  // Always show detailed summary as the absolute first pill
+  pills.push({ id: "er-detailed-summary", label: "Patient's detailed summary", priority: -1, layer: 2, force: true, tone: "primary" })
+
+  pills.push({ id: "er-recent-er", label: "Recent ER history", priority: 12, layer: 2, tone: "primary" })
+  pills.push({ id: "er-key-labs", label: "Key labs", priority: 14, layer: 2, tone: "primary" })
+  pills.push({ id: "er-active-meds", label: "Active medications", priority: 16, layer: 2, tone: "primary" })
+
+  return pills
+}
+
 // =============== MAIN GENERATOR ===============
 
 export function generatePills(
   summary: SmartSummaryData,
   phase: ConsultPhase,
   tabLens: RxTabLens,
+  doctorViewType?: DoctorViewType,
 ): CannedPill[] {
+  // --- Doctor-type-specific pill sets ---
+  if (doctorViewType === "treating_physician") {
+    // Layer 1 safety + treating physician trend pills only (no Layer 2 POMR, no Layer 4)
+    const all = [
+      ...getLayer1(summary),
+      ...getTreatingPhysicianPills(summary),
+    ]
+    all.sort((a, b) => a.priority - b.priority)
+    const seen = new Set<string>()
+    return all.filter((p) => {
+      if (seen.has(p.label)) return false
+      seen.add(p.label)
+      return true
+    }).slice(0, MAX_PILLS)
+  }
+
+  if (doctorViewType === "emergency_oncall") {
+    // Triage-only pills
+    const all = getEmergencyPills(summary)
+    all.sort((a, b) => a.priority - b.priority)
+    return all.slice(0, MAX_PILLS)
+  }
+
+  // --- Default / specialist_first_visit: all layers ---
   const all = [
     ...getLayer1(summary),
     ...getLayer2(summary),

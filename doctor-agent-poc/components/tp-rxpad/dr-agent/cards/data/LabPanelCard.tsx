@@ -16,7 +16,7 @@ interface LabPanelCardProps {
 function FlagArrow({ flag }: { flag: "high" | "low" }) {
   if (flag === "high")
     return <span className="text-tp-error-500">↑</span>
-  return <span className="text-tp-blue-500">↓</span>
+  return <span className="text-tp-error-500">↓</span>
 }
 
 export function LabPanelCard({ data, onPillTap, onSidebarNav }: LabPanelCardProps) {
@@ -35,6 +35,7 @@ export function LabPanelCard({ data, onPillTap, onSidebarNav }: LabPanelCardProp
             }
           : undefined
       }
+      dataSources={["EMR Records", "Lab Reports"]}
       actions={
         <>
           <ChatPillButton label="Compare prev" onClick={() => onPillTap?.("Compare prev")} />
@@ -54,7 +55,7 @@ export function LabPanelCard({ data, onPillTap, onSidebarNav }: LabPanelCardProp
       {/* Grid-based lab results table */}
       <div className="overflow-hidden rounded-[8px] border border-tp-slate-100">
         {/* Header */}
-        <div className="grid grid-cols-3 gap-[1px] bg-tp-slate-100 px-[8px] py-[4px] text-[9px] font-medium text-tp-slate-500 uppercase tracking-wider">
+        <div className="grid grid-cols-3 gap-[1px] bg-tp-slate-100 px-[8px] py-[4px] text-[10px] font-medium text-tp-slate-500 uppercase tracking-wider">
           <span>Parameter</span>
           <span>Value</span>
           <span>Ref Range</span>
@@ -64,7 +65,7 @@ export function LabPanelCard({ data, onPillTap, onSidebarNav }: LabPanelCardProp
             <div
               key={item.name}
               className={cn(
-                "grid grid-cols-3 gap-[1px] px-[8px] py-[6px] text-[11px]",
+                "grid grid-cols-3 gap-[1px] px-[8px] py-[6px] text-[12px]",
                 i % 2 === 0 ? "bg-white" : "bg-tp-slate-50",
                 "border-l-[2px] border-tp-error-300",
               )}

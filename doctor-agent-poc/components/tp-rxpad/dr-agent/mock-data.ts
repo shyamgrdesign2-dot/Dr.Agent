@@ -157,6 +157,7 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       diagnosis: "Migraine without aura",
       medication: "Sumatriptan 50mg SOS, Paracetamol 500mg SOS",
       labTestsSuggested: "Vitamin D, B12",
+      doctorName: "Dr. Sheela BR (Paediatrics)",
     },
     labFlagCount: 1,
     todayVitals: { bp: "110/70", pulse: "72", spo2: "99", temp: "98.4", weight: "58", height: "162" },
@@ -224,18 +225,6 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       { name: "Triglycerides", value: "195", unit: "mg/dL", flag: "high", refRange: "<150" },
     ],
     dueAlerts: ["ECG pending", "Lipid recheck overdue"],
-    symptomCollectorData: {
-      reportedAt: "Today, 10:00 AM",
-      symptoms: [
-        { name: "Fatigue", duration: "2 weeks", severity: "Moderate", notes: "Persistent, no relief with rest" },
-        { name: "Poor Sleep", duration: "2 weeks", severity: "Moderate", notes: "Difficulty staying asleep" },
-      ],
-      medicalHistory: ["Hypertension (3yr)", "Dyslipidemia (1yr)", "Pre-Diabetes"],
-      currentMedications: ["Telma 40mg 1-0-0-0", "Rosuvastatin 10mg 0-0-0-1"],
-      suggestedMeds: ["Melatonin 3mg", "CoQ10 100mg"],
-      lastVisitSummary: "last visited on 20 Dec'25 with fatigue and poor sleep, diagnosed Fatigue syndrome and Dyslipidemia, suggested Melatonin 3mg and CoQ10 100mg",
-      isNewPatient: false,
-    },
     ophthalData: {
       vaRight: "6/9",
       vaLeft: "6/9",
@@ -274,18 +263,6 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       { name: "TSH", value: "4.8", unit: "mIU/L", flag: "high", refRange: "0.4-4.0" },
     ],
     dueAlerts: ["Dating scan overdue", "TSH recheck due"],
-    symptomCollectorData: {
-      reportedAt: "Today, 10:30 AM",
-      symptoms: [
-        { name: "Pedal Edema", duration: "3 days", severity: "Mild", notes: "Bilateral ankle swelling" },
-        { name: "Lower Back Pain", duration: "2 days", severity: "Moderate" },
-      ],
-      medicalHistory: ["Hypothyroid (2yr)"],
-      currentMedications: ["Thyronorm 50mcg 1-0-0-0"],
-      suggestedMeds: ["Folic Acid 5mg", "Calcium 500mg"],
-      lastVisitSummary: "last visited on 25 Feb'26 with routine ANC, diagnosed Routine ANC and Hypothyroid on Rx, suggested Folic Acid 5mg and Calcium 500mg",
-      isNewPatient: false,
-    },
     obstetricData: {
       gravida: 1, para: 0, living: 0, abortion: 0, ectopic: 0,
       lmp: "14 Jun'25",
@@ -326,18 +303,6 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
     activeMeds: [],
     keyLabs: [],
     dueAlerts: ["MMR-2 overdue"],
-    symptomCollectorData: {
-      reportedAt: "Today, 11:00 AM",
-      symptoms: [
-        { name: "Dry Cough", duration: "3 days", severity: "Moderate", notes: "Worse at night" },
-        { name: "Reduced Appetite", duration: "1 week", severity: "Mild" },
-      ],
-      medicalHistory: [],
-      currentMedications: [],
-      suggestedMeds: ["Amoxicillin 250mg", "Salbutamol syrup"],
-      lastVisitSummary: "last visited on 10 Feb'26 with URTI and wheeze, diagnosed Acute URTI with reactive airways, suggested Amoxicillin 250mg and Salbutamol syrup",
-      isNewPatient: false,
-    },
     pediatricsData: {
       ageDisplay: "4 years",
       heightCm: 98,
@@ -383,18 +348,6 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       { name: "Fasting Blood Sugar", value: "112", unit: "mg/dL", flag: "high", refRange: "70-100" },
     ],
     dueAlerts: ["Pap smear >1yr overdue", "USG pelvis pending"],
-    symptomCollectorData: {
-      reportedAt: "Today, 10:45 AM",
-      symptoms: [
-        { name: "Heavy Menstrual Bleeding", duration: "6 months", severity: "High", notes: "5 pads/day" },
-        { name: "Fatigue", duration: "3 months", severity: "Moderate", notes: "Increasing" },
-      ],
-      medicalHistory: ["Hypothyroid", "PCOS"],
-      currentMedications: ["Thyronorm 75mcg 1-0-0-0"],
-      suggestedMeds: ["Autrin capsule", "Tranexamic acid 500mg"],
-      lastVisitSummary: "last visited on 20 Jan'26 with heavy bleeding and fatigue, diagnosed AUB-Ovulatory dysfunction and Iron deficiency anemia, suggested Autrin capsule and Tranexamic acid 500mg",
-      isNewPatient: false,
-    },
     gynecData: {
       menarche: "13 years",
       cycleLength: "35-40 days",
@@ -459,6 +412,7 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       labTestsSuggested: "Lipid Profile, Renal Panel, ECG",
       advice: "Continue exercise, low-salt diet, medication compliance",
       followUp: "3 months · 10 May'26",
+      doctorName: "Dr. Ravi Mehta (Cardiology)",
     },
     labFlagCount: 2,
     todayVitals: { bp: "132/84", pulse: "74", spo2: "98", temp: "98.6", weight: "76", bmi: "26.1" },

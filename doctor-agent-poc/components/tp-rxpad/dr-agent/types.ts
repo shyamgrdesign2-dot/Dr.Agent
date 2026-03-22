@@ -15,6 +15,9 @@ export type ConsultPhase =
 
 export type SpecialtyTabId = "gp" | "gynec" | "ophthal" | "obstetric" | "pediatrics"
 
+/** Doctor viewing context — controls summary depth, intro flow, and pill selection */
+export type DoctorViewType = "specialist_first_visit" | "treating_physician" | "emergency_oncall"
+
 export type RxTabLens =
   | "dr-agent"
   | "past-visits"
@@ -95,6 +98,8 @@ export interface SymptomCollectorData {
   /** Medicines suggested in last visit (different from currentMedications) */
   suggestedMeds?: string[]
   isNewPatient?: boolean
+  /** Patient narrative from SmartSummaryData — used for consistent quick summary across all cards */
+  patientNarrative?: string
 }
 
 export interface LastVisitData {
@@ -107,6 +112,7 @@ export interface LastVisitData {
   labTestsSuggested: string
   advice?: string
   followUp?: string
+  doctorName?: string  // e.g. "Dr. Sheela BR (Paediatrics)" — shown when last visit was with a different doctor
 }
 
 export interface GynecData {
@@ -203,6 +209,24 @@ export interface SmartSummaryData {
   ophthalData?: OphthalData
   obstetricData?: ObstetricData
   pediatricsData?: PediatricsData
+  // ── SBAR / Provenance / POMR (optional — only populated for complex patients) ──
+  sbarSituation?: string
+  dataCompleteness?: { emr: number; ai: number; missing: number }
+  dataProvenance?: Record<string, { source: "emr" | "ai_extracted" | "not_available"; confidence?: string; extractedFrom?: string }>
+  sectionCompleteness?: Array<{ sectionId: string; filled: number; total: number; status?: string }>
+  crossProblemFlags?: Array<{ text: string; problems: string[]; severity: string }>
+  missingExpectedFields?: Array<{ field: string; reason: string; prompt: string }>
+  recommendationTiers?: Array<{ text: string; tier: string; gatedBy: string }>
+  pomrProblems?: Array<{
+    problem: string
+    status: string
+    statusColor: string
+    completeness: { emr: number; ai: number; missing: number }
+    labKeys?: string[]
+    vitalKeys?: string[]
+    medKeys?: string[]
+    missingKeys?: string[]
+  }>
 }
 
 // ═══════════════ CANNED PILLS ═══════════════
@@ -557,10 +581,43 @@ export interface ANCScheduleListCardData {
   items: ANCScheduleItem[]
 }
 
+// ═══════════════ POMR PROBLEM CARD ═══════════════
+export interface PomrSourceEntry {
+  /** Display label, e.g. "Blood Work — CBC, KFT" or "Rx #4521 — Dr. Mehta" */
+  label: string
+  /** Date string, e.g. "12 Jan 2026" */
+  date?: string
+  /** Source type */
+  type: "emr" | "uploaded" | "rx"
+}
+export interface PomrProblemCardData {
+  problem: string
+  status: string
+  statusColor: string
+  completeness: { emr: number; ai: number; missing: number }
+  labs: Array<{ name: string; value: string; unit?: string; flag?: FlagDirection; provenance?: "emr" | "ai_extracted" }>
+  meds: string[]
+  missingFields: Array<{ field: string; reason: string; prompt: string }>
+  /** Source documents for data completeness tooltip */
+  sourceEntries?: PomrSourceEntry[]
+}
+
+// ═══════════════ SBAR CRITICAL CARD (EMERGENCY VIEW) ═══════════════
+export interface SbarCriticalCardData {
+  situation: string
+  activeProblems: string[]
+  criticalFlags: Array<{ label: string; value: string; severity: "critical" | "high" }>
+  allergies: string[]
+  keyMeds: string[]
+  recentER?: string[]
+}
+
 // ═══════════════ RX AGENT OUTPUT (DISCRIMINATED UNION) ═══════════════
 
 export type RxAgentOutput =
-  | { kind: "patient_summary"; data: SmartSummaryData }
+  | { kind: "patient_summary"; data: SmartSummaryData; hideNarrative?: boolean }
+  | { kind: "patient_narrative"; data: SmartSummaryData }
+  | { kind: "sbar_critical"; data: SbarCriticalCardData }
   | { kind: "last_visit"; data: LastVisitCardData }
   | { kind: "lab_panel"; data: LabPanelData }
   | { kind: "vitals_trend_bar"; data: { title: string; series: VitalTrendSeries[] } }
@@ -618,6 +675,24 @@ export type RxAgentOutput =
   | { kind: "text_step"; data: { steps: string[] } }
   | { kind: "text_quote"; data: { quote: string; source: string } }
   | { kind: "text_comparison"; data: { labelA: string; labelB: string; itemsA: string[]; itemsB: string[] } }
+  // POMR Problem Card
+  | { kind: "pomr_problem_card"; data: PomrProblemCardData }
+  // Patient Search
+  | { kind: "patient_search"; data: PatientSearchCardData }
+
+// ═══════════════ PATIENT SEARCH CARD ═══════════════
+
+export interface PatientSearchResult {
+  patientId: string
+  name: string
+  meta: string
+  hasAppointmentToday: boolean
+}
+
+export interface PatientSearchCardData {
+  query: string
+  results: PatientSearchResult[]
+}
 
 // ═══════════════ WELCOME CARD ═══════════════
 
