@@ -1,7 +1,8 @@
 "use client"
 
 import React from "react"
-import type { RxAgentOutput } from "../types"
+import type { RxAgentOutput, SpecialtyTabId } from "../types"
+import { highlightClinicalText } from "../shared/highlightClinicalText"
 
 /** Render **bold** markdown in text */
 function renderBold(text: string): React.ReactNode {
@@ -16,7 +17,7 @@ function renderBold(text: string): React.ReactNode {
 }
 
 // Summary Cards (A1-A7)
-import { GPSummaryCard } from "./summary/GPSummaryCard"
+import { GPSummaryCard, buildSummaryNarrative } from "./summary/GPSummaryCard"
 import { ObstetricExpandedCard } from "./summary/ObstetricExpandedCard"
 import { GynecSummaryCard } from "./summary/GynecSummaryCard"
 import { PediatricSummaryCard } from "./summary/PediatricSummaryCard"
@@ -68,6 +69,10 @@ import { DrugInteractionCard } from "./utility/DrugInteractionCard"
 import { AllergyConflictCard } from "./utility/AllergyConflictCard"
 import { FollowUpQuestionCard } from "./utility/FollowUpQuestionCard"
 
+// Clinical Cards
+import { PomrProblemCard } from "./clinical/PomrProblemCard"
+import { SbarCriticalCard } from "./clinical/SbarCriticalCard"
+
 // New Card Variants
 import { ReferralCard } from "./utility/ReferralCard"
 import { ClinicalGuidelinesCard } from "./utility/ClinicalGuidelinesCard"
@@ -77,20 +82,68 @@ import { RxPreviewCard } from "./action/RxPreviewCard"
 import { BillingSummaryCard } from "./homepage/BillingSummaryCard"
 import { VaccinationDueListCard } from "./homepage/VaccinationDueListCard"
 import { ANCScheduleListCard } from "./homepage/ANCScheduleListCard"
+import { PatientSearchCard } from "./homepage/PatientSearchCard"
 
 interface CardRendererProps {
   output: RxAgentOutput
   onPillTap?: (label: string) => void
   onCopy?: (payload: unknown) => void
   onSidebarNav?: (tab: string) => void
+  /** Patient-level data completeness — kept for POMR cards that manage their own donut */
+  dataCompleteness?: { emr: number; ai: number; missing: number }
+  /** Source doc names for POMR donut tooltip */
+  dataSourceDocs?: string[]
+  /** Active specialty — passed to narrative builders for specialty-aware content */
+  activeSpecialty?: SpecialtyTabId
+  /** Callback when a patient is selected from search results */
+  onPatientSelect?: (patientId: string) => void
 }
 
-export function CardRenderer({ output, onPillTap, onCopy, onSidebarNav }: CardRendererProps) {
+/**
+ * Donut chart placement rules:
+ *
+ * Show donut ONLY on cards that require a **fixed/expected set of data fields**
+ * where missing data is clinically meaningful. Currently only:
+ * - `pomr_problem_card` — renders its own donut internally (expected labs, vitals, meds)
+ *
+ * Do NOT show donut on cards that display whatever data is available:
+ * - patient_summary, last_visit, lab_panel, vital_trends, etc.
+ * - text_* cards, homepage cards, utility cards
+ *
+ * Rationale: A donut showing "missing data" only makes sense when there IS an
+ * expected data set. For open-ended responses, the response IS the available data
+ * — there's nothing "missing" to indicate.
+ */
+export function CardRenderer({ output, onPillTap, onCopy, onSidebarNav, activeSpecialty, onPatientSelect }: CardRendererProps) {
+  return renderCard(output, onPillTap, onCopy, onSidebarNav, activeSpecialty, onPatientSelect)
+}
+
+function renderCard(
+  output: RxAgentOutput,
+  onPillTap?: (label: string) => void,
+  onCopy?: (payload: unknown) => void,
+  onSidebarNav?: (tab: string) => void,
+  activeSpecialty?: SpecialtyTabId,
+  onPatientSelect?: (patientId: string) => void,
+): React.ReactElement {
   switch (output.kind) {
     // -- Summary Family (A) --------------------------------------------------
     case "patient_summary":
-      // GPSummaryCard expects { data: SmartSummaryData; onPillTap?; onSidebarNav? }
-      return <GPSummaryCard data={output.data} onPillTap={onPillTap} onSidebarNav={onSidebarNav} defaultCollapsed={false} />
+      // GPSummaryCard expects { data: SmartSummaryData; onPillTap?; onSidebarNav?; hideNarrative?; activeSpecialty? }
+      return <GPSummaryCard data={output.data} onPillTap={onPillTap} onSidebarNav={onSidebarNav} defaultCollapsed={false} hideNarrative={output.hideNarrative} activeSpecialty={activeSpecialty} />
+
+    case "patient_narrative": {
+      // Standalone narrative quotation block — no CardShell, just the violet-bordered paragraph
+      const narrativeParts = buildSummaryNarrative(output.data, activeSpecialty)
+      if (!narrativeParts || narrativeParts.length === 0) return <></>
+      return (
+        <div className="rounded-[8px] bg-tp-slate-50 border-l-[3px] border-tp-violet-300 px-3 py-2">
+          <p className="text-[12px] italic leading-[1.6] text-tp-slate-500">
+            &ldquo;{narrativeParts}&rdquo;
+          </p>
+        </div>
+      )
+    }
 
     case "obstetric_summary":
       // ObstetricExpandedCard expects { data: ObstetricData; onSidebarNav? }
@@ -110,7 +163,7 @@ export function CardRenderer({ output, onPillTap, onCopy, onSidebarNav }: CardRe
 
     case "symptom_collector":
       // PatientReportedCard expects { data: SymptomCollectorData; onCopy?; onPillTap? }
-      return <PatientReportedCard data={output.data} defaultCollapsed={false} onPillTap={onPillTap} />
+      return <PatientReportedCard data={output.data} defaultCollapsed={false} onPillTap={onPillTap} patientNarrative={output.data.patientNarrative} />
 
     case "last_visit":
       // LastVisitCard expects { data: LastVisitCardData; onPillTap?; onSidebarNav?; onCopy?: () => void }
@@ -219,6 +272,16 @@ export function CardRenderer({ output, onPillTap, onCopy, onSidebarNav }: CardRe
     case "follow_up_question":
       // FollowUpQuestionCard expects { data: { question; options; multiSelect }; onSubmit? }
       return <FollowUpQuestionCard data={output.data} />
+
+    // -- Clinical Cards -------------------------------------------------------
+    case "pomr_problem_card":
+      return <PomrProblemCard data={output.data} onPillTap={onPillTap} />
+
+    case "sbar_critical":
+      return <SbarCriticalCard data={output.data} />
+
+    case "patient_search":
+      return <PatientSearchCard data={output.data} onPatientSelect={onPatientSelect} />
 
     // -- Text-Only Kinds -----------------------------------------------------
     case "text_fact":

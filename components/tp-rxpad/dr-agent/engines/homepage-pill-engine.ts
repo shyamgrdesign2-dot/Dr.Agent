@@ -137,7 +137,7 @@ function generatePatientContextPills(summary: SmartSummaryData): CannedPill[] {
     pills.push({ id: "pc-workup", label: "Initial workup", priority: p, layer: 3, tone: "info" }); p += 2
   } else {
     // Existing patient: show data-relevant pills
-    pills.push({ id: "pc-snapshot", label: "Patient snapshot", priority: p, layer: 3, tone: "primary" }); p += 2
+    pills.push({ id: "pc-snapshot", label: "Patient's detailed summary", priority: p, layer: 3, tone: "primary" }); p += 2
 
     if (hasLastVisit) {
       pills.push({ id: "pc-lastvisit", label: "Last visit", priority: p, layer: 3, tone: "primary" }); p += 2
@@ -180,7 +180,7 @@ function generatePatientContextPills(summary: SmartSummaryData): CannedPill[] {
 
 // ─── Legacy fallback for when no summary is available ────────────
 const FALLBACK_PATIENT_PILLS: CannedPill[] = [
-  { id: "pc-snapshot", label: "Patient snapshot", priority: 10, layer: 3, tone: "primary" },
+  { id: "pc-snapshot", label: "Patient's detailed summary", priority: 10, layer: 3, tone: "primary" },
   { id: "pc-lastvisit", label: "Last visit", priority: 12, layer: 3, tone: "primary" },
   { id: "pc-preconsult", label: "Pre-consult prep", priority: 16, layer: 3, tone: "info" },
 ]

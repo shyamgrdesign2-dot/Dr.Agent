@@ -30,7 +30,7 @@ export function DataRow({ label, unit, value, flag, refRange, isLast, onCopy, co
       <div className="flex-1 text-[12px] text-tp-slate-500 leading-[1.4]">
         <span className="font-medium text-tp-slate-800">{label}</span>
         {unit && <span className="ml-1 text-[10px] text-tp-slate-400">({unit})</span>}
-        {refRange && <span className="ml-1 text-[9px] text-tp-slate-300">{refRange}</span>}
+        {refRange && <span className="ml-1 text-[10px] text-tp-slate-300">{refRange}</span>}
       </div>
       <div className={cn("min-w-[40px] text-right text-[12px] font-medium", valueColor)}>
         {flag === "high" && "↑"}{flag === "low" && "↓"}{value}

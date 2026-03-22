@@ -33,7 +33,7 @@ export function AnalyticsTableCard({ data, onPillTap }: Props) {
       {/* Table */}
       <div className="overflow-hidden rounded-[8px] border border-tp-slate-100">
         {/* Header */}
-        <div className="grid grid-cols-4 gap-[1px] bg-tp-slate-100 px-[8px] py-[4px] text-[9px] font-semibold text-tp-slate-500 uppercase tracking-wider">
+        <div className="grid grid-cols-4 gap-[1px] bg-tp-slate-100 px-[8px] py-[4px] text-[10px] font-semibold text-tp-slate-500 uppercase tracking-wider">
           <span>Metric</span>
           <span className="text-right">This Week</span>
           <span className="text-right">Last Week</span>
@@ -44,7 +44,7 @@ export function AnalyticsTableCard({ data, onPillTap }: Props) {
           const arrow = kpi.direction === "up" ? "\u2191" : kpi.direction === "down" ? "\u2193" : "\u2192"
           const deltaColor = kpi.isGood ? "text-tp-green-600" : kpi.direction === "stable" ? "text-tp-slate-400" : "text-tp-error-600"
           return (
-            <div key={i} className={`grid grid-cols-4 gap-[1px] px-[8px] py-[6px] text-[11px] ${i % 2 === 0 ? "bg-white" : "bg-tp-slate-50"}`}>
+            <div key={i} className={`grid grid-cols-4 gap-[1px] px-[8px] py-[6px] text-[12px] ${i % 2 === 0 ? "bg-white" : "bg-tp-slate-50"}`}>
               <span className="font-medium text-tp-slate-700 truncate">{kpi.metric}</span>
               <span className="text-right font-semibold text-tp-slate-800">{kpi.thisWeek}</span>
               <span className="text-right text-tp-slate-400">{kpi.lastWeek}</span>

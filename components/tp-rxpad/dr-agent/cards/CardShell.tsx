@@ -5,7 +5,43 @@ import { cn } from "@/lib/utils"
 import { CopyIcon } from "./CopyIcon"
 import { ActionableTooltip } from "./ActionableTooltip"
 import { TPMedicalIcon } from "@/components/tp-ui"
-import { Copy, ArrowDown2, ArrowUp2 } from "iconsax-reactjs"
+import { Copy, ArrowDown2, ArrowUp2, InfoCircle } from "iconsax-reactjs"
+
+/** Small info icon with hover tooltip showing data sources */
+function SourceInfoIcon({ sources }: { sources: string[] }) {
+  const [isHovered, setIsHovered] = useState(false)
+
+  return (
+    <div
+      className="relative ml-[4px] flex-shrink-0"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <button
+        type="button"
+        className="flex h-[20px] w-[20px] items-center justify-center rounded-full text-tp-violet-400 transition-colors hover:text-tp-violet-600 hover:bg-tp-violet-50"
+        aria-label="Data sources"
+      >
+        <InfoCircle size={14} variant="Bold" />
+      </button>
+
+      {/* Tooltip */}
+      {isHovered && (
+        <div className="absolute right-0 top-full z-[100] mt-[4px] min-w-[160px] max-w-[220px] rounded-[8px] border border-tp-slate-100/80 bg-white/95 px-[10px] py-[8px] shadow-[0_4px_16px_rgba(0,0,0,0.08)] backdrop-blur-md">
+          <p className="mb-[4px] text-[8px] font-semibold uppercase tracking-wider text-tp-slate-400">Sources</p>
+          <div className="flex flex-col gap-[3px]">
+            {sources.map((src, i) => (
+              <div key={i} className="flex items-center gap-[5px]">
+                <div className="h-[5px] w-[5px] flex-shrink-0 rounded-full bg-tp-violet-400" />
+                <span className="text-[10px] leading-[1.3] text-tp-slate-600">{src}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 interface CardShellProps {
   icon: React.ReactNode
@@ -20,6 +56,10 @@ interface CardShellProps {
   defaultCollapsed?: boolean
   actions?: React.ReactNode
   sidebarLink?: React.ReactNode
+  /** Extra content rendered between badge and collapse chevron (e.g. donut icon) */
+  headerExtra?: React.ReactNode
+  /** Data source label(s) for provenance tooltip — shown as info icon when no donut chart */
+  dataSources?: string[]
   children: React.ReactNode
 }
 
@@ -35,6 +75,8 @@ export function CardShell({
   defaultCollapsed = false,
   actions,
   sidebarLink,
+  headerExtra,
+  dataSources,
   children,
 }: CardShellProps) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed)
@@ -104,15 +146,21 @@ export function CardShell({
         {/* Spacer — pushes badge and chevron to the right */}
         <span className="flex-1" />
 
-        {/* Badge */}
+        {/* Badge — truncated with tooltip if too long */}
         {badge && (
           <span
-            className="rounded-[4px] px-[6px] py-[3px] text-[10px] font-semibold leading-[1.2]"
+            className="max-w-[100px] truncate rounded-[4px] px-[6px] py-[3px] text-[10px] font-semibold leading-[1.2]"
             style={{ background: badge.bg, color: badge.color }}
+            title={badge.label}
           >
             {badge.label}
           </span>
         )}
+
+        {/* Header Extra (e.g. data completeness donut) — gap-[6px] from badge */}
+        {headerExtra && <div className="ml-[4px] flex-shrink-0">{headerExtra}</div>}
+
+        {/* Source indicator removed from header — now rendered in ChatBubble feedback area */}
 
         {/* Collapse toggle — line icon, no stroke bg */}
         {collapsible && (
@@ -145,7 +193,7 @@ export function CardShell({
           {/* Sidebar link (below actions, with bottom gradient) */}
           {sidebarLink && (
             <div
-              className="px-3 py-[10px]"
+              className="px-3 py-[8px]"
               style={{
                 borderTop: "0.5px solid var(--tp-slate-50, #F8FAFC)",
                 background: "linear-gradient(180deg, #FFFFFF 0%, rgba(59,130,246,0.04) 100%)",

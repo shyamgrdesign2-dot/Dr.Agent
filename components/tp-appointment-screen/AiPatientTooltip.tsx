@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { AiBrandSparkIcon, AI_GRADIENT, AI_GRADIENT_SOFT } from "@/components/doctor-agent/ai-brand"
+import { highlightClinicalText } from "@/components/tp-rxpad/dr-agent/shared/highlightClinicalText"
 
 // ─────────────────────────────────────────────────────────────
 // AiPatientTooltip — hover tooltip over AI icon on appointment rows
@@ -23,33 +24,7 @@ interface AiPatientTooltipProps {
   onClick: () => void
 }
 
-/** Bold highlight helper — wraps date, med, condition names in semibold */
-function highlightSummaryText(text: string): React.ReactNode[] {
-  const parts: React.ReactNode[] = []
-  const regex = /(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)'\d{2})|(\d{2}-\d{2}-\d{4})|(\b(?:Hypertension|Diabetes Mellitus|Dyslipidemia|Hypothyroid|Pre-Diabetes|PCOS|Migraine|URTI|AUB|Primigravida)\b)|(\b(?:Telma|Metsmall|Paracetamol|Azithromycin|Sumatriptan|Naproxen|Vitamin D|Rosuvastatin|Melatonin|CoQ10|Thyronorm|Folic Acid|Calcium|Amoxicillin|Salbutamol|Autrin|Tranexamic acid|Iron\+Folic)\s*\d*\w*\b)/gi
-
-  let lastIndex = 0
-  let match: RegExpExecArray | null
-
-  // eslint-disable-next-line no-cond-assign
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index))
-    }
-    parts.push(
-      <span key={match.index} className="font-semibold text-tp-slate-700">
-        {match[0]}
-      </span>,
-    )
-    lastIndex = match.index + match[0].length
-  }
-
-  if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex))
-  }
-
-  return parts.length > 0 ? parts : [text]
-}
+/* highlightSummaryText removed — now using shared highlightClinicalText from @/components/tp-rxpad/dr-agent/shared/highlightClinicalText */
 
 /** Build tooltip content for non-queue tabs */
 function buildTabTooltipContent(tab: string | undefined, rowData?: AiPatientTooltipProps["rowData"]): React.ReactNode | null {
@@ -264,7 +239,7 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
                   <div className="mb-[8px]">{tabContent}</div>
                 ) : summary ? (
                   <p className="whitespace-normal break-words text-[12px] italic leading-[1.6] text-tp-slate-500 mb-[8px]">
-                    {highlightSummaryText(summary)}
+                    {highlightClinicalText(summary)}
                   </p>
                 ) : null}
 

@@ -23,6 +23,7 @@ import {
   createAgentMessage,
   deriveAgentPromptSuggestions,
 } from "@/components/doctor-agent/mock-agent"
+import { SMART_SUMMARY_BY_CONTEXT } from "@/components/tp-rxpad/dr-agent/mock-data"
 import { cn } from "@/lib/utils"
 
 const PROMPTS = [
@@ -182,6 +183,44 @@ const PATIENT_INTAKE_HISTORY: PatientIntakeItem[] = [
   },
 ]
 
+// ── CKD Scenario: Ramesh Kumar patient-specific data ──────────────────────
+const CKD_SUMMARY_MODULES: SummaryModule[] = [
+  { id: "ckd", title: "CKD Stage 5 / PD", detail: "eGFR 11 mL/min, Cr 6.2 mg/dL — peritoneal dialysis since Jan 2024. K+ 5.8 (critical).", status: "Critical", tone: "critical" },
+  { id: "htn", title: "Hypertension", detail: "BP 158/94 mmHg — uncontrolled on triple therapy (Amlodipine, Telmisartan, Furosemide).", status: "Uncontrolled", tone: "critical" },
+  { id: "dm", title: "Type 2 Diabetes", detail: "HbA1c 8.2%, FBS 186 mg/dL — poorly controlled on insulin regimen.", status: "Poorly controlled", tone: "watch" },
+  { id: "anaemia", title: "Anaemia of CKD", detail: "Hb 9.4 g/dL, Ferritin 180 ng/mL — suboptimal on EPO 4000U 2x/wk.", status: "Suboptimal", tone: "watch" },
+  { id: "cardiac", title: "Cardiac History", detail: "Heart attack in 2021 — stent placed. On aspirin and statins.", status: "Stable", tone: "good" },
+  { id: "labs", title: "Lab Results", detail: "13 lab values flagged. BUN 58, Phosphorus 5.9, Bicarbonate 18 — all abnormal.", status: "Abnormal", tone: "critical" },
+]
+
+const CKD_VITAL_TRENDS: VitalTrendSeries[] = [
+  { id: "bp", label: "BP (systolic)", unit: "mmHg", values: [162, 158, 155, 158], latest: "158/94" },
+  { id: "pulse", label: "Pulse", unit: "/min", values: [88, 84, 82, 80], latest: "80 /min" },
+  { id: "spo2", label: "SpO₂", unit: "%", values: [95, 94, 95, 96], latest: "96%" },
+]
+
+const CKD_CONSULTATION_FOCUS = [
+  "Hyperkalemia K+ 5.8 — immediate dietary/dialysis review",
+  "eGFR declining: 18 → 14 → 11 over 12 months",
+  "Uncontrolled HTN on 3 drugs — medication adjustment needed",
+  "HbA1c 8.2% — insulin dose titration required",
+]
+
+const CKD_INTAKE_SYMPTOMS: PatientIntakeItem[] = [
+  { id: "ckd-sym-1", line: "Mild pedal oedema", detail: "1 week | mild | bilateral", severity: "moderate" },
+  { id: "ckd-sym-2", line: "Fatigue", detail: "2 weeks | moderate | worsening", severity: "moderate" },
+  { id: "ckd-sym-3", line: "Reduced appetite", detail: "1 week | mild", severity: "low" },
+]
+
+const CKD_INTAKE_HISTORY: PatientIntakeItem[] = [
+  { id: "ckd-hist-1", line: "CKD Stage 5 on peritoneal dialysis", detail: "since Jan 2024", severity: "high" },
+  { id: "ckd-hist-2", line: "Type 2 Diabetes for 18 years", detail: "on insulin", severity: "high" },
+  { id: "ckd-hist-3", line: "Heart attack in 2021", detail: "stent placed", severity: "high" },
+  { id: "ckd-hist-4", line: "High blood pressure", detail: "on medications", severity: "moderate" },
+]
+
+const IS_CKD_PATIENT = (id: string) => id === "apt-ramesh-ckd"
+
 function toneClasses(tone: SummaryModuleTone) {
   if (tone === "critical") {
     return {
@@ -263,15 +302,27 @@ function SummaryCard({
   patient: { id: string; name: string; gender: string; age: number }
 }) {
   const [expanded, setExpanded] = useState(false)
-  const [activeTrendId, setActiveTrendId] = useState(VITAL_TRENDS[0].id)
+  const isCKD = IS_CKD_PATIENT(patient.id)
+  const modules = isCKD ? CKD_SUMMARY_MODULES : SUMMARY_MODULES
+  const trends = isCKD ? CKD_VITAL_TRENDS : VITAL_TRENDS
+  const focusItems = isCKD ? CKD_CONSULTATION_FOCUS : [
+    "Persistent fever pattern over 3 days",
+    "Comorbid risk from diabetes + hypertension",
+    "Prior lab alert: LDL and TSH above range",
+    "Medication adherence concern from personal notes",
+  ]
+  const summaryData = isCKD ? SMART_SUMMARY_BY_CONTEXT["apt-ramesh-ckd"] : null
+  const pomrProblems = isCKD ? (summaryData as any)?.pomrProblems : null
+
+  const [activeTrendId, setActiveTrendId] = useState(trends[0].id)
 
   const activeTrend = useMemo(
-    () => VITAL_TRENDS.find((trend) => trend.id === activeTrendId) ?? VITAL_TRENDS[0],
-    [activeTrendId],
+    () => trends.find((trend) => trend.id === activeTrendId) ?? trends[0],
+    [activeTrendId, trends],
   )
 
-  const urgentItems = SUMMARY_MODULES.filter((module) => module.tone === "critical").length
-  const watchItems = SUMMARY_MODULES.filter((module) => module.tone === "watch").length
+  const urgentItems = modules.filter((module) => module.tone === "critical").length
+  const watchItems = modules.filter((module) => module.tone === "watch").length
 
   return (
     <div className="rounded-xl border border-tp-violet-100 bg-[linear-gradient(135deg,#faf5ff_0%,#ffffff_45%,#f8f9ff_100%)] p-3 shadow-[0_10px_24px_-18px_rgba(103,58,172,0.6)]">
@@ -312,13 +363,43 @@ function SummaryCard({
         </div>
       </div>
 
+      {/* ── SBAR Situation Bar (CKD patients) ── */}
+      {isCKD && summaryData?.sbarSituation && (
+        <div className="mb-3 rounded-lg border border-[#8B5CF6]/20 p-2" style={{ background: "linear-gradient(135deg, #f5f3ff 0%, #faf5ff 100%)" }}>
+          <div className="mb-1 flex items-center gap-1.5">
+            <span className="inline-block size-2 rounded-full bg-[#8B5CF6]" />
+            <p className="text-[10px] font-semibold text-[#7C3AED]">SBAR Situation</p>
+          </div>
+          <p className="text-[10px] leading-[15px] text-tp-slate-700">{summaryData.sbarSituation}</p>
+        </div>
+      )}
+
+      {/* ── Completeness Bar (CKD patients) ── */}
+      {isCKD && summaryData?.dataCompleteness && (
+        <div className="mb-3 rounded-lg border border-tp-slate-200 bg-white p-2">
+          <div className="mb-1.5 flex items-center justify-between">
+            <p className="text-[10px] font-semibold text-tp-slate-700">Data Completeness</p>
+            <span className="text-[9px] text-tp-slate-500">{summaryData.dataCompleteness.emr}% EMR · {summaryData.dataCompleteness.ai}% AI · {summaryData.dataCompleteness.missing}% missing</span>
+          </div>
+          <div className="flex h-2 overflow-hidden rounded-full">
+            <div className="bg-[#1B8C54]" style={{ width: `${summaryData.dataCompleteness.emr}%` }} />
+            <div className="bg-[#C6850C]" style={{ width: `${summaryData.dataCompleteness.ai}%` }} />
+            <div className="bg-[#D1D5DB]" style={{ width: `${summaryData.dataCompleteness.missing}%` }} />
+          </div>
+          <div className="mt-1 flex gap-3">
+            <span className="flex items-center gap-1 text-[8px] text-tp-slate-500"><span className="inline-block size-1.5 rounded-full bg-[#1B8C54]" />EMR verified</span>
+            <span className="flex items-center gap-1 text-[8px] text-tp-slate-500"><span className="inline-block size-1.5 rounded-full bg-[#C6850C]" />AI-extracted</span>
+            <span className="flex items-center gap-1 text-[8px] text-tp-slate-500"><span className="inline-block size-1.5 rounded-full bg-[#D1D5DB]" />Not available</span>
+          </div>
+        </div>
+      )}
+
       <div className="mb-3 rounded-lg border border-tp-blue-100 bg-tp-blue-50/50 p-2">
         <p className="text-[10px] font-semibold text-tp-blue-600">Consultation focus now</p>
         <div className="mt-1.5 grid gap-1.5 sm:grid-cols-2">
-          <p className="rounded-md bg-white px-2 py-1 text-[10px] text-tp-slate-700">Persistent fever pattern over 3 days</p>
-          <p className="rounded-md bg-white px-2 py-1 text-[10px] text-tp-slate-700">Comorbid risk from diabetes + hypertension</p>
-          <p className="rounded-md bg-white px-2 py-1 text-[10px] text-tp-slate-700">Prior lab alert: LDL and TSH above range</p>
-          <p className="rounded-md bg-white px-2 py-1 text-[10px] text-tp-slate-700">Medication adherence concern from personal notes</p>
+          {focusItems.map((item, idx) => (
+            <p key={idx} className="rounded-md bg-white px-2 py-1 text-[10px] text-tp-slate-700">{item}</p>
+          ))}
         </div>
       </div>
 
@@ -350,25 +431,100 @@ function SummaryCard({
       </div>
 
       {expanded && (
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {SUMMARY_MODULES.map((module) => {
-            const classes = toneClasses(module.tone)
-            return (
-              <div
-                key={module.id}
-                className={cn("rounded-lg border bg-white p-2", classes.border)}
-              >
-                <div className="mb-1.5 flex items-center justify-between gap-2">
-                  <p className="text-[10px] font-semibold text-tp-slate-700">{module.title}</p>
-                  <span className={cn("rounded-full border px-1.5 py-0.5 text-[9px] font-semibold", classes.badge)}>
-                    {module.status}
-                  </span>
+        <>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {modules.map((module) => {
+              const classes = toneClasses(module.tone)
+              return (
+                <div
+                  key={module.id}
+                  className={cn("rounded-lg border bg-white p-2", classes.border)}
+                >
+                  <div className="mb-1.5 flex items-center justify-between gap-2">
+                    <p className="text-[10px] font-semibold text-tp-slate-700">{module.title}</p>
+                    <span className={cn("rounded-full border px-1.5 py-0.5 text-[9px] font-semibold", classes.badge)}>
+                      {module.status}
+                    </span>
+                  </div>
+                  <p className="text-[10px] leading-[15px] text-tp-slate-500">{module.detail}</p>
                 </div>
-                <p className="text-[10px] leading-[15px] text-tp-slate-500">{module.detail}</p>
+              )
+            })}
+          </div>
+
+          {/* ── POMR Problem Cards (CKD patients) ── */}
+          {pomrProblems && pomrProblems.length > 0 && (
+            <div className="mt-3">
+              <div className="mb-2 flex items-center gap-1.5">
+                <span className="inline-block size-2 rounded-full bg-[#8B5CF6]" />
+                <p className="text-[10px] font-semibold text-tp-slate-700">Problems (POMR)</p>
+                <span className="rounded-full bg-[#8B5CF6]/10 px-1.5 py-0.5 text-[9px] font-semibold text-[#8B5CF6]">{pomrProblems.length}</span>
               </div>
-            )
-          })}
-        </div>
+              <div className="grid gap-2">
+                {pomrProblems.map((prob: any, idx: number) => {
+                  const resolvedLabs = (prob.labKeys || []).map((key: string) =>
+                    summaryData?.keyLabs?.find((l: any) => l.name === key)
+                  ).filter(Boolean)
+                  const provenance = (summaryData as any)?.provenanceByField
+                  return (
+                    <div key={idx} className="rounded-lg border border-tp-slate-200 bg-white p-2">
+                      <div className="mb-1.5 flex items-center justify-between gap-2">
+                        <p className="text-[10px] font-semibold text-tp-slate-700">{prob.problem}</p>
+                        <span className="rounded-full border px-1.5 py-0.5 text-[9px] font-semibold" style={{ color: prob.statusColor, borderColor: prob.statusColor + "33", backgroundColor: prob.statusColor + "0D" }}>
+                          {prob.status}
+                        </span>
+                      </div>
+                      {/* Mini completeness bar */}
+                      <div className="mb-1.5 flex items-center gap-2">
+                        <div className="flex h-1.5 flex-1 overflow-hidden rounded-full">
+                          <div className="bg-[#1B8C54]" style={{ width: `${prob.completeness.emr}%` }} />
+                          <div className="bg-[#C6850C]" style={{ width: `${prob.completeness.ai}%` }} />
+                          <div className="bg-[#D1D5DB]" style={{ width: `${prob.completeness.missing}%` }} />
+                        </div>
+                        <span className="text-[8px] text-tp-slate-500">{prob.completeness.emr}% EMR</span>
+                      </div>
+                      {/* Resolved labs */}
+                      {resolvedLabs.length > 0 && (
+                        <div className="mb-1 flex flex-wrap gap-1">
+                          {resolvedLabs.map((lab: any) => {
+                            const prov = provenance?.[lab.name]
+                            const flagColor = lab.flag === "critical" ? "#C42B2B" : lab.flag === "high" ? "#C42B2B" : lab.flag === "low" ? "#2563EB" : "#6B7280"
+                            return (
+                              <span key={lab.name} className="inline-flex items-center gap-0.5 rounded-full border border-tp-slate-200 bg-tp-slate-50 px-1.5 py-0.5 text-[9px]">
+                                <span className="inline-block size-1.5 rounded-full" style={{ backgroundColor: flagColor }} />
+                                <span className="font-medium text-tp-slate-700">{lab.name}</span>
+                                <span className="text-tp-slate-500">{lab.value}</span>
+                                {prov?.source === "ai_extracted" && (
+                                  <span className="text-[7px] italic text-[#C6850C]" title={prov.extractedFrom}>(PDF)</span>
+                                )}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      )}
+                      {/* Medications */}
+                      {prob.medKeys && prob.medKeys.length > 0 && (
+                        <div className="mb-1 flex flex-wrap gap-1">
+                          {prob.medKeys.map((med: string) => (
+                            <span key={med} className="rounded-full border border-tp-blue-200 bg-tp-blue-50 px-1.5 py-0.5 text-[8px] text-tp-blue-700">{med}</span>
+                          ))}
+                        </div>
+                      )}
+                      {/* Missing keys */}
+                      {prob.missingKeys && prob.missingKeys.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {prob.missingKeys.map((key: string) => (
+                            <span key={key} className="rounded-full border border-dashed border-tp-slate-300 px-1.5 py-0.5 text-[8px] italic text-tp-slate-400">{key} — not available</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
@@ -462,9 +618,15 @@ function IntakeSection({
 
 function IntakeCollectorCard({
   onCopy,
+  patientId,
 }: {
   onCopy: (text: string, successMessage: string) => void
+  patientId?: string
 }) {
+  const isCKD = patientId ? IS_CKD_PATIENT(patientId) : false
+  const symptoms = isCKD ? CKD_INTAKE_SYMPTOMS : PATIENT_INTAKE_SYMPTOMS
+  const history = isCKD ? CKD_INTAKE_HISTORY : PATIENT_INTAKE_HISTORY
+
   return (
     <div className="rounded-xl border border-tp-blue-100 bg-[linear-gradient(135deg,rgba(59,130,246,0.08)_0%,rgba(255,255,255,1)_42%)] p-3">
       <div className="mb-2 flex items-center gap-2">
@@ -483,7 +645,7 @@ function IntakeCollectorCard({
           copyAllLabel="Copy to Symptoms"
           copyToSectionLabel="All symptoms copied to symptoms section"
           copyToLineLabel="Copy to Symptoms"
-          items={PATIENT_INTAKE_SYMPTOMS}
+          items={symptoms}
           onCopy={onCopy}
         />
         <IntakeSection
@@ -491,7 +653,7 @@ function IntakeCollectorCard({
           copyAllLabel="Copy to Medical History"
           copyToSectionLabel="All history copied to medical history section"
           copyToLineLabel="Copy to Medical History"
-          items={PATIENT_INTAKE_HISTORY}
+          items={history}
           onCopy={onCopy}
         />
       </div>
@@ -819,7 +981,7 @@ export function PatientDetailAgentPanel({
 
           <div ref={listRef} className="h-full space-y-3 overflow-y-auto px-3 py-3 pt-12">
             <SummaryCard patient={patient} />
-            <IntakeCollectorCard onCopy={handleCopy} />
+            <IntakeCollectorCard onCopy={handleCopy} patientId={patient.id} />
 
             {copyFeedback && (
               <div className="rounded-lg border border-tp-success-200 bg-tp-success-50 px-2 py-1 text-[10px] font-semibold text-tp-success-700">

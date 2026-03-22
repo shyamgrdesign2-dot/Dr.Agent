@@ -1,9 +1,44 @@
 "use client"
 
 import { useState } from "react"
+import { Calendar2 } from "iconsax-reactjs"
 import { cn } from "@/lib/utils"
 import { CopyIcon } from "./CopyIcon"
 import { TPMedicalIcon } from "@/components/tp-ui"
+
+export const SECTION_TAG_ICON_MAP: Record<string, string> = {
+  "Vitals": "Heart Rate",
+  "Today's Vitals": "Heart Rate",
+  "Symptoms": "Virus",
+  "Diagnosis": "Diagnosis",
+  "Diagnoses": "Diagnosis",
+  "Medication": "Tablets",
+  "Medications": "Tablets",
+  "Active Meds": "Tablets",
+  "Current Medications": "Tablets",
+  "Investigation": "test-tube-02",
+  "Investigations": "test-tube-02",
+  "Key Labs": "Lab",
+  "Chronic Conditions": "medical-service",
+  "Family History": "medical-report",
+  "Allergies": "mask",
+  "Lifestyle": "health care",
+  "Due Alerts": "emergency",
+  "History": "medical-record",
+  "Last Visit": "medical-report",
+  "Advice": "medical book",
+  "Follow-up": "iconsax:calendar",
+  "Basic Info": "health-file-02",
+  "ANC Status": "Obstetric",
+  "Last Exam": "medical-report",
+  "Menstrual History": "Gynec",
+  "Screening": "ultrasound-monitor-02",
+  "OD (Right)": "eye",
+  "OS (Left)": "eye",
+  "Findings": "clipboard-activity",
+  "Growth": "health-file-03",
+  "Vaccines": "injection",
+}
 
 interface SectionTagProps {
   label: string
@@ -35,15 +70,22 @@ export function SectionTag({
   copyTooltip,
 }: SectionTagProps) {
   const [hovered, setHovered] = useState(false)
+  const resolvedIcon = icon || SECTION_TAG_ICON_MAP[label]
 
   const bg = variant === "specialty"
     ? "bg-tp-violet-50 text-tp-violet-600"
     : "bg-tp-slate-100 text-tp-slate-500"
+  const foregroundClassName = variant === "specialty"
+    ? hovered ? "text-tp-violet-700" : "text-tp-violet-600"
+    : hovered ? "text-tp-slate-700" : "text-tp-slate-500"
+  const foregroundColor = variant === "specialty"
+    ? hovered ? "var(--tp-violet-700, #6D28D9)" : "var(--tp-violet-600, #7C3AED)"
+    : hovered ? "var(--tp-slate-700, #334155)" : "var(--tp-slate-500, #64748B)"
 
   return (
     <span
       className={cn(
-        "group/tag inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-[4px] px-1.5 py-[0.5px] text-[11px] font-medium align-middle transition-colors",
+        "group/tag inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-[4px] px-1.5 py-[0.5px] text-[10px] font-medium align-middle transition-colors",
         bg,
         hovered && variant === "specialty" && "bg-tp-violet-100",
         hovered && variant !== "specialty" && "bg-tp-slate-200",
@@ -55,24 +97,37 @@ export function SectionTag({
       title={tooltip}
     >
       {/* Icon rendered INSIDE the tag chip, matching tag text color */}
-      {icon && (
-        isEmoji(icon)
-          ? <span className="text-[10px]">{icon}</span>
+      {resolvedIcon && (
+        isEmoji(resolvedIcon)
+          ? <span className="text-[10px]">{resolvedIcon}</span>
+          : resolvedIcon === "iconsax:calendar"
+            ? (
+              <Calendar2
+                size={10}
+                variant="Bulk"
+                color={foregroundColor}
+                className={cn(
+                  "inline-block align-middle transition-opacity",
+                  hovered ? "opacity-100" : "opacity-60",
+                  foregroundClassName,
+                )}
+              />
+            )
           : (
             <TPMedicalIcon
-              name={icon}
+              name={resolvedIcon}
               variant="bulk"
-              size={11}
-              color={variant === "specialty" ? "var(--tp-violet-600, #7C3AED)" : undefined}
+              size={10}
+              color={foregroundColor}
               className={cn(
                 "inline-block align-middle transition-opacity",
                 hovered ? "opacity-100" : "opacity-60",
-                variant === "specialty" ? "text-tp-violet-600" : "text-tp-slate-500",
+                foregroundClassName,
               )}
             />
           )
       )}
-      <span className={cn("transition-colors", hovered && variant !== "specialty" && "text-tp-slate-700", hovered && variant === "specialty" && "text-tp-violet-700")}>
+      <span className={cn("transition-colors", foregroundClassName)}>
         {label}
       </span>
       {onCopy && hovered && (

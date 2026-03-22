@@ -33,7 +33,7 @@ export function TranslationCard({
     >
       {/* Source text */}
       <div className="mb-2">
-        <div className="mb-[2px] text-[9px] font-medium uppercase tracking-wide text-tp-slate-400">
+        <div className="mb-[2px] text-[10px] font-medium uppercase tracking-wide text-tp-slate-400">
           {data.sourceLanguage}
         </div>
         <div className="rounded-[6px] bg-tp-slate-50 px-2 py-[5px] text-[12px] leading-[1.5] text-tp-slate-600">
@@ -43,7 +43,7 @@ export function TranslationCard({
 
       {/* Translated text */}
       <div>
-        <div className="mb-[2px] text-[9px] font-medium uppercase tracking-wide text-tp-success-600">
+        <div className="mb-[2px] text-[10px] font-medium uppercase tracking-wide text-tp-success-600">
           {data.targetLanguage}
         </div>
         <div className="rounded-[6px] bg-tp-success-50 px-2 py-[5px] text-[12px] leading-[1.5] text-tp-success-700">

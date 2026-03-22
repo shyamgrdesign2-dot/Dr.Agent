@@ -61,7 +61,7 @@ export function ChatPillButton({ label, onClick, className }: { label: string; o
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "inline-flex h-[26px] items-center gap-[3px] rounded-full px-[14px] text-[11px] font-normal transition-all whitespace-nowrap",
+        "inline-flex h-[26px] items-center gap-[3px] rounded-full px-[14px] text-[10px] font-normal transition-all whitespace-nowrap",
         className,
       )}
       style={{
@@ -89,7 +89,7 @@ export function CopyButton({ label, onClick, className }: { label: string; onCli
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex h-[26px] items-center gap-[3px] rounded-full border-[1.5px] border-tp-blue-500 bg-tp-blue-50 px-2.5 text-[11px] font-medium text-tp-blue-500 transition-colors hover:bg-tp-blue-100",
+        "inline-flex h-[26px] items-center gap-[3px] rounded-full border-[1.5px] border-tp-blue-500 bg-tp-blue-50 px-2.5 text-[10px] font-medium text-tp-blue-500 transition-colors hover:bg-tp-blue-100",
         className,
       )}
     >
@@ -104,7 +104,7 @@ export function ExternalButton({ label, onClick, className }: { label: string; o
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex h-[26px] items-center gap-[3px] rounded-full border-[1.5px] border-tp-blue-500 bg-transparent px-2.5 text-[11px] font-medium text-tp-blue-500 transition-colors hover:bg-tp-blue-50",
+        "inline-flex h-[26px] items-center gap-[3px] rounded-full border-[1.5px] border-tp-blue-500 bg-transparent px-2.5 text-[10px] font-medium text-tp-blue-500 transition-colors hover:bg-tp-blue-50",
         className,
       )}
     >

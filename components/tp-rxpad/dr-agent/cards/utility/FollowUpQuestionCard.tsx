@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { TickCircle } from "iconsax-reactjs"
 import { CardShell } from "../CardShell"
 import { CheckboxRow } from "../CheckboxRow"
 import { RadioRow } from "../RadioRow"
+import { FooterCTA } from "../FooterCTA"
 
 interface FollowUpQuestionCardProps {
   data: {
@@ -58,14 +60,14 @@ export function FollowUpQuestionCard({
       tpIconName="Diagnosis"
       title={data.question}
       sidebarLink={
-        <button
-          type="button"
-          disabled={selectedOptions.length === 0}
-          className="inline-flex h-[28px] items-center rounded-[10px] border-[1.5px] border-tp-blue-500 bg-transparent px-4 text-[11px] font-medium text-tp-blue-600 hover:bg-tp-blue-50 disabled:border-tp-slate-200 disabled:text-tp-slate-400 transition-all"
+        <FooterCTA
+          label={`Submit${selectedOptions.length > 0 ? ` (${selectedOptions.length})` : ""}`}
           onClick={() => onSubmit?.(selectedOptions)}
-        >
-          Submit{selectedOptions.length > 0 ? ` (${selectedOptions.length})` : ""}
-        </button>
+          disabled={selectedOptions.length === 0}
+          tone="primary"
+          align="center"
+          iconLeft={<TickCircle size={14} variant="Linear" />}
+        />
       }
     >
       {data.multiSelect

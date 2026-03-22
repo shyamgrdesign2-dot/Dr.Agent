@@ -4,11 +4,13 @@ import React from "react"
 
 import { CardShell } from "../CardShell"
 import { InlineDataRow } from "../InlineDataRow"
+import { InsightBox } from "../InsightBox"
 
 import { SidebarLink } from "../SidebarLink"
 import { EmbeddedSpecialtyBox } from "./EmbeddedSpecialtyBox"
 import { VITAL_META } from "../../constants"
-import type { SmartSummaryData } from "../../types"
+import type { SmartSummaryData, SpecialtyTabId, DoctorViewType } from "../../types"
+import { highlightClinicalText } from "../../shared/highlightClinicalText"
 
 
 const LAB_SHORT_NAMES: Record<string, string> = {
@@ -35,6 +37,10 @@ interface GPSummaryCardProps {
   onPillTap?: (label: string) => void
   onSidebarNav?: (tab: string) => void
   defaultCollapsed?: boolean
+  /** When true, suppress the narrative paragraph at the top (used when shown via "Patient's detailed summary" pill) */
+  hideNarrative?: boolean
+  /** Active specialty — adapts narrative lead-in and condition prioritization */
+  activeSpecialty?: SpecialtyTabId
 }
 
 /* -- helpers ------------------------------------------------- */
@@ -120,9 +126,362 @@ function shortenMedication(raw: string): string {
   return drugName
 }
 
+/* -- narrative snapshot helpers ------------------------------ */
+
+/** Bold inline helper — semibold, non-italic, darker text for contrast in italic narrative */
+function NarrBold({ children }: { children: React.ReactNode }) {
+  return <span className="font-semibold not-italic text-tp-slate-700">{children}</span>
+}
+
+/** Critical highlight — red bold for abnormal vitals/labs */
+function NarrCritical({ children }: { children: React.ReactNode }) {
+  return <span className="font-bold not-italic text-tp-error-600">{children}</span>
+}
+
+/**
+ * Build a compact clinical narrative (quick summary) for the Patient Summary.
+ *
+ * Follows documented strict composition order with specialty-aware adaptation:
+ *   0. Specialty lead-in (obstetric → G/P/EDD, ophthal → VA/IOP, etc.)
+ *   1. Critical alert prefix (abnormal vitals/labs)
+ *   2. Chronic/concerning conditions with duration
+ *   3. Drug allergies
+ *   4. Key medications (max 2-3)
+ *   5. Last visit one-liner
+ *   6. Follow-up overdue flag
+ *
+ * The underlying data stays the same — only the lead-in and priority change per specialty.
+ * SBAR overlay: after building, we verify S/B/A/R coverage is present.
+ *
+ * Max 5-6 lines. Highlights key terms for 30-second scan.
+ * If patientNarrative exists (pre-written), highlight key clinical terms.
+ */
+export function buildSummaryNarrative(
+  data: SmartSummaryData,
+  specialty?: SpecialtyTabId,
+  _doctorViewType?: DoctorViewType,
+): React.ReactNode[] | null {
+  // If a pre-written narrative exists, use it with highlights
+  if (data.patientNarrative) {
+    return [highlightClinicalText(data.patientNarrative)]
+  }
+
+  // Auto-generate from available structured data
+  const parts: React.ReactNode[] = []
+
+  // ── Step 0: Specialty lead-in ──
+  // Each specialty gets a relevant clinical opener that surfaces the most
+  // important context for that doctor in the first line.
+  const specialtyLead = buildSpecialtyLeadIn(data, specialty)
+  if (specialtyLead) {
+    parts.push(specialtyLead)
+  }
+
+  // ── Step 1: Critical alert prefix — abnormal vitals ──
+  const criticalAlerts: string[] = []
+  if (data.todayVitals) {
+    if (data.todayVitals.bp) {
+      const sys = parseInt(data.todayVitals.bp.split("/")[0], 10)
+      if (!isNaN(sys) && (sys >= 160 || sys <= 80)) {
+        criticalAlerts.push(`BP ${data.todayVitals.bp}`)
+      }
+    }
+    if (data.todayVitals.spo2) {
+      const spo2 = parseInt(data.todayVitals.spo2, 10)
+      if (!isNaN(spo2) && spo2 < 94) {
+        criticalAlerts.push(`SpO\u2082 ${spo2}%`)
+      }
+    }
+    // Specialty-specific vital alerts
+    if (specialty === "obstetric" && data.todayVitals.bp) {
+      const sys = parseInt(data.todayVitals.bp.split("/")[0], 10)
+      if (!isNaN(sys) && sys >= 140 && !criticalAlerts.some((a) => a.startsWith("BP"))) {
+        criticalAlerts.push(`BP ${data.todayVitals.bp}`)
+      }
+    }
+  }
+  if (criticalAlerts.length > 0) {
+    parts.push(
+      <span key="critical">
+        {parts.length > 0 ? " " : ""}
+        <NarrCritical>{"\u26A0 " + criticalAlerts.join(", ")}</NarrCritical>
+        {". "}
+      </span>,
+    )
+  }
+
+  // ── Step 2: Chronic conditions with bold names ──
+  // For non-GP specialties, filter to conditions relevant to that specialty
+  if (data.chronicConditions && data.chronicConditions.length > 0) {
+    const filteredConditions = filterConditionsForSpecialty(data.chronicConditions, specialty)
+    if (filteredConditions.length > 0) {
+      const conditions = filteredConditions.slice(0, 3)
+      const condNodes = conditions.map((c, i) => {
+        const match = c.match(/^(.+?)\s*(?:\(([^)]+)\)\s*)?$/)
+        const name = match?.[1]?.replace(/\s*—\s*$/, "").trim() || c
+        const duration = match?.[2]
+        return (
+          <React.Fragment key={`cond-${i}`}>
+            {i > 0 && i === conditions.length - 1 ? " and " : i > 0 ? ", " : ""}
+            <NarrBold>{name}</NarrBold>
+            {duration ? ` (${duration})` : ""}
+          </React.Fragment>
+        )
+      })
+      parts.push(
+        <span key="conditions">
+          {parts.length > 0 ? "Known case of " : "Patient with "}
+          {condNodes}
+          {filteredConditions.length > 3 ? ` + ${filteredConditions.length - 3} more` : ""}
+        </span>,
+      )
+    }
+  }
+
+  // ── Step 3: Allergies — critical for safety (always shown) ──
+  if (data.allergies && data.allergies.length > 0) {
+    parts.push(
+      <span key="allergies">
+        {parts.length > 0 ? ". Allergic to " : "Allergic to "}
+        <NarrCritical>{data.allergies.slice(0, 2).join(", ")}</NarrCritical>
+      </span>,
+    )
+  }
+
+  // ── Step 4: Active medications — show 2-3 ──
+  if (data.activeMeds && data.activeMeds.length > 0) {
+    const meds = data.activeMeds.slice(0, 3).map(shortenMedication)
+    parts.push(
+      <span key="meds">
+        {parts.length > 0 ? ". On " : "On "}
+        <NarrBold>{meds.join(", ")}</NarrBold>
+        {data.activeMeds.length > 3 ? ` + ${data.activeMeds.length - 3} more` : ""}
+      </span>,
+    )
+  }
+
+  // ── Step 5: Last visit one-liner ──
+  if (data.lastVisit) {
+    const lastDate = data.lastVisit.date || ""
+    const dx = data.lastVisit.diagnosis || ""
+    if (lastDate && dx) {
+      parts.push(
+        <span key="lastVisit">
+          {parts.length > 0 ? ". " : ""}
+          Last seen <NarrBold>{lastDate}</NarrBold> — Dx: <NarrBold>{dx}</NarrBold>
+        </span>,
+      )
+    }
+  }
+
+  // ── Step 6: Follow-up overdue flag ──
+  if (data.followUpOverdueDays && data.followUpOverdueDays > 0) {
+    parts.push(
+      <span key="overdue">
+        {parts.length > 0 ? ". " : ""}
+        <NarrCritical>Follow-up overdue by {data.followUpOverdueDays}d</NarrCritical>
+      </span>,
+    )
+  }
+
+  // ── SBAR completeness overlay ──
+  // Lightweight check: flag if any SBAR category is entirely missing from the narrative.
+  // S = situation (symptoms/chief complaint) → covered by specialty lead-in or conditions
+  // B = background (history/conditions) → covered by step 2
+  // A = assessment (labs/vitals) → covered by step 1 (critical alerts)
+  // R = recommendation (meds/plan) → covered by step 4
+  const sbarGaps = checkSbarCompleteness(data, parts)
+  if (sbarGaps.length > 0) {
+    parts.push(
+      <span key="sbar-gap" className="text-tp-slate-400">
+        {parts.length > 0 ? " " : ""}
+        [Missing: {sbarGaps.join(", ")}]
+      </span>,
+    )
+  }
+
+  if (parts.length === 0) return null
+  parts.push(<span key="period">.</span>)
+  return parts
+}
+
+/* -- Specialty lead-in builders -------------------------------- */
+
+/**
+ * Build a specialty-specific opening line for the narrative.
+ * Same data, different lens — surfaces the most critical context first.
+ */
+function buildSpecialtyLeadIn(
+  data: SmartSummaryData,
+  specialty?: SpecialtyTabId,
+): React.ReactNode | null {
+  if (!specialty || specialty === "gp") return null
+
+  if (specialty === "obstetric" && data.obstetricData) {
+    const ob = data.obstetricData
+    const gp = [
+      ob.gravida != null ? `G${ob.gravida}` : null,
+      ob.para != null ? `P${ob.para}` : null,
+      ob.living != null ? `L${ob.living}` : null,
+      ob.abortion != null && ob.abortion > 0 ? `A${ob.abortion}` : null,
+    ]
+      .filter(Boolean)
+      .join("")
+    const details: string[] = []
+    if (ob.gestationalWeeks) details.push(`${ob.gestationalWeeks} wks`)
+    if (ob.edd) details.push(`EDD ${ob.edd}`)
+    if (ob.lmp) details.push(`LMP ${ob.lmp}`)
+    return (
+      <span key="spec-lead">
+        <NarrBold>{gp || "Obstetric patient"}</NarrBold>
+        {details.length > 0 ? ` — ${details.join(", ")}` : ""}
+        {". "}
+      </span>
+    )
+  }
+
+  if (specialty === "ophthal" && data.ophthalData) {
+    const oph = data.ophthalData
+    const vaDetails: string[] = []
+    if (oph.vaRight) vaDetails.push(`OD: ${oph.vaRight}`)
+    if (oph.vaLeft) vaDetails.push(`OS: ${oph.vaLeft}`)
+    if (oph.iop) vaDetails.push(`IOP: ${oph.iop}`)
+    if (vaDetails.length > 0) {
+      return (
+        <span key="spec-lead">
+          <NarrBold>{vaDetails.join(", ")}</NarrBold>
+          {". "}
+        </span>
+      )
+    }
+  }
+
+  if (specialty === "gynec" && data.gynecData) {
+    const gyn = data.gynecData
+    const details: string[] = []
+    if (gyn.lmp) details.push(`LMP ${gyn.lmp}`)
+    if (gyn.cycleRegularity) details.push(`cycles ${gyn.cycleRegularity.toLowerCase()}`)
+    if (gyn.painScore && parseInt(gyn.painScore, 10) > 5) details.push(`pain ${gyn.painScore}/10`)
+    if (details.length > 0) {
+      return (
+        <span key="spec-lead">
+          <NarrBold>{details.join(", ")}</NarrBold>
+          {". "}
+        </span>
+      )
+    }
+  }
+
+  if (specialty === "pediatrics" && data.pediatricsData) {
+    const ped = data.pediatricsData
+    const details: string[] = []
+    if (ped.ageDisplay) details.push(ped.ageDisplay)
+    if (ped.weightKg != null) {
+      details.push(`Wt ${ped.weightKg}kg${ped.weightPercentile ? ` (${ped.weightPercentile})` : ""}`)
+    }
+    if (ped.vaccinesOverdue && ped.vaccinesOverdue > 0) {
+      details.push(`${ped.vaccinesOverdue} vaccines overdue`)
+    } else if (ped.vaccinesPending && ped.vaccinesPending > 0) {
+      details.push(`${ped.vaccinesPending} vaccines pending`)
+    }
+    if (details.length > 0) {
+      return (
+        <span key="spec-lead">
+          <NarrBold>{details.join(", ")}</NarrBold>
+          {". "}
+        </span>
+      )
+    }
+  }
+
+  return null
+}
+
+/* -- Condition filtering per specialty ------------------------- */
+
+/** Specialty-relevant condition keywords — show these first, deprioritize others */
+const SPECIALTY_CONDITION_RELEVANCE: Record<string, RegExp> = {
+  obstetric: /pre-?eclampsia|gestational|GDM|HTN|hypertension|anemia|thyroid|diabetes/i,
+  ophthal: /diabet|HTN|hypertension|glaucoma|cataract|retino|macula/i,
+  gynec: /PCOS|endometri|fibroid|thyroid|anemia|hormonal/i,
+  pediatrics: /asthma|allergy|anemia|epilepsy|growth|nutrition|congenital/i,
+}
+
+function filterConditionsForSpecialty(
+  conditions: string[],
+  specialty?: SpecialtyTabId,
+): string[] {
+  if (!specialty || specialty === "gp") return conditions
+
+  const pattern = SPECIALTY_CONDITION_RELEVANCE[specialty]
+  if (!pattern) return conditions
+
+  // Split into relevant (matching) and other conditions
+  const relevant = conditions.filter((c) => pattern.test(c))
+  const other = conditions.filter((c) => !pattern.test(c))
+
+  // Prioritize relevant conditions first, then fill remaining slots with others
+  return [...relevant, ...other]
+}
+
+/* -- SBAR completeness overlay --------------------------------- */
+
+/**
+ * Lightweight SBAR check — verifies the narrative covers all four SBAR categories.
+ * Returns a list of missing category labels (empty = all covered).
+ *
+ * S = Situation: chief complaint / symptoms / specialty lead-in
+ * B = Background: chronic conditions / medical history
+ * A = Assessment: vitals / labs / current state
+ * R = Recommendation: active medications / follow-up plan
+ */
+function checkSbarCompleteness(
+  data: SmartSummaryData,
+  currentParts: React.ReactNode[],
+): string[] {
+  const gaps: string[] = []
+  const partKeys = currentParts
+    .filter((p): p is React.ReactElement => React.isValidElement(p))
+    .map((p) => (p.key as string) || "")
+
+  // S — Situation: do we have symptoms or a chief complaint?
+  const hasSituation =
+    partKeys.includes("spec-lead") ||
+    partKeys.includes("critical") ||
+    !!data.symptomCollectorData?.symptoms?.length ||
+    !!data.sbarSituation
+  if (!hasSituation) gaps.push("chief complaint")
+
+  // B — Background: do we have conditions/history?
+  const hasBackground =
+    partKeys.includes("conditions") ||
+    partKeys.includes("allergies") ||
+    (data.chronicConditions && data.chronicConditions.length > 0) ||
+    (data.familyHistory && data.familyHistory.length > 0)
+  if (!hasBackground) gaps.push("history")
+
+  // A — Assessment: do we have vitals or labs?
+  const hasAssessment =
+    partKeys.includes("critical") ||
+    !!data.todayVitals ||
+    (data.keyLabs && data.keyLabs.length > 0)
+  if (!hasAssessment) gaps.push("vitals/labs")
+
+  // R — Recommendation: do we have meds or plan?
+  const hasRecommendation =
+    partKeys.includes("meds") ||
+    (data.activeMeds && data.activeMeds.length > 0) ||
+    !!data.lastVisit?.medication
+  if (!hasRecommendation) gaps.push("active treatment")
+
+  return gaps
+}
+
+/* highlightNarrative removed — now using shared highlightClinicalText from ../../shared/highlightClinicalText */
+
 /* -- component ----------------------------------------------- */
 
-export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed }: GPSummaryCardProps) {
+export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed, hideNarrative, activeSpecialty }: GPSummaryCardProps) {
   const hasSpecialty =
     !!data.obstetricData ||
     !!data.pediatricsData ||
@@ -168,7 +527,7 @@ export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed 
         .map((lab) => ({
         key: shortenLabName(lab.name),
         value: `${lab.value}${lab.unit ? ` ${lab.unit}` : ""}`,
-        flag: lab.flag === "high" ? ("high" as const) : lab.flag === "low" ? ("low" as const) : undefined,
+        flag: lab.flag === "high" ? ("high" as const) : lab.flag === "low" ? ("low" as const) : lab.flag === "critical" ? ("high" as const) : undefined,
       }))
     : []
 
@@ -211,9 +570,25 @@ export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed 
   if (pills.length === 0) pills.push({ label: "Suggest DDX" })
   pills.push({ label: "Ask me anything" })
 
-  /* - Which sections are present (for dividers) - */
+  /* - Cross-problem flags (max 2 high-severity) - */
+  const highSeverityFlags = (data.crossProblemFlags || [])
+    .filter((f) => f.severity === "high")
+    .slice(0, 2)
+
+  /* - Clinical narrative — compact patient snapshot at top of card.
+       Uses patientNarrative (if available) or auto-generates from
+       chronic conditions + medications + allergies. - */
+  const narrativeParts = buildSummaryNarrative(data, activeSpecialty)
+
+  /* - Section ordering — most actionable first:
+       1. Today's Vitals — current state, what needs attention now
+       2. Key Labs — lab values with provenance flags
+       3. History — chronic conditions, allergies
+       4. Last Visit — previous care context
+     Narrative (quick snapshot) is shown separately in the intro flow. - */
   const sections: Array<{ id: string; node: React.ReactNode }> = []
 
+  // Current vitals — what needs attention today
   if (vitalsValues.length > 0) {
     sections.push({
       id: "vitals",
@@ -229,6 +604,7 @@ export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed 
     })
   }
 
+  // Lab results with flags and provenance
   if (labsValues.length > 0) {
     sections.push({
       id: "labs",
@@ -244,6 +620,7 @@ export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed 
     })
   }
 
+  // Chronic conditions, allergies, medical history
   if (historyValues.length > 0) {
     sections.push({
       id: "history",
@@ -259,6 +636,7 @@ export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed 
     })
   }
 
+  // Previous care context
   if (lastVisitValues.length > 0) {
     sections.push({
       id: "lastVisit",
@@ -270,6 +648,7 @@ export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed 
           onTagClick={() => onSidebarNav?.("pastVisits")}
           source="existing"
           allowCopyToRxPad={true}
+          trailingNote={data.lastVisit?.doctorName ? `${data.lastVisit.doctorName}` : undefined}
         />
       ),
     })
@@ -282,6 +661,7 @@ export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed 
       title="Patient Summary"
       collapsible
       defaultCollapsed={defaultCollapsed}
+      dataSources={["EMR Records", "Past Visit History"]}
       sidebarLink={
         onSidebarNav ? (
           <SidebarLink
@@ -292,6 +672,15 @@ export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed 
       }
     >
       <div className="flex flex-col gap-[8px]">
+        {/* Clinical narrative — compact patient snapshot (hidden when detailed summary is triggered) */}
+        {!hideNarrative && narrativeParts && narrativeParts.length > 0 && (
+          <div className="rounded-[8px] bg-tp-slate-50 border-l-[3px] border-tp-violet-300 px-3 py-2">
+            <p className="text-[12px] italic leading-[1.6] text-tp-slate-500">
+              &ldquo;{narrativeParts}&rdquo;
+            </p>
+          </div>
+        )}
+
         {sections.map((section) => (
           <React.Fragment key={section.id}>
             {section.node}
@@ -304,6 +693,13 @@ export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed 
             <EmbeddedSpecialtyBox data={data} />
           </div>
         )}
+
+        {/* Cross-problem flags — using InsightBox design system */}
+        {highSeverityFlags.map((flag, i) => (
+          <InsightBox key={i} variant={flag.severity === "high" ? "red" : "amber"} className="mt-0">
+            {flag.text}
+          </InsightBox>
+        ))}
       </div>
     </CardShell>
   )

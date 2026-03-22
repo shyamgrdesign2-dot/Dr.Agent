@@ -7027,7 +7027,7 @@ function buildClinicalAlerts(s: SmartSummaryData, specialty: SpecialtyTabId): Ar
 
 function buildCollapsedInfo(s: SmartSummaryData, specialty: SpecialtyTabId): { tokens: string[]; hasAllergy: boolean; abnormalLabCount: number; abnormalVitalCount: number } {
   const hasAllergy = !!s.allergies?.length
-  const abnormalLabCount = s.keyLabs?.filter((l) => l.flag === "high" || l.flag === "low").length ?? 0
+  const abnormalLabCount = s.keyLabs?.filter((l) => l.flag === "high" || l.flag === "low" || l.flag === "critical").length ?? 0
   let abnormalVitalCount = 0
   if (s.todayVitals) {
     for (const [key, value] of Object.entries(s.todayVitals)) {
@@ -7058,7 +7058,13 @@ function buildCollapsedInfo(s: SmartSummaryData, specialty: SpecialtyTabId): { t
     if (p.weightPercentile) tokens.push(`Wt ${p.weightPercentile}`)
     if (p.vaccinesOverdue) tokens.push(`${p.vaccinesOverdue} vax overdue`)
   } else {
-    if (s.chronicConditions?.length) tokens.push(s.chronicConditions.slice(0, 2).join(", "))
+    // For patients with SBAR data, show critical lab values as tokens for instant triage
+    if ((s as any).sbarSituation && s.keyLabs?.length) {
+      const criticals = s.keyLabs.filter(l => l.flag === "critical" || l.flag === "high").slice(0, 3)
+      if (criticals.length) tokens.push(...criticals.map(c => `${c.name} ${c.value}${c.flag === "critical" ? " ↑" : ""}`))
+    } else {
+      if (s.chronicConditions?.length) tokens.push(s.chronicConditions.slice(0, 2).join(", "))
+    }
     if (s.followUpOverdueDays > 0) tokens.push("F/U Overdue")
   }
   return { tokens, hasAllergy, abnormalLabCount, abnormalVitalCount }
@@ -7227,6 +7233,34 @@ function PatientSummaryCard({
         </div>
       )}
 
+      {/* ── SBAR Situation Bar (only for patients with sbarSituation) ── */}
+      {(s as any).sbarSituation && (
+        <div className="flex items-start gap-2 border-b border-[#C4BFB5]/15 bg-[#F0F4F8] px-3 py-1.5">
+          <span className="mt-[1px] shrink-0 rounded-[3px] bg-[#8B5CF6] px-1.5 py-[1px] text-[8px] font-bold uppercase tracking-wider text-white">SBAR</span>
+          <p className="text-[11px] leading-snug text-[#374151]">{(s as any).sbarSituation}</p>
+        </div>
+      )}
+
+      {/* ── Data Completeness Bar (only for patients with sectionCompleteness) ── */}
+      {(s as any).sectionCompleteness?.length > 0 && (() => {
+        const sections = (s as any).sectionCompleteness as { sectionId: string; filled: number; total: number; status: string }[]
+        const totalFilled = sections.reduce((sum: number, sec: { filled: number }) => sum + sec.filled, 0)
+        const totalFields = sections.reduce((sum: number, sec: { total: number }) => sum + sec.total, 0)
+        const pct = totalFields > 0 ? Math.round((totalFilled / totalFields) * 100) : 0
+        return (
+          <div className="flex items-center gap-2 border-b border-[#C4BFB5]/10 px-3 py-1.5">
+            <div className="flex h-[5px] flex-1 overflow-hidden rounded-full bg-gray-100">
+              {sections.map((sec: { sectionId: string; status: string; filled: number; total: number }) => {
+                const w = totalFields > 0 ? (sec.total / totalFields) * 100 : 0
+                const bg = sec.status === "complete" ? "#10B981" : sec.status === "partial" ? "#F59E0B" : "#D1D5DB"
+                return <div key={sec.sectionId} className="h-full" style={{ width: `${w}%`, backgroundColor: bg }} />
+              })}
+            </div>
+            <span className="shrink-0 text-[10px] font-medium text-[#9E978B]">{pct}% documented</span>
+          </div>
+        )
+      })()}
+
       {/* ── Card Body — Visual sections with gray strip headers ── */}
       <div className="py-1">
 
@@ -7249,6 +7283,30 @@ function PatientSummaryCard({
             </div>
           </div>
         ) : null}
+
+        {/* ─── CROSS-PROBLEM FLAGS (only for patients with crossProblemFlags) ─── */}
+        {(s as any).crossProblemFlags?.length > 0 && (
+          <div className="mb-1 px-3">
+            <div className="space-y-1">
+              {((s as any).crossProblemFlags as { text: string; problems: string[]; severity: string }[]).map((flag: { text: string; problems: string[]; severity: string }, i: number) => (
+                <div key={i} className={cn(
+                  "flex items-start gap-1.5 rounded-[6px] border border-dashed px-2 py-[5px]",
+                  flag.severity === "high" ? "border-[#C42B2B]/30 bg-[#C42B2B]/5" : "border-[#C6850C]/30 bg-[#C6850C]/5"
+                )}>
+                  <span className="mt-[2px] text-[10px]">⚡</span>
+                  <div>
+                    <span className="text-[11px] font-medium text-[#1A1714]">{flag.text}</span>
+                    <div className="mt-0.5 flex gap-1">
+                      {flag.problems.map((p: string) => (
+                        <span key={p} className="rounded bg-[#F8F7F4] px-1 py-[1px] text-[9px] font-medium text-[#9E978B]">{p}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ─── 2. VITALS SECTION — 2-column grid layout ─── */}
         {vitalEntries.length > 0 && (
@@ -7307,19 +7365,37 @@ function PatientSummaryCard({
                 )}
               </div>
               <div className="space-y-[2px] px-3">
-                {shown.map((l) => (
+                {shown.map((l) => {
+                  const prov = (s as any).dataProvenance?.[l.name] as { source: string; extractedFrom?: string } | undefined
+                  const provDot = prov ? (
+                    prov.source === "emr" ? "#10B981" :
+                    prov.source === "ai_extracted" ? "#F59E0B" :
+                    prov.source === "not_available" ? "#9CA3AF" : undefined
+                  ) : undefined
+                  return (
                   <div key={l.name} className="flex items-center justify-between border-b border-[#C4BFB5]/15 pb-[2px]">
                     <div className="flex items-center gap-1.5">
-                      <span className={cn("size-[6px] rounded-full", l.flag === "high" || l.flag === "low" ? "bg-[#C42B2B]" : "bg-[#1B8C54]")} />
+                      <span className={cn("size-[6px] rounded-full", l.flag === "high" || l.flag === "low" || l.flag === "critical" ? "bg-[#C42B2B]" : "bg-[#1B8C54]")} />
                       <span className="text-[11px] text-[#1A1714]">{l.name}</span>
+                      {provDot && (
+                        <span
+                          className="size-[4px] rounded-full"
+                          style={{ backgroundColor: provDot }}
+                          title={prov?.source === "emr" ? "Source: EMR (verified)" : prov?.source === "ai_extracted" ? `Source: AI-extracted from ${prov.extractedFrom || "uploaded document"} — verify before acting` : "Not available in any source — needs ordering"}
+                        />
+                      )}
+                      {prov?.source === "ai_extracted" && prov.extractedFrom && (
+                        <span className="text-[8px] italic text-[#D97706]" title={prov.extractedFrom}>(from PDF)</span>
+                      )}
                     </div>
                     <span className={cn("text-[12px] font-semibold",
-                      l.flag === "high" || l.flag === "low" ? "text-[#C42B2B]" : "text-[#1B8C54]"
+                      l.flag === "high" || l.flag === "low" || l.flag === "critical" ? "text-[#C42B2B]" : "text-[#1B8C54]"
                     )}>
-                      {l.value}{l.flag === "high" ? " ↑" : l.flag === "low" ? " ↓" : ""}
+                      {l.value}{l.flag === "high" || l.flag === "critical" ? " ↑" : l.flag === "low" ? " ↓" : ""}
                     </span>
                   </div>
-                ))}
+                  )
+                })}
                 {overflow > 0 && (
                   <button type="button" className="mt-0.5 text-[10px] font-medium text-tp-blue-600 hover:underline"
                     onClick={onNavigate ? () => onNavigate("lab-results") : undefined}>
@@ -7330,6 +7406,104 @@ function PatientSummaryCard({
             </div>
           )
         })() : null}
+
+        {/* ─── 3b. POMR PROBLEM CARDS (only for patients with pomrProblems) ─── */}
+        {(s as any).pomrProblems?.length > 0 && (() => {
+          const pomrProblems = (s as any).pomrProblems as Array<{
+            problem: string; status: string; statusColor: string
+            completeness: { emr: number; ai: number; missing: number }
+            labKeys: string[]; vitalKeys?: string[]; medKeys?: string[]; missingKeys?: string[]
+          }>
+          return (
+            <div className="mb-1">
+              <div className="mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]">
+                <span className="size-[6px] rounded-full bg-[#8B5CF6]" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E978B]">Problems (POMR)</span>
+                <span className="rounded-[4px] bg-[#8B5CF6]/10 px-1 py-[1px] text-[9px] font-semibold text-[#8B5CF6]">
+                  {pomrProblems.length}
+                </span>
+              </div>
+              <div className="space-y-1.5 px-3">
+                {pomrProblems.map((prob, pi) => {
+                  const resolvedLabs = prob.labKeys
+                    .map(k => s.keyLabs?.find(l => l.name === k))
+                    .filter(Boolean) as Array<{ name: string; value: string; flag: string }>
+                  return (
+                    <div key={pi} className="rounded-[8px] border border-[#E5E2DB] bg-white p-2">
+                      {/* Problem header + status */}
+                      <div className="mb-1 flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-[#1A1714]">{prob.problem}</span>
+                        <span
+                          className="rounded-[4px] px-1.5 py-[1px] text-[9px] font-semibold"
+                          style={{ backgroundColor: prob.statusColor + "15", color: prob.statusColor }}
+                        >
+                          {prob.status}
+                        </span>
+                      </div>
+                      {/* Per-problem completeness bar */}
+                      <div className="mb-1.5 flex items-center gap-2">
+                        <div className="flex h-[4px] flex-1 overflow-hidden rounded-full bg-gray-100">
+                          <div className="h-full bg-[#10B981]" style={{ width: `${prob.completeness.emr}%` }} />
+                          <div className="h-full bg-[#F59E0B]" style={{ width: `${prob.completeness.ai}%` }} />
+                          <div className="h-full bg-[#D1D5DB]" style={{ width: `${prob.completeness.missing}%` }} />
+                        </div>
+                        <span className="shrink-0 text-[9px] text-[#9E978B]">
+                          {prob.completeness.emr}% EMR
+                        </span>
+                      </div>
+                      {/* Labs for this problem */}
+                      {resolvedLabs.length > 0 && (
+                        <div className="space-y-[2px]">
+                          {resolvedLabs.map(l => {
+                            const prov2 = (s as any).dataProvenance?.[l.name] as { source: string; extractedFrom?: string } | undefined
+                            const dot2 = prov2 ? (prov2.source === "emr" ? "#10B981" : prov2.source === "ai_extracted" ? "#F59E0B" : "#9CA3AF") : undefined
+                            return (
+                              <div key={l.name} className="flex items-center justify-between">
+                                <div className="flex items-center gap-1">
+                                  <span className={cn("size-[5px] rounded-full",
+                                    l.flag === "critical" || l.flag === "high" || l.flag === "low" ? "bg-[#C42B2B]" : "bg-[#1B8C54]"
+                                  )} />
+                                  <span className="text-[10px] text-[#9E978B]">{l.name}</span>
+                                  {dot2 && (
+                                    <span className="size-[4px] rounded-full" style={{ backgroundColor: dot2 }}
+                                      title={prov2?.source === "emr" ? "EMR (verified)" : prov2?.source === "ai_extracted" ? `AI: ${prov2.extractedFrom || "document"}` : "Not available"} />
+                                  )}
+                                </div>
+                                <span className={cn("text-[11px] font-semibold",
+                                  l.flag === "critical" || l.flag === "high" || l.flag === "low" ? "text-[#C42B2B]" : "text-[#1B8C54]"
+                                )}>
+                                  {l.value}{l.flag === "high" || l.flag === "critical" ? " ↑" : l.flag === "low" ? " ↓" : ""}
+                                </span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                      {/* Medications for this problem */}
+                      {prob.medKeys?.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {prob.medKeys.map((mk: string) => (
+                            <span key={mk} className="rounded bg-blue-50 px-1.5 py-[1px] text-[9px] text-blue-600">{mk}</span>
+                          ))}
+                        </div>
+                      )}
+                      {/* Missing data for this problem */}
+                      {prob.missingKeys?.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {prob.missingKeys.map((mk: string) => (
+                            <span key={mk} className="rounded border border-dashed border-gray-200 bg-gray-50 px-1.5 py-[1px] text-[9px] italic text-gray-400">
+                              {mk} — not available
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })()}
 
         {/* ─── 4. HISTORY SECTION — condition & family chips ─── */}
         {(s.chronicConditions?.length || s.familyHistory?.length) ? (
@@ -7446,6 +7620,63 @@ function PatientSummaryCard({
             </div>
           </div>
         ) : null}
+
+        {/* ─── MISSING EXPECTED FIELDS (only for patients with missingExpectedFields) ─── */}
+        {(s as any).missingExpectedFields?.length > 0 && (
+          <div className="mb-1">
+            <div className="mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]">
+              <span className="size-[6px] rounded-full bg-[#9CA3AF]" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E978B]">Expected — Not Available</span>
+              <span className="rounded-[4px] bg-gray-100 px-1 py-[1px] text-[9px] font-semibold text-gray-500">
+                {(s as any).missingExpectedFields.length}
+              </span>
+            </div>
+            <div className="space-y-[2px] px-3">
+              {((s as any).missingExpectedFields as { field: string; reason: string; prompt: string }[]).map((mf: { field: string; reason: string; prompt: string }, i: number) => (
+                <div key={i} className="flex items-start gap-1.5 rounded-[4px] border border-dashed border-gray-200 bg-gray-50/50 px-2 py-[4px]">
+                  <span className="mt-[3px] size-[5px] shrink-0 rounded-full bg-[#9CA3AF]" />
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[11px] font-medium text-[#1A1714]">{mf.field}</span>
+                    <p className="text-[10px] text-[#9E978B]">{mf.prompt}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ─── RECOMMENDATION TIERS (only for patients with recommendationTiers) ─── */}
+        {(s as any).recommendationTiers?.length > 0 && (
+          <div className="mb-1">
+            <div className="mb-1 flex items-center gap-1.5 bg-[#F8F7F4] px-3 py-[5px]">
+              <Sparkles size={11} className="text-[#8B5CF6]" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#9E978B]">AI Recommendations</span>
+              <span className="text-[9px] italic text-[#9E978B]">verify before acting</span>
+            </div>
+            <div className="space-y-[3px] px-3">
+              {((s as any).recommendationTiers as { text: string; tier: string; gatedBy?: string }[]).map((rec: { text: string; tier: string; gatedBy?: string }, i: number) => {
+                const tierStyle = rec.tier === "act"
+                  ? { bg: "#ECFDF5", text: "#059669", label: "ACT" }
+                  : rec.tier === "verify"
+                  ? { bg: "#FFFBEB", text: "#D97706", label: "VERIFY" }
+                  : { bg: "#F3F4F6", text: "#6B7280", label: "GATHER" }
+                return (
+                  <div key={i} className="flex items-start gap-1.5 py-[2px]">
+                    <span
+                      className="mt-[2px] shrink-0 rounded-[3px] px-1.5 py-[1px] text-[8px] font-bold"
+                      style={{ backgroundColor: tierStyle.bg, color: tierStyle.text }}
+                    >
+                      {tierStyle.label}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[11px] text-[#1A1714]">{rec.text}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ─── 8. SPECIALTY EMBED — colored accent box for non-GP ─── */}
         {activeSpecialty !== "gp" && (() => {

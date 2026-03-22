@@ -196,6 +196,46 @@ For the **top short summary sentence(s)**, use this exact sequence:
 
 ---
 
+## Patient Summary Card — Section Ordering (SBAR Layout)
+
+The Patient Summary card (`GPSummaryCard`) arranges its `InlineDataRow` sections following the SBAR conceptual layout. This is NOT literal SBAR labels — it's the **ordering principle** for how data flows:
+
+### Order of Sections
+
+```
+1. Situation   → Context line (auto-generated from chronic conditions + presenting symptoms)
+2. Background  → History row (Chronic conditions, Allergies)
+3. Assessment  → Key Labs row (with provenance dots and flags)
+4. Context     → Last Visit row (Sx, Dx, Rx — copyable to RxPad)
+5. Recommendation → Today's Vitals row (with abnormal flags)
+6. Specialty   → Embedded specialty box (if applicable)
+7. Flags       → Cross-problem InsightBox alerts (max 2 high-severity)
+```
+
+### When is the Situation Line Shown?
+
+The situation line appears **only when the Patient Summary card is the intro card** — i.e., when there is no `symptomCollectorData` (no PatientReportedCard shown first). It provides the brief clinical context that would otherwise come from the PatientReportedCard.
+
+Auto-generation logic:
+- If `sbarSituation` exists in data → use it directly
+- Else → combine chronic conditions (max 3) + presenting symptoms from last visit
+- Example output: `"CKD Stage 5, Hypertension, Type 2 DM — presenting with fatigue, swelling"`
+
+### Data Provenance on Labs
+
+Lab values in the Key Labs row show optional provenance indicators:
+- **Green dot (5px)** → Data from EMR (reliable, structured source)
+- **Amber dot (5px)** → Data AI-extracted from uploaded documents (needs verification)
+- Only shown when `dataProvenance` mapping exists for that lab name
+
+### Data Completeness Donut
+
+The donut chart (18px SVG) is **NOT shown on the Patient Summary card**. It is only shown on cards with a fixed expected data set where missing data is clinically meaningful — currently only **POMR Problem Cards**.
+
+Rule: If a card displays "whatever data is available" (summaries, trends, overviews), no donut. If a card requires a specific set of data fields and some are missing, show the donut.
+
+---
+
 ## Specialty-Specific Short Summary Examples
 
 ### Obstetrics

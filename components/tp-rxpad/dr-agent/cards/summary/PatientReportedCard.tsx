@@ -8,12 +8,15 @@ import { ActionableTooltip } from "../ActionableTooltip"
 import { TPMedicalIcon } from "@/components/tp-ui"
 import { MessageQuestion } from "iconsax-reactjs"
 import type { SymptomCollectorData } from "../../types"
+import { highlightClinicalText } from "../../shared/highlightClinicalText"
 
 interface PatientReportedCardProps {
   data: SymptomCollectorData
   onCopy?: (section: string, items: string[]) => void
   onPillTap?: (label: string) => void
   defaultCollapsed?: boolean
+  /** Pre-written patient narrative from SmartSummaryData — used instead of buildQuickSnapshot for consistency */
+  patientNarrative?: string
 }
 
 /* ── section config ─────────────────────────────────── */
@@ -48,11 +51,95 @@ function parseMedication(med: string): { name: string; detail?: string } {
   return { name: med }
 }
 
+/**
+ * Parse a chronic condition / medical history string into name + detail.
+ * Extracts duration, treatment context, and clinical details from raw text.
+ *
+ * "CKD Stage 5 on peritoneal dialysis since Jan 2024"
+ *   → { name: "CKD Stage 5", detail: "peritoneal dialysis, since Jan 2024" }
+ * "Type 2 Diabetes for 18 years — on insulin"
+ *   → { name: "Type 2 Diabetes", detail: "18 years, on insulin" }
+ * "Heart attack in 2021 — stent placed"
+ *   → { name: "Heart attack", detail: "2021, stent placed" }
+ * "High blood pressure — on medications"
+ *   → { name: "High blood pressure", detail: "on medications" }
+ * "Hypertension (3yr)"
+ *   → { name: "Hypertension", detail: "3yr" }
+ */
+function parseCondition(raw: string): { name: string; detail?: string } {
+  const trimmed = raw.trim()
+
+  // Pattern 1: Already has parenthesized detail — "Hypertension (3yr)"
+  const parenMatch = trimmed.match(/^([^(]+?)\s*\(([^)]+)\)\s*$/)
+  if (parenMatch) {
+    return { name: parenMatch[1].trim(), detail: parenMatch[2].trim() }
+  }
+
+  // Pattern 2: Has em-dash separator — "Heart attack in 2021 — stent placed"
+  const dashMatch = trimmed.match(/^(.+?)\s*[—–]\s*(.+)$/)
+  if (dashMatch) {
+    // Check if the left side also has "for/since/in" qualifier
+    const leftParts = splitConditionQualifier(dashMatch[1].trim())
+    const rightDetail = dashMatch[2].trim()
+    if (leftParts.detail) {
+      return { name: leftParts.name, detail: `${leftParts.detail}, ${rightDetail}` }
+    }
+    return { name: leftParts.name, detail: rightDetail }
+  }
+
+  // Pattern 3: Has "on/for/since/in" qualifier — "Type 2 Diabetes for 18 years"
+  const qualParts = splitConditionQualifier(trimmed)
+  if (qualParts.detail) {
+    return qualParts
+  }
+
+  return { name: trimmed }
+}
+
+/**
+ * Split a condition string at qualifier words (on, for, since, in + year).
+ * "CKD Stage 5 on peritoneal dialysis since Jan 2024"
+ *   → { name: "CKD Stage 5", detail: "peritoneal dialysis, since Jan 2024" }
+ * "Type 2 Diabetes for 18 years"
+ *   → { name: "Type 2 Diabetes", detail: "18 years" }
+ */
+function splitConditionQualifier(text: string): { name: string; detail?: string } {
+  // Match "on [treatment]", "for [duration]", "since [date]", "in [year]"
+  const qualMatch = text.match(
+    /^(.+?)\s+(?:(on)\s+(.+?)(?:\s+(since|from)\s+(.+))?|(for)\s+(.+?)(?:\s+(on)\s+(.+))?|(since|from)\s+(.+)|(in)\s+(\d{4})\b(.*)?)$/i,
+  )
+
+  if (!qualMatch) return { name: text }
+
+  // Simplify: split at first "on", "for", "since", or "in [year]"
+  const simpleMatch = text.match(/^(.+?)\s+(?:on|for|since|from)\s+(.+)$/i)
+  if (simpleMatch) {
+    const name = simpleMatch[1].trim()
+    const rest = simpleMatch[2].trim()
+    // Further split at "since" or "from" if present
+    const sinceMatch = rest.match(/^(.+?)\s+(?:since|from)\s+(.+)$/i)
+    if (sinceMatch) {
+      return { name, detail: `${sinceMatch[1].trim()}, since ${sinceMatch[2].trim()}` }
+    }
+    return { name, detail: rest }
+  }
+
+  // "in 2021" pattern
+  const inYearMatch = text.match(/^(.+?)\s+in\s+(\d{4})\s*(.*)$/i)
+  if (inYearMatch) {
+    const name = inYearMatch[1].trim()
+    const detail = inYearMatch[3] ? `${inYearMatch[2]}, ${inYearMatch[3].trim()}` : inYearMatch[2]
+    return { name, detail }
+  }
+
+  return { name: text }
+}
+
 const SECTION_DEFS: SectionDef[] = [
   {
     id: "symptoms",
     tpIconName: "virus",
-    title: "Symptom Reports",
+    title: "Symptoms Reported",
     copyTooltip: "Fill all symptoms to Symptoms",
     copyDest: "symptoms",
     getItems: (d) =>
@@ -67,7 +154,7 @@ const SECTION_DEFS: SectionDef[] = [
     title: "Chronic Conditions",
     copyTooltip: "Fill chronic conditions to History",
     copyDest: "history",
-    getItems: (d) => d.medicalHistory?.map((item) => ({ name: item })),
+    getItems: (d) => d.medicalHistory?.map((item) => parseCondition(item)),
   },
   {
     id: "currentMedications",
@@ -237,7 +324,7 @@ function highlightSummary(text: string): React.ReactNode {
 
 /* ── component ──────────────────────────────────────── */
 
-export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed }: PatientReportedCardProps) {
+export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed, patientNarrative }: PatientReportedCardProps) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
 
   /* Build all non-empty sections */
@@ -254,8 +341,10 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed 
   /* Collect all items for copy-all */
   const allItems = activeSections.flatMap((s) => s.items.map(formatItem))
 
-  /* Quick snapshot — flowing paragraph */
-  const snapshotParts = buildQuickSnapshot(data)
+  /* Quick snapshot — flowing paragraph.
+     If a patientNarrative is passed (from SmartSummaryData), use it for consistency
+     across all views (GPSummaryCard, patient_narrative, intake card). */
+  const snapshotParts = patientNarrative ? [highlightClinicalText(patientNarrative)] : buildQuickSnapshot(data)
   const showSnapshot = snapshotParts.length > 0
 
   /* Copy handler with flash feedback */
@@ -275,7 +364,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed 
     <CardShell
       icon={<span />}
       tpIconName="clipboard-activity"
-      title="Patient Reported"
+      title="Pre-Visit Intake"
       badge={
         data.reportedAt
           ? { label: data.reportedAt, color: "#6D28D9", bg: "#EDE9FE" }
@@ -284,6 +373,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed 
       copyAll={() => onCopy?.("all", allItems)}
       copyAllTooltip="Fill all patient-reported data to RxPad"
       collapsible
+      dataSources={["Patient Intake"]}
       defaultCollapsed={defaultCollapsed ?? false}
     >
       <div className="flex flex-col gap-[8px]">

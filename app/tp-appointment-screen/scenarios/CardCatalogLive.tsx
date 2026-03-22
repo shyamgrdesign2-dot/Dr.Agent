@@ -14,14 +14,14 @@ const DUMMY_PAYLOAD: RxPadCopyPayload = { sourceDateLabel: "Demo" }
 
 // ═══════ MOCK DATA FOR ALL 40 CARD KINDS ═══════
 
-interface CatalogEntry {
+export interface CatalogEntry {
   kind: string
   family: string
   label: string
   output: RxAgentOutput
 }
 
-const CATALOG: CatalogEntry[] = [
+export const CATALOG: CatalogEntry[] = [
   // ── A. Summary Family ──────────────────────────────────────
 
   {
@@ -487,6 +487,83 @@ const CATALOG: CatalogEntry[] = [
     },
   },
 
+  {
+    kind: "completeness",
+    family: "Utility",
+    label: "Documentation Completeness",
+    output: {
+      kind: "completeness",
+      data: {
+        emptyCount: 3,
+        sections: [
+          { name: "Symptoms", filled: true, count: 4 },
+          { name: "Examination", filled: true, count: 3 },
+          { name: "Diagnosis", filled: true, count: 2 },
+          { name: "Medication", filled: true, count: 4 },
+          { name: "Advice", filled: false, count: 0 },
+          { name: "Lab Investigation", filled: false, count: 0 },
+          { name: "Follow-up", filled: false, count: 0 },
+        ],
+      },
+    },
+  },
+
+  {
+    kind: "pomr_problem_card",
+    family: "Clinical",
+    label: "POMR Problem Card",
+    output: {
+      kind: "pomr_problem_card",
+      data: {
+        problem: "Type 2 Diabetes Mellitus",
+        status: "Needs Review",
+        statusColor: "#D97706",
+        completeness: { emr: 58, ai: 22, missing: 20 },
+        labs: [
+          { name: "HbA1c", value: "8.2", unit: "%", flag: "high", provenance: "emr" },
+          { name: "Creatinine", value: "1.4", unit: "mg/dL", flag: "high", provenance: "ai_extracted" },
+          { name: "UACR", value: "82", unit: "mg/g", flag: "high", provenance: "emr" },
+        ],
+        meds: ["Metformin 500mg BD", "Glimepiride 1mg OD", "Telmisartan 40mg OD"],
+        missingFields: [
+          { field: "Foot examination", reason: "Not documented in recent encounters", prompt: "Document foot exam" },
+          { field: "Retina screening", reason: "No recent ophthalmology note found", prompt: "Review retina screening" },
+          { field: "Diet counseling", reason: "Lifestyle advice missing from today's draft", prompt: "Draft advice" },
+        ],
+        sourceEntries: [
+          { label: "EMR - Lab Results", date: "05 Mar 2026", type: "emr" },
+          { label: "Uploaded KFT Report", date: "03 Mar 2026", type: "uploaded" },
+          { label: "Rx #44281 - Dr. Menon", date: "22 Feb 2026", type: "rx" },
+        ],
+      },
+    },
+  },
+
+  {
+    kind: "sbar_critical",
+    family: "Clinical",
+    label: "SBAR Critical",
+    output: {
+      kind: "sbar_critical",
+      data: {
+        situation: "Known diabetic with severe breathlessness, oxygen saturation drop, and high-risk sepsis concern during current review.",
+        activeProblems: ["Sepsis under evaluation", "Type 2 DM", "AKI concern"],
+        criticalFlags: [
+          { label: "SpO2", value: "88%", severity: "critical" },
+          { label: "BP", value: "86/54", severity: "critical" },
+          { label: "Lactate", value: "3.8 mmol/L", severity: "high" },
+          { label: "Urine Output", value: "Low", severity: "high" },
+        ],
+        allergies: ["Penicillin", "Sulfonamides"],
+        keyMeds: ["Piperacillin-Tazobactam held", "Insulin sliding scale", "IV fluids started"],
+        recentER: [
+          "ER admission 2 weeks ago for dehydration and uncontrolled sugars",
+          "Urgent care visit last month for fever with hypotension",
+        ],
+      },
+    },
+  },
+
   // ── F. Text-Only Family ────────────────────────────────────
 
   {
@@ -590,6 +667,23 @@ const CATALOG: CatalogEntry[] = [
           { name: "Sneha Gupta", age: 28, gender: "F", time: "10:45 AM", status: "Checked-in", statusTone: "success" },
         ],
         totalCount: 7,
+      },
+    },
+  },
+
+  {
+    kind: "patient_search",
+    family: "Homepage",
+    label: "Patient Search",
+    output: {
+      kind: "patient_search",
+      data: {
+        query: "ra",
+        results: [
+          { patientId: "pt-001", name: "Rajesh Sharma", meta: "45M • UHID 220145 • 10:30 AM", hasAppointmentToday: true },
+          { patientId: "pt-002", name: "Radhika Nair", meta: "32F • UHID 220188 • Follow-up", hasAppointmentToday: false },
+          { patientId: "pt-003", name: "Ravi Teja", meta: "51M • UHID 220219 • Lab review", hasAppointmentToday: true },
+        ],
       },
     },
   },

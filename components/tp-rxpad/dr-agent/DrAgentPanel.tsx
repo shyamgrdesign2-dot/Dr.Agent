@@ -9,6 +9,7 @@ import type { RxPadCopyPayload } from "@/components/tp-rxpad/rxpad-sync-context"
 import type {
   CannedPill,
   ConsultPhase,
+  DoctorViewType,
   RxAgentChatMessage,
   RxTabLens,
   SmartSummaryData,
@@ -20,7 +21,7 @@ import { generatePills } from "./engines/pill-engine"
 import { generateHomepagePills } from "./engines/homepage-pill-engine"
 import { inferPhase } from "./engines/phase-engine"
 import { classifyIntent, PILL_INTENT_MAP } from "./engines/intent-engine"
-import { buildReply, buildDocumentReply } from "./engines/reply-engine"
+import { buildReply, buildDocumentReply, buildPomrCardData } from "./engines/reply-engine"
 import { buildHomepageReply } from "./engines/homepage-reply-engine"
 import { parseVoiceToStructuredRx } from "./engines/voice-rx-engine"
 
@@ -50,34 +51,103 @@ function detectSpecialties(summary: SmartSummaryData): SpecialtyTabId[] {
   return tabs
 }
 
-function buildIntroMessages(summary: SmartSummaryData, patient: typeof RX_CONTEXT_OPTIONS[0]): RxAgentChatMessage[] {
+function buildIntroMessages(
+  summary: SmartSummaryData,
+  patient: typeof RX_CONTEXT_OPTIONS[0],
+  _doctorViewType?: DoctorViewType,
+  intakeMode: "with_intake" | "without_intake" = "with_intake",
+  panelMode: "rxpad" | "homepage" = "homepage",
+): RxAgentChatMessage[] {
   const hasData = summary.specialtyTags.length > 0
   const messages: RxAgentChatMessage[] = []
 
-  if (summary.symptomCollectorData) {
-    // Patient filled intake form — show Patient Reported card only
-    // Patient Summary available via canned pill (not auto-shown)
-    const isNew = summary.symptomCollectorData.isNewPatient
+  // ── RxPad mode: always show detailed clinical summary card ──
+  if (panelMode === "rxpad" && hasData) {
+    // Build intake-based narrative if available
+    let introNarrative: string | undefined = undefined
+    if (intakeMode === "with_intake" && summary.symptomCollectorData) {
+      const sc = summary.symptomCollectorData
+      const parts: string[] = []
+      if (sc.symptoms && sc.symptoms.length > 0) {
+        const main = sc.symptoms[0]
+        const mainParts = [main.name]
+        if (main.duration) mainParts.push(main.duration)
+        if (main.severity) mainParts.push(main.severity)
+        parts.push(`Presenting with ${mainParts.join(", ")}`)
+        if (sc.symptoms.length > 1) {
+          const others = sc.symptoms.slice(1, 4).map((s) => {
+            const p = [s.name]; if (s.duration) p.push(s.duration); return p.join(" ")
+          })
+          parts.push(`Also reports: ${others.join(", ")}`)
+        }
+      }
+      introNarrative = parts.length > 0 ? `${parts.join(". ")}.` : undefined
+    }
+
+    const modifiedSummary = introNarrative
+      ? { ...summary, patientNarrative: introNarrative }
+      : summary
+
     messages.push({
       id: uid(),
       role: "assistant",
-      text: isNew
-        ? `${patient.label} — first visit, no prior records. Patient-reported data below.`
-        : `${patient.label}'s pre-visit intake is ready.`,
+      text: `${patient.label}'s clinical summary:`,
       createdAt: new Date().toISOString(),
-      rxOutput: { kind: "symptom_collector", data: summary.symptomCollectorData },
+      rxOutput: {
+        kind: "patient_summary",
+        data: modifiedSummary,
+        hideNarrative: !introNarrative && !summary.patientNarrative,
+      },
+      feedbackGiven: null,
+    })
+    return messages
+  }
+
+  // ── Homepage / Appointment page intro flow ──
+  //
+  // With intake:
+  //   Single message → Intake card (already includes quick snapshot via patientNarrative)
+  //
+  // Without intake:
+  //   Single message → Quick historical snapshot (patient_narrative)
+  //
+  // No data:
+  //   Single message → New patient text
+  //
+  const showIntake = intakeMode === "with_intake" && !!summary.symptomCollectorData
+
+  if (showIntake) {
+    // Intake card — includes quick snapshot inside via patientNarrative
+    messages.push({
+      id: uid(),
+      role: "assistant",
+      text: `${patient.label}'s pre-visit intake via Symptom Collector:`,
+      createdAt: new Date().toISOString(),
+      rxOutput: {
+        kind: "symptom_collector",
+        data: {
+          ...summary.symptomCollectorData!,
+          patientNarrative: summary.patientNarrative,
+        },
+      },
+      feedbackGiven: null,
+    })
+  } else if (hasData) {
+    // No intake — show quick historical snapshot
+    messages.push({
+      id: uid(),
+      role: "assistant",
+      text: `Quick snapshot for ${patient.label}:`,
+      createdAt: new Date().toISOString(),
+      rxOutput: { kind: "patient_narrative", data: summary },
       feedbackGiven: null,
     })
   } else {
-    // No patient-reported data — show Patient Summary directly (or text-only for new patients)
     messages.push({
       id: uid(),
       role: "assistant",
-      text: hasData
-        ? `Here's ${patient.label}'s clinical summary.`
-        : `${patient.label} — new patient, first visit. No prior records yet.`,
+      text: `${patient.label} — new patient, first visit. No prior records yet.`,
       createdAt: new Date().toISOString(),
-      rxOutput: hasData ? { kind: "patient_summary", data: summary } : undefined,
       feedbackGiven: null,
     })
   }
@@ -149,6 +219,8 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
   // ── UI State ──
   const [activeSpecialty, setActiveSpecialty] = useState<SpecialtyTabId>("gp")
   const [activeTabLens] = useState<RxTabLens>("dr-agent")
+  const [doctorViewType, setDoctorViewType] = useState<DoctorViewType>("specialist_first_visit")
+  const [intakeMode, setIntakeMode] = useState<"with_intake" | "without_intake">("with_intake")
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [showAttachPanel, setShowAttachPanel] = useState(false)
@@ -184,13 +256,16 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
 
   const isPatientContext = mode === "homepage" && selectedPatientId !== HOMEPAGE_COMMON_ID
 
+  // Show doctor view selector only for patients with POMR/SBAR data (POC: Ramesh Kumar only)
+  const showDoctorViewSelector = selectedPatientId === "apt-ramesh-ckd"
+
   const pills = useMemo(
     () => (mode === "homepage" && selectedPatientId === HOMEPAGE_COMMON_ID)
       ? generateHomepagePills(activeTab, activeRailItem, null)
       : isPatientContext
         ? generateHomepagePills(activeTab, activeRailItem, summary)
-        : generatePills(summary, phase, activeTabLens),
-    [mode, activeTab, activeRailItem, isPatientContext, summary, phase, activeTabLens, selectedPatientId],
+        : generatePills(summary, phase, activeTabLens, showDoctorViewSelector ? doctorViewType : undefined),
+    [mode, activeTab, activeRailItem, isPatientContext, summary, phase, activeTabLens, selectedPatientId, showDoctorViewSelector, doctorViewType],
   )
 
   // ── Sync patient allergies to context (for RxPad medication alerts) ──
@@ -198,9 +273,13 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
     setPatientAllergies(summary.allergies ?? [])
   }, [summary, setPatientAllergies])
 
-  // ── Initialize patient messages on first visit ──
+  // ── Initialize patient messages on first visit or after intake mode change ──
+  // Note: we track whether messages exist for the current patient using a ref-derived flag
+  // to avoid putting messagesByPatient in the dep array (which would cause infinite loops
+  // since this effect itself sets messagesByPatient).
+  const hasMessagesForPatient = !!messagesByPatient[selectedPatientId]
   useEffect(() => {
-    if (!messagesByPatient[selectedPatientId]) {
+    if (!hasMessagesForPatient) {
       let introMessages: RxAgentChatMessage[]
       if (mode === "homepage" && selectedPatientId === HOMEPAGE_COMMON_ID) {
         // Homepage operational mode — hybrid text + visual welcome card
@@ -230,14 +309,15 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
           feedbackGiven: null,
         }]
       } else {
-        introMessages = buildIntroMessages(summary, patient)
+        introMessages = buildIntroMessages(summary, patient, showDoctorViewSelector ? doctorViewType : undefined, intakeMode, mode)
       }
       setMessagesByPatient((prev) => ({
         ...prev,
         [selectedPatientId]: introMessages,
       }))
     }
-  }, [selectedPatientId, summary, patient, messagesByPatient, mode, initialPatientId])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPatientId, hasMessagesForPatient, summary, patient, mode, initialPatientId])
 
   // ── Reset specialty when patient changes ──
   useEffect(() => {
@@ -343,25 +423,59 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
 
       let reply: import("./types").ReplyResult
 
-      if (isClinicOverview && (PATIENT_SPECIFIC_INTENTS.has(intent.category) || isPatientSpecificQuery)) {
-        // ── GUARDRAIL: Patient-specific query in Clinic Overview → ask to select patient ──
-        const patientNames = (homepagePatients || [])
-          .filter(p => p.kind === "patient")
-          .slice(0, 4)
-          .map(p => p.label.split(",")[0].trim())
+      // Extract patient name from message for search
+      const extractPatientQuery = (text: string): string => {
+        const patterns = [
+          /(?:details?\s+(?:about|of|for)\s+)(.+)/i,
+          /(?:search|find|look\s*up|show)\s+(?:patient\s+)?(.+)/i,
+          /(?:patient\s+named?\s+)(.+)/i,
+          /(?:who\s+is\s+)(.+)/i,
+        ]
+        for (const p of patterns) {
+          const m = text.match(p)
+          if (m) return m[1].trim().replace(/[?.!]+$/, "")
+        }
+        return ""
+      }
+
+      // Check if message mentions a patient name (fuzzy match against known patients)
+      const allPatients = RX_CONTEXT_OPTIONS.filter(o => o.kind === "patient")
+      let nameQuery = extractPatientQuery(msg)
+      // If no pattern matched, check if the raw input matches a known patient name
+      if (!nameQuery) {
+        const directMatch = allPatients.some(
+          p => p.label.toLowerCase().includes(nl) || nl.includes(p.label.toLowerCase().split(" ")[0])
+        )
+        if (directMatch) nameQuery = msg.trim()
+      }
+
+      if (isClinicOverview && nameQuery) {
+        // ── Patient search → show search card with pre-filled query ──
+        const matches = allPatients
+          .filter(p => p.label.toLowerCase().includes(nameQuery.toLowerCase()))
+          .map(p => ({
+            patientId: p.id,
+            name: p.label,
+            meta: p.meta,
+            hasAppointmentToday: !!p.isToday,
+          }))
         reply = {
-          text: "This requires a specific patient context. Please select a patient to view their data.",
+          text: matches.length > 0
+            ? `Found ${matches.length} patient${matches.length > 1 ? "s" : ""} matching "${nameQuery}". Select to view details.`
+            : `No patients found for "${nameQuery}". Try searching with a different name.`,
           rxOutput: {
-            kind: "follow_up_question",
-            data: {
-              question: "Select a patient to view their clinical data:",
-              options: patientNames.length > 0 ? patientNames : ["Shyam GR", "Neha Gupta", "Vikram Singh", "Priya Rao"],
-              multiSelect: false,
-            },
+            kind: "patient_search",
+            data: { query: nameQuery, results: matches },
           },
-          followUpPills: [
-            { id: "grd-kpis", label: "Weekly KPIs", priority: 12, layer: 3, tone: "primary" as const },
-          ],
+        }
+      } else if (isClinicOverview && (PATIENT_SPECIFIC_INTENTS.has(intent.category) || isPatientSpecificQuery)) {
+        // ── GUARDRAIL: Patient-specific query without a name → show search card ──
+        reply = {
+          text: "Please search for a patient to view their clinical data.",
+          rxOutput: {
+            kind: "patient_search",
+            data: { query: "", results: [] },
+          },
         }
       } else if (isRxPadMode && isOperationalQuery) {
         // ── GUARDRAIL: Operational/clinic query inside RxPad → redirect to appointments page ──
@@ -418,6 +532,11 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
     })
   }, [selectedPatientId])
 
+  // ── Patient Search Selection ──
+  const handlePatientSelect = useCallback((patientId: string) => {
+    setSelectedPatientId(patientId)
+  }, [])
+
   // ── Fill to RxPad ──
   const handleCopy = useCallback((payload: unknown) => {
     if (payload && typeof payload === "object" && "sourceDateLabel" in payload) {
@@ -446,6 +565,31 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
   const handleChatPillTap = useCallback((label: string) => {
     handleSend(label)
   }, [handleSend])
+
+  // ── Doctor View Change — directly rebuild intro messages ──
+  const handleDoctorViewChange = useCallback((newType: DoctorViewType) => {
+    setDoctorViewType(newType)
+    // Directly rebuild intro messages instead of delete-then-recreate via useEffect
+    // This avoids the intermediate empty state that could cause visual flicker
+    const newIntro = buildIntroMessages(summary, patient, showDoctorViewSelector ? newType : undefined, intakeMode, mode)
+    setMessagesByPatient((prev) => ({
+      ...prev,
+      [selectedPatientId]: newIntro,
+    }))
+    setIsTyping(false)
+  }, [selectedPatientId, summary, patient, showDoctorViewSelector, intakeMode])
+
+  // ── Intake Mode Change — directly rebuild intro messages ──
+  const handleIntakeModeChange = useCallback((newMode: "with_intake" | "without_intake") => {
+    setIntakeMode(newMode)
+    // Directly rebuild intro messages instead of delete-then-recreate via useEffect
+    const newIntro = buildIntroMessages(summary, patient, showDoctorViewSelector ? doctorViewType : undefined, newMode, mode)
+    setMessagesByPatient((prev) => ({
+      ...prev,
+      [selectedPatientId]: newIntro,
+    }))
+    setIsTyping(false)
+  }, [selectedPatientId, summary, patient, showDoctorViewSelector, doctorViewType])
 
   // ── Patient Change ──
   const handlePatientChange = useCallback((id: string) => {
@@ -672,6 +816,11 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
         onPatientChange={handlePatientChange}
         selectedPatientId={selectedPatientId}
         onClose={onClose}
+        doctorViewType={doctorViewType}
+        onDoctorViewChange={handleDoctorViewChange}
+        showDoctorViewSelector={showDoctorViewSelector}
+        intakeMode={intakeMode}
+        onIntakeModeChange={handleIntakeModeChange}
       />
 
       {/* ── Chat area — subtle warm AI-tinted background ── */}
@@ -745,6 +894,9 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
             onCopy={handleCopy}
             onSidebarNav={handleSidebarNav}
             className="flex-1"
+            activeSpecialty={activeSpecialty}
+            patientDocuments={patientDocuments}
+            onPatientSelect={handlePatientSelect}
           />
         </div>
       </div>

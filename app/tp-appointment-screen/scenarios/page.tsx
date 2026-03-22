@@ -1,10 +1,11 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowLeft2, Hospital, User, Activity, Microscope, Heart, Eye, Woman, DocumentText, Cpu, Brush2, ExportSquare } from "iconsax-reactjs"
+import { ArrowLeft2, Hospital, User, Activity, Microscope, Heart, Eye, Woman, DocumentText, Cpu, Brush2, ExportSquare, SearchNormal1 } from "iconsax-reactjs"
 import DesignSystemTab from "./DesignSystemTab"
 import PatientSummaryLogicTab from "./PatientSummaryLogicTab"
+import ClinicalResearchTab from "./ClinicalResearchTab"
 import { IntentClassificationContent } from "@/app/intent-classification/page"
 
 // ─────────────────────────────────────────────────────────────
@@ -365,6 +366,61 @@ const PATIENT_SCENARIOS: PatientScenario[] = [
     ],
     alerts: ["Aspirin allergy (Layer 1)", "2 lab flags (Layer 2)"],
   },
+  {
+    id: "apt-ramesh-ckd",
+    name: "Ramesh Kumar",
+    age: 76,
+    gender: "M" as const,
+    status: "Follow-up · Nephrology",
+    statusColor: "#EF4444",
+    specialty: "Nephrology + Cardiology + Endocrinology",
+    specialtyIcon: <Activity size={16} variant="Bold" />,
+    tagline: "CKD Stage 5 on peritoneal dialysis — multi-specialty chronic disease with SBAR/POMR/partial data provenance demo",
+    symptoms: ["Routine nephrology review", "Mild pedal oedema (1wk)", "Fatigue (increasing)"],
+    conditions: ["CKD Stage 5 — Diabetic Nephropathy (5yr)", "Type 2 DM (18yr)", "Hypertension (12yr)", "IHD post-MI (2021)", "Secondary Hyperparathyroidism", "Renal Anemia"],
+    keyData: [
+      "Allergy: Iodinated contrast (anaphylaxis), Metformin (contraindicated CKD5)",
+      "PD modality: CAPD 4x/day, 2L bags since Jan 2024",
+      "eGFR: 11 mL/min (declining — was 18 twelve months ago)",
+      "K+: 5.8 mEq/L (hyperkalaemia — critical)",
+      "Hb: 9.2 g/dL (renal anemia, below PD target 10-12)",
+      "HbA1c: 7.8% (AI-extracted from uploaded lab PDF)",
+      "PTH: 480 pg/mL (secondary hyperparathyroidism)",
+      "BP: 158/92 (uncontrolled), SpO₂: 94%",
+      "2 ER admissions in 12 months (fluid overload)",
+      "Kt/V, PET, Echo, Retinal screening: NOT AVAILABLE",
+      "11 active medications across 4 specialties",
+      "Family: CKD (Father), DM (Mother, Brother), Stroke (Uncle)",
+    ],
+    cannedPills: ["SBAR view", "Patient summary", "6 critical labs", "Cross-problem flags", "Missing investigations"],
+    cardsDemoed: [
+      "patient_summary — SBAR situation bar + POMR problem cards + source provenance tags",
+      "pomr_problem_cards — Per-problem view: CKD, HTN, DM, Anaemia with per-problem completeness bars",
+      "vitals_trend_line — eGFR trajectory: 18→16→14→11 over 12 months (declining)",
+      "abnormal_findings — 13 critical/high flags across CKD, diabetes, anemia domains",
+      "ddx — Fluid overload differentials: PD inadequacy vs cardiac vs dietary non-compliance",
+      "protocol_meds — 11 medications with cross-specialty interaction flags",
+      "investigation_bundle — PD adequacy (Kt/V), PET, Echo, Retinal screen, Iron panel",
+      "cascade — Multi-specialty management plan with gated recommendations",
+    ],
+    workflow: [
+      "READING: SBAR situation bar — '76M CKD5 on PD — K+ 5.8, eGFR 11, BP 158/92' — 30-second triage scan",
+      "READING: 3-segment completeness bar (70% EMR, 15% AI, 15% missing) gives instant data quality signal",
+      "READING: Source provenance dots (green=EMR, amber=AI, gray=missing) — doctor knows what to trust",
+      "INTERVIEW: Cross-problem flags surface CKD-DM-HTN interactions as consultation discussion topics",
+      "INTERVIEW: Missing Expected Fields (Kt/V, PET, Echo, Retinal screen) become consultation agenda items",
+      "INTERVIEW: POMR problem cards let doctor drill into each condition — CKD, HTN, DM, Anaemia separately",
+      "DIAGNOSIS: Recommendation tiers — ACT (K+, BP, acidosis) → VERIFY (Hb, HbA1c from PDF) → GATHER (iron, echo, retinal)",
+      "DOCUMENTATION: eGFR trend (18→16→14→11) shows accelerated decline — AI trajectory insight flagged",
+    ],
+    alerts: [
+      "Iodinated contrast allergy (Layer 1)",
+      "6 critical lab flags (Layer 1)",
+      "Cross-problem interaction: CKD-DM-HTN (Layer 2)",
+      "4 missing expected investigations (Layer 2)",
+      "eGFR declining faster than expected (Layer 3)",
+    ],
+  },
 ]
 
 // ─── Card Type Families ──────────────────────────────────────
@@ -464,16 +520,38 @@ const PHASES = [
 
 // ─── Page Component ──────────────────────────────────────────
 
-type PageTab = "summary-logic" | "intent-classification" | "design-system" | "scenarios"
+type PageTab = "clinical-research" | "summary-logic" | "intent-classification" | "design-system" | "scenarios"
 
 export default function ScenariosPage() {
   const [expandedPatient, setExpandedPatient] = useState<string | null>("apt-zerodata")
-  const [activeTab, setActiveTab] = useState<PageTab>("summary-logic")
+  const [activeTab, setActiveTab] = useState<PageTab>("clinical-research")
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true)
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY
+
+    const handleScroll = () => {
+      const nextScrollY = window.scrollY
+
+      if (nextScrollY <= 8) {
+        setIsHeaderVisible(true)
+      } else if (nextScrollY > lastScrollY) {
+        setIsHeaderVisible(false)
+      } else if (nextScrollY < lastScrollY) {
+        setIsHeaderVisible(true)
+      }
+
+      lastScrollY = nextScrollY
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Header */}
-      <div className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/90 backdrop-blur-md">
+      <div className={`sticky top-0 z-50 border-b border-slate-200/60 bg-white/90 backdrop-blur-md transition-transform duration-200 ${isHeaderVisible ? "translate-y-0" : "-translate-y-full"}`}>
         <div className="mx-auto max-w-5xl px-6 py-4">
           <div className="flex items-center gap-3">
             <Link
@@ -499,8 +577,9 @@ export default function ScenariosPage() {
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <div className="flex gap-1">
               {([
+                { id: "clinical-research" as PageTab, label: "Clinical Research", icon: <SearchNormal1 size={14} variant="Bold" /> },
                 { id: "summary-logic" as PageTab, label: "Patient Summary Logic", icon: <DocumentText size={14} variant="Bold" /> },
-                { id: "intent-classification" as PageTab, label: "Intent Classification", icon: <Cpu size={14} variant="Bold" /> },
+                { id: "intent-classification" as PageTab, label: "Response Management", icon: <Cpu size={14} variant="Bold" /> },
                 { id: "design-system" as PageTab, label: "Design System", icon: <Brush2 size={14} variant="Bold" /> },
               ]).map(tab => (
                 <button
@@ -545,7 +624,11 @@ export default function ScenariosPage() {
       </div>
 
       {/* Tab content */}
-      {activeTab === "design-system" ? (
+      {activeTab === "clinical-research" ? (
+        <div className="mx-auto max-w-5xl px-6 py-8">
+          <ClinicalResearchTab />
+        </div>
+      ) : activeTab === "design-system" ? (
         <div className="mx-auto max-w-5xl px-6 py-8">
           <DesignSystemTab />
         </div>

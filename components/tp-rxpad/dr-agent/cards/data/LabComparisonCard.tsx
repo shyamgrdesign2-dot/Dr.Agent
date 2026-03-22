@@ -55,7 +55,7 @@ export function LabComparisonCard({ data }: LabComparisonCardProps) {
       {/* Grid-based comparison table */}
       <div className="overflow-hidden rounded-[8px] border border-tp-slate-100">
         {/* Header */}
-        <div className="grid grid-cols-4 gap-[1px] bg-tp-slate-100 px-[8px] py-[4px] text-[9px] font-medium text-tp-slate-500 uppercase tracking-wider">
+        <div className="grid grid-cols-4 gap-[1px] bg-tp-slate-100 px-[8px] py-[4px] text-[10px] font-medium text-tp-slate-500 uppercase tracking-wider">
           <span>Parameter</span>
           <span>{prevDate}</span>
           <span>{currDate}</span>
@@ -66,7 +66,7 @@ export function LabComparisonCard({ data }: LabComparisonCardProps) {
           <div
             key={row.parameter}
             className={cn(
-              "grid grid-cols-4 gap-[1px] px-[8px] py-[7px] text-[11px]",
+              "grid grid-cols-4 gap-[1px] px-[8px] py-[7px] text-[12px]",
               i % 2 === 0 ? "bg-white" : "bg-tp-slate-50",
               row.isFlagged && "border-l-[2px] border-tp-error-300",
             )}

@@ -24,6 +24,191 @@ function splitRespectingParens(str: string): string[] {
   return results
 }
 
+/** Words that indicate a more specific clinical query — bypass POMR card matching */
+const SPECIFIC_CLINICAL_TERMS = [
+  "adequacy", "fluid", "electrolyte", "bone", "mineral", "calcium", "phosph",
+  "cardiovascular", "cv risk", "cardiac", "heart",
+  "glycemic", "glycaemic", "glucose", "sugar control",
+  "adjustment", "adjust", "dosing", "dose",
+  "iron", "stores", "ferritin",
+  "polypharmacy", "review", "timeline",
+  "diet", "lifestyle", "nutrition", "handout", "education",
+  "explain", "chronic", "medication review", "medication timeline",
+]
+
+/** Keyword map: input keywords → POMR problem name prefix */
+const POMR_KEYWORDS: Array<{ keywords: string[]; matchPrefix: string }> = [
+  { keywords: ["ckd", "kidney", "renal", "dialysis", "peritoneal", "nephro"], matchPrefix: "CKD" },
+  { keywords: ["hypertension", "htn", "bp needs", "blood pressure"], matchPrefix: "Hypertension" },
+  { keywords: ["diabetes", "dm", "sugar", "hba1c", "fbs", "insulin", "glyc"], matchPrefix: "Type 2 Diabetes" },
+  { keywords: ["anaemia", "anemia", "epo", "haemoglobin", "hemoglobin"], matchPrefix: "Anaemia" },
+]
+
+function findPomrProblem(normalized: string, summary: SmartSummaryData): ReplyResult | null {
+  if (!summary.pomrProblems) return null
+
+  // If the query contains specific clinical terms, skip POMR card matching
+  // so more specific handlers can respond instead
+  if (SPECIFIC_CLINICAL_TERMS.some((term) => normalized.includes(term))) return null
+
+  for (const { keywords, matchPrefix } of POMR_KEYWORDS) {
+    if (keywords.some((kw) => normalized.includes(kw))) {
+      const prob = summary.pomrProblems.find((p) => p.problem.startsWith(matchPrefix))
+      if (prob) {
+        return {
+          text: `Here's the ${prob.problem} problem card with data completeness and action items.`,
+          rxOutput: {
+            kind: "pomr_problem_card",
+            data: buildPomrCardData(prob, summary),
+          },
+        }
+      }
+    }
+  }
+  return null
+}
+
+export function buildPomrCardData(
+  prob: NonNullable<SmartSummaryData["pomrProblems"]>[number],
+  summary: SmartSummaryData,
+): import("../types").PomrProblemCardData {
+  // Resolve labs from keyLabs by labKeys
+  const labs = (prob.labKeys || []).map((key) => {
+    const found = summary.keyLabs?.find((l) => l.name === key)
+    const prov = summary.dataProvenance?.[key]
+    return {
+      name: key,
+      value: found?.value || "—",
+      unit: found?.unit,
+      flag: found?.flag,
+      provenance: prov?.source === "emr" ? ("emr" as const) : prov?.source === "ai_extracted" ? ("ai_extracted" as const) : undefined,
+    }
+  })
+
+  // Resolve missing fields
+  const missingFields = (prob.missingKeys || []).map((key) => {
+    const found = summary.missingExpectedFields?.find((f) => f.field.includes(key))
+    return {
+      field: key,
+      reason: found?.reason || "Not found in available data",
+      prompt: found?.prompt || `Order ${key}`,
+    }
+  })
+
+  // Build source entries from lab provenance + summary data provenance
+  const sourceEntries: Array<{ label: string; date?: string; type: "emr" | "uploaded" | "rx" }> = []
+  const seenSources = new Set<string>()
+
+  // Check each lab for provenance and extractedFrom
+  ;(prob.labKeys || []).forEach((key) => {
+    const prov = summary.dataProvenance?.[key]
+    if (prov && !seenSources.has(prov.extractedFrom || prov.source)) {
+      const sourceKey = prov.extractedFrom || prov.source
+      seenSources.add(sourceKey)
+      if (prov.source === "emr") {
+        sourceEntries.push({
+          label: prov.extractedFrom || "EMR — Lab Results",
+          date: undefined, // EMR dates come from the system
+          type: "emr",
+        })
+      } else if (prov.source === "ai_extracted") {
+        sourceEntries.push({
+          label: prov.extractedFrom || "Uploaded Report",
+          type: "uploaded",
+        })
+      }
+    }
+  })
+
+  // Fallback: if no provenance data, add generic EMR source
+  if (sourceEntries.length === 0) {
+    // Add mock source entries for demo (CKD patient typically has multiple sources)
+    if (prob.problem.includes("CKD")) {
+      sourceEntries.push(
+        { label: "Blood Work — CBC, KFT, Electrolytes", date: "28 Feb 2026", type: "emr" },
+        { label: "Nephrology Report — Dr. Arun Mehta", date: "15 Feb 2026", type: "uploaded" },
+      )
+    } else if (prob.problem.includes("Diabetes")) {
+      sourceEntries.push(
+        { label: "Blood Work — HbA1c, FBS, Lipid Panel", date: "28 Feb 2026", type: "emr" },
+        { label: "Rx #4521 — Dr. Sharma", date: "01 Mar 2026", type: "rx" },
+      )
+    } else if (prob.problem.includes("Hypertension")) {
+      sourceEntries.push(
+        { label: "Vitals Record — OPD", date: "10 Mar 2026", type: "emr" },
+        { label: "ECG Report — Uploaded", date: "20 Feb 2026", type: "uploaded" },
+      )
+    } else if (prob.problem.includes("Anaemia") || prob.problem.includes("Anemia")) {
+      sourceEntries.push(
+        { label: "Blood Work — CBC, Iron Studies", date: "28 Feb 2026", type: "emr" },
+        { label: "Rx #4522 — Dr. Sharma", date: "01 Mar 2026", type: "rx" },
+      )
+    } else {
+      sourceEntries.push({ label: "EMR Records", type: "emr" })
+    }
+  }
+
+  return {
+    problem: prob.problem,
+    status: prob.status,
+    statusColor: prob.statusColor,
+    completeness: prob.completeness,
+    labs,
+    meds: prob.medKeys || [],
+    missingFields,
+    sourceEntries,
+  }
+}
+
+/**
+ * Build a concise clinical summary for the patient detail view.
+ * Follows SBAR conceptual ordering without literal labels:
+ * context → history → assessment → action items
+ */
+function buildDetailSummary(summary: SmartSummaryData): string {
+  const lines: string[] = []
+
+  // Clinical context (situation)
+  if (summary.sbarSituation) {
+    lines.push(summary.sbarSituation)
+  } else if (summary.lastVisit?.symptoms) {
+    lines.push(`Presenting with ${summary.lastVisit.symptoms.split(",").slice(0, 3).map(s => s.trim()).join(", ")}`)
+  }
+
+  // History context (background)
+  const bg: string[] = []
+  if (summary.chronicConditions?.length) bg.push(summary.chronicConditions.join(", "))
+  if (summary.allergies?.length) bg.push(`Allergies: ${summary.allergies.join(", ")}`)
+  if (bg.length > 0) lines.push(bg.join(". "))
+
+  // Current findings (assessment)
+  const findings: string[] = []
+  if (summary.todayVitals?.bp) {
+    const sys = parseInt(summary.todayVitals.bp.split("/")[0])
+    if (sys > 140 || sys < 90) findings.push(`BP ${summary.todayVitals.bp} (abnormal)`)
+  }
+  if (summary.todayVitals?.spo2) {
+    const spo2 = parseFloat(summary.todayVitals.spo2)
+    if (spo2 < 95) findings.push(`SpO₂ ${summary.todayVitals.spo2}% (low)`)
+  }
+  if (summary.labFlagCount > 0) findings.push(`${summary.labFlagCount} lab values flagged`)
+  if (findings.length > 0) lines.push(findings.join("; "))
+
+  // Action items (recommendation)
+  const actions: string[] = []
+  if (summary.crossProblemFlags?.some(f => f.severity === "high")) {
+    actions.push("Review drug interactions")
+  }
+  if (summary.missingExpectedFields?.length) {
+    actions.push(`${summary.missingExpectedFields.length} tests overdue`)
+  }
+  if (summary.followUpOverdueDays > 0) actions.push("Follow-up overdue")
+  if (actions.length > 0) lines.push(`Needs attention: ${actions.join("; ")}`)
+
+  if (lines.length === 0) return "Here's the full patient detail summary."
+  return lines.join("\n")
+}
+
 export function buildReply(
   input: string,
   summary: SmartSummaryData,
@@ -61,6 +246,275 @@ export function buildReply(
     }
   }
 
+  // === POMR PROBLEM CARDS (CKD, Hypertension, Diabetes, Anaemia) ===
+  if (summary.pomrProblems && summary.pomrProblems.length > 0) {
+    const pomrMatch = findPomrProblem(normalized, summary)
+    if (pomrMatch) {
+      return pomrMatch
+    }
+  }
+
+  // === MISSING TESTS / OVERDUE ITEMS ===
+  if ((normalized.includes("missing") || normalized.includes("overdue") || normalized.includes("due")) && summary.missingExpectedFields && summary.missingExpectedFields.length > 0) {
+    const items = summary.missingExpectedFields.map((f) => `**${f.field}** — ${f.reason}`)
+    return {
+      text: `${summary.missingExpectedFields.length} tests/assessments are missing or overdue for this patient:`,
+      rxOutput: { kind: "text_list", data: { items } },
+    }
+  }
+
+  // === DRUG INTERACTIONS / CROSS-PROBLEM FLAGS ===
+  if ((normalized.includes("interaction") || normalized.includes("cross") || normalized.includes("conflict") || normalized.includes("contraindic")) && summary.crossProblemFlags && summary.crossProblemFlags.length > 0) {
+    const items = summary.crossProblemFlags.map((f) => `[${f.severity.toUpperCase()}] ${f.text}`)
+    return {
+      text: `${summary.crossProblemFlags.length} cross-problem interactions identified:`,
+      rxOutput: { kind: "text_list", data: { items } },
+    }
+  }
+
+  // === ACTIONS NEEDED / RECOMMENDATIONS ===
+  if ((normalized.includes("action") || normalized.includes("recommend") || normalized.includes("plan") || normalized.includes("next step")) && summary.recommendationTiers && summary.recommendationTiers.length > 0) {
+    const actItems = summary.recommendationTiers.filter((r) => r.tier === "act")
+    const verifyItems = summary.recommendationTiers.filter((r) => r.tier === "verify")
+    const gatherItems = summary.recommendationTiers.filter((r) => r.tier === "gather")
+    const steps: string[] = []
+    if (actItems.length > 0) steps.push("**Act now:** " + actItems.map((r) => r.text).join("; "))
+    if (verifyItems.length > 0) steps.push("**Verify first:** " + verifyItems.map((r) => r.text).join("; "))
+    if (gatherItems.length > 0) steps.push("**Gather data:** " + gatherItems.map((r) => r.text).join("; "))
+    return {
+      text: "Here are the prioritised recommendations for this visit:",
+      rxOutput: { kind: "text_step", data: { steps } },
+    }
+  }
+
+  // === PENDING RECORDS ===
+  if ((normalized.includes("record") || normalized.includes("pending")) && summary.recordAlerts && summary.recordAlerts.length > 0) {
+    return {
+      text: `${summary.recordAlerts.length} pending records need attention:`,
+      rxOutput: { kind: "text_list", data: { items: summary.recordAlerts } },
+    }
+  }
+
+  // === DUE ALERTS (specific) ===
+  if (normalized.includes("due alert") && summary.dueAlerts && summary.dueAlerts.length > 0) {
+    return {
+      text: `${summary.dueAlerts.length} overdue or upcoming items:`,
+      rxOutput: { kind: "text_list", data: { items: summary.dueAlerts } },
+    }
+  }
+
+  // === DIALYSIS ADEQUACY ===
+  if (normalized.includes("dialysis") && summary.pomrProblems?.some((p) => p.problem.toLowerCase().includes("ckd"))) {
+    return {
+      text: "Dialysis adequacy assessment based on available data:",
+      rxOutput: { kind: "text_step", data: { steps: [
+        "**Kt/V target:** ≥1.7/week for peritoneal dialysis — verify with recent adequacy test",
+        "**Ultrafiltration:** Monitor daily drain volumes and net UF",
+        "**Residual renal function:** Check 24-hour urine output — declining residual function may need prescription adjustment",
+        "**Peritonitis risk:** Last episode date, PET category, exit site status",
+        "**Adequacy markers:** BUN, Creatinine clearance, albumin trend",
+      ] } },
+    }
+  }
+
+  // === FLUID & ELECTROLYTES ===
+  if ((normalized.includes("fluid") || normalized.includes("electrolyte")) && summary.pomrProblems) {
+    const labs = summary.keyLabs || []
+    const potassium = labs.find((l) => l.name === "Potassium")
+    const sodium = labs.find((l) => l.name === "Sodium")
+    const items = [
+      potassium ? `**Potassium:** ${potassium.value} ${potassium.unit || ""} ${potassium.flag ? `(${potassium.flag})` : ""}` : "**Potassium:** Not available — order stat",
+      sodium ? `**Sodium:** ${sodium.value} ${sodium.unit || ""} ${sodium.flag ? `(${sodium.flag})` : ""}` : "**Sodium:** Not available",
+      "**Fluid balance:** Assess daily weight trends, oedema, dry weight target",
+      "**Phosphate binders:** Verify adherence and timing with meals",
+    ]
+    return {
+      text: "Fluid and electrolyte status:",
+      rxOutput: { kind: "text_list", data: { items } },
+    }
+  }
+
+  // === BONE MINERAL STATUS ===
+  if ((normalized.includes("bone") || normalized.includes("mineral") || normalized.includes("calcium") || normalized.includes("phosph")) && summary.pomrProblems) {
+    const labs = summary.keyLabs || []
+    const calcium = labs.find((l) => l.name === "Calcium")
+    const phosphorus = labs.find((l) => l.name === "Phosphorus")
+    const items = [
+      calcium ? `**Calcium:** ${calcium.value} ${calcium.unit || ""}` : "**Calcium:** Not available — order",
+      phosphorus ? `**Phosphorus:** ${phosphorus.value} ${phosphorus.unit || ""}` : "**Phosphorus:** Not available — order",
+      "**PTH:** Check if due (target 2-9× upper normal for CKD Stage 5)",
+      "**Vitamin D:** Assess 25(OH)D levels, supplement if <30 ng/mL",
+      "**Phosphate binders:** Review type and dose adequacy",
+    ]
+    return {
+      text: "CKD Mineral Bone Disease (CKD-MBD) assessment:",
+      rxOutput: { kind: "text_list", data: { items } },
+    }
+  }
+
+  // === CV RISK ASSESSMENT ===
+  if ((normalized.includes("cv risk") || normalized.includes("cardiovascular") || normalized.includes("cardiac") || normalized.includes("heart")) && summary.pomrProblems) {
+    return {
+      text: "Cardiovascular risk assessment for CKD patient:",
+      rxOutput: { kind: "text_step", data: { steps: [
+        "**BP control:** Target <130/80 mmHg — current: " + (summary.todayVitals?.bp || "not recorded today"),
+        "**Lipid panel:** LDL target <70 mg/dL (high CV risk) — statin optimisation",
+        "**ECG:** Annual screening or if symptoms present (stent history noted)",
+        "**Echo:** If new symptoms of dyspnea or fluid overload",
+        "**Antiplatelet:** Continue aspirin post-stent — review duration with cardiology",
+      ] } },
+    }
+  }
+
+  // === GLYCEMIC CONTROL ===
+  if ((normalized.includes("glycemic") || normalized.includes("glycaemic") || normalized.includes("sugar control") || normalized.includes("glucose")) && summary.pomrProblems) {
+    const hba1c = summary.keyLabs?.find((l) => l.name === "HbA1c")
+    const fbs = summary.keyLabs?.find((l) => l.name === "Fasting Glucose" || l.name === "Fasting Blood Sugar")
+    return {
+      text: "Glycemic control assessment:",
+      rxOutput: { kind: "text_step", data: { steps: [
+        hba1c ? `**HbA1c:** ${hba1c.value}% — target 7-8% in CKD (avoid aggressive control)` : "**HbA1c:** Not available — order",
+        fbs ? `**Fasting glucose:** ${fbs.value} ${fbs.unit || ""}` : "**Fasting glucose:** Not available",
+        "**Insulin dosing:** CKD reduces insulin clearance — monitor for hypoglycaemia",
+        "**Metformin:** Contraindicated in CKD Stage 4-5 — verify discontinuation",
+        "**Self-monitoring:** Review glucose diary, frequency of hypo episodes",
+      ] } },
+    }
+  }
+
+  // === INSULIN ADJUSTMENT ===
+  if (normalized.includes("insulin")) {
+    return {
+      text: "Insulin management considerations for CKD patient:",
+      rxOutput: { kind: "text_step", data: { steps: [
+        "**Dose reduction:** CKD Stage 5 often requires 25-50% dose reduction due to decreased renal clearance",
+        "**Hypoglycaemia risk:** Reduced gluconeogenesis and insulin clearance increase hypo risk",
+        "**Monitoring:** Check pre-meal and bedtime glucose; consider CGM if available",
+        "**Dialysis days:** May need dose adjustment on dialysis vs non-dialysis days",
+      ] } },
+    }
+  }
+
+  // === EPO DOSING ===
+  if (normalized.includes("epo")) {
+    const hb = summary.keyLabs?.find((l) => l.name === "Hemoglobin")
+    return {
+      text: "EPO (Erythropoietin) dosing review:",
+      rxOutput: { kind: "text_step", data: { steps: [
+        hb ? `**Current Hb:** ${hb.value} ${hb.unit || ""} — target 10-11.5 g/dL` : "**Hemoglobin:** Not available — order CBC",
+        "**EPO dose:** Titrate to maintain Hb 10-11.5 g/dL; avoid >13 g/dL",
+        "**Iron stores:** Check ferritin (>200 ng/mL) and TSAT (>20%) before increasing EPO",
+        "**Response monitoring:** Recheck Hb in 2-4 weeks after dose change",
+        "**Resistance:** If poor response, evaluate iron deficiency, infection, inflammation",
+      ] } },
+    }
+  }
+
+  // === IRON STORES ===
+  if (normalized.includes("iron")) {
+    const ferritin = summary.keyLabs?.find((l) => l.name === "Ferritin")
+    return {
+      text: "Iron stores assessment for anaemia management:",
+      rxOutput: { kind: "text_list", data: { items: [
+        ferritin ? `**Ferritin:** ${ferritin.value} ${ferritin.unit || ""} — target >200 ng/mL for CKD` : "**Ferritin:** Not available — order",
+        "**TSAT:** Target >20% — order if not recent",
+        "**Iron supplementation:** IV iron preferred in CKD (oral absorption poor)",
+        "**Monitoring:** Recheck ferritin and TSAT monthly during IV iron therapy",
+      ] } },
+    }
+  }
+
+  // === POLYPHARMACY REVIEW ===
+  if (normalized.includes("polypharmacy") || (normalized.includes("medication") && normalized.includes("review"))) {
+    const meds = summary.activeMeds || []
+    return {
+      text: `Polypharmacy review — ${meds.length} active medications:`,
+      rxOutput: { kind: "text_step", data: { steps: [
+        `**Active medications:** ${meds.join(", ")}`,
+        "**Renal dose adjustments:** Verify all medications are dosed for CKD Stage 5 / dialysis",
+        "**Deprescribing opportunities:** Review PRN medications, assess ongoing need",
+        "**Timing with dialysis:** Some medications need to be given post-dialysis",
+        "**Adherence:** Complex regimens — consider simplification or pill organiser",
+      ] } },
+    }
+  }
+
+  // === MEDICATION TIMELINE ===
+  if (normalized.includes("medication timeline") || normalized.includes("med timeline")) {
+    return {
+      text: "Medication timeline showing prescription history:",
+      rxOutput: { kind: "text_list", data: { items: [
+        "**Jan 2024:** Started peritoneal dialysis — added phosphate binders, EPO",
+        "**2021:** Post-MI — started dual antiplatelet, statin optimised",
+        "**2018+:** Insulin therapy for T2DM — doses adjusted for declining renal function",
+        "**Ongoing:** Antihypertensives (Telma, Amlodipine), Cholesterol tablet",
+      ] } },
+    }
+  }
+
+  // === CHRONIC CONDITIONS SUMMARY ===
+  if (normalized.includes("chronic")) {
+    const conditions = summary.chronicConditions || []
+    if (conditions.length === 0) {
+      return { text: "No chronic conditions documented for this patient." }
+    }
+    const items = conditions.map((c) => `• ${c}`)
+    return {
+      text: `${conditions.length} chronic conditions on record:`,
+      rxOutput: { kind: "text_list", data: { items } },
+    }
+  }
+
+  // === DIET & LIFESTYLE ===
+  if (normalized.includes("diet") || normalized.includes("lifestyle") || normalized.includes("nutrition")) {
+    const isCKD = summary.pomrProblems?.some((p) => p.problem.toLowerCase().includes("ckd"))
+    const isDM = summary.pomrProblems?.some((p) => p.problem.toLowerCase().includes("diabetes"))
+    const steps = []
+    if (isCKD) {
+      steps.push("**Renal diet:** Low potassium, low phosphorus, moderate protein (0.8-1.0 g/kg/day on PD)")
+      steps.push("**Fluid restriction:** Based on residual urine output + 500mL/day")
+      steps.push("**Sodium:** <2g/day to manage fluid balance and BP")
+    }
+    if (isDM) {
+      steps.push("**Carbohydrate:** Consistent carb intake, avoid refined sugars")
+      steps.push("**Glycemic index:** Prefer low-GI foods for stable glucose")
+    }
+    steps.push("**Exercise:** Light to moderate activity as tolerated — improves CV health")
+    steps.push("**Smoking/alcohol:** Counsel cessation if applicable")
+    return {
+      text: "Personalised diet and lifestyle recommendations:",
+      rxOutput: { kind: "text_step", data: { steps } },
+    }
+  }
+
+  // === PATIENT HANDOUT ===
+  if (normalized.includes("handout") || normalized.includes("patient education")) {
+    return {
+      text: "Patient education handout generated:",
+      rxOutput: { kind: "text_step", data: { steps: [
+        "**Understanding your condition:** Brief explanation of CKD Stage 5 and peritoneal dialysis",
+        "**Medications:** Why each medication is important — take as prescribed",
+        "**Warning signs:** When to seek emergency care (chest pain, severe breathlessness, cloudy PD fluid)",
+        "**Diet tips:** Foods to avoid (high potassium, high phosphorus), safe choices",
+        "**Follow-up:** Next appointment schedule and what tests to expect",
+      ] } },
+    }
+  }
+
+  // === EXPLAIN DIAGNOSIS ===
+  if (normalized.includes("explain") && (normalized.includes("diagnos") || normalized.includes("dx"))) {
+    return {
+      text: "Diagnosis explanation for clinical documentation:",
+      rxOutput: { kind: "text_step", data: { steps: [
+        "**Primary:** CKD Stage 5 on peritoneal dialysis — ESRD requiring renal replacement therapy since Jan 2024",
+        "**Comorbid:** Type 2 Diabetes Mellitus (18 years) — insulin-dependent, complicated by nephropathy",
+        "**Comorbid:** Hypertension — likely renoparenchymal + essential, on dual antihypertensives",
+        "**Comorbid:** Renal Anaemia — on EPO therapy, likely functional iron deficiency",
+        "**History:** CAD post-MI (2021) — stent placed, on secondary prevention",
+      ] } },
+    }
+  }
+
   // === OBSTETRIC SUMMARY (before generic summary) ===
   if ((normalized.includes("obstetric") || normalized.includes("ob summary") || normalized.includes("obstetric history") || normalized.includes("obstetric summary") || normalized.includes("pregnancy summary") || normalized.includes("pregnancy") || normalized.includes("anc summary") || normalized.includes("anc")) && summary.obstetricData) {
     return {
@@ -90,6 +544,57 @@ export function buildReply(
     return {
       text: "Here's the ophthalmology summary for your review.",
       rxOutput: { kind: "ophthal_summary", data: summary.ophthalData },
+    }
+  }
+
+  // === PATIENT'S DETAILED SUMMARY (pill-triggered) ===
+  // Avoids redundancy with intro:
+  //   - If patient has intake → quick snapshot = intake summary, sections = historical data
+  //   - If no intake → hide narrative (already shown in intro), show only sections
+  if (normalized.includes("detailed summary") || normalized.includes("detail summary") || normalized.includes("patient detail")) {
+    const hasIntake = !!summary.symptomCollectorData
+    if (hasIntake) {
+      // Build a quick intake summary to use as the narrative inside the card
+      const sc = summary.symptomCollectorData!
+      const intakeParts: string[] = []
+      if (sc.symptoms && sc.symptoms.length > 0) {
+        // First symptom as chief complaint with details
+        const mainSymptom = sc.symptoms[0]
+        const mainParts = [mainSymptom.name]
+        if (mainSymptom.duration) mainParts.push(mainSymptom.duration)
+        if (mainSymptom.severity) mainParts.push(mainSymptom.severity)
+        intakeParts.push(`Presenting with ${mainParts.join(", ")}`)
+        // Additional symptoms
+        if (sc.symptoms.length > 1) {
+          const others = sc.symptoms.slice(1, 4).map((s) => {
+            const parts = [s.name]
+            if (s.duration) parts.push(s.duration)
+            return parts.join(" ")
+          })
+          intakeParts.push(`Also reports: ${others.join(", ")}`)
+        }
+      }
+      if (sc.questionsToDoctor && sc.questionsToDoctor.length > 0) {
+        intakeParts.push(`Wants to discuss: ${sc.questionsToDoctor[0]}`)
+      }
+      const intakeNarrative = intakeParts.length > 0
+        ? `${intakeParts.join(". ")}.`
+        : ""
+
+      // Create a modified summary with intake-based narrative replacing historical narrative
+      const modifiedSummary = {
+        ...summary,
+        patientNarrative: intakeNarrative || undefined,
+      }
+      return {
+        text: "Patient's detailed summary:",
+        rxOutput: { kind: "patient_summary", data: modifiedSummary, hideNarrative: !intakeNarrative },
+      }
+    }
+    // No intake — hide narrative (already shown as quick snapshot in intro)
+    return {
+      text: "Patient's detailed summary:",
+      rxOutput: { kind: "patient_summary", data: summary, hideNarrative: true },
     }
   }
 
@@ -620,10 +1125,33 @@ export function buildReply(
     }
   }
 
+  // === eGFR TREND (CKD-specific) ===
+  if (normalized.includes("egfr trend") || normalized.includes("egfr")) {
+    return {
+      text: "Here's the eGFR trend over the past 12 months. The declining trajectory confirms CKD Stage 5 progression — Ramesh is now on maintenance dialysis.",
+      rxOutput: {
+        kind: "lab_trend",
+        data: {
+          title: "eGFR Trend (12 months)",
+          parameterName: "eGFR",
+          series: [{
+            label: "eGFR",
+            values: [14, 12, 10, 9, 8, 7],
+            dates: ["Apr'25", "Jun'25", "Aug'25", "Oct'25", "Dec'25", "Feb'26"],
+            tone: "critical" as const,
+            threshold: 15,
+            thresholdLabel: "Stage 5 <15",
+            unit: "mL/min/1.73m²",
+          }],
+        },
+      },
+    }
+  }
+
   // === LAB TREND (HbA1c, specific lab trends) ===
   if (normalized.includes("hba1c trend") || normalized.includes("lab trend") || normalized.includes("hba1c")) {
     return {
-      text: "Here's the HbA1c trend over recent visits. The target is <6.5%.",
+      text: "Here's the HbA1c trend over recent visits. Gradual improvement from 10.1% → 9.2% with current regimen, but still above target.",
       rxOutput: {
         kind: "lab_trend",
         data: {
@@ -631,8 +1159,8 @@ export function buildReply(
           parameterName: "HbA1c",
           series: [{
             label: "HbA1c",
-            values: [8.8, 8.5, 8.1],
-            dates: ["Jul'25", "Oct'25", "Jan'26"],
+            values: [10.1, 10.0, 9.4, 9.3, 9.2],
+            dates: ["Jun'25", "Aug'25", "Oct'25", "Dec'25", "Feb'26"],
             tone: "critical" as const,
             threshold: 6.5,
             thresholdLabel: "Target <6.5%",
@@ -665,7 +1193,10 @@ export function buildReply(
       text: "Here's how the vitals have been trending over recent visits.",
       rxOutput: {
         kind: useBar ? "vitals_trend_bar" : "vitals_trend_line",
-        data: { title: "Vital Trends", series },
+        data: {
+          title: "Vital Trends",
+          series,
+        },
       },
     }
   }
@@ -829,6 +1360,59 @@ export function buildReply(
             isFlagged: true,
           })),
           insight: buildLabInsight(summary.keyLabs),
+        },
+      },
+    }
+  }
+
+  // === RECENT ER HISTORY ===
+  if (normalized.includes("recent er") || normalized.includes("er history") || normalized.includes("emergency admission")) {
+    return {
+      text: "Here are Ramesh Kumar's recent emergency department visits.",
+      rxOutput: {
+        kind: "text_list",
+        data: {
+          items: [
+            "**Dec 2025** — Hyperkalemia (K⁺ 6.8 mEq/L) with ECG changes. Emergency dialysis + IV calcium gluconate. Discharged after 48hrs.",
+            "**Oct 2025** — Acute pulmonary edema with fluid overload. Required urgent ultrafiltration. BP 198/112 on arrival. Stabilised and switched to higher-dose Torsemide.",
+          ],
+        },
+      },
+    }
+  }
+
+  // === ACTIVE MEDICATIONS (pill-triggered) ===
+  if (normalized.includes("active medication") || normalized.includes("active med") || normalized.includes("current med")) {
+    const meds = summary.activeMeds || []
+    if (meds.length === 0) {
+      return { text: "No active medications recorded for this patient." }
+    }
+    return {
+      text: `Here are the **${meds.length} active medications** for this patient.`,
+      rxOutput: {
+        kind: "text_list",
+        data: {
+          items: meds,
+        },
+      },
+    }
+  }
+
+  // === KEY LABS (emergency pill) ===
+  if (normalized === "key labs" || (normalized.includes("key lab") && !normalized.includes("trend"))) {
+    const labs = summary.keyLabs || []
+    if (labs.length === 0) {
+      return { text: "No lab results available for this patient." }
+    }
+    return {
+      text: `Here are the **${labs.length} key lab values** for this patient.`,
+      rxOutput: {
+        kind: "text_list",
+        data: {
+          items: labs.map((l) => {
+            const flagIcon = l.flag === "critical" ? "🔴" : l.flag === "high" || l.flag === "low" ? "🟡" : "🟢"
+            return `${flagIcon} **${l.name}**: ${l.value}${l.unit ? ` ${l.unit}` : ""}${l.flag ? ` (${l.flag})` : ""}`
+          }),
         },
       },
     }

@@ -17,8 +17,9 @@ import {
 } from "lucide-react"
 
 import { AppointmentBanner } from "@/components/tp-ui/appointment-banner"
-import { AiBrandSparkIcon, AI_GRADIENT_SOFT } from "@/components/doctor-agent/ai-brand"
-import { PatientDetailAgentPanel } from "@/components/patient-details/PatientDetailAgentPanel"
+import { DrAgentPanel } from "@/components/tp-rxpad/dr-agent/DrAgentPanel"
+import { DrAgentFab } from "@/components/tp-rxpad/dr-agent/shell/DrAgentFab"
+import { findContextIdByPatientId } from "@/components/tp-rxpad/dr-agent/constants"
 import { TPButton as Button, TPSplitButton } from "@/components/tp-ui/button-system"
 
 const SIDE_ITEMS = [
@@ -317,28 +318,18 @@ export function PatientDetailsPage({
             </section>
 
             {isAgentOpen && (
-              <PatientDetailAgentPanel
-                patient={{
-                  id: patient.id,
-                  name: patient.name,
-                  gender: patient.gender,
-                  age: patient.age,
-                }}
-                onClose={() => setIsAgentOpen(false)}
-              />
+              <aside className="hidden h-full w-[392px] shrink-0 md:block">
+                <DrAgentPanel
+                  initialPatientId={findContextIdByPatientId(patient.id, patient.name)}
+                  mode="rxpad"
+                  onClose={() => setIsAgentOpen(false)}
+                />
+              </aside>
             )}
           </div>
 
           {!isAgentOpen && (
-            <button
-              type="button"
-              onClick={() => setIsAgentOpen(true)}
-              aria-label="Open doctor agent"
-              className="absolute bottom-5 right-5 inline-flex size-12 items-center justify-center rounded-full border border-white/70 shadow-[0_16px_30px_-16px_rgba(103,58,172,0.7)] transition-transform hover:scale-105"
-              style={{ background: AI_GRADIENT_SOFT }}
-            >
-              <AiBrandSparkIcon size={20} />
-            </button>
+            <DrAgentFab onClick={() => setIsAgentOpen(true)} />
           )}
         </main>
       </div>

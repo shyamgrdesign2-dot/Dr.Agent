@@ -52,7 +52,7 @@ export function DonutChartCard({ data, onPillTap }: Props) {
                   <span className="h-[8px] w-[8px] flex-shrink-0 rounded-[2px]" style={{ background: seg.color }} />
                   <span className="flex-1 text-[10px] text-tp-slate-600 truncate">{seg.label}</span>
                   <span className="text-[10px] font-semibold text-tp-slate-700">{pct}%</span>
-                  <span className="text-[9px] text-tp-slate-400">({seg.value})</span>
+                  <span className="text-[10px] text-tp-slate-400">({seg.value})</span>
                 </div>
               )
             })}

@@ -21,7 +21,7 @@ export function ClinicalGuidelinesCard({ data, onPillTap }: Props) {
   return (
     <CardShell
       icon={<span />}
-      tpIconName="book"
+      tpIconName="medical book"
       title={data.title}
       badge={{ label: `Evidence ${data.evidenceLevel}`, color: badge.color, bg: badge.bg }}
       actions={

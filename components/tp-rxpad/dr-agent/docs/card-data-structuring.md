@@ -490,6 +490,46 @@ Each `CompletenessSection`: `name`, `filled` (required). `count` optional.
 
 ---
 
+## 5b. Clinical Family (POMR)
+
+### `pomr_problem_card` — Problem-Oriented Medical Record Card
+
+**Data source:** `PomrProblemCardData` (derived from `SmartSummaryData.pomrProblems` + `keyLabs` + `activeMeds`)
+
+| Field | Required? | Fallback |
+|-------|-----------|-----------------------|
+| `problem` | Yes | — |
+| `status` | Yes | — |
+| `statusColor` | Yes | Default: `"amber"` |
+| `completeness` | Yes | Default: `{ emr: 0, ai: 0, missing: 100 }` |
+| `labs` | Optional | Labs section hidden |
+| `meds` | Optional | Meds section hidden |
+| `missingFields` | Optional | Missing fields section hidden |
+| `labKeys` | Optional | Used to resolve labs from `keyLabs` |
+| `vitalKeys` | Optional | Used to resolve vitals |
+| `medKeys` | Optional | Used to resolve medications |
+| `missingKeys` | Optional | Used to show missing data prompts |
+
+**When NOT to show:** No `pomrProblems` in summary data.
+
+**Data completeness donut (unique to this card):**
+- 18px SVG with 3 arcs: green (EMR %) → amber (AI-extracted %) → gray (missing %)
+- Hover tooltip: `"45% EMR · 30% AI · 25% missing"` + source document names from `dataProvenance`
+- Rendered internally via `DataCompletenessDonut` component in CardShell's `headerExtra` slot
+
+**Data provenance on labs:**
+- Each lab value shows a 5px provenance dot: green (#22c55e) = EMR, amber (#f59e0b) = AI-extracted
+- Source: `dataProvenance[labName].source`
+- Only shown when provenance mapping exists
+
+**Cross-problem flags:**
+- If `crossProblemFlags` has high-severity items, rendered as InsightBox (red variant) below card body
+- Max 2 flags shown
+
+**Adaptation:** Card adjusts based on which data is available — empty sections are suppressed. Missing fields show as interactive chips with prompts (e.g., "Order PTH test").
+
+---
+
 ## 6. Safety Family
 
 ### `drug_interaction` — Drug Interaction Warning
@@ -647,6 +687,19 @@ All require `title` and their specific data arrays. Cards are not shown if the p
 
 ### Copy Payload
 **Rule:** Cards with `copyPayload` or `copyAllPayload` always include the copy-to-clipboard and copy-to-RxPad functionality, regardless of data completeness.
+
+### Data Completeness Donut Eligibility
+**Rule:** Only show the completeness donut on cards with a **fixed expected data set** where missing data is clinically meaningful. Currently only `pomr_problem_card`. Do NOT show on cards that display whatever data happens to be available (patient_summary, lab_panel, vitals_trend, etc.).
+
+### Data Provenance Indicators
+**Rule:** Lab values in `InlineDataRow` may show a 5px provenance dot after the value text:
+- Green (#22c55e) = data sourced from EMR (structured, reliable)
+- Amber (#f59e0b) = data AI-extracted from uploaded documents (needs verification)
+- Only rendered when `dataProvenance` mapping exists for that specific lab name
+- Dot has a `title` tooltip showing the source type
+
+### SBAR Section Ordering
+**Rule:** The Patient Summary card (`GPSummaryCard`) orders its sections following the SBAR conceptual layout: Situation (context line) → Background (history) → Assessment (labs) → Last Visit → Recommendation (vitals). This is a section arrangement principle, not literal SBAR labels. Other cards should follow similar logic — context before actionable data.
 
 ### Safety Card Priority
 **Rule:** `drug_interaction` and `allergy_conflict` cards are always shown IMMEDIATELY when triggered — they interrupt the normal card flow and appear at the top.

@@ -50,7 +50,7 @@ export function ConditionBarCard({ data, onPillTap }: Props) {
       </div>
 
       {data.note && (
-        <p className="mt-[8px] text-[9px] text-tp-slate-400 italic">{data.note}</p>
+        <p className="mt-[8px] text-[10px] text-tp-slate-400 italic">{data.note}</p>
       )}
     </CardShell>
   )

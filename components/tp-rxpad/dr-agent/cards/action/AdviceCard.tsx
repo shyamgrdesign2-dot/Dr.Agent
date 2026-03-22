@@ -40,6 +40,7 @@ export function AdviceCard({ data, onCopy, onPillTap }: AdviceCardProps) {
       title={data.title}
       copyAll={() => onCopy?.(data.copyPayload)}
       copyAllTooltip="Fill advice to RxPad"
+      dataSources={["AI-Generated"]}
       collapsible
       actions={
         <>

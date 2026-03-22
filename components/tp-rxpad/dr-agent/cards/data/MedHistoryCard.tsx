@@ -40,6 +40,7 @@ export function MedHistoryCard({ data, onPillTap }: MedHistoryCardProps) {
         color: "#92400E",
         bg: "#FEF3C7",
       }}
+      dataSources={["EMR Records", "Pharmacy Records"]}
       actions={
         <ChatPillButton label="Other drug classes" onClick={() => onPillTap?.("Other drug classes")} />
       }

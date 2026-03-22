@@ -54,6 +54,7 @@ export function InvestigationCard({
         navigator.clipboard?.writeText(names.join("\n"))
       }}
       copyAllTooltip={selectedCount > 0 ? `Fill ${selectedCount} selected to RxPad` : "Fill all to RxPad"}
+      dataSources={["AI-Generated"]}
       actions={
         <>
           <ChatPillButton label="Suggest more" onClick={() => onPillTap?.("Suggest more investigations")} />

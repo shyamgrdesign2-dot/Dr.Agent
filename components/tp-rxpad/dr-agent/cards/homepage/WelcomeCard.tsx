@@ -28,7 +28,7 @@ export function WelcomeCard({ data, onPillTap }: Props) {
     >
       {/* Clinic status line — non-repetitive, useful info */}
       {data.contextLine && (
-        <p className="mb-[8px] text-[11px] text-tp-slate-500">
+        <p className="mb-[8px] text-[12px] text-tp-slate-500">
           {data.contextLine}
         </p>
       )}

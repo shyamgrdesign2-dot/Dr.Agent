@@ -32,7 +32,7 @@ export function PieChartCard({ data, onPillTap }: Props) {
           <div className="relative flex-shrink-0">
             <div className="h-[90px] w-[90px] rounded-full" style={{ background: `conic-gradient(${stops})` }} />
             <div className="absolute inset-[22px] flex flex-col items-center justify-center rounded-full bg-white">
-              <span className="text-[13px] font-semibold text-tp-slate-800">{data.total}</span>
+              <span className="text-[14px] font-semibold text-tp-slate-800">{data.total}</span>
               <span className="text-[7px] text-tp-slate-400">{data.centerLabel}</span>
             </div>
           </div>
@@ -44,7 +44,7 @@ export function PieChartCard({ data, onPillTap }: Props) {
                   <span className="h-[8px] w-[8px] flex-shrink-0 rounded-[2px]" style={{ background: seg.color }} />
                   <span className="flex-1 text-[10px] text-tp-slate-600 truncate">{seg.label}</span>
                   <span className="text-[10px] font-semibold text-tp-slate-700">{pct}%</span>
-                  <span className="text-[9px] text-tp-slate-400">({seg.value})</span>
+                  <span className="text-[10px] text-tp-slate-400">({seg.value})</span>
                 </div>
               )
             })}
