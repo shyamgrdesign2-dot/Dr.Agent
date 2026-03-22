@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useState } from "react"
+import { CATALOG } from "./CardCatalogLive"
+import { CardRenderer } from "@/components/tp-rxpad/dr-agent/cards/CardRenderer"
 
 // ─────────────────────────────────────────────────────────────
 // Clinical Research & Design Framework Documentation
@@ -473,6 +475,44 @@ const CKD_POMR_PROBLEMS = [
   },
 ]
 
+const noop = () => {}
+
+const REFERENCE_LAYER_CARDS = [
+  {
+    layer: "Layer 1 — Fast orientation (SBAR as reference)",
+    note: "These cards handle the first read of the patient. We use SBAR as a reference lens for quick orientation, not as a strict card template.",
+    cards: [
+      { kind: "patient_summary", label: "Patient Summary", mapping: "Primary orientation card for the first scan." },
+      { kind: "sbar_critical", label: "SBAR Critical", mapping: "Explicit critical-state framing when risk needs to be surfaced fast." },
+      { kind: "lab_panel", label: "Lab Panel", mapping: "Flagged values compressed into a quick actionable read." },
+      { kind: "last_visit", label: "Last Visit", mapping: "Recent clinical memory that supports the opening read." },
+    ],
+  },
+  {
+    layer: "Layer 2 — Structured problem/action view (POMR as reference)",
+    note: "We use POMR as a reference for grouping and representing problem-oriented data. It informs how we structure these cards, but the UI stays product-native rather than academically literal.",
+    cards: [
+      { kind: "pomr_problem_card", label: "POMR Problem Card", mapping: "Best example of a problem-led structured response." },
+      { kind: "investigation_bundle", label: "Investigation Bundle", mapping: "Turns one clinical problem into an actionable workup set." },
+      { kind: "drug_interaction", label: "Drug Interaction", mapping: "Adds safety logic into the problem/action workflow." },
+      { kind: "protocol_meds", label: "Protocol Meds", mapping: "Converts reasoning into RxPad-ready therapeutic action." },
+    ],
+  },
+  {
+    layer: "Layer 3 — Longitudinal review",
+    note: "This layer supports trend reading and continuity. It helps the doctor move from snapshot interpretation to trajectory interpretation.",
+    cards: [
+      { kind: "patient_timeline", label: "Patient Timeline", mapping: "Chronological record view for continuity." },
+      { kind: "lab_comparison", label: "Lab Comparison", mapping: "Before-vs-now framing to support trend interpretation." },
+      { kind: "med_history", label: "Medication History", mapping: "Treatment continuity and change over time." },
+    ],
+  },
+] as const
+
+function findCatalogCard(kind: string) {
+  return CATALOG.find((entry) => entry.kind === kind)
+}
+
 // ── Component ────────────────────────────────────────────────
 
 export default function ClinicalResearchTab() {
@@ -492,196 +532,94 @@ export default function ClinicalResearchTab() {
 
   return (
     <div className="space-y-8">
-      {/* ── What is Dr.Agent ────────────────────────────────── */}
-      <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50/80 to-indigo-50/40 p-5">
-        <div className="mb-1 flex items-center gap-2">
-          <span className="rounded-md bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-700">
-            AI Co-Pilot for Doctors
-          </span>
-        </div>
-        <h2 className="mb-2 text-[16px] font-bold text-slate-800">
-          What is Dr.Agent?
-        </h2>
-        <p className="mb-3 text-[13px] leading-relaxed text-slate-600">
-          Dr.Agent is an <strong>AI-powered clinical co-pilot</strong> embedded directly into the TatvaPractice EMR workflow. It sits
-          alongside the prescription pad (RxPad) and provides real-time, context-aware clinical intelligence during patient
-          consultations — acting as the doctor&apos;s second brain that surfaces the right information at the right time.
-        </p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-lg border border-blue-100 bg-white/70 p-3">
-            <h3 className="mb-1 text-[11px] font-bold text-blue-700">How It Helps</h3>
-            <ul className="space-y-1 text-[11px] text-slate-600">
-              <li className="flex items-start gap-1.5"><span className="mt-1 size-1.5 shrink-0 rounded-full bg-blue-400" />Pre-consultation summary — doctor sees the full picture before the patient walks in</li>
-              <li className="flex items-start gap-1.5"><span className="mt-1 size-1.5 shrink-0 rounded-full bg-blue-400" />Real-time clinical decision support — DDX, medication protocols, investigation bundles</li>
-              <li className="flex items-start gap-1.5"><span className="mt-1 size-1.5 shrink-0 rounded-full bg-blue-400" />Cross-specialty context — shows data from other departments the doctor doesn&apos;t normally see</li>
-              <li className="flex items-start gap-1.5"><span className="mt-1 size-1.5 shrink-0 rounded-full bg-blue-400" />Safety layer — allergy checks, drug interactions, cross-problem flags</li>
-            </ul>
-          </div>
-          <div className="rounded-lg border border-indigo-100 bg-white/70 p-3">
-            <h3 className="mb-1 text-[11px] font-bold text-indigo-700">The Interview Concept</h3>
-            <p className="text-[11px] leading-relaxed text-slate-600">
-              Dr.Agent works as an <strong>intelligent interviewer</strong> — it doesn&apos;t just present data, it actively engages the
-              doctor in a structured conversation. It asks: <em>&quot;Given this patient&apos;s declining eGFR and 2 ER admissions, should we
-              reassess PD adequacy?&quot;</em> This transforms passive data consumption into active clinical reasoning, helping doctors
-              catch patterns they might miss in a busy 10-minute consultation.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Research Hero ────────────────────────────────────── */}
-      <div className="rounded-xl border border-violet-200 bg-gradient-to-br from-violet-50 to-blue-50 p-5">
-        <div className="mb-1 flex items-center gap-2">
+      <section className="rounded-xl border border-violet-200 bg-gradient-to-br from-violet-50 to-blue-50 p-5">
+        <div className="mb-2 flex items-center gap-2">
           <span className="rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-700">
-            Research-Driven Design
+            Origin Case Study
           </span>
         </div>
-        <h2 className="mb-2 text-[16px] font-bold text-slate-800">
-          Clinical Summary Design — From Doctor Research to Product
-        </h2>
+        <h2 className="mb-2 text-[18px] font-bold text-slate-800">Why we built Dr. Agent this way</h2>
         <p className="text-[13px] leading-relaxed text-slate-600">
-          Dr.Agent&apos;s architecture is shaped by two parallel research tracks. Through our research with doctors —
-          shadowing live consultations, timing each phase of the patient encounter — we discovered that doctors spend
-          nearly half their consultation time on information assembly and documentation rather than clinical work. Simultaneously,
-          Javed and team conducted in-depth interviews with nephrologists, cardiologists, endocrinologists, and GPs to understand
-          cross-specialty communication gaps. Both tracks converged on the same insight: the biggest bottleneck is not clinical
-          decision-making — it&apos;s <strong>getting the right information to the right doctor at the right time</strong>.
-          From these combined insights, we developed the tiered summary architecture and partial data framework that drive Dr.Agent.
+          Dr. Agent started from a consultation-design problem. Doctors were already getting data from EMR records, uploaded reports, patient intake, historical sidebars, and RxPad sections, but the effort to assemble and act on that data was still falling on the doctor. The goal was to convert that fragmented information into a UI system that helps the doctor read faster, decide faster, and document faster without leaving the workflow.
         </p>
-      </div>
+      </section>
 
-      {/* ── Consultation Time Dissection ───────────────────── */}
-      <section>
-        <h3 className="mb-1 text-[14px] font-bold text-slate-800">{CONSULTATION_DISSECTION.title}</h3>
-        <p className="mb-3 text-[12px] text-slate-500">{CONSULTATION_DISSECTION.description}</p>
-
-        {/* Time breakdown visual */}
-        <div className="mb-3 rounded-xl border border-slate-200 bg-white p-4">
-          {/* Stacked bar */}
-          <div className="mb-3 flex h-5 overflow-hidden rounded-full">
-            {CONSULTATION_DISSECTION.phases.map((ph) => (
-              <div
-                key={ph.label}
-                className="flex items-center justify-center text-[8px] font-bold text-white"
-                style={{ width: `${ph.percent}%`, backgroundColor: ph.color }}
-                title={`${ph.label}: ${ph.minutes}`}
-              >
-                {ph.percent}%
-              </div>
-            ))}
+      <section className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 className="mb-2 text-[13px] font-semibold text-slate-800">The design shift</h3>
+          <p className="mb-2 text-[11px] leading-relaxed text-slate-600">
+            We moved away from thinking about AI as a separate chat assistant and started treating it as a response layer inside the doctor’s working UI.
+          </p>
+          <div className="space-y-1.5">
+            <div className="flex items-start gap-2">
+              <span className="mt-1 size-2 shrink-0 rounded-full bg-blue-500" />
+              <span className="text-[10px] leading-relaxed text-slate-500">AI-augmented UI: the output must appear as native cards, previews, tags, signals, and actions.</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="mt-1 size-2 shrink-0 rounded-full bg-blue-500" />
+              <span className="text-[10px] leading-relaxed text-slate-500">A2UI thinking: every card, pill, copy action, and sidebar jump is an agent-to-interface bridge.</span>
+            </div>
           </div>
+        </div>
 
-          {/* Phase cards */}
-          <div className="space-y-2">
-            {CONSULTATION_DISSECTION.phases.map((ph) => (
-              <div key={ph.label} className="rounded-lg border border-slate-100 p-3" style={{ backgroundColor: ph.bgColor + "40" }}>
-                <div className="mb-1 flex items-center gap-2">
-                  <span className="size-2.5 shrink-0 rounded-full" style={{ backgroundColor: ph.color }} />
-                  <span className="text-[12px] font-semibold text-slate-700">{ph.label}</span>
-                  <span className="rounded-md px-1.5 py-0.5 text-[10px] font-bold" style={{ backgroundColor: ph.color + "15", color: ph.color }}>
-                    {ph.minutes}
-                  </span>
-                </div>
-                <p className="mb-1.5 text-[11px] leading-relaxed text-slate-600">{ph.description}</p>
-                <div className="flex items-start gap-1.5 rounded-md bg-white/60 px-2 py-1.5">
-                  <span className="mt-0.5 text-[10px]" style={{ color: ph.color }}>→</span>
-                  <span className="text-[11px] text-slate-500"><strong className="text-slate-600">Dr.Agent:</strong> {ph.agentRole}</span>
-                </div>
-              </div>
-            ))}
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 className="mb-2 text-[13px] font-semibold text-slate-800">Why UI cards became the core</h3>
+          <p className="mb-2 text-[11px] leading-relaxed text-slate-600">
+            Cards gave us a repeatable way to package one clinical response at a time without overwhelming the doctor.
+          </p>
+          <div className="space-y-1.5">
+            <div className="flex items-start gap-2">
+              <span className="mt-1 size-2 shrink-0 rounded-full bg-emerald-500" />
+              <span className="text-[10px] leading-relaxed text-slate-500">A card can carry context, payload, trust signals, next steps, and copy actions in one contained unit.</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="mt-1 size-2 shrink-0 rounded-full bg-emerald-500" />
+              <span className="text-[10px] leading-relaxed text-slate-500">A small design system with shared rules lets us derive many card types while keeping the interaction model consistent.</span>
+            </div>
           </div>
+        </div>
 
-          {/* Key insight */}
-          <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50/60 px-3 py-2">
-            <p className="text-[11px] font-semibold text-blue-700">Key Insight</p>
-            <p className="text-[11px] leading-relaxed text-blue-600">{CONSULTATION_DISSECTION.keyInsight}</p>
+        <div className="rounded-xl border border-slate-200 bg-white p-4">
+          <h3 className="mb-2 text-[13px] font-semibold text-slate-800">How the workflow is supported</h3>
+          <p className="mb-2 text-[11px] leading-relaxed text-slate-600">
+            The response is only useful if it can move the doctor forward inside the product.
+          </p>
+          <div className="space-y-1.5">
+            <div className="flex items-start gap-2">
+              <span className="mt-1 size-2 shrink-0 rounded-full bg-rose-500" />
+              <span className="text-[10px] leading-relaxed text-slate-500">Canned messages guide the next best step instead of forcing free-text prompting every time.</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="mt-1 size-2 shrink-0 rounded-full bg-rose-500" />
+              <span className="text-[10px] leading-relaxed text-slate-500">Copy/fill actions connect directly into RxPad sections and historical sidebars where that data belongs.</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="mt-1 size-2 shrink-0 rounded-full bg-rose-500" />
+              <span className="text-[10px] leading-relaxed text-slate-500">Sidebar links and specialty views create multiple entry points instead of locking the doctor into one route.</span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Dual Research Tracks ─────────────────────────────── */}
-      <section>
-        <h3 className="mb-1 text-[14px] font-bold text-slate-800">Two Research Tracks — One Architecture</h3>
-        <p className="mb-3 text-[12px] text-slate-500">
-          Our research ran on two parallel tracks: internal consultation shadowing (understanding how doctors spend their time)
-          and Javed and team&apos;s cross-specialty interviews (understanding what information doctors need across departments).
-          Both independently arrived at the same problem — and their convergence shaped Dr.Agent.
-        </p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {RESEARCH_TRACKS.map((track) => (
-            <div key={track.track} className="rounded-xl border p-4" style={{ borderColor: track.borderColor, backgroundColor: track.bgColor + "30" }}>
-              <div className="mb-2 flex items-center gap-2">
-                <span className="rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: track.color + "15", color: track.color }}>
-                  {track.track}
-                </span>
-                <span className="text-[12px] font-semibold text-slate-700">{track.label}</span>
-              </div>
-              <p className="mb-2 text-[11px] leading-relaxed text-slate-600">{track.description}</p>
-              <div className="space-y-1.5">
-                {track.findings.map((f, i) => (
-                  <div key={i} className="flex items-start gap-1.5">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: track.color }} />
-                    <span className="text-[11px] text-slate-600">{f}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Convergence */}
-        <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50/30 p-4">
-          <h4 className="mb-1 text-[12px] font-bold text-emerald-700">{RESEARCH_CONVERGENCE.title}</h4>
-          <p className="mb-3 text-[11px] text-slate-600">{RESEARCH_CONVERGENCE.description}</p>
-          <div className="space-y-2">
-            {RESEARCH_CONVERGENCE.convergencePoints.map((cp, i) => (
-              <div key={i} className="rounded-lg border border-emerald-100 bg-white px-3 py-2">
-                <div className="mb-1 grid gap-1 sm:grid-cols-2">
-                  <div className="flex items-start gap-1.5">
-                    <span className="mt-0.5 rounded px-1 py-0 text-[8px] font-bold text-blue-600 bg-blue-50">INT</span>
-                    <span className="text-[10px] text-slate-500">{cp.internal}</span>
-                  </div>
-                  <div className="flex items-start gap-1.5">
-                    <span className="mt-0.5 rounded px-1 py-0 text-[8px] font-bold text-violet-600 bg-violet-50">EXT</span>
-                    <span className="text-[10px] text-slate-500">{cp.external}</span>
-                  </div>
-                </div>
-                <div className="flex items-start gap-1.5">
-                  <span className="mt-0.5 text-[10px] text-emerald-600">→</span>
-                  <span className="text-[11px] font-medium text-emerald-700">{cp.outcome}</span>
-                </div>
-              </div>
-            ))}
+      <section className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
+        <h3 className="mb-2 text-[14px] font-bold text-slate-800">What this case study led to</h3>
+        <div className="grid gap-2 sm:grid-cols-4">
+          <div className="rounded-lg border border-blue-100 bg-white/80 p-3">
+            <p className="mb-1 text-[11px] font-semibold text-blue-700">Response cards</p>
+            <p className="text-[10px] leading-relaxed text-slate-500">Structured cards for summaries, labs, safety, DDX, plans, and operational flows.</p>
           </div>
-        </div>
-      </section>
-
-      {/* ── Research Process ────────────────────────────────── */}
-      <section>
-        <h3 className="mb-3 text-[14px] font-bold text-slate-800">Research Process</h3>
-        <div className="space-y-3">
-          {RESEARCH_PROCESS.map((phase) => (
-            <div key={phase.phase} className="rounded-xl border border-slate-200 bg-white p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <span
-                  className="rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-                  style={{ backgroundColor: phase.color + "15", color: phase.color }}
-                >
-                  {phase.phase}
-                </span>
-                <span className="text-[13px] font-semibold text-slate-700">{phase.label}</span>
-              </div>
-              <p className="mb-3 text-[12px] leading-relaxed text-slate-600">{phase.description}</p>
-              <div className="space-y-1.5">
-                {phase.findings.map((f, i) => (
-                  <div key={i} className="flex items-start gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: phase.color }} />
-                    <span className="text-[12px] text-slate-600">{f}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+          <div className="rounded-lg border border-blue-100 bg-white/80 p-3">
+            <p className="mb-1 text-[11px] font-semibold text-blue-700">Canned guidance</p>
+            <p className="text-[10px] leading-relaxed text-slate-500">Pills that keep the doctor moving through the consultation and documentation journey.</p>
+          </div>
+          <div className="rounded-lg border border-blue-100 bg-white/80 p-3">
+            <p className="mb-1 text-[11px] font-semibold text-blue-700">RxPad integration</p>
+            <p className="text-[10px] leading-relaxed text-slate-500">Outputs are designed to be reviewed, then filled into the exact place where the doctor works.</p>
+          </div>
+          <div className="rounded-lg border border-blue-100 bg-white/80 p-3">
+            <p className="mb-1 text-[11px] font-semibold text-blue-700">Trust cues</p>
+            <p className="text-[10px] leading-relaxed text-slate-500">Sources, completeness, and feedback signals help the doctor judge the response confidently.</p>
+          </div>
         </div>
       </section>
 
@@ -690,7 +628,7 @@ export default function ClinicalResearchTab() {
         <h3 className="mb-1 text-[14px] font-bold text-slate-800">The Three-Layer Summary Model</h3>
         <p className="mb-3 text-[12px] text-slate-500">
           A single format cannot serve all clinical contexts. The tiered approach mirrors how clinical cognition works:
-          fast heuristic triage → structured problem framing → pattern-based temporal reasoning.
+          fast heuristic triage → structured problem framing → pattern-based temporal reasoning. We use SBAR and POMR as reference frameworks for structuring and representing data, not as rigid templates that must be copied exactly.
         </p>
         <div className="space-y-3">
           {SUMMARY_LAYERS.map((layer) => (
@@ -758,10 +696,9 @@ export default function ClinicalResearchTab() {
 
       {/* ── Partial Data Handling Framework ──────────────────── */}
       <section>
-        <h3 className="mb-1 text-[14px] font-bold text-slate-800">Partial Data Handling Framework</h3>
+        <h3 className="mb-1 text-[14px] font-bold text-slate-800">Partial Data Handling — selective pattern</h3>
         <p className="mb-3 text-[12px] text-slate-500">
-          In Indian clinical practice, a significant proportion of a chronic patient&apos;s records exist outside the structured EMR.
-          Every data point must carry its source provenance — the doctor needs to know whether to act, verify, or gather.
+          This is not a rule for every Dr. Agent response. Most cards simply render whatever valid data is currently available. Partial-data handling becomes important only in a few cases, especially problem-oriented cards and other structured summary views where the doctor expects a known set of fields and missingness itself carries meaning. In those cases, the response should show provenance clearly and help the doctor know what to act on, verify, or gather.
         </p>
 
         {/* Trust Levels */}
@@ -800,7 +737,7 @@ export default function ClinicalResearchTab() {
 
       {/* ── Design Principles ────────────────────────────────── */}
       <section>
-        <h3 className="mb-3 text-[14px] font-bold text-slate-800">Design Principles — Partial Data Handling</h3>
+        <h3 className="mb-3 text-[14px] font-bold text-slate-800">Design Principles — where partial-data rules apply</h3>
         <div className="space-y-2">
           {DESIGN_PRINCIPLES.map((p) => (
             <div key={p.number} className="rounded-xl border border-slate-200 bg-white px-4 py-3">
@@ -857,149 +794,42 @@ export default function ClinicalResearchTab() {
       <section>
         <h3 className="mb-1 text-[14px] font-bold text-slate-800">Reference Case — CKD Stage 5 (Ramesh Kumar, 76M)</h3>
         <p className="mb-3 text-[12px] text-slate-500">
-          This illustrative case demonstrates all three layers and partial data handling in a realistic multi-specialty context.
-          Select <strong>Ramesh Kumar</strong> in the patient selector to see this rendered live in the Dr.Agent panel.
+          Instead of explaining the reference layers with dummy blocks, this section maps the actual UI cards we have already built back to those layers. The layers are explanatory lenses that help teams understand the response system; the real implementation is the card system itself.
         </p>
 
-        {/* SBAR Layer */}
-        <div className="mb-4 rounded-xl border border-red-200 bg-white overflow-hidden">
-          <div className="bg-red-50 px-4 py-2 border-b border-red-200">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-red-600">Layer 1 — SBAR</span>
-          </div>
-          <div className="divide-y divide-red-100 px-4">
-            {/* S */}
-            <div className="py-2.5">
-              <span className="mr-2 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700">S</span>
-              <span className="text-[12px] text-slate-700">{CKD_SBAR.situation}</span>
-            </div>
-            {/* B */}
-            <div className="py-2.5">
-              <span className="mr-2 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700">B</span>
-              <div className="mt-1 space-y-1">
-                {CKD_SBAR.background.map((b, i) => (
-                  <p key={i} className="text-[12px] text-slate-600">{b}</p>
-                ))}
+        <div className="space-y-4">
+          {REFERENCE_LAYER_CARDS.map((group) => (
+            <div key={group.layer} className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+              <div className="border-b border-slate-100 bg-slate-50 px-4 py-3">
+                <h4 className="text-[13px] font-semibold text-slate-800">{group.layer}</h4>
+                <p className="mt-1 text-[11px] leading-relaxed text-slate-500">{group.note}</p>
               </div>
-            </div>
-            {/* A */}
-            <div className="py-2.5">
-              <span className="mr-2 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700">A</span>
-              <div className="mt-1 flex flex-wrap gap-1.5">
-                {CKD_SBAR.assessment.critical.map((c, i) => (
-                  <span key={i} className="rounded-md bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700 border border-red-200">{c}</span>
-                ))}
-                {CKD_SBAR.assessment.warning.map((w, i) => (
-                  <span key={i} className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 border border-amber-200">{w}</span>
-                ))}
-              </div>
-            </div>
-            {/* R */}
-            <div className="py-2.5">
-              <span className="mr-2 rounded bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700">R</span>
-              <p className="mt-0.5 mb-1.5 text-[10px] italic text-slate-400">AI-generated — clinician must verify before acting</p>
-              <div className="space-y-1.5">
-                {CKD_SBAR.recommendations.map((r, i) => (
-                  <div key={i} className="flex items-start gap-2">
-                    <span
-                      className="mt-0.5 shrink-0 rounded px-1.5 py-0 text-[9px] font-bold"
-                      style={{ backgroundColor: tierColors[r.tier].bg, color: tierColors[r.tier].text }}
-                    >
-                      {tierColors[r.tier].label}
-                    </span>
-                    <span className="text-[12px] text-slate-600">{r.text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* POMR Layer */}
-        <div className="mb-4 rounded-xl border border-blue-200 bg-white overflow-hidden">
-          <div className="bg-blue-50 px-4 py-2 border-b border-blue-200">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">Layer 2 — POMR (Per-Problem Cards)</span>
-          </div>
-          <div className="divide-y divide-blue-100 px-4 py-2">
-            {CKD_POMR_PROBLEMS.map((prob, pi) => (
-              <div key={pi} className="py-3">
-                <div className="mb-2 flex items-center gap-2">
-                  <span className="text-[13px] font-semibold text-slate-700">{prob.problem}</span>
-                  <span
-                    className="rounded-md px-1.5 py-0.5 text-[10px] font-semibold"
-                    style={{ backgroundColor: prob.statusColor + "15", color: prob.statusColor }}
-                  >
-                    {prob.status}
-                  </span>
-                </div>
-                {/* Completeness bar */}
-                <div className="mb-2 flex items-center gap-2">
-                  <div className="flex h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
-                    <div className="h-full rounded-l-full bg-emerald-400" style={{ width: `${prob.completeness.emr}%` }} />
-                    <div className="h-full bg-amber-400" style={{ width: `${prob.completeness.ai}%` }} />
-                    <div className="h-full rounded-r-full bg-gray-300" style={{ width: `${prob.completeness.missing}%` }} />
-                  </div>
-                  <span className="text-[10px] text-slate-400">
-                    {prob.completeness.emr}% EMR · {prob.completeness.ai}% AI · {prob.completeness.missing}% missing
-                  </span>
-                </div>
-                {/* Fields */}
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                  {prob.fields.map((f, fi) => (
-                    <div key={fi} className="flex items-center gap-1.5">
-                      <span
-                        className="h-[6px] w-[6px] shrink-0 rounded-full"
-                        style={{ backgroundColor: sourceColors[f.source].dot }}
-                      />
-                      <span className="text-[11px] text-slate-500">{f.label}</span>
-                      <span
-                        className={`text-[11px] font-medium ${
-                          f.flag === "critical" ? "text-red-600" :
-                          f.flag === "high" || f.flag === "low" ? "text-amber-600" :
-                          f.source === "not_available" ? "italic text-gray-400" :
-                          "text-slate-700"
-                        }`}
-                      >
-                        {f.value}
-                      </span>
+              <div className="grid gap-4 p-4 lg:grid-cols-2 xl:grid-cols-3">
+                {group.cards.map((item) => {
+                  const entry = findCatalogCard(item.kind)
+                  if (!entry) return null
+
+                  return (
+                    <div key={item.kind} className="space-y-2">
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{item.label}</p>
+                        <p className="mt-1 text-[10px] leading-[1.5] text-slate-600">{item.mapping}</p>
+                      </div>
+                      <div className="w-full max-w-[380px]">
+                        <CardRenderer
+                          output={entry.output}
+                          onPillTap={noop}
+                          onCopy={noop}
+                          onSidebarNav={noop}
+                        />
+                      </div>
                     </div>
-                  ))}
-                </div>
+                  )
+                })}
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Timeline Layer (brief) */}
-        <div className="rounded-xl border border-emerald-200 bg-white overflow-hidden">
-          <div className="bg-emerald-50 px-4 py-2 border-b border-emerald-200">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Layer 3 — Longitudinal Timeline</span>
-          </div>
-          <div className="px-4 py-3">
-            <p className="mb-2 text-[12px] text-slate-600">
-              eGFR trajectory over 12 months: <strong>18 → 16 → 14 → 11 mL/min</strong> (declining at 3.2 mL/min/year — expected: 1-2 mL/min in stable PD).
-            </p>
-            <div className="mb-2 flex items-center gap-3">
-              {[
-                { label: "Jun'25", value: "18", color: "#D97706" },
-                { label: "Sep'25", value: "16", color: "#D97706" },
-                { label: "Dec'25", value: "14", color: "#EF4444" },
-                { label: "Mar'26", value: "11", color: "#EF4444" },
-              ].map((point, i) => (
-                <div key={i} className="flex flex-col items-center">
-                  <span className="text-[14px] font-bold" style={{ color: point.color }}>{point.value}</span>
-                  <span className="text-[9px] text-slate-400">{point.label}</span>
-                </div>
-              ))}
-              <span className="text-[10px] text-slate-400">mL/min</span>
             </div>
-            <div className="rounded-md bg-red-50 px-3 py-2 border border-red-100">
-              <p className="text-[10px] font-semibold text-red-600">AI Trajectory Insight</p>
-              <p className="text-[11px] text-red-700">
-                Two fluid overload events in 6 months suggest declining residual renal function and/or inadequate ultrafiltration —
-                trajectory consistent with peritoneal membrane fatigue. Consider formal PET reassessment and cardiology co-management.
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
     </div>

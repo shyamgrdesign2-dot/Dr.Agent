@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowLeft2, Hospital, User, Activity, Microscope, Heart, Eye, Woman, DocumentText, Cpu, Brush2, ExportSquare, SearchNormal1 } from "iconsax-reactjs"
+import { ArrowLeft2, Hospital, User, Activity, Microscope, Heart, Eye, Woman, DocumentText, Cpu, Brush2, SearchNormal1 } from "iconsax-reactjs"
 import DesignSystemTab from "./DesignSystemTab"
 import PatientSummaryLogicTab from "./PatientSummaryLogicTab"
 import ClinicalResearchTab from "./ClinicalResearchTab"
@@ -568,7 +568,7 @@ export default function ScenariosPage() {
                 </span>
               </div>
               <p className="text-[12px] text-slate-500">
-                Demo scenarios, card catalog, summary generation logic, and UI design system &middot; Not for production or client-facing use
+                Origin case study, response system, patient summary logic, and card system spec &middot; Not for production or client-facing use
               </p>
             </div>
           </div>
@@ -577,10 +577,10 @@ export default function ScenariosPage() {
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <div className="flex gap-1">
               {([
-                { id: "clinical-research" as PageTab, label: "Clinical Research", icon: <SearchNormal1 size={14} variant="Bold" /> },
-                { id: "summary-logic" as PageTab, label: "Patient Summary Logic", icon: <DocumentText size={14} variant="Bold" /> },
-                { id: "intent-classification" as PageTab, label: "Response Management", icon: <Cpu size={14} variant="Bold" /> },
-                { id: "design-system" as PageTab, label: "Design System", icon: <Brush2 size={14} variant="Bold" /> },
+                { id: "clinical-research" as PageTab, label: "Origin Case Study", icon: <SearchNormal1 size={14} variant="Bold" /> },
+                { id: "intent-classification" as PageTab, label: "Response System", icon: <Cpu size={14} variant="Bold" /> },
+                { id: "summary-logic" as PageTab, label: "Patient Summary", icon: <DocumentText size={14} variant="Bold" /> },
+                { id: "design-system" as PageTab, label: "Card System & Spec", icon: <Brush2 size={14} variant="Bold" /> },
               ]).map(tab => (
                 <button
                   key={tab.id}
@@ -598,14 +598,6 @@ export default function ScenariosPage() {
               ))}
             </div>
             <div className="flex items-center gap-2">
-              <Link
-                href="/dr-agent-design-system"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-[12px] font-semibold text-violet-700 transition-colors hover:bg-violet-100"
-                target="_blank"
-              >
-                <ExportSquare size={14} variant="Bold" />
-                Full Design Spec
-              </Link>
               <button
                 type="button"
                 onClick={() => setActiveTab("scenarios")}

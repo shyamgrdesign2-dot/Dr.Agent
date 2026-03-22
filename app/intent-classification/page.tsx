@@ -7,6 +7,9 @@ import { ArrowUp2, Calendar2, Copy } from "iconsax-reactjs"
 import { CardCatalogLive, CATALOG, type CatalogEntry } from "@/app/tp-appointment-screen/scenarios/CardCatalogLive"
 import { CardRenderer } from "@/components/tp-rxpad/dr-agent/cards/CardRenderer"
 import { SectionTag, SECTION_TAG_ICON_MAP } from "@/components/tp-rxpad/dr-agent/cards/SectionTag"
+import { FeedbackRow } from "@/components/tp-rxpad/dr-agent/cards/FeedbackRow"
+import { DataCompletenessDonut } from "@/components/tp-rxpad/dr-agent/cards/DataCompletenessDonut"
+import { SourceInfoIcon } from "@/components/tp-rxpad/dr-agent/cards/CardShell"
 import { TPMedicalIcon } from "@/components/tp-ui"
 
 // ═══════════════════════════════════════════════════════════════
@@ -1368,6 +1371,149 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                   { text: "Cancel", tone: "red" },
                 ]}
               />
+            </div>
+          </div>
+        </section>
+
+        {/* ═══ THUMBS UP / DOWN ═══ */}
+        <section>
+          <h3 className="text-[16px] font-bold text-slate-800 mb-1">Thumbs Up / Thumbs Down</h3>
+          <p className="text-[11px] text-slate-500 mb-3">
+            Every AI response can carry a lightweight thumbs-up / thumbs-down feedback control in chat. This is not a card action. It is a response-quality signal that helps us understand whether the generated output actually satisfied the doctor.
+          </p>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+              <table className="min-w-full text-[11px]">
+                <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
+                  <th className="px-3 py-2 font-semibold w-28">Aspect</th>
+                  <th className="px-3 py-2 font-semibold">Guideline</th>
+                </tr></thead>
+                <tbody>
+                  <tr className="border-b border-slate-50">
+                    <td className="px-3 py-2 font-medium text-slate-700">Why</td>
+                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Collect quick CSAT / DSAT feedback on whether the response was useful, relevant, and satisfactory for the doctor.</td>
+                  </tr>
+                  <tr className="border-b border-slate-50">
+                    <td className="px-3 py-2 font-medium text-slate-700">Where</td>
+                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">In the chat response support row, outside the card body and outside the footer CTA zone.</td>
+                  </tr>
+                  <tr className="border-b border-slate-50">
+                    <td className="px-3 py-2 font-medium text-slate-700">When</td>
+                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Show on AI-generated responses where we want to learn whether the output quality is helping or not.</td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-2 font-medium text-slate-700">How</td>
+                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Keep it one-time, binary, and low-friction. It should never compete with primary response actions like copy, fill, or footer CTAs.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Live pattern</p>
+              <div className="flex items-center gap-3">
+                <FeedbackRow messageId="doc-ref-feedback-preview" />
+                <p className="text-[10px] text-slate-500">Quick response feedback to learn what is satisfying the user and what needs to improve.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══ DATA COMPLETENESS ═══ */}
+        <section>
+          <h3 className="text-[16px] font-bold text-slate-800 mb-1">Data Completeness Donut</h3>
+          <p className="text-[11px] text-slate-500 mb-3">
+            The completeness donut is a selective trust signal. We do not show it on every response card. We use it only on cards where there is a known expected data set and the doctor needs to judge how complete that structured view really is.
+          </p>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+              <table className="min-w-full text-[11px]">
+                <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
+                  <th className="px-3 py-2 font-semibold w-28">Aspect</th>
+                  <th className="px-3 py-2 font-semibold">Guideline</th>
+                </tr></thead>
+                <tbody>
+                  <tr className="border-b border-slate-50">
+                    <td className="px-3 py-2 font-medium text-slate-700">Where</td>
+                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Show in the card header metadata area using the headerExtra slot.</td>
+                  </tr>
+                  <tr className="border-b border-slate-50">
+                    <td className="px-3 py-2 font-medium text-slate-700">When</td>
+                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Use only on particular cards such as problem-oriented cards and similar structured views where completeness against an expected schema matters.</td>
+                  </tr>
+                  <tr className="border-b border-slate-50">
+                    <td className="px-3 py-2 font-medium text-slate-700">Why</td>
+                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Help the doctor quickly judge whether the card is largely EMR-backed, partially extracted, or missing meaningful expected inputs.</td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-2 font-medium text-slate-700">Do not show</td>
+                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Avoid it on free-form or flexible cards that simply display whatever data is available, because there is no fixed completeness expectation there.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="space-y-3">
+              <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Live pattern</p>
+                <div className="flex items-center gap-3">
+                  <DataCompletenessDonut emr={60} ai={25} missing={15} />
+                  <p className="text-[10px] text-slate-500">Best suited for POMR / fixed-structure cards where missingness itself is clinically informative.</p>
+                </div>
+              </div>
+              <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+                <p className="text-[11px] font-semibold text-blue-800 mb-2">Implementation note</p>
+                <p className="text-[10px] leading-[1.55] text-blue-700">
+                  In the current system, this pattern should be treated as an exception-based trust signal, not a default badge for all cards.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══ SOURCE ICON ═══ */}
+        <section>
+          <h3 className="text-[16px] font-bold text-slate-800 mb-1">Source Icon</h3>
+          <p className="text-[11px] text-slate-500 mb-3">
+            The source icon is a trust and provenance cue. It tells the doctor that the response is backed by identifiable source data and helps explain from where the generated response was derived.
+          </p>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+              <table className="min-w-full text-[11px]">
+                <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
+                  <th className="px-3 py-2 font-semibold w-28">Aspect</th>
+                  <th className="px-3 py-2 font-semibold">Guideline</th>
+                </tr></thead>
+                <tbody>
+                  <tr className="border-b border-slate-50">
+                    <td className="px-3 py-2 font-medium text-slate-700">Why</td>
+                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Build trust and show the doctor which source contributed to the generated response.</td>
+                  </tr>
+                  <tr className="border-b border-slate-50">
+                    <td className="px-3 py-2 font-medium text-slate-700">When</td>
+                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Show on AI-generated responses where provenance matters and where the user may want to understand the backing source.</td>
+                  </tr>
+                  <tr className="border-b border-slate-50">
+                    <td className="px-3 py-2 font-medium text-slate-700">Where</td>
+                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Keep it in the response support/meta area, not inside the footer CTA row.</td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-2 font-medium text-slate-700">How</td>
+                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Use a compact icon with a tooltip, popover, or source detail rather than a heavy inline explanation.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Live pattern</p>
+              <div className="flex items-center gap-3">
+                <SourceInfoIcon sources={["EMR Records", "Lab Reports", "Uploaded Documents"]} />
+                <p className="text-[10px] text-slate-500">A compact provenance cue to explain where the AI-generated response is coming from.</p>
+              </div>
             </div>
           </div>
         </section>

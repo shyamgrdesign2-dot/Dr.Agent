@@ -8,7 +8,7 @@ import { TPMedicalIcon } from "@/components/tp-ui"
 import { Copy, ArrowDown2, ArrowUp2, InfoCircle } from "iconsax-reactjs"
 
 /** Small info icon with hover tooltip showing data sources */
-function SourceInfoIcon({ sources }: { sources: string[] }) {
+export function SourceInfoIcon({ sources }: { sources: string[] }) {
   const [isHovered, setIsHovered] = useState(false)
 
   return (
