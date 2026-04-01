@@ -90,7 +90,7 @@ export function AiTriggerIcon({
           <div
             ref={tooltipRef}
             role="tooltip"
-            className="fixed z-[9999] rounded-[6px] bg-tp-slate-800 px-[10px] py-[6px] text-[13px] leading-[1.4] text-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] select-none"
+            className="fixed z-[9999] rounded-[6px] bg-tp-slate-800 px-[10px] py-[6px] text-[14px] leading-[1.4] text-white shadow-[0_4px_12px_rgba(0,0,0,0.15)] select-none"
             style={
               pos
                 ? { top: pos.top, left: pos.left, maxWidth: 240, opacity: 1, transition: "opacity 120ms ease-out" }

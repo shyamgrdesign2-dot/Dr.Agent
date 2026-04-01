@@ -279,7 +279,7 @@ export function WelcomeScreen({
         {greeting}, {displayName}!
       </h2>
       {/* Subtitle — 13px with relaxed line height */}
-      <p className="relative z-[1] mt-[4px] text-[13px] text-center leading-[18px]" style={{ color: "#A2A2A8" }}>
+      <p className="relative z-[1] mt-[4px] text-[14px] text-center leading-[18px]" style={{ color: "#A2A2A8" }}>
         {isPatientContext && patientName
           ? <>What would you like to know about patient <span className="font-semibold" style={{ color: "#6B7280" }}>{patientName.split(" ")[0]}</span> today?</>
           : "What can I assist you with today?"
@@ -314,7 +314,7 @@ export function WelcomeScreen({
             </span>
 
             {/* Title — 13px semibold */}
-            <span className="relative z-[1] text-[13px] font-semibold leading-[17px]" style={{ color: "#454551" }}>
+            <span className="relative z-[1] text-[14px] font-semibold leading-[17px]" style={{ color: "#454551" }}>
               {action.title}
             </span>
 

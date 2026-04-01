@@ -58,7 +58,7 @@ export function AttachPanel({ onSelect, onClose }: AttachPanelProps) {
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-tp-slate-100 px-[12px] py-[6px]">
-        <span className="text-[13px] font-semibold text-tp-slate-600">Select a document to upload</span>
+        <span className="text-[14px] font-semibold text-tp-slate-600">Select a document to upload</span>
         <button
           type="button"
           onClick={onClose}
@@ -91,7 +91,7 @@ export function AttachPanel({ onSelect, onClose }: AttachPanelProps) {
 
             {/* File info */}
             <div className="flex min-w-0 flex-1 flex-col">
-              <span className="truncate text-[13px] font-medium text-tp-slate-700">{file.name}</span>
+              <span className="truncate text-[14px] font-medium text-tp-slate-700">{file.name}</span>
               <span className="text-[11px] text-tp-slate-400">{file.pages} {file.pages === 1 ? "page" : "pages"} &middot; {file.size}</span>
             </div>
 
