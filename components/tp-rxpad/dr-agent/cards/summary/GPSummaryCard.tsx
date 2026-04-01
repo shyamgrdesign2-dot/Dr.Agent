@@ -649,7 +649,7 @@ export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed,
         {/* Clinical narrative — compact patient snapshot (hidden when detailed summary is triggered) */}
         {!hideNarrative && narrativeParts && narrativeParts.length > 0 && (
           <div className="rounded-[8px] bg-tp-slate-50 border-l-[3px] border-tp-violet-300 px-3 py-2">
-            <p className="text-[16px] italic leading-[1.7] text-tp-slate-500">
+            <p className="text-[14px] italic leading-[1.7] text-tp-slate-500">
               &ldquo;{narrativeParts}&rdquo;
             </p>
           </div>

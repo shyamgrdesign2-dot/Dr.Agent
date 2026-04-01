@@ -68,7 +68,7 @@ export function PediatricSummaryCard({ data, onSidebarNav }: PediatricSummaryCar
         )}
 
         {/* Vaccines — plain text format: Pending: 2 | Overdue: 1 (names) */}
-        <div className="text-[16px] leading-[1.7] px-[3px] -mx-[3px]">
+        <div className="text-[14px] leading-[1.7] px-[3px] -mx-[3px]">
           <SectionTag label="Vaccines" icon="injection" onClick={() => onSidebarNav?.("vaccine")} />{" "}
           {isUpToDate ? (
             <span className="text-tp-slate-700">Up to date</span>

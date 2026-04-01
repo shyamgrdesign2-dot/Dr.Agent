@@ -38,7 +38,7 @@ export function RevenueBarCard({ data, onPillTap }: Props) {
       {/* Summary chips */}
       <div className="mb-[10px] grid grid-cols-2 gap-[6px]">
         <div className="rounded-[8px] bg-tp-slate-50 px-[8px] py-[7px]">
-          <span className="block truncate text-[16px] font-semibold leading-tight text-tp-slate-800">
+          <span className="block truncate text-[14px] font-semibold leading-tight text-tp-slate-800">
             &#x20B9;{data.totalRevenue.toLocaleString("en-IN")}
           </span>
           <span className="mt-[3px] block text-[12px] font-medium text-tp-slate-500">
@@ -46,7 +46,7 @@ export function RevenueBarCard({ data, onPillTap }: Props) {
           </span>
         </div>
         <div className="rounded-[8px] px-[8px] py-[7px]" style={{ backgroundColor: isDepositMode ? "rgba(239,68,68,0.08)" : "rgba(34,197,94,0.08)" }}>
-          <span className="block truncate text-[16px] font-semibold leading-tight" style={{ color: isDepositMode ? "var(--tp-error-600, #DC2626)" : "var(--tp-success-600, #16A34A)" }}>
+          <span className="block truncate text-[14px] font-semibold leading-tight" style={{ color: isDepositMode ? "var(--tp-error-600, #DC2626)" : "var(--tp-success-600, #16A34A)" }}>
             &#x20B9;{isDepositMode ? data.totalRefunded.toLocaleString("en-IN") : data.totalPaid.toLocaleString("en-IN")}
           </span>
           <span className="mt-[3px] block text-[12px] font-medium" style={{ color: isDepositMode ? "var(--tp-error-500, #EF4444)" : "var(--tp-success-500, #22C55E)" }}>
@@ -54,7 +54,7 @@ export function RevenueBarCard({ data, onPillTap }: Props) {
           </span>
         </div>
         <div className="rounded-[8px] px-[8px] py-[7px]" style={{ backgroundColor: "rgba(245,158,11,0.08)" }}>
-          <span className="block truncate text-[16px] font-semibold leading-tight" style={{ color: "var(--tp-warning-600, #D97706)" }}>
+          <span className="block truncate text-[14px] font-semibold leading-tight" style={{ color: "var(--tp-warning-600, #D97706)" }}>
             &#x20B9;{data.totalDue.toLocaleString("en-IN")}
           </span>
           <span className="mt-[3px] block text-[12px] font-medium" style={{ color: "var(--tp-warning-500, #F59E0B)" }}>
@@ -63,7 +63,7 @@ export function RevenueBarCard({ data, onPillTap }: Props) {
         </div>
         {!isDepositMode && (
           <div className="rounded-[8px] px-[8px] py-[7px]" style={{ backgroundColor: "rgba(239,68,68,0.08)" }}>
-            <span className="block truncate text-[16px] font-semibold leading-tight" style={{ color: "var(--tp-error-600, #DC2626)" }}>
+            <span className="block truncate text-[14px] font-semibold leading-tight" style={{ color: "var(--tp-error-600, #DC2626)" }}>
               &#x20B9;{data.totalRefunded.toLocaleString("en-IN")}
             </span>
             <span className="mt-[3px] block text-[12px] font-medium" style={{ color: "var(--tp-error-500, #EF4444)" }}>

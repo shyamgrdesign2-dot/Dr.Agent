@@ -59,7 +59,7 @@ export function LabPanelCard({ data, onPillTap, onSidebarNav }: LabPanelCardProp
             <div
               key={item.name}
               className={cn(
-                "grid grid-cols-3 gap-[1px] px-[8px] py-[6px] text-[16px]",
+                "grid grid-cols-3 gap-[1px] px-[8px] py-[6px] text-[14px]",
                 i % 2 === 0 ? "bg-white" : "bg-tp-slate-50",
               )}
             >

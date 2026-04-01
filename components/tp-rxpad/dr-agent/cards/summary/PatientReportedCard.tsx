@@ -380,7 +380,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed,
         {/* Quick snapshot — quotation-style block */}
         {showSnapshot && (
           <div className="rounded-[8px] bg-tp-slate-50 border-l-[3px] border-tp-violet-300 px-3 py-2">
-            <p className="text-[16px] italic leading-[1.7] text-tp-slate-500">
+            <p className="text-[14px] italic leading-[1.7] text-tp-slate-500">
               &ldquo;{snapshotParts}&rdquo;
             </p>
           </div>
@@ -401,7 +401,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed,
                   color="var(--tp-slate-500, #64748B)"
                 />
               )}
-              <span className="flex-1 text-[16px] font-semibold text-tp-slate-600">
+              <span className="flex-1 text-[14px] font-semibold text-tp-slate-600">
                 {section.title}
               </span>
               <span className="opacity-0 group-hover/section-header:opacity-100 transition-opacity">
@@ -422,7 +422,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed,
                 return (
                   <li
                     key={idx}
-                    className="group/reported-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[2px] text-[16px] leading-[1.6] text-tp-slate-700 transition-colors hover:bg-tp-slate-50/80"
+                    className="group/reported-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[2px] text-[14px] leading-[1.6] text-tp-slate-700 transition-colors hover:bg-tp-slate-50/80"
                   >
                     <span className="mt-[1px] flex-shrink-0 text-tp-slate-400">
                       •

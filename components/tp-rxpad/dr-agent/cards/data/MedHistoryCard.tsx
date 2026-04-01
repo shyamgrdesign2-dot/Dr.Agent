@@ -54,7 +54,7 @@ export function MedHistoryCard({ data, onPillTap }: MedHistoryCardProps) {
           >
             {/* Drug info */}
             <div className="min-w-0 flex-1">
-              <div className="text-[16px]">
+              <div className="text-[14px]">
                 <span className="font-semibold text-tp-slate-800">
                   {entry.drug}
                 </span>

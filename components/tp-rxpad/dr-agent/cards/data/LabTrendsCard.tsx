@@ -196,7 +196,7 @@ export function LabTrendsCard({ data, onPillTap }: LabTrendsCardProps) {
           )}
         </>
       ) : (
-        <div className="py-4 text-center text-[16px] text-tp-slate-400">No lab data available for charting.</div>
+        <div className="py-4 text-center text-[14px] text-tp-slate-400">No lab data available for charting.</div>
       )}
     </CardShell>
   )

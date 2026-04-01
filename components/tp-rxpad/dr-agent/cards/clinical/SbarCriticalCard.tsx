@@ -28,14 +28,14 @@ export function SbarCriticalCard({ data }: SbarCriticalCardProps) {
       <div className="flex flex-col gap-[8px]">
         {/* Situation — violet-bordered narrative (consistent with GPSummaryCard) */}
         <div className="rounded-[8px] bg-tp-slate-50 border-l-[3px] border-tp-violet-300 px-3 py-2">
-          <p className="text-[16px] italic leading-[1.7] text-tp-slate-500">
+          <p className="text-[14px] italic leading-[1.7] text-tp-slate-500">
             &ldquo;{highlightClinicalText(data.situation)}&rdquo;
           </p>
         </div>
 
         {/* Current Symptoms — inline with SectionTag */}
         {data.activeProblems.length > 0 && (
-          <div className="text-[16px] leading-[1.8] text-tp-slate-800">
+          <div className="text-[14px] leading-[1.8] text-tp-slate-800">
             <SectionTag label="Current Symptoms" icon="clipboard-activity" />{" "}
             <span className="text-tp-slate-700">
               {data.activeProblems.join(", ")}
@@ -45,7 +45,7 @@ export function SbarCriticalCard({ data }: SbarCriticalCardProps) {
 
         {/* Allergies — inline with SectionTag */}
         {data.allergies.length > 0 && (
-          <div className="text-[16px] leading-[1.8]">
+          <div className="text-[14px] leading-[1.8]">
             <SectionTag label="Allergies" icon="shield-cross" />{" "}
             <span className="text-tp-slate-700">{data.allergies.join(", ")}</span>
           </div>
@@ -53,7 +53,7 @@ export function SbarCriticalCard({ data }: SbarCriticalCardProps) {
 
         {/* Key Medications — inline with SectionTag, regular text */}
         {data.keyMeds.length > 0 && (
-          <div className="text-[16px] leading-[1.8] text-tp-slate-800">
+          <div className="text-[14px] leading-[1.8] text-tp-slate-800">
             <SectionTag label="Key Medications" icon={SECTION_TAG_ICON_MAP["Medications"]} />{" "}
             <span className="text-tp-slate-700">
               {data.keyMeds.slice(0, 8).join(", ")}

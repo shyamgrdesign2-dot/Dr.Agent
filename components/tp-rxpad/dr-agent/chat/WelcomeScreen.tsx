@@ -275,7 +275,7 @@ export function WelcomeScreen({
       </div>
 
       {/* Greeting — 15px semibold */}
-      <h2 className="relative z-[1] text-[15px] font-semibold text-tp-slate-800 text-center leading-[20px]">
+      <h2 className="relative z-[1] text-[14px] font-semibold text-tp-slate-800 text-center leading-[20px]">
         {greeting}, {displayName}!
       </h2>
       {/* Subtitle — 13px with relaxed line height */}

@@ -219,7 +219,7 @@ function RecordingTimer({ isPaused }: { isPaused: boolean }) {
   const ss = String(elapsed % 60).padStart(2, "0")
 
   return (
-    <span className="text-[15px] font-medium tabular-nums text-tp-slate-500">
+    <span className="text-[14px] font-medium tabular-nums text-tp-slate-500">
       {mm}:{ss}
     </span>
   )
@@ -403,7 +403,7 @@ export function ChatInput({
               )}
             />
             {isPaused ? (
-              <span className="text-[15px] text-tp-slate-400">Paused</span>
+              <span className="text-[14px] text-tp-slate-400">Paused</span>
             ) : (
               <WaveAnimation />
             )}

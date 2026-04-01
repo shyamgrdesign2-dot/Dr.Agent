@@ -57,7 +57,7 @@ export function VoiceStructuredRxCard({ data, onCopy }: VoiceStructuredRxCardPro
         </button>
 
         {showOriginal && (
-          <p className="text-[16px] italic leading-[1.7] text-tp-slate-400 bg-tp-slate-50 rounded-[6px] px-[8px] py-[6px]">
+          <p className="text-[14px] italic leading-[1.7] text-tp-slate-400 bg-tp-slate-50 rounded-[6px] px-[8px] py-[6px]">
             &ldquo;{data.voiceText}&rdquo;
           </p>
         )}
@@ -73,7 +73,7 @@ export function VoiceStructuredRxCard({ data, onCopy }: VoiceStructuredRxCardPro
                 size={12}
                 color="var(--tp-slate-500, #64748B)"
               />
-              <span className="flex-1 text-[16px] font-semibold text-tp-slate-600">
+              <span className="flex-1 text-[14px] font-semibold text-tp-slate-600">
                 {section.title}
               </span>
               <span className="opacity-0 group-hover/section-header:opacity-100 transition-opacity">
@@ -93,7 +93,7 @@ export function VoiceStructuredRxCard({ data, onCopy }: VoiceStructuredRxCardPro
                 return (
                   <li
                     key={idx}
-                    className="group/voice-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[2px] text-[16px] leading-[1.6] text-tp-slate-700 transition-colors hover:bg-tp-slate-50/80"
+                    className="group/voice-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[2px] text-[14px] leading-[1.6] text-tp-slate-700 transition-colors hover:bg-tp-slate-50/80"
                   >
                     <span className="mt-[1px] flex-shrink-0 text-tp-slate-400">
                       •

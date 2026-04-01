@@ -75,7 +75,7 @@ export function PomrProblemCard({ data, onPillTap, onOpenDocument }: PomrProblem
       <div className="flex flex-col gap-[8px]">
         {/* Labs — inline with SectionTag (same line, like InlineDataRow pattern) */}
         {data.labs.length > 0 && (
-          <div className="text-[16px] leading-[1.8] text-tp-slate-800">
+          <div className="text-[14px] leading-[1.8] text-tp-slate-800">
             <SectionTag label="Key Labs" icon={SECTION_TAG_ICON_MAP["Key Labs"]} />{" "}
             {data.labs.map((lab, i) => (
               <span key={lab.name}>
@@ -95,7 +95,7 @@ export function PomrProblemCard({ data, onPillTap, onOpenDocument }: PomrProblem
 
         {/* Medications — inline with SectionTag, regular text (not tags) */}
         {data.meds.length > 0 && (
-          <div className="text-[16px] leading-[1.8] text-tp-slate-800">
+          <div className="text-[14px] leading-[1.8] text-tp-slate-800">
             <SectionTag label="Current Medications" icon={SECTION_TAG_ICON_MAP["Current Medications"]} />{" "}
             {data.meds.map((med, i) => (
               <React.Fragment key={i}>
@@ -119,7 +119,7 @@ export function PomrProblemCard({ data, onPillTap, onOpenDocument }: PomrProblem
               {data.missingFields.map((mf, i) => (
                 <div
                   key={i}
-                  className="flex items-start gap-[6px] text-[16px]"
+                  className="flex items-start gap-[6px] text-[14px]"
                 >
                   <span className="mt-[1px] flex-shrink-0 text-[14px] text-amber-500">{"\u25CF"}</span>
                   <div className="min-w-0">

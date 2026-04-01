@@ -29,13 +29,13 @@ function Section({ label, items }: { label: string; items: string[] }) {
             color="var(--tp-slate-500, #64748B)"
           />
         )}
-        <span className="flex-1 text-[16px] font-semibold text-tp-slate-600">
+        <span className="flex-1 text-[14px] font-semibold text-tp-slate-600">
           {label}
         </span>
       </div>
       <ul className="flex flex-col gap-[2px] pl-1">
         {items.map((item, i) => (
-          <li key={i} className="flex items-start gap-[6px] px-1 py-[2px] text-[16px] leading-[1.6] text-tp-slate-700">
+          <li key={i} className="flex items-start gap-[6px] px-1 py-[2px] text-[14px] leading-[1.6] text-tp-slate-700">
             <span className="mt-[1px] flex-shrink-0 text-tp-slate-400">•</span>
             <span className="flex-1">{formatWithHierarchy(item)}</span>
           </li>
@@ -61,7 +61,7 @@ export function RxPreviewCard({ data, onPillTap }: Props) {
       }
     >
       {/* Patient */}
-      <div className="mb-[8px] rounded-[6px] bg-tp-slate-50 px-2.5 py-[4px] text-[16px]">
+      <div className="mb-[8px] rounded-[6px] bg-tp-slate-50 px-2.5 py-[4px] text-[14px]">
         <span className="font-medium text-tp-slate-600">Patient:</span>{" "}
         <span className="text-tp-slate-800">{data.patientName}</span>
       </div>
@@ -80,11 +80,11 @@ export function RxPreviewCard({ data, onPillTap }: Props) {
               size={12}
               color="var(--tp-slate-500, #64748B)"
             />
-            <span className="flex-1 text-[16px] font-semibold text-tp-slate-600">
+            <span className="flex-1 text-[14px] font-semibold text-tp-slate-600">
               Follow-up
             </span>
           </div>
-          <p className="text-[16px] leading-[1.6] pl-[10px]">{formatWithHierarchy(data.followUp)}</p>
+          <p className="text-[14px] leading-[1.6] pl-[10px]">{formatWithHierarchy(data.followUp)}</p>
         </div>
       )}
     </CardShell>

@@ -56,7 +56,7 @@ export function PatientTimelineCard({ data, onSidebarNav }: Props) {
                   >
                     {event.type}
                   </span>
-                  <span className="text-[16px] leading-[1.6] text-tp-slate-700">{event.summary}</span>
+                  <span className="text-[14px] leading-[1.6] text-tp-slate-700">{event.summary}</span>
                 </div>
               </div>
             </div>

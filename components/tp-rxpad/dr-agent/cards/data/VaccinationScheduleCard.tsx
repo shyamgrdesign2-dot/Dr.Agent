@@ -78,7 +78,7 @@ export function VaccinationScheduleCard({ data, onSidebarNav, onPillTap }: Props
               {/* Left: Patient + Vaccine info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-[6px]">
-                  <span className="text-[16px] font-medium text-tp-slate-800 truncate">
+                  <span className="text-[14px] font-medium text-tp-slate-800 truncate">
                     {vax.patientName}
                   </span>
                   <span

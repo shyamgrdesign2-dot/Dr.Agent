@@ -34,11 +34,11 @@ export function FollowUpRateCard({ data }: Props) {
       <div className="grid grid-cols-2 gap-[6px]">
         <div className="rounded-[8px] bg-tp-blue-50/60 px-[8px] py-[7px]">
           <p className="text-[12px] text-tp-blue-500">Current follow-up rate</p>
-          <p className="text-[16px] font-semibold text-tp-blue-700">{data.currentRate}%</p>
+          <p className="text-[14px] font-semibold text-tp-blue-700">{data.currentRate}%</p>
         </div>
         <div className="rounded-[8px] bg-tp-slate-50 px-[8px] py-[7px]">
           <p className="text-[12px] text-tp-slate-500">Change vs last week</p>
-          <p className={`text-[16px] font-semibold ${deltaTone}`}>{delta >= 0 ? "+" : ""}{delta}%</p>
+          <p className={`text-[14px] font-semibold ${deltaTone}`}>{delta >= 0 ? "+" : ""}{delta}%</p>
         </div>
       </div>
 

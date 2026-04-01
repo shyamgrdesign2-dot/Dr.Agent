@@ -63,7 +63,7 @@ export function PillBar({ pills, onTap, disabled = false, className }: PillBarPr
             onMouseLeave={() => setHoveredId(null)}
             disabled={isDisabled}
             className={cn(
-              "flex h-[26px] shrink-0 items-center rounded-full px-[14px] text-[15px] font-normal transition-all whitespace-nowrap",
+              "flex h-[26px] shrink-0 items-center rounded-full px-[14px] text-[14px] font-normal transition-all whitespace-nowrap",
               isDisabled && "opacity-50",
               pill.force && !isDisabled && "animate-pulse",
             )}

@@ -729,7 +729,7 @@ export function ChatBubble({
             </div>
           )}
           {message.text && (
-          <div className="rounded-[12px] rounded-br-[0px] bg-tp-slate-100 px-3 py-2 text-[16px] leading-[18px] text-tp-slate-700">
+          <div className="rounded-[12px] rounded-br-[0px] bg-tp-slate-100 px-3 py-2 text-[14px] leading-[18px] text-tp-slate-700">
               <p className="whitespace-pre-wrap">{message.text}</p>
           </div>
           )}
@@ -768,7 +768,7 @@ export function ChatBubble({
             </AiGradientBg>
 
             {/* Plain text with streaming reveal */}
-            <p className="text-[16px] leading-[18px] text-tp-slate-700 whitespace-pre-wrap break-words">
+            <p className="text-[14px] leading-[18px] text-tp-slate-700 whitespace-pre-wrap break-words">
               {renderAssistantMarkdown(shouldStream ? displayText : message.text, onPillTap)}
               {shouldStream && !textDone && <span className="inline-block w-[2px] h-[14px] bg-tp-violet-400 ml-[1px] align-middle animate-pulse" />}
             </p>

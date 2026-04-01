@@ -53,7 +53,7 @@ export function AdviceCard({ data, onCopy, onPillTap }: AdviceCardProps) {
         {data.items.map((item, i) => (
           <li
             key={i}
-            className="group/advice-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[3px] text-[16px] leading-[1.6] text-tp-slate-700 transition-colors hover:bg-tp-slate-50"
+            className="group/advice-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[3px] text-[14px] leading-[1.6] text-tp-slate-700 transition-colors hover:bg-tp-slate-50"
           >
             <span className="mt-[1px] flex-shrink-0 text-tp-slate-400">•</span>
             <span className="flex-1">{item}</span>

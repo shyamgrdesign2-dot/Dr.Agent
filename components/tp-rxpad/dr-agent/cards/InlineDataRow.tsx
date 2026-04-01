@@ -261,7 +261,7 @@ export function InlineDataRow({
   return (
     <div
       className={cn(
-        "relative rounded-[4px] px-[3px] -mx-[3px] text-[16px] leading-[1.7] text-tp-slate-800 transition-colors",
+        "relative rounded-[4px] px-[3px] -mx-[3px] text-[14px] leading-[1.7] text-tp-slate-800 transition-colors",
         showCopy
           ? "group/section pr-[20px] hover:bg-tp-slate-50/80"
           : "",

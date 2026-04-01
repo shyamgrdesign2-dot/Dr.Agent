@@ -77,7 +77,7 @@ export function OCRFullExtractionCard({
                   size={12}
                   color="var(--tp-slate-500, #64748B)"
                 />
-                <span className="flex-1 text-[16px] font-semibold text-tp-slate-600">
+                <span className="flex-1 text-[14px] font-semibold text-tp-slate-600">
                   {section.heading}
                 </span>
                 <span className="opacity-0 group-hover/section-header:opacity-100 transition-opacity">
@@ -101,7 +101,7 @@ export function OCRFullExtractionCard({
                   return (
                     <li
                       key={idx}
-                      className="group/ocr-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[2px] text-[16px] leading-[1.6] text-tp-slate-700 transition-colors hover:bg-tp-slate-50/80"
+                      className="group/ocr-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[2px] text-[14px] leading-[1.6] text-tp-slate-700 transition-colors hover:bg-tp-slate-50/80"
                     >
                       <span className="mt-[1px] flex-shrink-0 text-tp-slate-400">
                         •

@@ -39,7 +39,7 @@ export function AllergyConflictCard({
       }
     >
       {/* Drug → Allergen */}
-      <div className="mb-2 text-[16px] font-semibold text-tp-error-700">
+      <div className="mb-2 text-[14px] font-semibold text-tp-error-700">
         {data.drug} → {data.allergen}
       </div>
 
@@ -51,7 +51,7 @@ export function AllergyConflictCard({
       </div>
 
       {/* Alternative suggestion */}
-      <div className="mt-1 rounded-[6px] bg-tp-slate-50 px-2 py-[5px] text-[16px] leading-[1.55] text-tp-slate-600">
+      <div className="mt-1 rounded-[6px] bg-tp-slate-50 px-2 py-[5px] text-[14px] leading-[1.55] text-tp-slate-600">
         <strong className="text-tp-slate-800">
           Alternative:
         </strong>{" "}

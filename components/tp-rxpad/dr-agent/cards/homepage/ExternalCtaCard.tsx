@@ -30,7 +30,7 @@ export function ExternalCtaCard({ data }: Props) {
       }
     >
       <div className="rounded-[10px] border border-tp-slate-100 bg-tp-slate-50/60 px-[8px] py-[7px]">
-        <p className="text-[16px] leading-[1.5] text-tp-slate-600">{data.description}</p>
+        <p className="text-[14px] leading-[1.5] text-tp-slate-600">{data.description}</p>
       </div>
     </CardShell>
   )

@@ -139,7 +139,7 @@ export function DocumentBottomSheet({
             <div className="flex h-full flex-col items-center justify-center px-[24px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/icons/dr-agent/empty-docs.svg" width={100} height={100} alt="" className="mb-[16px] opacity-60" draggable={false} />
-              <h4 className="text-[15px] font-semibold text-tp-slate-600 mb-[4px]">No Medical Records</h4>
+              <h4 className="text-[14px] font-semibold text-tp-slate-600 mb-[4px]">No Medical Records</h4>
               <p className="text-[13px] text-tp-slate-400 text-center leading-[16px] mb-[16px]" style={{ maxWidth: 220 }}>
                 {patientFirstName
                   ? `No medical records have been added for ${patientFirstName}. Upload one to get started.`

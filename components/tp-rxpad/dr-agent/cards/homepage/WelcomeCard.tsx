@@ -46,7 +46,7 @@ export function WelcomeCard({ data, onPillTap }: Props) {
               {STAT_ICONS[stat.label] ?? <People size={14} variant="Bulk" />}
             </div>
             <div className="min-w-0">
-              <span className="block text-[16px] font-semibold leading-none text-tp-slate-700">
+              <span className="block text-[14px] font-semibold leading-none text-tp-slate-700">
                 {stat.value}
               </span>
               <span className="block text-[12px] font-medium leading-[1.4] text-tp-slate-400">

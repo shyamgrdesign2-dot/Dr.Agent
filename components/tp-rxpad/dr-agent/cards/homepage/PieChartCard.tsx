@@ -27,7 +27,7 @@ export function PieChartCard({ data, onPillTap }: Props) {
           <div className="relative flex-shrink-0">
             <div className="h-[90px] w-[90px] rounded-full" style={{ background: `conic-gradient(${stops})` }} />
             <div className="absolute inset-[22px] flex flex-col items-center justify-center rounded-full bg-white">
-              <span className="text-[16px] font-semibold text-tp-slate-800">{data.total}</span>
+              <span className="text-[14px] font-semibold text-tp-slate-800">{data.total}</span>
               <span className="text-[7px] text-tp-slate-400">{data.centerLabel}</span>
             </div>
           </div>

@@ -66,7 +66,7 @@ export function LabComparisonCard({ data }: LabComparisonCardProps) {
           <div
             key={row.parameter}
             className={cn(
-              "grid grid-cols-4 gap-[1px] px-[8px] py-[7px] text-[16px]",
+              "grid grid-cols-4 gap-[1px] px-[8px] py-[7px] text-[14px]",
               i % 2 === 0 ? "bg-white" : "bg-tp-slate-50",
             )}
           >

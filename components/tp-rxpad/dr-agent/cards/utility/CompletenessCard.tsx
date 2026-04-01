@@ -48,7 +48,7 @@ export function CompletenessCard({ data, onPillTap }: CompletenessCardProps) {
             {/* Section name */}
             <span
               className={cn(
-                "flex-1 text-[16px]",
+                "flex-1 text-[14px]",
                 section.filled
                   ? "text-tp-slate-600"
                   : "font-medium text-tp-slate-500"

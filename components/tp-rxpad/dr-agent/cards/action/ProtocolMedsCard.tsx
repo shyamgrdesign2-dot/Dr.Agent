@@ -37,7 +37,7 @@ export function ProtocolMedsCard({
       dataSources={["AI-Generated", "Clinical Guidelines"]}
     >
       {/* Diagnosis context */}
-      <div className="mb-2 rounded-[6px] bg-tp-slate-50 px-2.5 py-[4px] text-[16px] text-tp-slate-500">
+      <div className="mb-2 rounded-[6px] bg-tp-slate-50 px-2.5 py-[4px] text-[14px] text-tp-slate-500">
         <span className="font-medium text-tp-slate-600">For:</span>{" "}
         {data.diagnosis}
       </div>
@@ -45,7 +45,7 @@ export function ProtocolMedsCard({
       {/* Safety check line */}
       <div
         className={cn(
-          "mb-2 flex items-center gap-1 text-[16px] font-medium",
+          "mb-2 flex items-center gap-1 text-[14px] font-medium",
           isSafe ? "text-tp-success-600" : "text-tp-warning-600"
         )}
       >
@@ -65,7 +65,7 @@ export function ProtocolMedsCard({
           >
             {/* Med details */}
             <div className="min-w-0 flex-1">
-              <div className="text-[16px]">
+              <div className="text-[14px]">
                 <strong className="font-medium text-tp-slate-800">
                   {med.name}
                 </strong>

@@ -216,7 +216,7 @@ export function DDXCard({ data, onAccept, onCopyToDiagnosis, onCopyToRxPad, onSe
                       color={cfg.checkColor}
                       onChange={(checked) => handleToggle(opt.name, checked)}
                     />
-                    <span className="text-[16px] text-tp-slate-800">{opt.name}</span>
+                    <span className="text-[14px] text-tp-slate-800">{opt.name}</span>
                   </label>
                 ))}
               </div>

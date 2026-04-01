@@ -39,7 +39,7 @@ export function DrugInteractionCard({ data }: DrugInteractionCardProps) {
         }}
       >
         {/* Drug pair */}
-        <div className="flex items-center gap-[6px] text-[16px] font-semibold text-tp-slate-800">
+        <div className="flex items-center gap-[6px] text-[14px] font-semibold text-tp-slate-800">
           <span>{data.drug1}</span>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="flex-shrink-0 text-tp-warning-500">
             <path d="M8 2L9.5 6H14L10.5 9L12 13L8 10.5L4 13L5.5 9L2 6H6.5L8 2Z" fill="currentColor" />
@@ -61,13 +61,13 @@ export function DrugInteractionCard({ data }: DrugInteractionCardProps) {
         {/* Risk */}
         <div>
           <p className="mb-[2px] text-[14px] font-medium uppercase tracking-wider text-tp-slate-400">Risk</p>
-          <p className="text-[16px] leading-[1.6] text-tp-slate-700">{data.risk}</p>
+          <p className="text-[14px] leading-[1.6] text-tp-slate-700">{data.risk}</p>
         </div>
 
         {/* Action */}
         <div>
           <p className="mb-[2px] text-[14px] font-medium uppercase tracking-wider text-tp-slate-400">Recommended Action</p>
-          <p className="text-[16px] leading-[1.6] text-tp-slate-700">{data.action}</p>
+          <p className="text-[14px] leading-[1.6] text-tp-slate-700">{data.action}</p>
         </div>
       </div>
     </CardShell>

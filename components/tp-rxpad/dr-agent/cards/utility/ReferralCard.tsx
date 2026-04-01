@@ -44,7 +44,7 @@ export function ReferralCard({ data, onPillTap }: Props) {
               {/* Row 1: Doctor + specialty + action */}
               <div className="flex items-center justify-between mb-[3px]">
                 <div className="flex items-center gap-[6px] min-w-0">
-                  <span className="text-[16px] font-medium text-tp-slate-800 truncate">
+                  <span className="text-[14px] font-medium text-tp-slate-800 truncate">
                     {item.doctorName}
                   </span>
                   <span

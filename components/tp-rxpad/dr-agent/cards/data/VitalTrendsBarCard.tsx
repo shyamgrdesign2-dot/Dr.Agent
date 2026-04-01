@@ -200,7 +200,7 @@ export function VitalTrendsBarCard({ data, onPillTap }: VitalTrendsBarCardProps)
           )}
         </>
       ) : (
-        <div className="py-4 text-center text-[16px] text-tp-slate-400">No vitals data available for charting.</div>
+        <div className="py-4 text-center text-[14px] text-tp-slate-400">No vitals data available for charting.</div>
       )}
     </CardShell>
   )

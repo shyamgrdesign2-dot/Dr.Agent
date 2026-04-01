@@ -30,7 +30,7 @@ export function TranslationCard({
         <div className="mb-[2px] text-[14px] font-medium uppercase tracking-wide text-tp-slate-400">
           {data.sourceLanguage}
         </div>
-        <div className="rounded-[6px] bg-tp-slate-50 px-2 py-[5px] text-[16px] leading-[1.6] text-tp-slate-600">
+        <div className="rounded-[6px] bg-tp-slate-50 px-2 py-[5px] text-[14px] leading-[1.6] text-tp-slate-600">
           {data.sourceText}
         </div>
       </div>
@@ -40,7 +40,7 @@ export function TranslationCard({
         <div className="mb-[2px] text-[14px] font-medium uppercase tracking-wide text-tp-success-600">
           {data.targetLanguage}
         </div>
-        <div className="rounded-[6px] bg-tp-success-50 px-2 py-[5px] text-[16px] leading-[1.6] text-tp-success-700">
+        <div className="rounded-[6px] bg-tp-success-50 px-2 py-[5px] text-[14px] leading-[1.6] text-tp-success-700">
           {data.translatedText}
         </div>
       </div>

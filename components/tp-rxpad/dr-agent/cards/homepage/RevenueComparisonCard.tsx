@@ -29,13 +29,13 @@ export function RevenueComparisonCard({ data, onPillTap }: Props) {
       <div className="grid grid-cols-2 gap-[8px]">
         <div className="rounded-[8px] bg-tp-slate-50 px-[8px] py-[7px]">
           <p className="text-[12px] font-medium text-tp-slate-500">{data.primaryDateLabel}</p>
-          <p className="mt-[2px] text-[16px] font-bold text-tp-slate-800">{formatMoney(data.primaryRevenue)}</p>
+          <p className="mt-[2px] text-[14px] font-bold text-tp-slate-800">{formatMoney(data.primaryRevenue)}</p>
           <p className="mt-[3px] text-[12px] text-tp-slate-500">Refunded {formatMoney(data.primaryRefunded)}</p>
           <p className="text-[12px] text-tp-slate-500">Deposits {formatMoney(data.primaryDeposits)}</p>
         </div>
         <div className="rounded-[8px] bg-tp-slate-50 px-[8px] py-[7px]">
           <p className="text-[12px] font-medium text-tp-slate-500">{data.compareDateLabel}</p>
-          <p className="mt-[2px] text-[16px] font-bold text-tp-slate-800">{formatMoney(data.compareRevenue)}</p>
+          <p className="mt-[2px] text-[14px] font-bold text-tp-slate-800">{formatMoney(data.compareRevenue)}</p>
           <p className="mt-[3px] text-[12px] text-tp-slate-500">Refunded {formatMoney(data.compareRefunded)}</p>
           <p className="text-[12px] text-tp-slate-500">Deposits {formatMoney(data.compareDeposits)}</p>
         </div>

@@ -33,7 +33,7 @@ export function DonutChartCard({ data, onPillTap }: Props) {
             />
             {/* Center hole */}
             <div className="absolute inset-[18px] flex flex-col items-center justify-center rounded-full bg-white">
-              <span className="text-[16px] font-semibold text-tp-slate-800">{data.total}</span>
+              <span className="text-[14px] font-semibold text-tp-slate-800">{data.total}</span>
               <span className="text-[12px] text-tp-slate-400">{data.centerLabel}</span>
             </div>
           </div>

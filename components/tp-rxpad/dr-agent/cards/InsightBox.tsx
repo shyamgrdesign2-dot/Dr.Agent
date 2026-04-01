@@ -19,7 +19,7 @@ const VARIANT_STYLES: Record<InsightVariant, string> = {
 export function InsightBox({ children, variant, className }: InsightBoxProps) {
   return (
     <div className={cn(
-      "mt-1 rounded-[6px] px-2 py-[5px] text-[16px] leading-[1.6]",
+      "mt-1 rounded-[6px] px-2 py-[5px] text-[14px] leading-[1.6]",
       VARIANT_STYLES[variant],
       className,
     )}>

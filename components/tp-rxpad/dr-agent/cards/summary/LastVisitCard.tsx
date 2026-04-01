@@ -138,7 +138,7 @@ export function LastVisitCard({
               />
               {/* Section notes as subtle italic line */}
               {section.notes && (
-                <p className="pl-1 text-[16px] italic leading-[1.6] text-tp-slate-400">
+                <p className="pl-1 text-[14px] italic leading-[1.6] text-tp-slate-400">
                   {section.notes}
                 </p>
               )}

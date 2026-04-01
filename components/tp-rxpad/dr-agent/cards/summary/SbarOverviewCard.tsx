@@ -344,7 +344,7 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
 
         {/* ── S — Situation: short narrative ── */}
         <div className="rounded-[8px] bg-tp-slate-50 border-l-[3px] border-tp-violet-300 px-3 py-2">
-          <p className="text-[14px] italic leading-[1.7] text-tp-slate-500">
+          <p className="text-[14px] italic leading-[1.6] text-tp-slate-500">
             &ldquo;{highlightClinicalText(situation)}&rdquo;
           </p>
         </div>
@@ -354,7 +354,7 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
             for each item — "Diabetes (1yr, Active)" → dark name + lighter brackets.
             InlineDataRow's compound split breaks on commas inside parentheses. */}
         {hasHistory && (
-          <div className="text-[15px] leading-[1.65] text-tp-slate-800">
+          <div className="text-[14px] leading-[1.65] text-tp-slate-800">
             <SectionTag
               label="History"
               icon={SECTION_TAG_ICON_MAP["History"]}
@@ -396,7 +396,7 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
 
         {/* ── Last Visit — with color hierarchy ── */}
         {lastVisit && (
-          <div className="text-[16px] leading-[1.7] text-tp-slate-800">
+          <div className="text-[14px] leading-[1.7] text-tp-slate-800">
             <SectionTag
               label="Last Visit"
               icon={SECTION_TAG_ICON_MAP["Last Visit"]}
@@ -425,13 +425,13 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
 
         {/* ── R — Recommendations ── */}
         {recommendations.length > 0 && (
-          <div className="text-[16px] leading-[1.7]">
+          <div className="text-[14px] leading-[1.7]">
             <SectionTag label="Recommendations" icon={SECTION_TAG_ICON_MAP["Due Alerts"]} />
             <ul className="mt-[2px] flex flex-col gap-[2px] ml-[4px]">
               {recommendations.map((rec, i) => (
                 <li key={i} className="flex items-start gap-[6px]">
                   <span className="text-tp-slate-300 mt-[3px] text-[10px] leading-[18px]">●</span>
-                  <span className="text-tp-slate-600 text-[15px] leading-[20px]">{highlightRecommendation(rec)}</span>
+                  <span className="text-tp-slate-600 text-[14px] leading-[20px]">{highlightRecommendation(rec)}</span>
                 </li>
               ))}
             </ul>
