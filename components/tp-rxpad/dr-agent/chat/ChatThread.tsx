@@ -38,8 +38,10 @@ export function ChatThread({
   typingHint,
 }: ChatThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   // Track which message IDs have already been "seen" — skip animation for those
   const seenRef = useRef<Set<string>>(new Set())
+  const prevMessageCountRef = useRef(0)
   const [, forceRender] = useState(0)
 
   // Mark all current messages as seen on mount (so initial load doesn't animate)
@@ -50,13 +52,29 @@ export function ChatThread({
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-scroll to bottom on new messages or when typing starts
+  // Scroll to show the START of new messages (not snap to bottom).
+  // For typing indicator, scroll to bottom so user sees the dots.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (isTyping) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+      return
+    }
+
+    // New message(s) added — scroll to show the first new message's top
+    if (messages.length > prevMessageCountRef.current && containerRef.current) {
+      const newIndex = prevMessageCountRef.current
+      const messageElements = containerRef.current.children
+      const targetEl = messageElements[newIndex] as HTMLElement | undefined
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: "smooth", block: "start" })
+      }
+    }
+    prevMessageCountRef.current = messages.length
   }, [messages.length, isTyping])
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         "flex flex-col px-[8px] pt-[14px] pb-[12px]",
         "bg-gradient-to-b from-[rgba(213,101,234,0.02)] via-white to-[rgba(26,25,148,0.02)]",

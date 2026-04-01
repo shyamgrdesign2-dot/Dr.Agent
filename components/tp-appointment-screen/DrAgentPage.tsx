@@ -897,9 +897,17 @@ export function DrAgentPage() {
     router.push(`/patient-details?${params.toString()}`)
   }
 
-  function openAgentForPatient(row: AppointmentRow) {
+  // Auto-message state — passed as prop to DrAgentPanel which handles its own chat
+  const [panelAutoMessage, setPanelAutoMessage] = useState<string | undefined>()
+  const [panelAutoTrigger, setPanelAutoTrigger] = useState(0)
+
+  function openAgentForPatient(row: AppointmentRow, autoMessage?: string) {
     setSelectedChatPatientId(row.id)
     setIsAgentWindowOpen(true)
+    if (autoMessage) {
+      setPanelAutoMessage(autoMessage)
+      setPanelAutoTrigger((c) => c + 1)
+    }
   }
 
   function appendAgentMessage(patientId: string, message: AgentChatMessage) {
@@ -1432,6 +1440,7 @@ export function DrAgentPage() {
                                         dischargeData: row.dischargeData,
                                       }}
                                       onClick={() => openAgentForPatient(row)}
+                                      onViewSummary={() => openAgentForPatient(row, `View detailed patient summary of ${row.name}`)}
                                     />
 
                                     <button
@@ -1464,6 +1473,8 @@ export function DrAgentPage() {
                   activeRailItem={activeRailItem}
                   homepagePatients={homepagePatientOptions}
                   onClose={() => setIsAgentWindowOpen(false)}
+                  autoMessage={panelAutoMessage}
+                  autoMessageTrigger={panelAutoTrigger}
                 />
               </aside>
             )}

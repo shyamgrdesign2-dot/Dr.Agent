@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from "react"
 import { createPortal } from "react-dom"
-import { AiBrandSparkIcon, AI_GRADIENT, AI_GRADIENT_SOFT } from "@/components/doctor-agent/ai-brand"
+import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
 import { highlightClinicalText } from "@/components/tp-rxpad/dr-agent/shared/highlightClinicalText"
 
 // ─────────────────────────────────────────────────────────────
@@ -22,9 +22,9 @@ interface AiPatientTooltipProps {
     dischargeData?: { admittedDate: string; ward: string; bed: string; currentStatus: string; pending: { dischargeSummary: boolean; billing: boolean; pendingLabs?: string; notes?: string } }
   }
   onClick: () => void
+  /** Called when the "View Detailed Summary" CTA is clicked — opens agent + auto-sends summary message */
+  onViewSummary?: () => void
 }
-
-/* highlightSummaryText removed — now using shared highlightClinicalText from @/components/tp-rxpad/dr-agent/shared/highlightClinicalText */
 
 /** Build tooltip content for non-queue tabs */
 function buildTabTooltipContent(tab: string | undefined, rowData?: AiPatientTooltipProps["rowData"]): React.ReactNode | null {
@@ -33,7 +33,7 @@ function buildTabTooltipContent(tab: string | undefined, rowData?: AiPatientTool
   if (tab === "finished" && rowData.finishedData) {
     const d = rowData.finishedData
     return (
-      <div className="space-y-[3px] text-[11px] text-tp-slate-600">
+      <div className="space-y-[3px] text-[12px] text-tp-slate-600">
         <p><span className="font-semibold text-tp-slate-700">Came for:</span> {d.symptoms}</p>
         <p><span className="font-semibold text-tp-slate-700">Diagnosed:</span> {d.diagnosis}</p>
         <p><span className="font-semibold text-tp-slate-700">Prescribed:</span> {d.medication}</p>
@@ -45,7 +45,7 @@ function buildTabTooltipContent(tab: string | undefined, rowData?: AiPatientTool
 
   if (tab === "cancelled") {
     return (
-      <div className="space-y-[3px] text-[11px] text-tp-slate-600">
+      <div className="space-y-[3px] text-[12px] text-tp-slate-600">
         <p><span className="font-semibold text-tp-slate-700">Reason:</span> {rowData.cancelReason || "No cancellation reason recorded"}</p>
         {rowData.cancelledAt && <p><span className="font-semibold text-tp-slate-700">Cancelled at:</span> {rowData.cancelledAt}</p>}
         {rowData.cancelNotes && <p><span className="font-semibold text-tp-slate-700">Notes:</span> {rowData.cancelNotes}</p>}
@@ -58,14 +58,14 @@ function buildTabTooltipContent(tab: string | undefined, rowData?: AiPatientTool
     const check = (filled: boolean) => filled ? "✓" : "✗"
     const color = (filled: boolean) => filled ? "text-tp-green-600" : "text-tp-error-500"
     return (
-      <div className="space-y-[2px] text-[11px]">
+      <div className="space-y-[2px] text-[12px]">
         <p className={color(d.symptoms)}>{check(d.symptoms)} Symptoms {d.symptoms ? "entered" : "empty"}</p>
         <p className={color(d.diagnosis)}>{check(d.diagnosis)} Diagnosis {d.diagnosis ? "entered" : "empty"}</p>
         <p className={color(d.medCount > 0)}>{check(d.medCount > 0)} Medications{d.medCount > 0 ? `: ${d.medCount} drugs` : ": empty"}</p>
         <p className={color(d.advice)}>{check(d.advice)} Advice {d.advice ? "entered" : "empty"}</p>
         <p className={color(d.investigations)}>{check(d.investigations)} Investigations {d.investigations ? "entered" : "empty"}</p>
         <p className={color(d.followUp)}>{check(d.followUp)} Follow-up {d.followUp ? "set" : "not set"}</p>
-        <p className="text-[10px] text-tp-slate-400 mt-[2px]">Last modified: {d.lastModified}</p>
+        <p className="text-[11px] text-tp-slate-400 mt-[2px]">Last modified: {d.lastModified}</p>
       </div>
     )
   }
@@ -75,15 +75,15 @@ function buildTabTooltipContent(tab: string | undefined, rowData?: AiPatientTool
     const check = (done: boolean) => done ? "✓" : "✗"
     const color = (done: boolean) => done ? "text-tp-green-600" : "text-tp-error-500"
     return (
-      <div className="space-y-[2px] text-[11px]">
+      <div className="space-y-[2px] text-[12px]">
         <p className="text-tp-slate-700"><span className="font-semibold">Admitted:</span> {d.admittedDate} · {d.ward}, {d.bed}</p>
         <p className="text-tp-slate-700"><span className="font-semibold">Status:</span> {d.currentStatus}</p>
         <div className="mt-[4px] space-y-[1px]">
-          <p className="text-[10px] font-semibold text-tp-slate-500 uppercase tracking-wider">Pending Items</p>
+          <p className="text-[11px] font-semibold text-tp-slate-500 uppercase tracking-wider">Pending Items</p>
           <p className={color(d.pending.dischargeSummary)}>{check(d.pending.dischargeSummary)} Discharge summary</p>
           <p className={color(d.pending.billing)}>{check(d.pending.billing)} Final billing</p>
           {d.pending.pendingLabs && <p className="text-tp-error-500">✗ {d.pending.pendingLabs}</p>}
-          {d.pending.notes && <p className="text-[10px] text-tp-slate-400 italic">{d.pending.notes}</p>}
+          {d.pending.notes && <p className="text-[11px] text-tp-slate-400 italic">{d.pending.notes}</p>}
         </div>
       </div>
     )
@@ -92,7 +92,7 @@ function buildTabTooltipContent(tab: string | undefined, rowData?: AiPatientTool
   return null
 }
 
-export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onClick }: AiPatientTooltipProps) {
+export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onClick, onViewSummary }: AiPatientTooltipProps) {
   const [isVisible, setIsVisible] = useState(false)
   const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -202,45 +202,57 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
             <div
               className="rounded-[12px] bg-white overflow-hidden"
               style={{
-                boxShadow: "0 4px 20px rgba(103,58,172,0.12)",
-                border: "1px solid rgba(103,58,172,0.15)",
+                boxShadow: "0 4px 24px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06)",
+                border: "1px solid rgba(0,0,0,0.08)",
               }}
             >
-              {/* Top accent gradient line */}
-              <div className="h-[2px] w-full" style={{ background: AI_GRADIENT }} />
+              {/* Gradient accent top bar */}
+              <div className="h-[2.5px]" style={{ background: "linear-gradient(90deg, #D565EA 0%, #8B5CF6 40%, #4F46E5 100%)" }} />
 
-              <div className="px-[12px] py-[10px]">
-                {/* Header: spark + Dr. Agent */}
-                <div className="flex items-center gap-[5px] mb-[8px]">
+              <div className="px-[14px] py-[12px]">
+                {/* Heading with Dr. Agent icon */}
+                <div className="flex items-center gap-[6px] mb-[8px]">
                   <AiBrandSparkIcon size={18} withBackground />
+                  <p className="text-[12px] font-semibold text-tp-slate-700">Patient Summary:</p>
+                </div>
+
+                {/* Summary text — tab-aware content */}
+                {tabContent ? (
+                  <div className="mb-[10px]">{tabContent}</div>
+                ) : summary ? (
+                  <p className="whitespace-normal break-words text-[12px] leading-[18px] text-tp-slate-500 mb-[10px]">
+                    {highlightClinicalText(summary)}
+                  </p>
+                ) : null}
+
+                {/* Secondary CTA — outline + AI gradient text */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearTimers()
+                    setIsVisible(false)
+                    if (onViewSummary) onViewSummary()
+                    else onClick()
+                  }}
+                  className="w-full flex items-center justify-center rounded-[8px] py-[6px] text-[12px] font-semibold transition-all hover:bg-purple-50/30"
+                  style={{
+                    border: "1px solid rgba(139, 92, 246, 0.25)",
+                    background: "transparent",
+                  }}
+                >
                   <span
-                    className="text-[10px] font-semibold leading-[1.2]"
                     style={{
-                      background: AI_GRADIENT,
+                      background: "linear-gradient(90deg, #D565EA 0%, #8B5CF6 30%, #4F46E5 60%, #8B5CF6 100%)",
+                      backgroundSize: "200% 100%",
+                      animation: "aiShimmer 3s ease-in-out infinite",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                       backgroundClip: "text",
                     }}
                   >
-                    Dr. Agent
+                    View Detailed Summary
                   </span>
-                </div>
-
-                {/* Summary text — tab-aware content */}
-                {tabContent ? (
-                  <div className="mb-[8px]">{tabContent}</div>
-                ) : summary ? (
-                  <p className="whitespace-normal break-words text-[12px] italic leading-[1.6] text-tp-slate-500 mb-[8px]">
-                    {highlightClinicalText(summary)}
-                  </p>
-                ) : null}
-
-                {/* Footer */}
-                <div className="flex items-center justify-end">
-                  <span className="text-[10px] text-tp-slate-400">
-                    Click to open Dr. Agent →
-                  </span>
-                </div>
+                </button>
               </div>
             </div>
 
@@ -253,7 +265,7 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
                   borderLeft: "6px solid transparent",
                   borderRight: "6px solid transparent",
                   borderTop: "6px solid white",
-                  filter: "drop-shadow(0 1px 1px rgba(103,58,172,0.1))",
+                  filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.06))",
                 }}
               />
             </div>

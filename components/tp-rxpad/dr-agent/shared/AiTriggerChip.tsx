@@ -2,9 +2,7 @@
 
 import { useState } from "react"
 import { cn } from "@/lib/utils"
-import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
 import { useRxPadSync } from "@/components/tp-rxpad/rxpad-sync-context"
-import { AI_PILL_BG, AI_PILL_BG_HOVER, AI_PILL_BORDER, AI_PILL_TEXT_GRADIENT } from "../constants"
 
 interface AiTriggerChipProps {
   /** Short label displayed on the chip (e.g., "Suggest DDX") */
@@ -22,7 +20,7 @@ interface AiTriggerChipProps {
  * Subtle AI trigger chip rendered inside RxPad sections.
  * Clicking it opens Dr. Agent and auto-sends a contextual message.
  *
- * Design: AI gradient bg + gradient text, 22px height, gentle fade-in.
+ * Design: Warm purple gradient text with a subtle shimmer sweep.
  */
 export function AiTriggerChip({
   label,
@@ -50,20 +48,23 @@ export function AiTriggerChip({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "inline-flex h-[22px] items-center gap-[4px] rounded-full px-[8px]",
-        "text-[12px] font-medium transition-all",
+        "inline-flex h-[28px] items-center gap-[4px] rounded-full px-[10px]",
+        "text-[14px] font-medium transition-all",
         "animate-[fadeIn_300ms_ease-out]",
         className,
       )}
       style={{
-        background: isHovered ? AI_PILL_BG_HOVER : AI_PILL_BG,
-        border: AI_PILL_BORDER,
+        background: isHovered
+          ? "rgba(139, 92, 246, 0.08)"
+          : "rgba(139, 92, 246, 0.05)",
+        border: "1px solid rgba(139, 92, 246, 0.15)",
       }}
     >
-      <AiBrandSparkIcon size={14} />
       <span
         style={{
-          background: AI_PILL_TEXT_GRADIENT,
+          background: "linear-gradient(90deg, #D565EA 0%, #8B5CF6 25%, #4F46E5 50%, #8B5CF6 75%, #D565EA 100%)",
+          backgroundSize: "200% 100%",
+          animation: "aiShimmer 3s ease-in-out infinite",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
           backgroundClip: "text",

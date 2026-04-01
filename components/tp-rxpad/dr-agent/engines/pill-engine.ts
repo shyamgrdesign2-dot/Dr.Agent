@@ -173,12 +173,18 @@ function getLayer3(phase: ConsultPhase, summary: SmartSummaryData): CannedPill[]
     }
     // Existing patient — show pills for data that actually exists
     const pills: CannedPill[] = []
+    const hasIntake = !!(summary.symptomCollectorData?.symptoms?.length)
+    const hasFlaggedLabs = !!(summary.keyLabs?.some(l => l.flag === "high" || l.flag === "low"))
+    const hasFollowUp = !!summary.followUpOverdueDays
     // Always show "Patient's detailed summary" as the absolute first pill
     pills.push({ id: "phase-detailed-summary", label: "Patient's detailed summary", priority: -1, layer: 3, force: true, tone: "primary" })
+    if (hasIntake) pills.push({ id: "phase-intake", label: "Pre-visit intake", priority: 30, layer: 3, tone: "primary" })
     if (hasVitals) pills.push({ id: "phase-vital-trends", label: "Vital trends", priority: 31, layer: 3, tone: "primary" })
-    if (hasLabs) pills.push({ id: "phase-labs", label: "Lab overview", priority: 32, layer: 3, tone: "primary" })
+    if (hasFlaggedLabs) pills.push({ id: "phase-flagged-labs", label: "Flagged lab results", priority: 32, layer: 3, tone: "primary" })
+    else if (hasLabs) pills.push({ id: "phase-labs", label: "Lab overview", priority: 32, layer: 3, tone: "primary" })
     if (hasLastVisit) pills.push({ id: "phase-last-visit", label: "Last visit details", priority: 33, layer: 3, tone: "primary" })
-    pills.push({ id: "phase-ask", label: "Ask me anything", priority: 34, layer: 3, tone: "primary" })
+    if (hasFollowUp) pills.push({ id: "phase-followup-overview", label: "Follow-up overview", priority: 34, layer: 3, tone: "primary" })
+    pills.push({ id: "phase-ask", label: "Ask me anything", priority: 36, layer: 3, tone: "primary" })
     return pills
   }
 

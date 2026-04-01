@@ -235,7 +235,7 @@ export function WelcomeScreen({
   const isPatientContext = context === "rxpad" || context === "patient_detail"
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-[16px] py-[24px] relative">
+    <div className="flex flex-1 flex-col items-center justify-center px-[12px] py-[16px] relative">
       {/* Background — white base + animated gradient GIF at 4% opacity */}
       <div className="absolute inset-0 bg-white pointer-events-none" />
       <div className="absolute inset-0 pointer-events-none" style={{
@@ -245,28 +245,28 @@ export function WelcomeScreen({
         opacity: 0.04,
       }} />
 
-      {/* Spark icon — 52px, animated gradient bg + rotating spark */}
-      <div className="relative z-[1] mb-[16px]">
+      {/* Spark icon — 44px, animated gradient bg + rotating spark */}
+      <div className="relative z-[1] mb-[12px]">
         <span
           className="pointer-events-none select-none relative inline-flex items-center justify-center overflow-hidden"
-          style={{ width: 52, height: 52, borderRadius: 52 * 0.24 }}
+          style={{ width: 44, height: 44, borderRadius: 44 * 0.24 }}
           aria-hidden="true"
         >
           {/* White base + animated gradient GIF at 30% opacity on top */}
-          <div className="absolute inset-0 bg-white" style={{ borderRadius: 52 * 0.24 }} />
+          <div className="absolute inset-0 bg-white" style={{ borderRadius: 44 * 0.24 }} />
           <div className="absolute inset-0" style={{
             backgroundImage: "url(/icons/dr-agent/chat-bg.gif)",
             backgroundSize: "cover",
             backgroundPosition: "center",
-            borderRadius: 52 * 0.24,
+            borderRadius: 44 * 0.24,
             opacity: 0.3,
           }} />
           {/* Rotating white spark overlay */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/icons/dr-agent/agent-spark.svg"
-            width={52 * 0.75}
-            height={52 * 0.75}
+            width={44 * 0.75}
+            height={44 * 0.75}
             alt=""
             className="relative z-10 welcome-spark-rotate"
             draggable={false}
@@ -274,28 +274,28 @@ export function WelcomeScreen({
         </span>
       </div>
 
-      {/* Greeting — 16px semibold */}
-      <h2 className="relative z-[1] text-[16px] font-semibold text-tp-slate-800 text-center">
+      {/* Greeting — 15px semibold */}
+      <h2 className="relative z-[1] text-[15px] font-semibold text-tp-slate-800 text-center leading-[20px]">
         {greeting}, {displayName}!
       </h2>
-      {/* Subtitle — 14px */}
-      <p className="relative z-[1] mt-[4px] text-[16px] text-center leading-[20px]" style={{ color: "#A2A2A8" }}>
+      {/* Subtitle — 13px with relaxed line height */}
+      <p className="relative z-[1] mt-[4px] text-[13px] text-center leading-[18px]" style={{ color: "#A2A2A8" }}>
         {isPatientContext && patientName
-          ? <>What would you like to know about <span className="font-semibold" style={{ color: "#6B7280" }}>{patientName.split(" ")[0]}</span>&apos;s care today?</>
+          ? <>What would you like to know about patient <span className="font-semibold" style={{ color: "#6B7280" }}>{patientName.split(" ")[0]}</span> today?</>
           : "What can I assist you with today?"
         }
       </p>
 
-      {/* Quick action cards — 2x2 grid, wider */}
-      <div className="relative z-[1] mt-[20px] grid grid-cols-2 gap-[10px] w-full max-w-[340px]">
+      {/* Quick action cards — 2x2 grid, full width */}
+      <div className="relative z-[1] mt-[16px] grid grid-cols-2 gap-[8px] w-full">
         {actions.map((action, i) => (
           <button
             key={i}
             type="button"
             onClick={() => onActionClick(action.message)}
-            className="group relative flex flex-col items-start p-[16px] text-left transition-all overflow-hidden hover:scale-[1.02]"
+            className="group relative flex flex-col items-start p-[10px] pb-[12px] text-left transition-all overflow-hidden hover:scale-[1.02]"
             style={{
-              borderRadius: 16,
+              borderRadius: 14,
               background: "rgba(255,255,255,0.5)",
               border: "1px solid rgba(255,255,255,0.5)",
             }}
@@ -305,21 +305,21 @@ export function WelcomeScreen({
               backgroundImage: "url(/icons/dr-agent/chat-bg.gif)",
               backgroundSize: "cover",
               opacity: 0.08,
-              borderRadius: 16,
+              borderRadius: 14,
             }} />
 
-            {/* Icon — gradient colored, 80% opacity */}
-            <span className="relative z-[1] mb-[6px] welcome-icon-grad" style={{ opacity: 0.8 }}>
-              {React.cloneElement(action.icon as React.ReactElement, { size: 22 })}
+            {/* Icon — gradient colored */}
+            <span className="relative z-[1] mb-[4px] welcome-icon-grad" style={{ opacity: 0.8 }}>
+              {React.cloneElement(action.icon as React.ReactElement, { size: 20 })}
             </span>
 
-            {/* Title — 12px, 600 */}
-            <span className="relative z-[1] text-[14px] font-semibold leading-[16px]" style={{ color: "#454551" }}>
+            {/* Title — 13px semibold */}
+            <span className="relative z-[1] text-[13px] font-semibold leading-[17px]" style={{ color: "#454551" }}>
               {action.title}
             </span>
 
-            {/* Subtitle — 10px, 400, 2px gap */}
-            <span className="relative z-[1] mt-[2px] text-[12px] font-normal leading-[14px]" style={{ color: "#A2A2A8" }}>
+            {/* Subtitle — 12px with generous line height */}
+            <span className="relative z-[1] mt-[2px] text-[12px] font-normal leading-[17px]" style={{ color: "#9E9EA8" }}>
               {action.subtitle}
             </span>
           </button>

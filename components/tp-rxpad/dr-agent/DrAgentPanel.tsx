@@ -179,11 +179,15 @@ interface DrAgentPanelProps {
   activeRailItem?: string
   /** Homepage patient list — mapped from queue appointments */
   homepagePatients?: import("./types").RxContextOption[]
+  /** Auto-send a message when the panel opens (e.g. from tooltip CTA). Incremented counter triggers re-send. */
+  autoMessage?: string
+  /** Counter to re-trigger autoMessage even with same text */
+  autoMessageTrigger?: number
 }
 
 const HOMEPAGE_COMMON_ID = "__homepage_common__"
 
-export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", activeTab, activeRailItem, homepagePatients }: DrAgentPanelProps) {
+export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", activeTab, activeRailItem, homepagePatients, autoMessage, autoMessageTrigger }: DrAgentPanelProps) {
   // ── Patient Context ──
   // In homepage mode with no patient, use a special common ID for operational context
   const effectiveDefaultId = (mode === "homepage" && !initialPatientId) ? HOMEPAGE_COMMON_ID : (initialPatientId ?? CONTEXT_PATIENT_ID)
@@ -260,21 +264,24 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
     return kinds
   }, [messages])
 
-  /** Map pill labels to the card kind they produce — used to hide pills for already-shown cards */
-  const PILL_TO_CARD_KIND: Record<string, string> = {
-    "Patient's detailed summary": "patient_summary",
-    "Patient summary": "sbar_overview",
-    "Pre-visit intake": "symptom_collector",
-    "Pre-visit Intake": "symptom_collector",
-    "Last visit": "last_visit",
-    "Vital trends": "vitals_trend_bar",
-    "Suggest DDX": "ddx",
-    "Lab overview": "lab_panel",
-    "Lab comparison": "lab_comparison",
-    "Obstetric summary": "obstetric_summary",
-    "Gynec summary": "gynec_summary",
-    "Growth & vaccines": "pediatric_summary",
-    "Vision summary": "ophthal_summary",
+  /** Map pill labels to the card kind(s) they produce — used to hide pills for already-shown cards */
+  const PILL_TO_CARD_KINDS: Record<string, string[]> = {
+    "Patient's detailed summary": ["patient_summary", "sbar_overview"],
+    "Patient summary": ["sbar_overview", "patient_summary"],
+    "Pre-visit intake": ["symptom_collector"],
+    "Pre-visit Intake": ["symptom_collector"],
+    "Last visit": ["last_visit"],
+    "Last visit details": ["last_visit"],
+    "Vital trends": ["vitals_trend_bar"],
+    "Suggest DDX": ["ddx"],
+    "Lab overview": ["lab_panel"],
+    "Lab comparison": ["lab_comparison"],
+    "Obstetric summary": ["obstetric_summary"],
+    "Gynec summary": ["gynec_summary"],
+    "Growth & vaccines": ["pediatric_summary"],
+    "Vision summary": ["ophthal_summary"],
+    "Flagged lab results": ["lab_panel"],
+    "Follow-up overview": ["follow_up"],
   }
 
   const pills = useMemo(() => {
@@ -286,9 +293,9 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
 
     // Filter out pills whose card has already been shown in the current conversation
     return rawPills.filter(pill => {
-      const cardKind = PILL_TO_CARD_KIND[pill.label]
-      if (!cardKind) return true // Unknown mapping — always show
-      return !shownCardKinds.has(cardKind)
+      const cardKinds = PILL_TO_CARD_KINDS[pill.label]
+      if (!cardKinds) return true // Unknown mapping — always show
+      return !cardKinds.some(kind => shownCardKinds.has(kind))
     })
   }, [mode, activeTab, activeRailItem, isPatientContext, summary, phase, activeTabLens, selectedPatientId, showDoctorViewSelector, doctorViewType, shownCardKinds])
 
@@ -520,6 +527,22 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
     // Delay simulates AI thinking — 2-2.5s feels natural for clinical queries
     }, 1800 + Math.random() * 700)
   }, [inputValue, selectedPatientId, summary, messagesByPatient, phaseByPatient, mode, homepagePatients])
+
+  // ── Auto-message from parent (e.g. tooltip "View Detailed Summary" CTA) ──
+  const handleSendRef = useRef(handleSend)
+  handleSendRef.current = handleSend
+  useEffect(() => {
+    if (autoMessage) {
+      // Double-RAF ensures React has flushed patient context before sending
+      const rafId = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          handleSendRef.current(autoMessage)
+        })
+      })
+      return () => cancelAnimationFrame(rafId)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoMessage, autoMessageTrigger])
 
   // ── Pill Tap ──
   const handlePillTap = useCallback((pill: CannedPill) => {

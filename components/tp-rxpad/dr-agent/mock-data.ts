@@ -464,7 +464,7 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
     specialtyTags: ["Nephrology", "Cardiology", "Endocrinology", "General Medicine"],
     followUpOverdueDays: 8,
     patientNarrative:
-      "76-year-old male with CKD Stage 5 (diabetic nephropathy) on peritoneal dialysis since Jan 2024. Type 2 DM for 18 years, hypertension 12 years, IHD post-MI (2021). 2 ER admissions in past 12 months for acute fluid overload. Routine nephrology review today.",
+      "76-year-old male with CKD Stage 5 on peritoneal dialysis since Jan 2024, Type 2 DM 18 years, Hypertension 12 years, IHD post-MI (2021). 2 ER admissions in past 12 months for acute fluid overload. Routine nephrology review today.",
     familyHistory: ["CKD (Father, died age 68)", "Diabetes (Mother, Brother)", "Stroke (Paternal Uncle)"],
     lifestyleNotes: ["Non-smoker", "No alcohol", "Renal diet (Low K+, low phosphate, protein restricted, Active)", "CAPD 4 exchanges/day, 2L bags (Active)"],
     allergies: ["Iodinated Contrast", "Sulfonamides"],
@@ -648,25 +648,25 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
 
 export const PATIENT_TOOLTIP_SUMMARIES: Record<string, string> = {
   "__patient__":
-    "Patient with Hypertension 3yr and Diabetes Mellitus 2yr, on Telma 20mg, last visited on 27 Jan'26 with fever, diagnosed Viral fever and Conjunctivitis, suggested Paracetamol 650mg and Azithromycin 500mg.",
+    "Patient with Type 2 Diabetes 2yr and Hypertension 3yr, on Metformin 500mg and Telma 20mg, last visited on 27 Jan'26 with fever and eye redness, diagnosed Viral Fever and Conjunctivitis, suggested Paracetamol 650mg and Azithromycin 500mg.",
   "apt-anjali":
-    "Patient with Migraine episodic, on Sumatriptan 50mg, last visited on 15 Jan'26 with headache and photophobia, diagnosed Migraine without aura, suggested Naproxen 250mg and Vitamin D 60K.",
+    "Patient with Migraine 3yr, on Sumatriptan 50mg, last visited on 15 Jan'26 with headache and eye strain, diagnosed Migraine without Aura, suggested Naproxen 250mg and Vitamin D 60K.",
   "apt-vikram":
-    "Patient with Hypertension 3yr, Dyslipidemia 1yr and Pre-Diabetes, on Telma 40mg, last visited on 20 Dec'25 with fatigue and poor sleep, diagnosed Fatigue syndrome and Dyslipidemia, suggested Melatonin 3mg and CoQ10 100mg.",
+    "Patient with Hypertension 3yr and Dyslipidemia 1yr, on Telma 40mg and Atorvastatin 10mg, last visited on 20 Dec'25 with fatigue and poor sleep, diagnosed Fatigue Syndrome, suggested Melatonin 3mg and CoQ10 100mg.",
   "apt-priya":
-    "Patient with Hypothyroid 2yr, on Thyronorm 50mcg, last visited on 25 Feb'26 with routine ANC, diagnosed Routine ANC and Hypothyroid on Rx, suggested Folic Acid 5mg and Calcium 500mg.",
+    "Patient with Hypothyroidism 2yr, G2P1 at 34 weeks, on Thyronorm 50mcg, last visited on 25 Feb'26 with pedal edema, diagnosed Routine ANC with mild edema, suggested Folic Acid 5mg and Calcium 500mg.",
   "apt-arjun":
-    "Last visited on 10 Feb'26 with URTI and wheeze, diagnosed Acute URTI with reactive airways, suggested Amoxicillin 250mg and Salbutamol syrup.",
+    "4-year-old male, last visited on 10 Feb'26 with dry cough and reduced appetite, diagnosed Acute URTI with reactive airways, suggested Amoxicillin 250mg and Salbutamol syrup.",
   "apt-lakshmi":
-    "Patient with Hypothyroid and PCOS, on Thyronorm 75mcg, last visited on 20 Jan'26 with heavy bleeding and fatigue, diagnosed AUB-Ovulatory dysfunction and Iron deficiency anemia, suggested Autrin capsule and Tranexamic acid 500mg.",
+    "Patient with Hypothyroidism 5yr and Fibroid Uterus 2yr, on Thyronorm 75mcg, last visited on 20 Jan'26 with heavy bleeding and fatigue, diagnosed AUB-Ovulatory Dysfunction and Iron Deficiency Anemia, suggested Autrin capsule and Tranexamic Acid 500mg.",
   "apt-neha":
-    "Patient with Bronchial Asthma and Hypothyroidism, newly confirmed pregnancy 12wk. On Budecort 200mcg and Thyronorm 50mcg, last visited 18 Feb'26 with nocturnal cough. TSH elevated (5.2), Hb low (10.8), SpO2 trending down (96%). PCOS history. NT Scan due.",
+    "Patient with Bronchial Asthma since childhood and Hypothyroidism 3yr, newly confirmed pregnancy 12wk, on Budecort 200mcg and Thyronorm 50mcg, last visited on 18 Feb'26 with nocturnal cough, TSH 5.2 and Hb 10.8. NT Scan due.",
   "apt-zerodata":
-    "New patient with Knee Pain and Morning Stiffness 1 week. Allergy: Sulfonamides, on Vit D3 60K (weekly).",
+    "New patient presenting with knee pain and morning stiffness since 1 week. Allergy to Sulfonamides. On Vitamin D3 60K weekly.",
   "reg-suresh":
-    "Patient with IHD post-angioplasty (2024), HTN 5yr, on Clopidogrel 75mg, Atorvastatin 40mg, last visited 10 Feb'26, stable IHD, LDL 118 (above target).",
+    "Patient with IHD 2yr (post-angioplasty 2024) and Hypertension 5yr, on Clopidogrel 75mg and Atorvastatin 40mg, last visited on 10 Feb'26 with stable angina, LDL 118 above target.",
   "apt-ramesh-ckd":
-    "76M CKD Stage 5 on PD since Jan 2024. DM 18yr, HTN 12yr, IHD post-MI. eGFR 11 (declining), K+ 5.8, Hb 9.2. 2 ER admissions in 12mo (fluid overload). 11 active medications. Kt/V, Echo, Retinal screen overdue.",
+    "Patient with CKD Stage 5 5yr and Type 2 DM 18yr, on peritoneal dialysis since Jan 2024, Hypertension 12yr, IHD post-MI (2021), eGFR 11, K+ 5.8, Hb 9.2. 2 ER admissions for fluid overload. Kt/V and Echo overdue.",
 }
 
 // ═══════════════ PATIENT DOCUMENTS (per-patient EMR uploads) ═══════════════

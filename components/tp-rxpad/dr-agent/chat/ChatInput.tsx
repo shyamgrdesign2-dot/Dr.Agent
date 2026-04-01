@@ -593,9 +593,9 @@ export function ChatInput({
 
       {/* Trust indicator — centered */}
       <div className="mt-[4px] mb-[14px] flex items-center justify-center gap-[4px]">
-        <SecuritySafe size={14} variant="Bulk" className="shrink-0 text-tp-slate-300" />
-        <span className="text-[14px] leading-[1.4] text-tp-slate-300">
-          AI-assisted insights · always verify with clinical judgement
+        <SecuritySafe size={12} variant="Bulk" className="shrink-0 text-tp-slate-300" />
+        <span className="text-[11px] leading-[1.4] text-tp-slate-300">
+          Your data stays private · AI assists, you decide
         </span>
       </div>
     </div>

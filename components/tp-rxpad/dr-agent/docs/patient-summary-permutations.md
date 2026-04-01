@@ -314,14 +314,15 @@ On the appointment listing page, hovering over the AI icon shows a **short patie
 
 ```
 AiPatientTooltip (portal-based)
-├── Header: AI spark icon + "Dr. Agent" gradient text
+├── Heading: "Patient Summary" (text only, no icon)
 ├── Content: tab-aware rendering
-│   ├── Queue tab → summary text (from PATIENT_TOOLTIP_SUMMARIES)
+│   ├── Queue tab → summary text with clinical highlighting (from PATIENT_TOOLTIP_SUMMARIES)
 │   ├── Finished tab → structured: Came for, Diagnosed, Prescribed, Ordered, Follow-up
 │   ├── Cancelled tab → structured: Reason, Cancelled at, Notes
 │   ├── Draft tab → checklist: Symptoms, Diagnosis, Medications, Advice, Investigations, Follow-up
 │   └── Pending Digitisation → structured: Admitted, Status, Pending items
-└── Footer: "Click to open Dr. Agent →"
+└── CTA: "View Detailed Summary" (secondary button, outline + AI gradient text)
+       → triggers auto-message in Dr. Agent chat
 ```
 
 ### Queue Tab — Summary Text Formula
@@ -405,14 +406,19 @@ This case occurs when a walk-in patient has neither filled the symptom collector
 
 ### Text Highlighting
 
-The `highlightSummaryText()` function applies bold styling to clinical terms within the summary text:
+The `highlightClinicalText()` function (in `shared/highlightClinicalText.tsx`) applies a two-tier highlight system:
 
-**Highlighted patterns (via regex):**
-- **Dates:** `DD Mon'YY` format (e.g., "27 Jan'26") and `DD-MM-YYYY`
-- **Conditions:** Hypertension, Diabetes Mellitus, Dyslipidemia, Hypothyroid, PCOS, Migraine, URTI, AUB, Primigravida, Pre-Diabetes
-- **Medications:** Telma, Metsmall, Paracetamol, Azithromycin, Sumatriptan, Naproxen, Vitamin D, Rosuvastatin, Melatonin, CoQ10, Thyronorm, Folic Acid, Calcium, Amoxicillin, Salbutamol, Autrin, Tranexamic acid, Iron+Folic (with optional numeric suffixes)
+**PRIMARY patterns (semibold, dark `tp-slate-700`):**
+- **Conditions:** Hypertension, Type 2 Diabetes, CKD Stage N, Dyslipidemia, Hypothyroidism, Migraine, URTI, Acute URTI, Bronchial Asthma, IHD, Conjunctivitis, Viral Fever, Fibroid Uterus, Iron Deficiency Anemia, AUB-Ovulatory Dysfunction, Stable Angina, Reactive Airways, and 30+ more
+- **Medications:** Metformin, Telma, Paracetamol, Azithromycin, Sumatriptan, Vitamin D, Thyronorm, Folic Acid, Amoxicillin, Salbutamol, Clopidogrel, Atorvastatin, Budecort, Sulfonamides, and 25+ more (with optional numeric dose suffixes)
+- **Lab values:** HbA1c, eGFR, Hb, Creatinine, TSH, LDL, K+ (with numeric values and units)
+- **Vitals:** BP, SpO₂, Pulse, HR (with numeric values)
+- **Clinical events:** "N ER admissions", "fluid overload", pregnancy notation (G#P#), follow-up overdue
 
-**Rendering:** Matched terms are wrapped in `<span className="font-semibold text-tp-slate-700">` for visual emphasis within the `text-tp-slate-500` body text.
+**SECONDARY patterns (normal weight, muted `tp-slate-400`):**
+- Parenthetical content only: `(2yr)`, `(childhood)`, `(2024)`, `(resolved)`
+
+**Merge logic:** Primary wins over secondary when overlapping. This ensures a medication name inside parentheses is still highlighted dark.
 
 ### Symptom Collector Icon on Appointment Page
 
@@ -531,3 +537,322 @@ The `sbar_overview` card is the primary summary shown when a doctor asks for "Pa
 
 ### Key Rule
 Each section is hidden entirely if it has no data. No placeholder dashes, no "N/A" values, no empty labels. The card gracefully degrades from 5 sections (richest) to 1 section (Situation only for new patients).
+
+---
+
+## 9. Complete Patient Summary Card — Section-by-Section Reference
+
+This section documents every part of the Patient Summary card system in detail: what data is displayed, where it comes from, how concerning values are identified, how arrows and flags work, and how content is ordered.
+
+### 9.1 Complete Card Example (P3 — Richest State)
+
+```
+┌─ SBAR Overview Card ───────────────────────────────────────────┐
+│                                                                 │
+│  S  Situation                                                   │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │  "25M with DM + HTN presenting with fever 3d, dry      │    │
+│  │   cough 2d. Critical BP 70/60, SpO₂ 93%."              │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                                                                 │
+│  B  History                                                     │
+│     Conditions: Diabetes (1yr) | Hypertension (6mo)             │
+│     Allergies: Dust | Egg | Prawns                              │
+│                                                                 │
+│  A  Assessment                                                  │
+│     Vitals: BP ⚠️70/60 | Pulse 78 | SpO₂ ⚠️93% | Temp ⚠️104°F │
+│     Labs:  ↑ HbA1c 8.1% | ↑ FBS 168 | ↑ TSH 5.8               │
+│                                                                 │
+│     Last Visit: 27 Jan'26                                       │
+│     Dx: Viral Fever, Conjunctivitis                             │
+│     Sx: Fever, eye redness                                      │
+│                                                                 │
+│  R  Recommendations                                             │
+│     • Follow-up overdue by 5 days                               │
+│     • ⚠️ BP 70/60 — consider IV fluids                          │
+│     • ⚠️ SpO₂ 93% — supplemental oxygen                        │
+│     • ⚠️ Temp 104°F — evaluate fever source                     │
+│                                                                 │
+│  Pills: Review SpO₂ | Allergy Alert | Suggest DDX              │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 9.2 Situation (S)
+
+**What it displays:** A 1-3 sentence clinical snapshot combining the patient's identity, current presentation, and critical alerts.
+
+**Data source (priority chain):**
+1. `SmartSummaryData.patientNarrative` — If set, used as-is (pre-written by intake system or mock data). This is also the tooltip summary on the appointment page, ensuring consistency.
+2. `SmartSummaryData.sbarSituation` — Clinician-written override.
+3. **Auto-generated** from available data in this composition order:
+   - Chief complaint from `symptomCollectorData.symptoms[0]` (name + duration + severity)
+   - Chronic conditions from `chronicConditions[0..2]`
+   - Drug allergies from `allergies[]` (if flagged as drug allergy)
+   - Key active medications from `activeMeds[0..2]`
+   - Last visit context from `lastVisit.date` + `lastVisit.diagnosis`
+
+**Rendering:** Italic text in a purple-bordered quote box. Clinical terms are highlighted via `highlightClinicalText()` — conditions and medications appear semibold dark, parenthetical durations appear muted.
+
+**Max length:** ~200 characters or 2-3 sentences. Truncated with "..." if exceeding.
+
+---
+
+### 9.3 Background / History (B)
+
+**What it displays:** Chronic conditions and allergies as the patient's clinical baseline.
+
+**Data sources:**
+| Field | Source in SmartSummaryData | Example |
+|-------|--------------------------|---------|
+| Conditions | `chronicConditions[]` | `["Diabetes (1yr)", "Hypertension (6mo)"]` |
+| Allergies | `allergies[]` | `["Dust", "Egg", "Prawns"]` |
+
+**Formatting rules:**
+- Conditions are displayed as: **Condition Name** (duration) — condition name is dark (`tp-slate-700`), duration in parentheses is muted (`tp-slate-400`)
+- Uses `formatWithHierarchy()` utility to apply the two-tier color treatment
+- Pipe separator `|` between items within a subsection
+- Conditions listed before allergies
+- No "N/A" placeholder — if either subsection is empty, it's omitted entirely
+
+**Ordering:** Conditions appear in the order provided by `chronicConditions[]` array. In practice, conditions are ordered by clinical relevance (most significant first).
+
+---
+
+### 9.4 Assessment (A) — Vitals
+
+**What it displays:** Today's recorded vital signs with abnormality flags.
+
+**Data source:** `SmartSummaryData.todayVitals` (type `VitalEntry`)
+
+**Available vital signs:**
+| Vital | Field | Unit | Display Format |
+|-------|-------|------|----------------|
+| Blood Pressure | `todayVitals.bp` | mmHg | "132/84" |
+| Pulse | `todayVitals.pulse` | bpm | "78" |
+| SpO₂ | `todayVitals.spo2` | % | "93%" |
+| Temperature | `todayVitals.temp` | °F | "104°F" |
+| Weight | `todayVitals.weight` | kg | "76kg" |
+| Respiratory Rate | `todayVitals.rr` | /min | "18/min" |
+
+**Display order:** BP → Pulse → SpO₂ → Temp → Weight → RR (fixed order via `VITAL_ORDER` constant)
+
+**Flag/concern logic:**
+| Vital | Normal Range | ⚠️ Flag Condition | Critical Threshold |
+|-------|-------------|-------------------|-------------------|
+| BP (systolic) | 90-139 mmHg | systolic ≥ 140 (high) or ≤ 90 (low) | ≤ 90 or ≥ 160 |
+| SpO₂ | ≥ 95% | Below normal → "low" flag | < 92% |
+| Temperature | < 100.4°F | ≥ 100.4°F → "high" flag | ≥ 104°F |
+| BMI | 18.5-29.9 | > 30 (high) or < 18.5 (low) | — |
+| Pulse | 60-100 bpm | Abnormal → flag | — |
+
+**Arrow convention:**
+- Single ↑ for HIGH values (e.g., "↑ BP 170/100")
+- Single ↓ for LOW values (e.g., "↓ SpO₂ 91%")
+- **NEVER use double arrows** (↑↑ or ↓↓) anywhere in the system
+- No arrow = normal value
+
+**Flag colors:**
+- Normal: default text color
+- High/Low: warning color (amber/red depending on severity)
+- Critical: red with ⚠️ icon
+
+---
+
+### 9.5 Assessment (A) — Key Labs
+
+**What it displays:** Flagged lab values from the most recent panel — only abnormal results shown.
+
+**Data source:** `SmartSummaryData.keyLabs[]` (type `LabFlag[]`)
+
+**LabFlag structure:**
+```typescript
+interface LabFlag {
+  name: string      // "HbA1c", "LDL", "TSH", "Hb", "eGFR", "K+"
+  value: string     // "8.1", "118", "5.8"
+  unit: string      // "%", "mg/dL", "mIU/L", "g/dL"
+  flag: "high" | "low" | "critical"
+  refRange?: string // "< 6.5%", "< 100 mg/dL"
+}
+```
+
+**Display rules:**
+- Max 3-4 labs shown in summary (first N by array order)
+- Each lab: `{arrow} {shortName}: {value} {unit}`
+- Lab names shortened via mapping: "HbA1c" → "A1c", "Hemoglobin" → "Hb", "Triglycerides" → "TG", etc.
+- Full list available in expanded lab panel card
+
+**Arrow convention:**
+- `↑` prefix for `flag: "high"` — value above reference range
+- `↓` prefix for `flag: "low"` — value below reference range
+- `↑` prefix for `flag: "critical"` — treated as high for display
+- No arrow for normal (but normal labs are typically not in `keyLabs` since only flagged values appear)
+
+**How "concerning" is determined:**
+- The `flag` field is set at data ingestion time based on lab-specific reference ranges
+- Reference ranges are age- and gender-aware in production
+- In mock data: explicitly set per patient (e.g., HbA1c > 6.5% → "high")
+
+**Ordering:** Labs appear in array order from `keyLabs[]`. In practice: most clinically significant first (HbA1c before Triglycerides, eGFR before Microalbumin).
+
+---
+
+### 9.6 Last Visit
+
+**What it displays:** Context from the patient's most recent consultation.
+
+**Data source:** `SmartSummaryData.lastVisit` (type `LastVisitData`)
+
+**Fields displayed:**
+| Field | Source | Example |
+|-------|--------|---------|
+| Date | `lastVisit.date` | "27 Jan'26" |
+| Symptoms | `lastVisit.symptoms` | "Fever, eye redness" |
+| Diagnosis | `lastVisit.diagnosis` | "Viral Fever, Conjunctivitis" |
+| Medications | `lastVisit.medication` | "Paracetamol 650mg, Azithromycin 500mg" |
+| Doctor | `lastVisit.doctorName` | "Dr. Meera" (shown as trailing badge) |
+
+**Formatting:**
+- Symptoms shortened via `shortenSymptom()`: drops modifiers ("high-grade fever" → "fever")
+- Medications shortened via `shortenMedication()`: drops frequency ("Paracetamol 650mg 1-0-1" → "Paracetamol 650mg")
+- Labels: "Sx:" for symptoms, "Dx:" for diagnosis, "Rx:" for medications
+- Pipe separator `|` between fields
+
+**Ordering:** Date → Dx → Sx → Rx (diagnosis is more important than symptoms for quick scan)
+
+---
+
+### 9.7 Recommendations (R)
+
+**What it displays:** Actionable clinical recommendations based on current data.
+
+**Data sources and priority order:**
+1. **Follow-up overdue** (`followUpOverdueDays > 0`) — e.g., "Follow-up overdue by 5 days"
+2. **Critical vitals** (life-threatening only):
+   - BP systolic ≤ 90 or ≥ 160 → "BP {value} — consider {action}"
+   - SpO₂ < 92% → "SpO₂ {value}% — supplemental oxygen"
+   - Temp ≥ 104°F → "Temp {value}°F — evaluate fever source"
+3. **Due alerts** (`dueAlerts[]`, max 2) — e.g., "NT Scan due", "Kt/V overdue"
+4. **Cross-problem flags** (`crossProblemFlags[]`, critical severity only, max 1)
+
+**What is NOT shown in recommendations:**
+- Non-critical vitals (mild hypertension, low-grade fever)
+- Lab interpretation (handled in Assessment section)
+- Medication suggestions (handled in action cards)
+
+**Arrow convention in recommendations:** Single ↑/↓ only. Example: "↑ BP 170/100 — titrate antihypertensive"
+
+---
+
+### 9.8 Concern Trend
+
+**What it displays:** A declining or improving metric over time (sparkline).
+
+**Data source:** `SmartSummaryData.concernTrend` (type `ConcernTrend`)
+
+```typescript
+interface ConcernTrend {
+  label: string          // "SpO₂", "LDL", "eGFR"
+  values: number[]       // [97, 96, 94, 93] — sequential values
+  labels: string[]       // ["20 Jan", "22 Jan", "24 Jan", "27 Jan"]
+  unit: string           // "%", "mg/dL", "mL/min"
+  tone: "teal" | "red" | "amber" | "violet"
+}
+```
+
+**Tone mapping:**
+| Tone | Meaning | Example |
+|------|---------|---------|
+| `red` | Declining, concerning | SpO₂ 97→93 (oxygen dropping) |
+| `amber` | Slight decline, watch | SpO₂ 98→96 (mild drop) |
+| `teal` | Improving | LDL 142→118 (cholesterol improving) |
+| `violet` | AI-highlighted | Informational trend |
+
+**Trend summary text** (generated by `getTrendSummary()`):
+- Less than 2% change: `→ Stable`
+- Positive direction: `↑ Increasing`
+- Negative direction: `↓ Declining`
+- **Single arrows only** — never double.
+
+**Display format:** `"{label} {arrow} ({tone label})\n{value₁} → {value₂} → {value₃} → {value₄}"`
+
+---
+
+### 9.9 Specialty Overlays
+
+Specialty data renders as an embedded box within the summary card. Only one specialty overlay is shown at a time (priority: Obstetric > Gynec > Pediatric > Ophthal).
+
+#### Obstetric (`obstetricData`)
+- **Fields:** G/P/L/A, LMP, EDD, gestational weeks, presentation, fetal movement, oedema, fundus height, amniotic fluid, ANC dates, vaccine status, BP trend, alerts
+- **Key alerts:** Pre-eclampsia risk (BP ≥ 140/90 + proteinuria), gestational DM, IUGR
+
+#### Pediatric (`pediatricsData`)
+- **Fields:** Age months, height/weight with percentiles, OFC, BMI%, vaccines pending/overdue, milestone notes, feeding notes, growth date
+- **Key alerts:** Below 5th percentile weight, overdue vaccines, speech delay
+
+#### Gynecologic (`gynecData`)
+- **Fields:** LMP, cycle length/regularity, flow intensity, pain score, last pap smear, alerts
+- **Key alerts:** Irregular cycles, heavy flow (menorrhagia), overdue screening
+
+#### Ophthalmologic (`ophthalData`)
+- **Fields:** VA (right/left), near VA, IOP, slit lamp findings, fundus findings, last exam, glass prescription, alerts
+- **Key alerts:** IOP > 21 (glaucoma risk), VA decline, diabetic retinopathy
+
+---
+
+### 9.10 History Formatting Convention
+
+Throughout the card, medical history follows a consistent two-tier formatting:
+
+**Primary tier** (semibold, dark `tp-slate-700`):
+- Condition names: "Hypertension", "Type 2 Diabetes", "CKD Stage 5"
+- Medication names: "Metformin 500mg", "Telma 20mg"
+- Lab names + values: "HbA1c 8.1%", "eGFR 11"
+- Vital readings: "BP 170/100", "SpO₂ 93%"
+
+**Secondary tier** (normal weight, muted `tp-slate-400`):
+- Durations in parentheses: "(2yr)", "(6mo)", "(since 2024)"
+- Status notes in parentheses: "(resolved)", "(childhood)", "(Active)"
+- Date references in parentheses: "(2021)", "(Jan 2024)"
+
+This ensures the doctor's eye naturally goes to the clinical term first, then to the supporting temporal context. The two-tier system is implemented by `highlightClinicalText()` which applies regex-based pattern matching with PRIMARY patterns (conditions, meds, labs, vitals) and SECONDARY patterns (parenthetical content).
+
+---
+
+### 9.11 Canned Pills Post-Summary
+
+After the patient summary card is generated, the canned pills dynamically update:
+
+**Before summary shown:**
+- "Patient's detailed summary" (forced, priority -1)
+- Vital trends (if vitals exist)
+- Lab overview (if labs exist)
+- Last visit details (if last visit exists)
+
+**After summary shown (deduplication removes "Patient's detailed summary"):**
+- Pre-visit intake (if `symptomCollectorData.symptoms` exist)
+- Vital trends (if vitals exist)
+- Flagged lab results (if labs have flagged values)
+- Last visit details (if last visit exists)
+- Follow-up overview (if follow-up is overdue)
+- Ask me anything (always)
+
+The deduplication works via `PILL_TO_CARD_KIND` mapping in `DrAgentPanel.tsx` — once a card kind appears in the message thread, its corresponding pill is filtered out.
+
+---
+
+### 9.12 Tooltip Summary → Chat Trigger Flow
+
+The appointment page tooltip ("View Detailed Summary" CTA) triggers the following flow:
+
+1. **User hovers** AI icon → tooltip appears with short patient summary
+2. **User clicks** "View Detailed Summary" CTA
+3. `onViewSummary` callback fires → `openAgentForPatient(row, "View detailed patient summary of {name}")`
+4. Agent panel opens with patient context set
+5. Auto-message `"View detailed patient summary of {name}"` is sent via `pendingAutoMessageRef` mechanism
+6. Intent engine matches "detailed summary" → routes to `patient_summary` card builder
+7. Reply engine generates `patient_summary` card with full `SmartSummaryData`
+8. Card renders in chat thread with all applicable sections
+
+This ensures the tooltip serves as a lightweight preview, and the CTA seamlessly transitions into the full clinical summary inside the chat.

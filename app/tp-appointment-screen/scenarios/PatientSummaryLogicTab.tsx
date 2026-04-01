@@ -1,6 +1,9 @@
 "use client"
 
 import React, { useState, useCallback } from "react"
+import { SbarOverviewCard } from "@/components/tp-rxpad/dr-agent/cards/summary/SbarOverviewCard"
+import { SMART_SUMMARY_BY_CONTEXT } from "@/components/tp-rxpad/dr-agent/mock-data"
+import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
 
 // ─────────────────────────────────────────────────────────────
 // SBAR Patient Summary, Complete Generation Spec
@@ -935,6 +938,7 @@ export default function PatientSummaryLogicTab() {
       <div className="sticky top-[120px] z-10 -mx-1 rounded-lg bg-white/90 px-1 py-2 backdrop-blur-sm">
         <div className="flex flex-wrap gap-1">
           {[
+            { id: "sec-visual-preview", label: "Card Preview" },
             { id: "sec-overview", label: "1. SBAR Overview" },
             { id: "sec-flow-diagram", label: "2. Visual Flow" },
             { id: "sec-sources", label: "3. Data Sources" },
@@ -964,6 +968,232 @@ export default function PatientSummaryLogicTab() {
           ))}
         </div>
       </div>
+
+      {/* ── Visual Card Preview — SBAR Card + Tooltip ── */}
+      <section id="sec-visual-preview" className="space-y-6">
+        {/* ── Tooltip Short Summary Preview ── */}
+        <SectionCard title="Patient Short Summary (Tooltip)">
+          <p className="mb-4 text-[11px] text-slate-500">
+            Hovering over the AI icon on the appointment listing shows a compact tooltip with a one-paragraph clinical snapshot.
+            The &quot;View Detailed Summary&quot; CTA triggers the full SBAR card inside Dr. Agent chat.
+          </p>
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Left: Visual tooltip mock — matches updated AiPatientTooltip */}
+            <div className="flex justify-center self-start">
+              <div className="w-[300px] rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden">
+                {/* Gradient accent top bar */}
+                <div className="h-[2.5px]" style={{ background: "linear-gradient(90deg, #D565EA 0%, #8B5CF6 40%, #4F46E5 100%)" }} />
+                <div className="px-3.5 py-3">
+                  {/* Heading with actual AiBrandSparkIcon */}
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <AiBrandSparkIcon size={18} withBackground />
+                    <p className="text-[12px] font-semibold text-slate-700">Patient Summary:</p>
+                  </div>
+                  <p className="text-[12px] leading-[18px] text-slate-500">
+                    Patient with <strong className="font-semibold text-slate-700">Type 2 Diabetes</strong> 2yr and <strong className="font-semibold text-slate-700">Hypertension</strong> 3yr, on <strong className="font-semibold text-slate-700">Metformin 500mg</strong> and <strong className="font-semibold text-slate-700">Telma 20mg</strong>, last visited on 27 Jan&apos;26 with fever and eye redness, diagnosed <strong className="font-semibold text-slate-700">Viral Fever</strong> and <strong className="font-semibold text-slate-700">Conjunctivitis</strong>.
+                  </p>
+                  <button type="button" className="mt-2.5 w-full flex items-center justify-center rounded-lg py-1.5 text-[12px] font-semibold" style={{ border: "1px solid rgba(139, 92, 246, 0.25)" }}>
+                    <span style={{ background: "linear-gradient(90deg, #D565EA, #8B5CF6, #4F46E5)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>View Detailed Summary</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            {/* Right: Annotations */}
+            <div className="space-y-2 text-[11px]">
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-2.5">
+                <p className="font-semibold text-slate-700">Gradient accent bar + AI icon heading</p>
+                <p className="text-slate-500">2.5px AI gradient bar at top (purple→indigo). Uses actual <code className="text-violet-600">AiBrandSparkIcon</code> 18px with gradient background + spark overlay + &quot;Patient Summary:&quot; 12px semibold.</p>
+              </div>
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-2.5">
+                <p className="font-semibold text-slate-700">Summary Text</p>
+                <p className="text-slate-500">Uses <code className="text-violet-600">highlightClinicalText()</code> — conditions, medications, lab values appear <strong>semibold dark</strong>. Parenthetical durations appear muted. Symptoms (fever, eye redness) stay normal weight.</p>
+              </div>
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-2.5">
+                <p className="font-semibold text-slate-700">CTA: &quot;View Detailed Summary&quot;</p>
+                <p className="text-slate-500">Secondary button — outline stroke + AI gradient shimmer text. Clicking triggers auto-message in Dr. Agent chat → generates SBAR card.</p>
+              </div>
+              <div className="rounded-lg border border-violet-100 bg-violet-50 p-2.5">
+                <p className="font-semibold text-violet-700">Data source</p>
+                <p className="text-violet-600"><code>PATIENT_TOOLTIP_SUMMARIES[patientId]</code> or <code>SmartSummaryData.patientNarrative</code>. In production, AI-generated from patient data.</p>
+              </div>
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* ── How the Short Summary Narrative is Generated ── */}
+        <SectionCard title="How the Short Summary Narrative is Generated">
+          <p className="mb-3 text-[11px] text-slate-500">
+            The short summary (shown in both the tooltip and the Situation section of the SBAR card) is a 2-3 sentence clinical narrative
+            auto-generated from the patient&apos;s available data. It is NOT a free-text field — it follows a strict composition pipeline.
+          </p>
+          <div className="rounded-lg border border-violet-200 bg-violet-50 p-3 mb-4">
+            <p className="text-[11px] font-semibold text-violet-700 mb-2">Generation Pipeline (in priority order)</p>
+            <div className="space-y-2 text-[11px] text-violet-600">
+              <p><strong className="text-violet-700">Priority 0:</strong> If a clinician has manually written a <code className="text-violet-800">patientNarrative</code>, use it as-is. This is the highest priority override.</p>
+              <p><strong className="text-violet-700">Priority 1:</strong> If an <code className="text-violet-800">sbarSituation</code> field exists (pre-composed by backend/AI), expand abbreviations (DM → Diabetes Mellitus, HTN → Hypertension) and use it.</p>
+              <p><strong className="text-violet-700">Priority 2:</strong> Auto-generate from available data following strict composition order:</p>
+            </div>
+            <div className="mt-2 ml-3 space-y-1 text-[10px] text-slate-600">
+              <p><span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-violet-100 text-violet-600 text-[9px] font-bold mr-1">1</span> <strong>Current symptoms</strong> — from symptom collector (if patient submitted intake). Opens with presenting complaint.</p>
+              <p><span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-violet-100 text-violet-600 text-[9px] font-bold mr-1">2</span> <strong>Chronic conditions</strong> — top 2 conditions with duration. Full disease names, never abbreviations.</p>
+              <p><span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-violet-100 text-violet-600 text-[9px] font-bold mr-1">3</span> <strong>Drug allergies</strong> — only if drug allergies exist (Sulfonamides, Penicillin, etc.). Food/environmental skipped.</p>
+              <p><span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-violet-100 text-violet-600 text-[9px] font-bold mr-1">4</span> <strong>Current medications</strong> — top 2, shortened form (drug name + dose only).</p>
+              <p><span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-violet-100 text-violet-600 text-[9px] font-bold mr-1">5</span> <strong>Last visit one-liner</strong> — date + what they came for. Only if no symptoms and space remains.</p>
+            </div>
+            <div className="mt-3 rounded-md border border-violet-100 bg-white p-2 text-[10px] text-slate-500">
+              <strong className="text-slate-700">Cap:</strong> ~200 characters. If the composed text exceeds 220 chars, it truncates to the first 2 parts. Empty parts are silently skipped — never say &quot;No allergies&quot; or &quot;No medications&quot;.
+            </div>
+          </div>
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <p className="text-[11px] font-semibold text-blue-700 mb-1">Where is this shown?</p>
+            <div className="space-y-1 text-[10px] text-blue-600">
+              <p><strong className="text-blue-700">Tooltip:</strong> On the appointment listing page, hovering the AI icon shows this narrative as a quick preview.</p>
+              <p><strong className="text-blue-700">SBAR Situation:</strong> The same narrative appears in the Situation (S) section of the Patient Summary card, wrapped in a violet-bordered italic quote box.</p>
+              <p><strong className="text-blue-700">Highlighting:</strong> Clinical terms (conditions, medications, lab values) are highlighted via <code className="text-violet-600">highlightClinicalText()</code> — semibold dark for primary terms, muted for parenthetical durations.</p>
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* ── SBAR Overview Card Visual Preview ── */}
+        <SectionCard title="SBAR Overview Card — Section-by-Section Guide">
+          <p className="mb-4 text-[11px] text-slate-500">
+            The Patient Summary card is structured using the SBAR framework. Each section is independently shown or hidden based on data availability.
+            Below is a live rendering of the card alongside structured instructions for how each section works.
+          </p>
+
+          {/* ── Card + Instructions side by side ── */}
+          <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+            {/* Left: Instructional annotations per section */}
+            <div className="space-y-4">
+              {/* S - Situation */}
+              <div className="rounded-lg border-l-4 border-l-violet-500 border border-slate-200 bg-white p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-600 text-[10px] font-bold text-white">S</span>
+                  <span className="text-[13px] font-bold text-slate-800">Situation</span>
+                </div>
+                <div className="space-y-1.5 text-[11px] text-slate-600">
+                  <p>The Situation is the short summary narrative described above. It is always shown — even for new patients (fallback: &quot;New patient, no prior clinical data available&quot;).</p>
+                  <p><strong className="text-slate-700">Rendering:</strong> Displayed as italic text inside a violet-bordered quote box with left accent line. Clinical terms (conditions, medications, lab values) are auto-highlighted as semibold dark text.</p>
+                  <p><strong className="text-slate-700">Cap:</strong> ~200 characters / 2-3 sentences. If the narrative exceeds this, only the first 2 composition steps are included.</p>
+                </div>
+              </div>
+
+              {/* B - Background / History */}
+              <div className="rounded-lg border-l-4 border-l-blue-500 border border-slate-200 bg-white p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">B</span>
+                  <span className="text-[13px] font-bold text-slate-800">Background / History</span>
+                </div>
+                <div className="space-y-1.5 text-[11px] text-slate-600">
+                  <p>Shows the patient&apos;s complete medical history baseline — everything recorded in their EMR medical history section. This includes:</p>
+                  <div className="ml-2 space-y-0.5 text-[10px]">
+                    <p><span className="inline-block w-1.5 h-1.5 rounded-full bg-red-400 mr-1.5 align-middle" /><strong className="text-slate-700">Chronic conditions</strong> — active diseases with duration (e.g., Diabetes 1yr, Hypertension 6mo)</p>
+                    <p><span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 mr-1.5 align-middle" /><strong className="text-slate-700">Allergies</strong> — drug, food, and environmental allergies</p>
+                    <p><span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 mr-1.5 align-middle" /><strong className="text-slate-700">Surgical history</strong> — past surgeries with year (e.g., Appendectomy 2018)</p>
+                    <p><span className="inline-block w-1.5 h-1.5 rounded-full bg-violet-400 mr-1.5 align-middle" /><strong className="text-slate-700">Family history</strong> — hereditary conditions in immediate family</p>
+                    <p><span className="inline-block w-1.5 h-1.5 rounded-full bg-violet-400 mr-1.5 align-middle" /><strong className="text-slate-700">Lifestyle</strong> — smoking, alcohol, diet, exercise habits</p>
+                    <p><span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5 align-middle" /><strong className="text-slate-700">Additional notes</strong> — travel history, occupational exposure, etc.</p>
+                  </div>
+                  <p className="mt-1"><strong className="text-slate-700">Formatting:</strong> Each sub-section is labeled (Conditions:, Allergies:, etc.). Item names appear in dark text, parenthetical details (duration, status) in lighter muted text. Pipe <code>|</code> separates sub-sections. Commas separate items within a sub-section.</p>
+                  <p><strong className="text-slate-700">Visibility:</strong> The entire History section is hidden if there are no conditions AND no allergies AND no other history entries. Individual sub-sections are only shown if they have data — no empty labels.</p>
+                </div>
+              </div>
+
+              {/* A - Assessment: Vitals */}
+              <div className="rounded-lg border-l-4 border-l-emerald-500 border border-slate-200 bg-white p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">A</span>
+                  <span className="text-[13px] font-bold text-slate-800">Assessment — Today&apos;s Vitals</span>
+                </div>
+                <div className="space-y-1.5 text-[11px] text-slate-600">
+                  <p>Shows <strong className="text-slate-700">only the latest recorded vitals</strong> from the current encounter — vitals entered by the nurse or receptionist during this visit. Older vitals from previous visits are NOT shown here (those are available via the Vital Trends card).</p>
+                  <p><strong className="text-slate-700">Vital parameters:</strong> All vitals available in the EMR are displayed — BP, Pulse, SpO₂, Temperature, Weight, Height, BMI, Respiratory Rate, and any other parameters recorded. The display order follows the same order as the EMR vitals entry form.</p>
+                  <p><strong className="text-slate-700">Highlighting abnormals:</strong> If any vital value falls <strong>above or below its reference range</strong>, it is highlighted in red with an arrow prefix. Single ↑ for above range, single ↓ for below range. Normal values appear in default dark text with no arrow.</p>
+                  <div className="ml-2 mt-1 rounded-md border border-emerald-100 bg-emerald-50 p-2 text-[10px]">
+                    <p className="font-semibold text-emerald-700">Reference thresholds (examples):</p>
+                    <p className="text-emerald-600">BP: Systolic ≥140 or ≤90 · SpO₂: &lt;95% · Temp: ≥100.4°F · BMI: &lt;18.5 or &gt;30 · Pulse: &lt;60 or &gt;100</p>
+                  </div>
+                  <p><strong className="text-slate-700">Visibility:</strong> Entire section hidden if no vitals have been recorded in this encounter.</p>
+                </div>
+              </div>
+
+              {/* A - Assessment: Key Labs */}
+              <div className="rounded-lg border-l-4 border-l-emerald-500 border border-slate-200 bg-white p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white">A</span>
+                  <span className="text-[13px] font-bold text-slate-800">Assessment — Key Labs</span>
+                </div>
+                <div className="space-y-1.5 text-[11px] text-slate-600">
+                  <p>Shows <strong className="text-slate-700">only the latest available lab results</strong> — either entered by the receptionist in the current encounter or from the most recent lab report on file. Older lab panels from previous visits are NOT included.</p>
+                  <p><strong className="text-slate-700">Filtering:</strong> From the latest labs, <strong className="text-slate-700">only concerning (flagged) values</strong> are shown — labs that are above or below their reference range. Normal lab values are excluded from this section entirely. This keeps the card focused on what needs the doctor&apos;s attention.</p>
+                  <p><strong className="text-slate-700">Arrow convention:</strong> ↑ prefix for values above reference range, ↓ for below. Lab names are shortened for scannability (HbA1c → A1c, Hemoglobin → Hb, Fasting Glucose → F.Glucose, Triglycerides → TG, etc.).</p>
+                  <p><strong className="text-slate-700">Max shown:</strong> Up to 4 flagged lab values. If more than 4 are flagged, the most clinically significant are prioritized.</p>
+                  <p><strong className="text-slate-700">Visibility:</strong> Entire section hidden if no lab values are flagged as abnormal.</p>
+                </div>
+              </div>
+
+              {/* Last Visit */}
+              <div className="rounded-lg border-l-4 border-l-slate-400 border border-slate-200 bg-white p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-500 text-[10px] font-bold text-white">LV</span>
+                  <span className="text-[13px] font-bold text-slate-800">Last Visit</span>
+                </div>
+                <div className="space-y-1.5 text-[11px] text-slate-600">
+                  <p>A short-form snapshot of the most recent previous consultation. Gives the doctor context on what happened last time without needing to open full visit history.</p>
+                  <p><strong className="text-slate-700">Fields shown (in this order):</strong></p>
+                  <div className="ml-2 space-y-0.5 text-[10px]">
+                    <p><span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5 align-middle" /><strong className="text-slate-700">Date</strong> — when the last visit occurred (e.g., &quot;27 Jan&apos;26&quot;)</p>
+                    <p><span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5 align-middle" /><strong className="text-slate-700">Diagnosis (Dx)</strong> — what was diagnosed (e.g., &quot;Viral Fever, Conjunctivitis&quot;)</p>
+                    <p><span className="inline-block w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5 align-middle" /><strong className="text-slate-700">Symptoms (Sx)</strong> — what symptoms the patient came with (top 2, shortened)</p>
+                  </div>
+                  <p className="mt-1"><strong className="text-slate-700">Formatting:</strong> Labels (Dx:, Sx:) appear in muted text. Dates and diagnosis names appear in dark semibold text. Pipe separator between fields.</p>
+                  <p><strong className="text-slate-700">Visibility:</strong> Entire section hidden if the patient has no prior visits on record.</p>
+                </div>
+              </div>
+
+              {/* R - Recommendation */}
+              <div className="rounded-lg border-l-4 border-l-red-500 border border-slate-200 bg-white p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white">R</span>
+                  <span className="text-[13px] font-bold text-slate-800">Recommendations</span>
+                </div>
+                <div className="space-y-1.5 text-[11px] text-slate-600">
+                  <p>Shows only <strong className="text-slate-700">actionable items that need the doctor&apos;s immediate attention</strong>. This is not a general advice section — it surfaces alerts and overdue items.</p>
+                  <p><strong className="text-slate-700">What triggers a recommendation (priority order):</strong></p>
+                  <div className="ml-2 space-y-0.5 text-[10px]">
+                    <p><span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-100 text-red-600 text-[9px] font-bold mr-1">1</span> <strong>Follow-up overdue</strong> — if the patient&apos;s follow-up date has passed</p>
+                    <p><span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-100 text-red-600 text-[9px] font-bold mr-1">2</span> <strong>Critical vitals</strong> — BP ≤90 or ≥160 systolic, SpO₂ &lt;92%, Temp ≥104°F (life-threatening thresholds only)</p>
+                    <p><span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-100 text-red-600 text-[9px] font-bold mr-1">3</span> <strong>Due alerts</strong> — pending screenings, overdue vaccines, scheduled tests (max 2)</p>
+                    <p><span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-100 text-red-600 text-[9px] font-bold mr-1">4</span> <strong>Cross-problem flags</strong> — critical interactions or complications across conditions (max 1)</p>
+                  </div>
+                  <p className="mt-1"><strong className="text-slate-700">NOT shown here:</strong> Non-critical vitals, individual lab interpretations, medication dosage suggestions, general clinical advice. Those are available via separate drill-down cards.</p>
+                  <p><strong className="text-slate-700">Visibility:</strong> Entire section hidden if no actionable items exist. The card gracefully degrades — a patient with no overdue follow-up, normal vitals, and no alerts will simply not see this section.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Actual SbarOverviewCard component with real mock data */}
+            <div className="lg:sticky lg:top-[160px] lg:self-start max-w-[400px]">
+              <SbarOverviewCard data={SMART_SUMMARY_BY_CONTEXT["__patient__"]} />
+              <p className="mt-2 text-center text-[10px] text-slate-400">Live rendering with Shyam GR&apos;s data (returning patient, symptoms + full history)</p>
+            </div>
+          </div>
+
+          {/* Section visibility rules summary */}
+          <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-3">
+            <p className="text-[11px] font-bold text-amber-700 mb-2">Section Visibility Rules</p>
+            <div className="grid gap-1.5 sm:grid-cols-2 text-[10px]">
+              <p className="text-amber-600"><strong className="text-amber-700">Situation:</strong> Always shown. Fallback: &quot;New patient, no prior clinical data available.&quot;</p>
+              <p className="text-amber-600"><strong className="text-amber-700">Background:</strong> Hidden if no conditions, no allergies, no surgical/family/lifestyle history</p>
+              <p className="text-amber-600"><strong className="text-amber-700">Today&apos;s Vitals:</strong> Hidden if no vitals have been recorded in the current encounter</p>
+              <p className="text-amber-600"><strong className="text-amber-700">Key Labs:</strong> Hidden if no lab values are flagged as abnormal (above/below reference range)</p>
+              <p className="text-amber-600"><strong className="text-amber-700">Last Visit:</strong> Hidden if the patient has no prior visits on record</p>
+              <p className="text-amber-600"><strong className="text-amber-700">Recommendations:</strong> Hidden if no actionable items (no overdue follow-up, no critical vitals, no due alerts)</p>
+            </div>
+            <p className="mt-2 text-[10px] text-amber-600 italic">No empty placeholders, no &quot;N/A&quot; labels. The card gracefully degrades from 6 sections down to just 1 (Situation) based on data availability.</p>
+          </div>
+        </SectionCard>
+      </section>
 
       {/* ── 1. SBAR Overview ── */}
       <SectionCard id="sec-overview" title="1) SBAR Overview">
