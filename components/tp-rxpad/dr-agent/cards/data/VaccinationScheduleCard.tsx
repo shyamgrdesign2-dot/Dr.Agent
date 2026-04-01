@@ -49,15 +49,15 @@ export function VaccinationScheduleCard({ data, onSidebarNav, onPillTap }: Props
       {/* Summary chips */}
       <div className="flex items-center gap-[6px] mb-[8px]">
         {data.overdueCount > 0 && (
-          <span className="rounded-full px-2 py-[1px] text-[14px] font-medium" style={{ color: "#DC2626", backgroundColor: "#FEE2E2" }}>
+          <span className="rounded-full px-2 py-[1px] text-[10px] font-medium" style={{ color: "#DC2626", backgroundColor: "#FEE2E2" }}>
             {data.overdueCount} overdue
           </span>
         )}
-        <span className="rounded-full px-2 py-[1px] text-[14px] font-medium" style={{ color: "#F59E0B", backgroundColor: "#FFFBEB" }}>
+        <span className="rounded-full px-2 py-[1px] text-[10px] font-medium" style={{ color: "#F59E0B", backgroundColor: "#FFFBEB" }}>
           {data.dueCount} due
         </span>
         {data.givenCount > 0 && (
-          <span className="rounded-full px-2 py-[1px] text-[14px] font-medium" style={{ color: "#22C55E", backgroundColor: "#F0FDF4" }}>
+          <span className="rounded-full px-2 py-[1px] text-[10px] font-medium" style={{ color: "#22C55E", backgroundColor: "#F0FDF4" }}>
             {data.givenCount} given
           </span>
         )}
@@ -82,7 +82,7 @@ export function VaccinationScheduleCard({ data, onSidebarNav, onPillTap }: Props
                     {vax.patientName}
                   </span>
                   <span
-                    className="shrink-0 rounded-[4px] px-1.5 py-[1px] text-[14px] font-medium"
+                    className="shrink-0 rounded-[4px] px-1.5 py-[1px] text-[10px] font-medium"
                     style={{ color: badge.color, backgroundColor: badge.bg }}
                   >
                     {badge.label}

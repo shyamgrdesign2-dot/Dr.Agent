@@ -49,7 +49,7 @@ export function VaccinationDueListCard({ data, onPillTap }: Props) {
                     {item.patientName}
                   </p>
                   {item.isOverdue && (
-                    <span className="flex-shrink-0 rounded-[4px] bg-tp-error-50 px-[5px] py-[1px] text-[12px] font-semibold uppercase text-tp-error-600">
+                    <span className="flex-shrink-0 rounded-[4px] bg-tp-error-50 px-[5px] py-[1px] text-[10px] font-semibold text-tp-error-600">
                       Overdue
                     </span>
                   )}

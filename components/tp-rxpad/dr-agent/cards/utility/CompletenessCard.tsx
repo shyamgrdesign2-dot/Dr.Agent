@@ -59,7 +59,7 @@ export function CompletenessCard({ data, onPillTap }: CompletenessCardProps) {
 
             {/* Count badge */}
             {section.count != null && (
-              <span className="rounded-[4px] bg-tp-slate-100 px-1 py-[0.5px] text-[14px] text-tp-slate-400">
+              <span className="rounded-[4px] bg-tp-slate-100 px-1 py-[0.5px] text-[10px] text-tp-slate-400">
                 {section.count}
               </span>
             )}

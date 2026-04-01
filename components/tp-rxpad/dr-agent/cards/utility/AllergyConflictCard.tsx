@@ -27,7 +27,7 @@ export function AllergyConflictCard({
       icon={<span />}
       tpIconName="first-aid"
       title="Allergy Conflict"
-      badge={{ label: "DANGER", color: "#DC2626", bg: "#FEE2E2" }}
+      badge={{ label: "Danger", color: "#DC2626", bg: "#FEE2E2" }}
       sidebarLink={
         <FooterCTA
           label={overridden ? "Override applied" : "Override - I accept the risk"}
@@ -45,7 +45,7 @@ export function AllergyConflictCard({
 
       {/* Contraindicated label */}
       <div className="mb-1 flex items-center gap-1.5">
-        <span className="inline-flex rounded-[4px] bg-tp-error-100 px-1.5 py-[2px] text-[14px] font-semibold uppercase text-tp-error-700">
+        <span className="inline-flex rounded-[4px] bg-tp-error-100 px-1.5 py-[2px] text-[10px] font-semibold text-tp-error-700">
           Contraindicated
         </span>
       </div>

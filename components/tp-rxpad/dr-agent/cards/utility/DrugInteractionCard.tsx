@@ -8,10 +8,10 @@ interface DrugInteractionCardProps {
 }
 
 const SEVERITY_LABEL: Record<SeverityLevel, string> = {
-  critical: "CRITICAL",
-  high: "HIGH",
-  moderate: "MODERATE",
-  low: "LOW",
+  critical: "Critical",
+  high: "High",
+  moderate: "Moderate",
+  low: "Low",
 }
 
 const SEVERITY_BADGE: Record<SeverityLevel, { color: string; bg: string }> = {
@@ -29,7 +29,7 @@ export function DrugInteractionCard({ data }: DrugInteractionCardProps) {
       icon={<span />}
       tpIconName="first-aid"
       title="Drug Interaction"
-      badge={{ label: "DANGER", color: "#DC2626", bg: "#FEE2E2" }}
+      badge={{ label: "Danger", color: "#DC2626", bg: "#FEE2E2" }}
     >
       <div
         className="space-y-[8px] rounded-[8px] bg-white px-3 py-[10px]"
@@ -49,9 +49,9 @@ export function DrugInteractionCard({ data }: DrugInteractionCardProps) {
 
         {/* Severity */}
         <div className="flex items-center gap-[6px]">
-          <span className="text-[14px] font-medium uppercase tracking-wider text-tp-slate-400">Severity</span>
+          <span className="text-[10px] font-medium tracking-wider text-tp-slate-400">Severity</span>
           <span
-            className="rounded-[4px] px-1.5 py-[1px] text-[14px] font-semibold"
+            className="rounded-[4px] px-1.5 py-[1px] text-[10px] font-semibold"
             style={{ color: badge.color, backgroundColor: badge.bg }}
           >
             {SEVERITY_LABEL[data.severity]}
@@ -60,13 +60,13 @@ export function DrugInteractionCard({ data }: DrugInteractionCardProps) {
 
         {/* Risk */}
         <div>
-          <p className="mb-[2px] text-[14px] font-medium uppercase tracking-wider text-tp-slate-400">Risk</p>
+          <p className="mb-[2px] text-[12px] font-medium tracking-wider text-tp-slate-400">Risk</p>
           <p className="text-[14px] leading-[1.6] text-tp-slate-700">{data.risk}</p>
         </div>
 
         {/* Action */}
         <div>
-          <p className="mb-[2px] text-[14px] font-medium uppercase tracking-wider text-tp-slate-400">Recommended Action</p>
+          <p className="mb-[2px] text-[12px] font-medium tracking-wider text-tp-slate-400">Recommended action</p>
           <p className="text-[14px] leading-[1.6] text-tp-slate-700">{data.action}</p>
         </div>
       </div>

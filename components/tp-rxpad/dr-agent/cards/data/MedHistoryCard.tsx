@@ -17,7 +17,7 @@ function SourceBadge({ source }: { source: "prescribed" | "uploaded" }) {
   return (
     <span
       className={cn(
-        "inline-flex rounded-[4px] px-1.5 py-[1px] text-[12px] font-semibold uppercase leading-[1.5]",
+        "inline-flex rounded-[4px] px-1.5 py-[1px] text-[10px] font-semibold leading-[1.5]",
         source === "prescribed"
           ? "bg-tp-blue-50 text-tp-blue-500"
           : "bg-tp-violet-50 text-tp-violet-600"

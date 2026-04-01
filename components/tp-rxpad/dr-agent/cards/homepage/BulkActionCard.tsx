@@ -16,7 +16,7 @@ export function BulkActionCard({ data, onPillTap }: Props) {
     <CardShell
       icon={<Flash size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
       title={data.action}
-      badge={{ label: "ACTION", color: "#92400E", bg: "#FEF3C7" }}
+      badge={{ label: "Action", color: "#92400E", bg: "#FEF3C7" }}
       sidebarLink={
         confirmed ? (
           <FooterCTA
@@ -42,13 +42,13 @@ export function BulkActionCard({ data, onPillTap }: Props) {
         <>
           {/* Message Preview */}
           <div className="mb-[10px] rounded-[8px] bg-tp-slate-50 p-[8px]">
-            <p className="mb-[2px] text-[12px] font-semibold uppercase tracking-wider text-tp-slate-400">Message Preview</p>
+            <p className="mb-[2px] text-[10px] font-semibold tracking-wider text-tp-slate-400">Message preview</p>
             <p className="text-[14px] text-tp-slate-700 italic">&ldquo;{data.messagePreview}&rdquo;</p>
           </div>
 
           {/* Recipients */}
           <div className="mb-[8px]">
-            <p className="mb-[3px] text-[12px] font-semibold uppercase tracking-wider text-tp-slate-400">Recipients ({data.totalCount})</p>
+            <p className="mb-[3px] text-[10px] font-semibold tracking-wider text-tp-slate-400">Recipients ({data.totalCount})</p>
             <div className="space-y-[2px]">
               {visibleRecipients.map((name, i) => (
                 <p key={i} className="text-[14px] text-tp-slate-700">&bull; {name}</p>

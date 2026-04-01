@@ -55,7 +55,7 @@ export function LabComparisonCard({ data }: LabComparisonCardProps) {
       {/* Grid-based comparison table */}
       <div className="overflow-hidden rounded-[8px] border border-tp-slate-100">
         {/* Header */}
-        <div className="grid grid-cols-4 gap-[1px] bg-tp-slate-100 px-[8px] py-[4px] text-[14px] font-medium text-tp-slate-500 uppercase tracking-wider">
+        <div className="grid grid-cols-4 gap-[1px] bg-tp-slate-100 px-[8px] py-[4px] text-[12px] font-medium text-tp-slate-500 tracking-wider">
           <span>Parameter</span>
           <span>{prevDate}</span>
           <span>{currDate}</span>

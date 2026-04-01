@@ -5,13 +5,16 @@
 import type { RxContextOption, SpecialtyTabId } from "./types"
 
 // ═══════════════ FONT SIZE CONTRACT ═══════════════
-// Body text:     14px (text-[14px])   — was 12px
-// Card headings: 16px (text-[16px])   — was 14px
-// Chips/pills:   12px (text-[12px])   — was 10px
-// Tooltips:      12px (text-[12px])   — was 10px
-// Badges:        12px (text-[12px])   — was 10px
-// Chart labels:  10-11px              — was 8-9px
+// Welcome greet: 18px (text-[18px])   — greeting headline only
+// Card headings: 16px (text-[16px])   — CardShell title, AgentHeader, modal h3
+// Body text:     14px (text-[14px])   — all content / body text
+// Section label: 12px (text-[12px])   — table headers, section sub-labels
+// Tags/badges:   10px (text-[10px])   — SectionTag, CardShell badge, status pills, colored tags
+// Chart labels:  10-11px              — axis ticks, donut center labels
 // Minimum:       10px                 — nothing below 10px
+//
+// CASING: Tags and badges use sentence case (first letter capital, rest lowercase).
+//         Never use CSS `uppercase` on tags. No ALL-CAPS labels.
 // NO responsive font sizing — all fixed px values
 
 // ═══════════════ PATIENT CONTEXT OPTIONS ═══════════════

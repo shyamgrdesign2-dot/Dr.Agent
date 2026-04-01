@@ -192,7 +192,7 @@ export function DDXCard({ data, onAccept, onCopyToDiagnosis, onCopyToRxPad, onSe
               {/* Tier label */}
               <div className="px-3 pt-[8px] pb-[2px]">
                 <span
-                  className="text-[14px] font-semibold uppercase tracking-wider"
+                  className="text-[12px] font-semibold tracking-wider"
                   style={{ color: cfg.labelColor }}
                 >
                   {cfg.label}
