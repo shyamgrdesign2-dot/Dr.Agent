@@ -45,7 +45,7 @@ export function AllergyConflictCard({
 
       {/* Contraindicated label */}
       <div className="mb-1 flex items-center gap-1.5">
-        <span className="inline-flex rounded-[4px] bg-tp-error-100 px-1.5 py-[2px] text-[10px] font-semibold text-tp-error-700">
+        <span className="inline-flex rounded-[4px] bg-tp-error-100 px-1.5 py-[2px] text-[12px] font-semibold text-tp-error-700">
           Contraindicated
         </span>
       </div>

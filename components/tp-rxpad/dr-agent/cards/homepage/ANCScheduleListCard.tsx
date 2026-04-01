@@ -52,7 +52,7 @@ export function ANCScheduleListCard({ data, onPillTap }: Props) {
                     {item.gestationalAge}
                   </span>
                   {item.isOverdue && (
-                    <span className="flex-shrink-0 rounded-[4px] bg-tp-error-50 px-[5px] py-[1px] text-[10px] font-semibold text-tp-error-600">
+                    <span className="flex-shrink-0 rounded-[4px] bg-tp-error-50 px-[5px] py-[1px] text-[12px] font-semibold text-tp-error-600">
                       Overdue
                     </span>
                   )}

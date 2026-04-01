@@ -9,7 +9,8 @@ import type { RxContextOption, SpecialtyTabId } from "./types"
 // Card headings: 16px (text-[16px])   — CardShell title, AgentHeader, modal h3
 // Body text:     14px (text-[14px])   — all content / body text
 // Section label: 12px (text-[12px])   — table headers, section sub-labels
-// Tags/badges:   10px (text-[10px])   — SectionTag, CardShell badge, status pills, colored tags
+// Tags/badges:   12px (text-[12px])   — CardShell badge, status pills, colored tags, section labels
+// Section tags:  14px (text-[14px])   — SectionTag headings (Vitals, History, Key Labs, etc.)
 // Chart labels:  10-11px              — axis ticks, donut center labels
 // Minimum:       10px                 — nothing below 10px
 //

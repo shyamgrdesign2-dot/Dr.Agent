@@ -29,7 +29,7 @@ export function AnalyticsTableCard({ data, onPillTap }: Props) {
       {/* Table */}
       <div className="overflow-hidden rounded-[8px] border border-tp-slate-100">
         {/* Header */}
-        <div className="grid grid-cols-4 gap-[1px] bg-tp-slate-100 px-[8px] py-[4px] text-[10px] font-semibold text-tp-slate-500 tracking-wider">
+        <div className="grid grid-cols-4 gap-[1px] bg-tp-slate-100 px-[8px] py-[4px] text-[12px] font-semibold text-tp-slate-500 tracking-wider">
           <span>Metric</span>
           <span className="text-right">This Week</span>
           <span className="text-right">Last Week</span>

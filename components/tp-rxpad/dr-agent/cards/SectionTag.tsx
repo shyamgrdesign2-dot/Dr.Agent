@@ -85,7 +85,7 @@ export function SectionTag({
   return (
     <span
       className={cn(
-        "group/tag inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-[4px] px-1.5 py-[0.5px] text-[10px] font-medium align-middle transition-colors",
+        "group/tag inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-[4px] px-1.5 py-[0.5px] text-[14px] font-medium align-middle transition-colors",
         bg,
         hovered && variant === "specialty" && "bg-tp-violet-100",
         hovered && variant !== "specialty" && "bg-tp-slate-200",
@@ -99,7 +99,7 @@ export function SectionTag({
       {/* Icon rendered INSIDE the tag chip, matching tag text color */}
       {resolvedIcon && (
         isEmoji(resolvedIcon)
-          ? <span className="text-[10px]">{resolvedIcon}</span>
+          ? <span className="text-[14px]">{resolvedIcon}</span>
           : resolvedIcon === "iconsax:calendar"
             ? (
               <Calendar2

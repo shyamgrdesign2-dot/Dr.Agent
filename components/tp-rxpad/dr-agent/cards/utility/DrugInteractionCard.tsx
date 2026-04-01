@@ -49,9 +49,9 @@ export function DrugInteractionCard({ data }: DrugInteractionCardProps) {
 
         {/* Severity */}
         <div className="flex items-center gap-[6px]">
-          <span className="text-[10px] font-medium tracking-wider text-tp-slate-400">Severity</span>
+          <span className="text-[12px] font-medium tracking-wider text-tp-slate-400">Severity</span>
           <span
-            className="rounded-[4px] px-1.5 py-[1px] text-[10px] font-semibold"
+            className="rounded-[4px] px-1.5 py-[1px] text-[12px] font-semibold"
             style={{ color: badge.color, backgroundColor: badge.bg }}
           >
             {SEVERITY_LABEL[data.severity]}

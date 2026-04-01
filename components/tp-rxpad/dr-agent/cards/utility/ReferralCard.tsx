@@ -48,7 +48,7 @@ export function ReferralCard({ data, onPillTap }: Props) {
                     {item.doctorName}
                   </span>
                   <span
-                    className="shrink-0 rounded-[4px] px-1.5 py-[1px] text-[10px] font-medium"
+                    className="shrink-0 rounded-[4px] px-1.5 py-[1px] text-[12px] font-medium"
                     style={{ color: "#4B4AD5", backgroundColor: "#EEF2FF" }}
                   >
                     {item.specialty}
