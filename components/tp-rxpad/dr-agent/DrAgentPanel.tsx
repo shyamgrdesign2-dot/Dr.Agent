@@ -10,6 +10,7 @@ import type {
   CannedPill,
   ConsultPhase,
   DoctorViewType,
+  DrAgentVariant,
   RxAgentChatMessage,
   RxTabLens,
   SmartSummaryData,
@@ -183,11 +184,22 @@ interface DrAgentPanelProps {
   autoMessage?: string
   /** Counter to re-trigger autoMessage even with same text */
   autoMessageTrigger?: number
+  /** Panel variant — "v0" is summary-only (no uploads, no clinic overview, 8 summary cards only) */
+  variant?: DrAgentVariant
 }
 
 const HOMEPAGE_COMMON_ID = "__homepage_common__"
 
-export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", activeTab, activeRailItem, homepagePatients, autoMessage, autoMessageTrigger }: DrAgentPanelProps) {
+export function DrAgentPanel({ onClose, initialPatientId, mode: rawMode = "rxpad", activeTab, activeRailItem, homepagePatients, autoMessage, autoMessageTrigger, variant = "full" }: DrAgentPanelProps) {
+  const isV0 = variant === "v0"
+  // V0 forces rxpad mode — no clinic overview / homepage context
+  const mode = isV0 ? "rxpad" as const : rawMode
+
+  // V0: only these 8 summary card kinds are allowed
+  const V0_ALLOWED_KINDS = new Set([
+    "sbar_overview", "patient_summary", "symptom_collector", "last_visit",
+    "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary",
+  ])
   // ── Patient Context ──
   // In homepage mode with no patient, use a special common ID for operational context
   const effectiveDefaultId = (mode === "homepage" && !initialPatientId) ? HOMEPAGE_COMMON_ID : (initialPatientId ?? CONTEXT_PATIENT_ID)
@@ -292,11 +304,22 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
         : generatePills(summary, phase, activeTabLens, showDoctorViewSelector ? doctorViewType : undefined)
 
     // Filter out pills whose card has already been shown in the current conversation
-    return rawPills.filter(pill => {
+    let filtered = rawPills.filter(pill => {
       const cardKinds = PILL_TO_CARD_KINDS[pill.label]
       if (!cardKinds) return true // Unknown mapping — always show
       return !cardKinds.some(kind => shownCardKinds.has(kind))
     })
+
+    // V0: only show pills that map to the 8 allowed summary card kinds
+    if (isV0) {
+      filtered = filtered.filter(pill => {
+        const cardKinds = PILL_TO_CARD_KINDS[pill.label]
+        if (!cardKinds) return false // Unknown mapping — hide in V0
+        return cardKinds.some(kind => V0_ALLOWED_KINDS.has(kind))
+      })
+    }
+
+    return filtered
   }, [mode, activeTab, activeRailItem, isPatientContext, summary, phase, activeTabLens, selectedPatientId, showDoctorViewSelector, doctorViewType, shownCardKinds])
 
   // ── Sync patient allergies to context (for RxPad medication alerts) ──
@@ -507,6 +530,17 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
       } else {
         // ── Normal: Patient-context reply ──
         reply = buildReply(msg, summary, newPhase, intent)
+      }
+
+      // V0 guard: only allow 8 summary card kinds, strip follow-up pills
+      if (isV0) {
+        if (reply.rxOutput && !V0_ALLOWED_KINDS.has(reply.rxOutput.kind)) {
+          reply = {
+            text: "In this version, I can provide patient summaries. Try asking for a patient summary, last visit, or intake overview.",
+            rxOutput: undefined,
+          }
+        }
+        delete reply.followUpPills
       }
 
       const assistantMsg: RxAgentChatMessage = {
@@ -831,6 +865,7 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
         showDoctorViewSelector={showDoctorViewSelector}
         intakeMode={intakeMode}
         onIntakeModeChange={handleIntakeModeChange}
+        variant={variant}
       />
 
       {/* ── Chat area — subtle warm AI-tinted background ── */}
@@ -893,7 +928,7 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
             />
           </div>
         )}
-        {showAttachPanel && (
+        {!isV0 && showAttachPanel && (
           <AttachPanel
             onSelect={handleAttachSelect}
             onClose={() => setShowAttachPanel(false)}
@@ -903,7 +938,7 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
           value={inputValue}
           onChange={(v) => { setInputValue(v); if (isPrefilled) setIsPrefilled(false) }}
           onSend={() => { setIsPrefilled(false); handleSend() }}
-          onAttach={handleAttach}
+          onAttach={isV0 ? undefined : handleAttach}
           onVoiceTranscription={handleVoiceTranscription}
           disabled={isTyping}
           isPrefilled={isPrefilled}
@@ -917,7 +952,7 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
       </div>
 
       {/* ── Document Bottom Sheet — overlays entire panel ── */}
-      {showDocBottomSheet && (
+      {!isV0 && showDocBottomSheet && (
         <DocumentBottomSheet
           documents={patientDocuments}
           onSendDocuments={handleSendDocuments}

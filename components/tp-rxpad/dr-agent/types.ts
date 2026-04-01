@@ -18,6 +18,9 @@ export type SpecialtyTabId = "gp" | "gynec" | "ophthal" | "obstetric" | "pediatr
 /** Doctor viewing context — controls summary depth, intro flow, and pill selection */
 export type DoctorViewType = "specialist_first_visit" | "treating_physician" | "emergency_oncall"
 
+/** Panel variant — "full" is the complete Dr. Agent, "v0" is the summary-only simplified version */
+export type DrAgentVariant = "v0" | "full"
+
 export type RxTabLens =
   | "dr-agent"
   | "past-visits"

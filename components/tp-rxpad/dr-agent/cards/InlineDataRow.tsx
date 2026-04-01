@@ -5,6 +5,7 @@ import { SectionTag } from "./SectionTag"
 import { ActionableTooltip } from "./ActionableTooltip"
 import { CopyIcon } from "./CopyIcon"
 import { cn } from "@/lib/utils"
+import { useTouchDevice } from "@/hooks/use-touch-device"
 
 interface InlineValue {
   key: string
@@ -152,6 +153,7 @@ export function InlineDataRow({
   copyDestination = "RxPad",
   trailingNote,
 }: InlineDataRowProps) {
+  const isTouch = useTouchDevice()
   const showCopy = source !== "existing" || allowCopyToRxPad === true
   const tooltips = TAG_TOOLTIPS[tag]
   const destinationLabel = copyDestination.trim() || "RxPad"
@@ -304,7 +306,7 @@ export function InlineDataRow({
         <ActionableTooltip
           label={sectionCopyTooltip}
           onAction={handleCopyAll}
-          className="absolute right-0 top-[2px] opacity-0 group-hover/section:opacity-100 transition-opacity"
+          className={cn("absolute right-0 top-[2px] transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/section:opacity-100")}
         >
           <CopyIcon size={14} onClick={handleCopyAll} />
         </ActionableTooltip>

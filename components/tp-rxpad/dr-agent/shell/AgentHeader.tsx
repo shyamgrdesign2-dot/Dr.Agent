@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import type { DoctorViewType, SpecialtyTabId } from "../types"
+import type { DoctorViewType, DrAgentVariant, SpecialtyTabId } from "../types"
 import { SidebarRight } from "iconsax-reactjs"
 import { AI_GRADIENT } from "../constants"
 import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
@@ -70,6 +70,8 @@ interface AgentHeaderProps {
   /** Intake mode — with or without pre-visit intake */
   intakeMode?: IntakeMode
   onIntakeModeChange?: (mode: IntakeMode) => void
+  /** Panel variant — V0 shows simplified header */
+  variant?: DrAgentVariant
 }
 
 export function AgentHeader({
@@ -83,7 +85,9 @@ export function AgentHeader({
   showDoctorViewSelector,
   intakeMode = "with_intake",
   onIntakeModeChange,
+  variant = "full",
 }: AgentHeaderProps) {
+  const isV0 = variant === "v0"
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -133,11 +137,16 @@ export function AgentHeader({
         {/* Left: spark icon + title + unified dropdown */}
         <div className="relative z-10 flex items-center gap-[6px]">
           <span className="text-[16px] font-semibold text-white" style={{ letterSpacing: "0.1px", lineHeight: "17px" }}>
-            Dr. Agent
+            {isV0 ? "Dr. Agent V0" : "Dr. Agent"}
           </span>
 
-          {/* Unified Dropdown — Specialty + Doctor Type + Intake */}
-          <div className="relative" ref={dropdownRef}>
+          {/* Unified Dropdown — Specialty + Doctor Type + Intake (hidden in V0) */}
+          {isV0 ? (
+            <span className="rounded-full bg-white/15 px-[7px] py-[2px] text-[11px] text-white/70 font-medium">
+              Summary only
+            </span>
+          ) : null}
+          {!isV0 && <div className="relative" ref={dropdownRef}>
             <button
               type="button"
               onClick={() => setDropdownOpen((v) => !v)}
@@ -278,7 +287,7 @@ export function AgentHeader({
                 )}
               </div>
             )}
-          </div>
+          </div>}
         </div>
 
         {/* Right: close/minimize button */}

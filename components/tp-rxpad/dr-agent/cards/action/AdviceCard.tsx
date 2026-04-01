@@ -1,9 +1,11 @@
 "use client"
 
 import React, { useState } from "react"
+import { cn } from "@/lib/utils"
 import { CardShell } from "../CardShell"
 import { CopyIcon } from "../CopyIcon"
 
+import { useTouchDevice } from "@/hooks/use-touch-device"
 import { SidebarLink } from "../SidebarLink"
 import { FooterCTA } from "../FooterCTA"
 import { Share } from "iconsax-reactjs"
@@ -21,6 +23,7 @@ interface AdviceCardProps {
 }
 
 export function AdviceCard({ data, onCopy, onPillTap }: AdviceCardProps) {
+  const isTouch = useTouchDevice()
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
 
   const handleCopyItem = (item: string, index: number) => {
@@ -57,7 +60,7 @@ export function AdviceCard({ data, onCopy, onPillTap }: AdviceCardProps) {
           >
             <span className="mt-[1px] flex-shrink-0 text-tp-slate-400">•</span>
             <span className="flex-1">{item}</span>
-            <span className="flex-shrink-0 opacity-0 group-hover/advice-item:opacity-100 transition-opacity">
+            <span className={cn("flex-shrink-0 transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/advice-item:opacity-100")}>
               {copiedIndex === i ? (
                 <span className="text-[14px] text-tp-success-500 font-medium">Copied</span>
               ) : (

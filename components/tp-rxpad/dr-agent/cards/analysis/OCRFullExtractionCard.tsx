@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useState } from "react"
+import { cn } from "@/lib/utils"
+import { useTouchDevice } from "@/hooks/use-touch-device"
 import { CardShell } from "../CardShell"
 import { CopyIcon } from "../CopyIcon"
 import { ActionableTooltip } from "../ActionableTooltip"
@@ -29,6 +31,7 @@ export function OCRFullExtractionCard({
   onCopySection,
   onCopyItem,
 }: OCRFullExtractionCardProps) {
+  const isTouch = useTouchDevice()
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
 
   const handleCopyItem = (item: string, dest: string, key: string) => {
@@ -80,7 +83,7 @@ export function OCRFullExtractionCard({
                 <span className="flex-1 text-[14px] font-semibold text-tp-slate-600">
                   {section.heading}
                 </span>
-                <span className="opacity-0 group-hover/section-header:opacity-100 transition-opacity">
+                <span className={cn("transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/section-header:opacity-100")}>
                   {copiedKey === sectionKey ? (
                     <span className="text-[14px] text-tp-success-500 font-medium">Copied</span>
                   ) : (
@@ -109,7 +112,7 @@ export function OCRFullExtractionCard({
                       <span className="flex-1 font-normal">
                         {formatWithHierarchy(item)}
                       </span>
-                      <span className="flex-shrink-0 opacity-0 group-hover/ocr-item:opacity-100 transition-opacity">
+                      <span className={cn("flex-shrink-0 transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/ocr-item:opacity-100")}>
                         {copiedKey === itemKey ? (
                           <span className="text-[14px] text-tp-success-500 font-medium">Copied</span>
                         ) : (

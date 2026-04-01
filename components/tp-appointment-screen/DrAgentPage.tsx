@@ -746,6 +746,7 @@ export function DrAgentPage() {
   }, [])
 
   const [isAgentWindowOpen, setIsAgentWindowOpen] = useState(false)
+  const [isV0Open, setIsV0Open] = useState(false)
   const [selectedChatPatientId, setSelectedChatPatientId] = useState(CONTEXT_COMMON_ID)
   const [chatInput, setChatInput] = useState("")
   const [agentThreads, setAgentThreads] = useState<Record<string, AgentChatMessage[]>>(() =>
@@ -1038,6 +1039,15 @@ export function DrAgentPage() {
                     >
                       Start Walk-In
                     </Button>
+                    <button
+                      type="button"
+                      onClick={() => { setIsV0Open(true); setIsAgentWindowOpen(false) }}
+                      className="flex items-center gap-[6px] whitespace-nowrap rounded-[8px] px-[12px] py-[7px] text-[13px] font-semibold text-white transition-all hover:scale-[1.02]"
+                      style={{ background: "linear-gradient(135deg, #8C33A0 0%, #4B4AD5 100%)" }}
+                    >
+                      <AiBrandSparkIcon size={16} />
+                      Doctor Agent V0
+                    </button>
                   </>
                 }
               />
@@ -1464,6 +1474,7 @@ export function DrAgentPage() {
               </div>
             </div>
           </section>
+            {/* Full Dr. Agent panel */}
             {isAgentWindowOpen && (
               <aside className="hidden h-full w-[392px] shrink-0 md:block">
                 <DrAgentPanel
@@ -1478,10 +1489,22 @@ export function DrAgentPage() {
                 />
               </aside>
             )}
+
+            {/* V0 Dr. Agent panel — summary only */}
+            {isV0Open && (
+              <aside className="hidden h-full w-[392px] shrink-0 md:block">
+                <DrAgentPanel
+                  initialPatientId={selectedChatPatientId !== CONTEXT_COMMON_ID && selectedChatPatientId !== CONTEXT_NONE_ID ? selectedChatPatientId : undefined}
+                  mode="rxpad"
+                  onClose={() => setIsV0Open(false)}
+                  variant="v0"
+                />
+              </aside>
+            )}
           </div>
 
-          {/* Floating Dr. Agent FAB — visible when panel is closed */}
-          {!isAgentWindowOpen && (
+          {/* Floating Dr. Agent FAB — visible when neither panel is open */}
+          {!isAgentWindowOpen && !isV0Open && (
             <DrAgentFab onClick={() => setIsAgentWindowOpen(true)} />
           )}
         </main>

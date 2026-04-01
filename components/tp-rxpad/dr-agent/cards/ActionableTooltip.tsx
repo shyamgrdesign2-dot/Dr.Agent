@@ -4,6 +4,7 @@ import React, { useState, useRef, useCallback, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { Copy } from "iconsax-reactjs"
 import { cn } from "@/lib/utils"
+import { useTouchDevice } from "@/hooks/use-touch-device"
 
 interface ActionableTooltipProps {
   children: React.ReactNode
@@ -18,6 +19,7 @@ export function ActionableTooltip({
   onAction,
   className,
 }: ActionableTooltipProps) {
+  const isTouch = useTouchDevice()
   const [isVisible, setIsVisible] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
   const wrapperRef = useRef<HTMLSpanElement>(null)
@@ -125,6 +127,29 @@ export function ActionableTooltip({
     }, 1000)
   }, [onAction])
 
+  /* ── Touch: tap-to-toggle + outside-tap-to-close ─── */
+
+  const handleTouchToggle = useCallback((e: React.TouchEvent) => {
+    if (!isTouch) return
+    e.stopPropagation()
+    if (isCopied) return
+    setIsVisible((prev) => !prev)
+  }, [isTouch, isCopied])
+
+  useEffect(() => {
+    if (!isTouch || !isVisible) return
+    const handleOutsideTap = (e: TouchEvent) => {
+      if (
+        wrapperRef.current && !wrapperRef.current.contains(e.target as Node) &&
+        tooltipRef.current && !tooltipRef.current.contains(e.target as Node)
+      ) {
+        setIsVisible(false)
+      }
+    }
+    document.addEventListener("touchstart", handleOutsideTap)
+    return () => document.removeEventListener("touchstart", handleOutsideTap)
+  }, [isTouch, isVisible])
+
   useEffect(() => {
     return () => {
       if (hideTimeoutRef.current) {
@@ -203,8 +228,9 @@ export function ActionableTooltip({
     <span
       ref={wrapperRef}
       className={cn("inline-flex items-center", className)}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={isTouch ? undefined : handleMouseEnter}
+      onMouseLeave={isTouch ? undefined : handleMouseLeave}
+      onTouchStart={handleTouchToggle}
     >
       {children}
       {tooltip}

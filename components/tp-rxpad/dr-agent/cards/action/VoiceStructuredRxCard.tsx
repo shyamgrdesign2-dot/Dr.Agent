@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useState } from "react"
+import { cn } from "@/lib/utils"
+import { useTouchDevice } from "@/hooks/use-touch-device"
 import { CardShell } from "../CardShell"
 import { CopyIcon } from "../CopyIcon"
 import { ActionableTooltip } from "../ActionableTooltip"
@@ -20,6 +22,7 @@ function formatVoiceItem(item: VoiceRxItem): string {
 }
 
 export function VoiceStructuredRxCard({ data, onCopy }: VoiceStructuredRxCardProps) {
+  const isTouch = useTouchDevice()
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
   const [showOriginal, setShowOriginal] = useState(false)
 
@@ -76,7 +79,7 @@ export function VoiceStructuredRxCard({ data, onCopy }: VoiceStructuredRxCardPro
               <span className="flex-1 text-[14px] font-semibold text-tp-slate-600">
                 {section.title}
               </span>
-              <span className="opacity-0 group-hover/section-header:opacity-100 transition-opacity">
+              <span className={cn("transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/section-header:opacity-100")}>
                 <ActionableTooltip
                   label={`Fill ${section.title.toLowerCase()} to RxPad`}
                   onAction={() => handleCopySection(section.sectionId, section.items)}
@@ -104,7 +107,7 @@ export function VoiceStructuredRxCard({ data, onCopy }: VoiceStructuredRxCardPro
                         <span className="ml-1 text-tp-slate-400">({item.detail})</span>
                       )}
                     </span>
-                    <span className="flex-shrink-0 opacity-0 group-hover/voice-item:opacity-100 transition-opacity">
+                    <span className={cn("flex-shrink-0 transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/voice-item:opacity-100")}>
                       {copiedKey === itemKey ? (
                         <span className="text-[14px] text-tp-success-500 font-medium">Copied</span>
                       ) : (

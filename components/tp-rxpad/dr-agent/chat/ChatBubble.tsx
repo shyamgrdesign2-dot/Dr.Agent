@@ -3,6 +3,7 @@
 import React, { useMemo, useState, useRef, useCallback, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
+import { useTouchDevice } from "@/hooks/use-touch-device"
 import type { RxAgentChatMessage, RxAgentOutput, SpecialtyTabId, PatientDocument } from "../types"
 import { CardRenderer } from "../cards/CardRenderer"
 import { FeedbackRow } from "../cards/FeedbackRow"
@@ -689,6 +690,7 @@ export function ChatBubble({
   patientDocuments,
   onPatientSelect,
 }: ChatBubbleProps) {
+  const isTouch = useTouchDevice()
   const isUser = message.role === "user"
   const timestamp = useMemo(() => formatTime(message.createdAt), [message.createdAt])
   const [sourceOpen, setSourceOpen] = useState(false)
@@ -734,7 +736,7 @@ export function ChatBubble({
           </div>
           )}
           {/* Hover action icons */}
-          <div className="flex items-center gap-[2px] opacity-0 group-hover/msg:opacity-100 transition-opacity">
+          <div className={cn("flex items-center gap-[2px] transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/msg:opacity-100")}>
             <ActionableTooltip
               label="Fill to RxPad"
               onAction={() => navigator.clipboard?.writeText(message.text)}

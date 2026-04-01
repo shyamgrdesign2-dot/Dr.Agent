@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Calendar2 } from "iconsax-reactjs"
 import { cn } from "@/lib/utils"
+import { useTouchDevice } from "@/hooks/use-touch-device"
 import { CopyIcon } from "./CopyIcon"
 import { TPMedicalIcon } from "@/components/tp-ui"
 
@@ -69,6 +70,7 @@ export function SectionTag({
   tooltip,
   copyTooltip,
 }: SectionTagProps) {
+  const isTouch = useTouchDevice()
   const [hovered, setHovered] = useState(false)
   const resolvedIcon = icon || SECTION_TAG_ICON_MAP[label]
 
@@ -130,7 +132,7 @@ export function SectionTag({
       <span className={cn("transition-colors", foregroundClassName)}>
         {label}
       </span>
-      {onCopy && hovered && (
+      {onCopy && (hovered || isTouch) && (
         <CopyIcon
           size={10}
           onClick={(e) => { e.stopPropagation(); onCopy() }}

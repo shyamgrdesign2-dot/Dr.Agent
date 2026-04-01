@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Copy } from "iconsax-reactjs"
 import { cn } from "@/lib/utils"
+import { useTouchDevice } from "@/hooks/use-touch-device"
 
 interface CopyIconProps {
   size?: number
@@ -11,6 +12,7 @@ interface CopyIconProps {
 }
 
 export function CopyIcon({ size = 14, onClick, className }: CopyIconProps) {
+  const isTouch = useTouchDevice()
   const [hovered, setHovered] = useState(false)
 
   return (
@@ -25,7 +27,7 @@ export function CopyIcon({ size = 14, onClick, className }: CopyIconProps) {
         className,
       )}
     >
-      <Copy size={size} variant={hovered ? "Bulk" : "Linear"} />
+      <Copy size={size} variant={isTouch || hovered ? "Bulk" : "Linear"} />
     </button>
   )
 }

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react"
 import { Copy } from "iconsax-reactjs"
 import { cn } from "@/lib/utils"
+import { useTouchDevice } from "@/hooks/use-touch-device"
 
 interface CopyOption {
   label: string
@@ -28,6 +29,7 @@ export function CopyTooltip({
   iconSize = 10,
   className,
 }: CopyTooltipProps) {
+  const isTouch = useTouchDevice()
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
   const ref = useRef<HTMLDivElement>(null)
@@ -84,7 +86,7 @@ export function CopyTooltip({
         type="button"
         className="inline-flex items-center text-tp-blue-500 hover:text-tp-blue-600 transition-all cursor-pointer"
         onClick={() => setOpen((prev) => !prev)}
-        onMouseEnter={() => setOpen(true)}
+        onMouseEnter={isTouch ? undefined : () => setOpen(true)}
         title="Fill options"
       >
         <Copy size={iconSize} variant={open ? "Bulk" : "Linear"} />
@@ -99,7 +101,7 @@ export function CopyTooltip({
             "border border-tp-slate-200/60 bg-white py-[3px]",
             "shadow-[0_4px_16px_rgba(0,0,0,0.1)]",
           )}
-          onMouseLeave={() => setOpen(false)}
+          onMouseLeave={isTouch ? undefined : () => setOpen(false)}
         >
           {/* Individual options */}
           {options.map((opt, i) => (

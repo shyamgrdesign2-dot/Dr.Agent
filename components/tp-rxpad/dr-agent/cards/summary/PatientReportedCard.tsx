@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useState } from "react"
+import { cn } from "@/lib/utils"
+import { useTouchDevice } from "@/hooks/use-touch-device"
 import { CardShell } from "../CardShell"
 import { CopyIcon } from "../CopyIcon"
 import { ActionableTooltip } from "../ActionableTooltip"
@@ -325,6 +327,7 @@ function highlightSummary(text: string): React.ReactNode {
 /* ── component ──────────────────────────────────────── */
 
 export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed, patientNarrative }: PatientReportedCardProps) {
+  const isTouch = useTouchDevice()
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
 
   /* Build all non-empty sections */
@@ -404,7 +407,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed,
               <span className="flex-1 text-[14px] font-semibold text-tp-slate-600">
                 {section.title}
               </span>
-              <span className="opacity-0 group-hover/section-header:opacity-100 transition-opacity">
+              <span className={cn("transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/section-header:opacity-100")}>
                 <ActionableTooltip
                   label={section.copyTooltip}
                   onAction={() => handleCopySection(section)}
@@ -437,7 +440,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed,
                         </span>
                       )}
                     </span>
-                    <span className="flex-shrink-0 opacity-0 group-hover/reported-item:opacity-100 transition-opacity">
+                    <span className={cn("flex-shrink-0 transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/reported-item:opacity-100")}>
                       {copiedKey === itemKey ? (
                         <span className="text-[14px] text-tp-success-500 font-medium">Copied</span>
                       ) : (

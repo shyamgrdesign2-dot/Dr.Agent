@@ -2,6 +2,7 @@
 
 import { CardShell } from "../CardShell"
 import { cn } from "@/lib/utils"
+import { useTouchDevice } from "@/hooks/use-touch-device"
 import type { ProtocolMed } from "../../types"
 import type { RxPadCopyPayload } from "@/components/tp-rxpad/rxpad-sync-context"
 import { CopyIcon } from "../CopyIcon"
@@ -22,6 +23,7 @@ export function ProtocolMedsCard({
   onCopy,
   onCopySingle,
 }: ProtocolMedsCardProps) {
+  const isTouch = useTouchDevice()
   const isSafe =
     !data.safetyCheck.toLowerCase().includes("warning") &&
     !data.safetyCheck.toLowerCase().includes("caution") &&
@@ -85,7 +87,7 @@ export function ProtocolMedsCard({
             <CopyIcon
               size={12}
               onClick={() => onCopySingle?.(med.name)}
-              className="mt-[2px] opacity-0 group-hover/med:opacity-100 transition-opacity"
+              className={cn("mt-[2px] transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/med:opacity-100")}
             />
           </div>
         ))}

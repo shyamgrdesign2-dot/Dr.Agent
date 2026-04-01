@@ -512,26 +512,30 @@ export function ChatInput({
 
             {/* Right side: attachment + divider + send/mic */}
             <div className="flex items-center gap-[6px]">
-              {/* Attachment button — Figma SVG */}
-              <button
-                type="button"
-                onClick={onAttach}
-                disabled={disabled}
-                className={cn(
-                  "flex shrink-0 items-center justify-center transition-all hover:opacity-80",
-                  disabled && "pointer-events-none",
-                )}
-                title="Add files and more"
-              >
-                <svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-                  <path d="M0 12C0 5.37258 5.37258 0 12 0V0C18.6274 0 24 5.37258 24 12V12C24 18.6274 18.6274 24 12 24V24C5.37258 24 0 18.6274 0 12V12Z" fill="var(--tp-slate-100, #F1F5F9)" />
-                  <path d="M7.625 12H16.375" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M12 7.625V16.375" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
+              {/* Attachment button — Figma SVG (hidden when onAttach is undefined, e.g. V0 mode) */}
+              {onAttach && (
+                <>
+                  <button
+                    type="button"
+                    onClick={onAttach}
+                    disabled={disabled}
+                    className={cn(
+                      "flex shrink-0 items-center justify-center transition-all hover:opacity-80",
+                      disabled && "pointer-events-none",
+                    )}
+                    title="Add files and more"
+                  >
+                    <svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+                      <path d="M0 12C0 5.37258 5.37258 0 12 0V0C18.6274 0 24 5.37258 24 12V12C24 18.6274 18.6274 24 12 24V24C5.37258 24 0 18.6274 0 12V12Z" fill="var(--tp-slate-100, #F1F5F9)" />
+                      <path d="M7.625 12H16.375" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M12 7.625V16.375" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
 
-              {/* Divider */}
-              <div className="self-stretch shrink-0" style={{ width: 1, background: "linear-gradient(180deg, rgba(208,213,221,0.2) 0%, #D0D5DD 50%, rgba(208,213,221,0.2) 100%)", opacity: 0.8 }} />
+                  {/* Divider */}
+                  <div className="self-stretch shrink-0" style={{ width: 1, background: "linear-gradient(180deg, rgba(208,213,221,0.2) 0%, #D0D5DD 50%, rgba(208,213,221,0.2) 100%)", opacity: 0.8 }} />
+                </>
+              )}
 
               {/* Send button (when text) / Speak button (when empty) — Figma SVGs */}
               {hasText ? (

@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { Copy } from "iconsax-reactjs"
+import { useTouchDevice } from "@/hooks/use-touch-device"
 
 interface DataRowProps {
   label: string
@@ -15,6 +16,7 @@ interface DataRowProps {
 }
 
 export function DataRow({ label, unit, value, flag, refRange, isLast, onCopy, copyTooltip }: DataRowProps) {
+  const isTouch = useTouchDevice()
   const valueColor = flag === "high"
     ? "text-tp-error-600"
     : flag === "low"
@@ -39,7 +41,7 @@ export function DataRow({ label, unit, value, flag, refRange, isLast, onCopy, co
         <button
           type="button"
           onClick={onCopy}
-          className="ml-1 flex-shrink-0 opacity-0 transition-opacity group-hover/row:opacity-100 text-tp-slate-600 hover:text-tp-slate-500"
+          className={cn("ml-1 flex-shrink-0 transition-opacity text-tp-slate-600 hover:text-tp-slate-500", isTouch ? "opacity-70" : "opacity-0 group-hover/row:opacity-100")}
           title={copyTooltip ?? `Fill ${label}`}
         >
           <Copy size={14} variant="Linear" className="text-tp-blue-500" />
