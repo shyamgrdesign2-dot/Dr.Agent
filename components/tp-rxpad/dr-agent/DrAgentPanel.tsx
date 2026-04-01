@@ -26,7 +26,7 @@ import { buildReply, buildDocumentReply, buildPomrCardData } from "./engines/rep
 import { buildHomepageReply } from "./engines/homepage-reply-engine"
 import { parseVoiceToStructuredRx } from "./engines/voice-rx-engine"
 
-import { Hospital, User } from "iconsax-reactjs"
+import { Hospital, User, SearchNormal1 } from "iconsax-reactjs"
 import { AgentHeader } from "./shell/AgentHeader"
 import { PatientSelector } from "./shell/PatientSelector"
 import { ChatThread } from "./chat/ChatThread"
@@ -166,6 +166,133 @@ function StaticPatientStrip({ selectedPatientId }: { selectedPatientId: string }
   )
 }
 
+// ═══════════════ V0 PATIENT SEARCH ═══════════════
+
+function V0PatientSearch({ onSelectPatient, animatingPatient }: { onSelectPatient: (id: string) => void; animatingPatient: string | null }) {
+  const [query, setQuery] = useState("")
+  const allPatients = RX_CONTEXT_OPTIONS.filter(o => o.kind === "patient")
+  const filtered = query.trim()
+    ? allPatients.filter(p => p.label.toLowerCase().includes(query.toLowerCase()))
+    : allPatients
+
+  const greeting = (() => {
+    const h = new Date().getHours()
+    if (h < 12) return "Good morning"
+    if (h < 17) return "Good afternoon"
+    return "Good evening"
+  })()
+
+  return (
+    <div className="flex flex-1 flex-col items-center px-[16px] py-[24px] relative">
+      {/* Background */}
+      <div className="absolute inset-0 bg-white pointer-events-none" />
+      <div className="absolute inset-0 pointer-events-none" style={{
+        backgroundImage: "url(/icons/dr-agent/chat-bg.gif)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        opacity: 0.04,
+      }} />
+
+      {/* Spark icon */}
+      <div className="relative z-[1] mb-[12px]">
+        <span
+          className="pointer-events-none select-none relative inline-flex items-center justify-center overflow-hidden"
+          style={{ width: 44, height: 44, borderRadius: 44 * 0.24 }}
+        >
+          <div className="absolute inset-0 bg-white" style={{ borderRadius: 44 * 0.24 }} />
+          <div className="absolute inset-0" style={{
+            backgroundImage: "url(/icons/dr-agent/chat-bg.gif)",
+            backgroundSize: "cover",
+            borderRadius: 44 * 0.24,
+            opacity: 0.3,
+          }} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/icons/dr-agent/agent-spark.svg" width={33} height={33} alt="" className="relative z-10" draggable={false} />
+        </span>
+      </div>
+
+      {/* Greeting */}
+      <h2 className="relative z-[1] text-[18px] font-semibold text-tp-slate-800 text-center leading-[24px]">
+        {greeting}, Doctor!
+      </h2>
+      <p className="relative z-[1] mt-[4px] text-[14px] text-center leading-[18px]" style={{ color: "#A2A2A8" }}>
+        Select a patient to view their summary
+      </p>
+
+      {/* Animating patient chip */}
+      {animatingPatient && (
+        <div className="relative z-[2] mt-[16px] flex items-center justify-center">
+          <span
+            className="inline-flex items-center gap-[6px] rounded-full px-[14px] py-[6px] text-[13px] font-semibold text-white shadow-lg"
+            style={{
+              background: "linear-gradient(135deg, #8C33A0, #4B4AD5)",
+              animation: "v0-patient-drop 0.8s ease-in-out forwards",
+            }}
+          >
+            <User size={14} variant="Bold" />
+            {animatingPatient}
+          </span>
+        </div>
+      )}
+
+      {/* Search input */}
+      {!animatingPatient && (
+        <div className="relative z-[1] mt-[16px] w-full">
+          <div className="relative">
+            <SearchNormal1
+              size={16}
+              className="absolute left-[10px] top-1/2 -translate-y-1/2 text-tp-slate-400"
+            />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search patient by name..."
+              className="w-full rounded-[10px] border border-tp-slate-200 bg-white py-[8px] pl-[32px] pr-[12px] text-[13px] text-tp-slate-700 placeholder:text-tp-slate-400 outline-none focus:border-tp-violet-300 focus:ring-1 focus:ring-tp-violet-200 transition-all"
+            />
+          </div>
+
+          {/* Patient list */}
+          <div className="mt-[8px] max-h-[320px] overflow-y-auto rounded-[10px] border border-tp-slate-100 bg-white">
+            {filtered.length === 0 ? (
+              <p className="py-[16px] text-center text-[13px] text-tp-slate-400">No patients found</p>
+            ) : (
+              filtered.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSelectPatient(p.id) }}
+                  className="flex w-full items-center gap-[10px] px-[12px] py-[8px] text-left transition-colors hover:bg-tp-violet-50 border-b border-tp-slate-50 last:border-b-0"
+                >
+                  <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-tp-violet-100 text-[12px] font-semibold text-tp-violet-600">
+                    {p.label.charAt(0)}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[13px] font-medium text-tp-slate-800">{p.label}</p>
+                    <p className="text-[11px] text-tp-slate-400">{p.meta}</p>
+                  </div>
+                  {p.isToday && (
+                    <span className="shrink-0 rounded-full bg-tp-success-50 px-[6px] py-[1px] text-[10px] font-medium text-tp-success-600">Today</span>
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* CSS animation for patient chip drop */}
+      <style>{`
+        @keyframes v0-patient-drop {
+          0% { opacity: 1; transform: scale(1) translateY(0); }
+          40% { opacity: 1; transform: scale(1.1) translateY(-8px); }
+          100% { opacity: 0; transform: scale(0.6) translateY(200px); }
+        }
+      `}</style>
+    </div>
+  )
+}
+
 // ═══════════════ MAIN COMPONENT ═══════════════
 
 interface DrAgentPanelProps {
@@ -189,6 +316,7 @@ interface DrAgentPanelProps {
 }
 
 const HOMEPAGE_COMMON_ID = "__homepage_common__"
+const V0_NO_PATIENT = "__v0_no_patient__"
 
 export function DrAgentPanel({ onClose, initialPatientId, mode: rawMode = "rxpad", activeTab, activeRailItem, homepagePatients, autoMessage, autoMessageTrigger, variant = "full" }: DrAgentPanelProps) {
   const isV0 = variant === "v0"
@@ -200,9 +328,17 @@ export function DrAgentPanel({ onClose, initialPatientId, mode: rawMode = "rxpad
     "sbar_overview", "patient_summary", "symptom_collector", "last_visit",
     "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary",
   ])
+
+  // V0: track whether patient has been selected (starts with no patient)
+  const [v0PatientSelected, setV0PatientSelected] = useState(false)
+  const [v0AnimatingPatient, setV0AnimatingPatient] = useState<string | null>(null)
+
   // ── Patient Context ──
   // In homepage mode with no patient, use a special common ID for operational context
-  const effectiveDefaultId = (mode === "homepage" && !initialPatientId) ? HOMEPAGE_COMMON_ID : (initialPatientId ?? CONTEXT_PATIENT_ID)
+  // V0 starts with no patient until doctor selects one
+  const effectiveDefaultId = isV0 && !v0PatientSelected
+    ? V0_NO_PATIENT
+    : (mode === "homepage" && !initialPatientId) ? HOMEPAGE_COMMON_ID : (initialPatientId ?? CONTEXT_PATIENT_ID)
   const [selectedPatientId, setSelectedPatientId] = useState(effectiveDefaultId)
 
   // Sync when initialPatientId changes from parent (appointment page)
@@ -662,6 +798,19 @@ export function DrAgentPanel({ onClose, initialPatientId, mode: rawMode = "rxpad
     setIsTyping(false)
   }, [])
 
+  // ── V0: Patient selection from search (with animation) ──
+  const handleV0PatientSelect = useCallback((patientId: string) => {
+    const patient = RX_CONTEXT_OPTIONS.find(p => p.id === patientId)
+    if (!patient) return
+    // Start animation
+    setV0AnimatingPatient(patient.label)
+    setTimeout(() => {
+      setSelectedPatientId(patientId)
+      setV0PatientSelected(true)
+      setV0AnimatingPatient(null)
+    }, 800) // animation duration
+  }, [])
+
   // ── Handle attach — context-aware ──
   // Homepage (Clinic Overview, no patient) → open native file picker
   // Patient context → show bottom sheet with patient's documents
@@ -877,8 +1026,13 @@ export function DrAgentPanel({ onClose, initialPatientId, mode: rawMode = "rxpad
       >
         <div ref={chatScrollRef} className="flex flex-1 flex-col overflow-y-auto">
 
-          {/* Welcome screen — shown when no user messages yet. Dynamic context based on patient selection. */}
-          {messages.filter(m => m.role === "user").length === 0 && !isTyping ? (
+          {/* V0: Patient search screen — shown before patient is selected */}
+          {isV0 && !v0PatientSelected ? (
+            <V0PatientSearch
+              onSelectPatient={handleV0PatientSelect}
+              animatingPatient={v0AnimatingPatient}
+            />
+          ) : messages.filter(m => m.role === "user").length === 0 && !isTyping ? (
             <WelcomeScreen
               context={
                 mode === "homepage"
@@ -909,6 +1063,8 @@ export function DrAgentPanel({ onClose, initialPatientId, mode: rawMode = "rxpad
       </div>
 
       {/* ── Pill Bar + Input — fade-in footer ── */}
+      {/* V0: hide entire footer when no patient selected yet */}
+      {!(isV0 && !v0PatientSelected) && (
       <div className="relative bg-white">
         {/* Fade-in top edge — smoother, taller gradient for gentle transition */}
         <div
@@ -950,6 +1106,7 @@ export function DrAgentPanel({ onClose, initialPatientId, mode: rawMode = "rxpad
           patientLockedMessage={mode !== "homepage" ? `Context is locked to ${patient?.label || "this patient"}'s ${mode === "rxpad" ? "prescription" : "details"} page` : undefined}
         />
       </div>
+      )}
 
       {/* ── Document Bottom Sheet — overlays entire panel ── */}
       {!isV0 && showDocBottomSheet && (

@@ -956,7 +956,7 @@ export function DrAgentPage() {
 
   return (
     <div className="min-h-screen bg-tp-slate-100 font-sans text-tp-slate-900">
-      <TopHeader />
+      <TopHeader isV0Open={isV0Open} setIsV0Open={setIsV0Open} setIsAgentWindowOpen={setIsAgentWindowOpen} />
 
       <div className="flex h-[calc(100vh-62px)]">
         <aside className="hidden h-full shrink-0 md:block">
@@ -1039,15 +1039,6 @@ export function DrAgentPage() {
                     >
                       Start Walk-In
                     </Button>
-                    <button
-                      type="button"
-                      onClick={() => { setIsV0Open(true); setIsAgentWindowOpen(false) }}
-                      className="flex items-center gap-[6px] whitespace-nowrap rounded-[8px] px-[12px] py-[7px] text-[13px] font-semibold text-white transition-all hover:scale-[1.02]"
-                      style={{ background: "linear-gradient(135deg, #8C33A0 0%, #4B4AD5 100%)" }}
-                    >
-                      <AiBrandSparkIcon size={16} />
-                      Doctor Agent V0
-                    </button>
                   </>
                 }
               />
@@ -2334,7 +2325,7 @@ const DUMMY_CLINICS = [
 
 // ─── TopHeader ────────────────────────────────────────────────────────────────
 
-function TopHeader() {
+function TopHeader({ isV0Open, setIsV0Open, setIsAgentWindowOpen }: { isV0Open: boolean; setIsV0Open: (v: boolean) => void; setIsAgentWindowOpen: (v: boolean) => void }) {
   const router = useRouter()
   const [isClinicMenuOpen, setClinicMenuOpen] = useState(false)
   const [activeClinic, setActiveClinic] = useState(DUMMY_CLINICS[0].id)
@@ -2395,6 +2386,39 @@ function TopHeader() {
       </div>
 
       <div className="flex items-center gap-3.5">
+        {/* Dr. Agent V0 toggle */}
+        <button
+          type="button"
+          onClick={() => {
+            const next = !isV0Open
+            setIsV0Open(next)
+            if (next) setIsAgentWindowOpen(false)
+          }}
+          className={cn(
+            "flex items-center gap-[6px] rounded-full px-[10px] py-[5px] text-[12px] font-semibold transition-all duration-200",
+            isV0Open
+              ? "text-white shadow-[0_2px_8px_rgba(140,51,160,0.3)]"
+              : "bg-tp-slate-100 text-tp-slate-500 hover:bg-tp-slate-200",
+          )}
+          style={isV0Open ? { background: "linear-gradient(135deg, #8C33A0 0%, #4B4AD5 100%)" } : undefined}
+        >
+          <AiBrandSparkIcon size={14} />
+          <span>Dr. Agent V0</span>
+          <span
+            className={cn(
+              "relative inline-flex h-[16px] w-[28px] shrink-0 rounded-full transition-colors duration-200",
+              isV0Open ? "bg-white/30" : "bg-tp-slate-300",
+            )}
+          >
+            <span
+              className={cn(
+                "absolute top-[2px] h-[12px] w-[12px] rounded-full bg-white shadow-sm transition-transform duration-200",
+                isV0Open ? "translate-x-[14px]" : "translate-x-[2px]",
+              )}
+            />
+          </span>
+        </button>
+
         {/* Tutorial icon — concentric-circle play button */}
         <button
           type="button"
