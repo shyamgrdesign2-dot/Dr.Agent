@@ -3,8 +3,10 @@
 import React, { useState } from "react"
 import { CardShell } from "../CardShell"
 import { CopyIcon } from "../CopyIcon"
-import { ChatPillButton } from "../ActionRow"
+
 import { SidebarLink } from "../SidebarLink"
+import { FooterCTA } from "../FooterCTA"
+import { Share } from "iconsax-reactjs"
 import type { RxPadCopyPayload } from "@/components/tp-rxpad/rxpad-sync-context"
 
 interface AdviceCardProps {
@@ -42,33 +44,22 @@ export function AdviceCard({ data, onCopy, onPillTap }: AdviceCardProps) {
       copyAllTooltip="Fill advice to RxPad"
       dataSources={["AI-Generated"]}
       collapsible
-      actions={
-        <>
-          <ChatPillButton
-            label="Schedule follow-up"
-            onClick={() => onPillTap?.("Schedule follow-up")}
-          />
-          <ChatPillButton
-            label="Simplify language"
-            onClick={() => onPillTap?.("Simplify language")}
-          />
-        </>
-      }
+
       sidebarLink={
-        <SidebarLink text="Share via WhatsApp" onClick={handleShare} />
+        <FooterCTA label="Share via WhatsApp" onClick={handleShare} tone="secondary" iconLeft={<Share size={14} variant="Linear" />} />
       }
     >
       <ul className="flex flex-col gap-[2px]">
         {data.items.map((item, i) => (
           <li
             key={i}
-            className="group/advice-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[3px] text-[12px] leading-[1.5] text-tp-slate-700 transition-colors hover:bg-tp-slate-50"
+            className="group/advice-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[3px] text-[16px] leading-[1.6] text-tp-slate-700 transition-colors hover:bg-tp-slate-50"
           >
             <span className="mt-[1px] flex-shrink-0 text-tp-slate-400">•</span>
             <span className="flex-1">{item}</span>
             <span className="flex-shrink-0 opacity-0 group-hover/advice-item:opacity-100 transition-opacity">
               {copiedIndex === i ? (
-                <span className="text-[10px] text-tp-success-500 font-medium">Copied</span>
+                <span className="text-[14px] text-tp-success-500 font-medium">Copied</span>
               ) : (
                 <CopyIcon
                   size={14}

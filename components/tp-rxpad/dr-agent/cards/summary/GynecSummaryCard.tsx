@@ -4,7 +4,6 @@ import React from "react"
 
 import { CardShell } from "../CardShell"
 import { InlineDataRow } from "../InlineDataRow"
-import { InsightBox } from "../InsightBox"
 import { SidebarLink } from "../SidebarLink"
 import type { GynecData } from "../../types"
 
@@ -18,11 +17,11 @@ export function GynecSummaryCard({ data, onSidebarNav }: GynecSummaryCardProps) 
     data.menarche && { key: "Menarche", value: data.menarche },
     data.cycleLength && {
       key: "Cycle",
-      value: `${data.cycleLength} days${data.cycleRegularity ? ` (${data.cycleRegularity})` : ""}`,
+      value: [data.cycleLength, data.cycleRegularity].filter(Boolean).join(", "),
     },
     data.flowDuration && {
       key: "Flow",
-      value: `${data.flowDuration}${data.flowIntensity ? ` · ${data.flowIntensity}` : ""}`,
+      value: [data.flowDuration, data.flowIntensity].filter(Boolean).join(", "),
     },
     data.painScore && { key: "Pain", value: data.painScore },
     data.lmp && { key: "LMP", value: data.lmp },
@@ -32,18 +31,6 @@ export function GynecSummaryCard({ data, onSidebarNav }: GynecSummaryCardProps) 
     value: string
     flag?: "normal" | "high" | "low" | "warning" | "success"
   }>
-
-  /* Determine alert severity for InsightBox */
-  const hasAlerts = data.alerts && data.alerts.length > 0
-  const alertVariant = hasAlerts
-    ? data.alerts!.some(
-        (a) =>
-          a.toLowerCase().includes("critical") ||
-          a.toLowerCase().includes("severe"),
-      )
-      ? ("red" as const)
-      : ("amber" as const)
-    : undefined
 
   return (
     <CardShell
@@ -71,11 +58,6 @@ export function GynecSummaryCard({ data, onSidebarNav }: GynecSummaryCardProps) 
           />
         )}
 
-        {hasAlerts && alertVariant && (
-          <InsightBox variant={alertVariant}>
-            {data.alerts!.join(" · ")}
-          </InsightBox>
-        )}
       </div>
     </CardShell>
   )

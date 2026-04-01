@@ -1627,9 +1627,7 @@ function AgentFloatingWindow({
     <div className="flex h-full flex-col rounded-2xl border border-tp-slate-200 bg-white shadow-[0_24px_48px_-24px_rgba(23,23,37,0.35)]">
       <div className="flex items-center justify-between border-b border-tp-slate-100 px-3 py-3 shrink-0">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-[8px]" style={{ background: AI_GRADIENT_SOFT }}>
-            <AiBrandSparkIcon size={18} />
-          </span>
+          <AiBrandSparkIcon size={28} withBackground />
           <div className="min-w-0">
             <p className="truncate text-[13px] font-semibold text-tp-slate-900">Doctor Agent</p>
             <p className="truncate text-[11px] text-tp-slate-500">{workspaceLabel}</p>
@@ -1771,9 +1769,7 @@ function AgentFloatingWindow({
               <div className="flex justify-start">
                 <div className="w-[88%] rounded-xl border border-tp-violet-100 bg-white p-2.5 shadow-[0_8px_20px_-14px_rgba(103,58,172,0.45)]">
                   <div className="mb-2 flex items-center gap-2">
-                    <span className="inline-flex size-6 items-center justify-center rounded-md" style={{ background: AI_GRADIENT_SOFT }}>
-                      <AiBrandSparkIcon size={16} />
-                    </span>
+                    <AiBrandSparkIcon size={24} withBackground />
                     <p className="text-[11px] font-semibold text-tp-slate-700">Generating dynamic UI output</p>
                   </div>
                   <div className="space-y-1.5">
@@ -1903,9 +1899,7 @@ function AgentDynamicOutputCard({
   return (
     <div className="rounded-xl border border-tp-violet-100 bg-white p-2.5 shadow-[0_8px_20px_-14px_rgba(103,58,172,0.45)]">
       <div className="mb-2 flex items-center gap-2">
-        <span className="inline-flex size-6 items-center justify-center rounded-md" style={{ background: AI_GRADIENT_SOFT }}>
-          <AiBrandSparkIcon size={16} />
-        </span>
+        <AiBrandSparkIcon size={24} withBackground />
         <div className="min-w-0">
           <p className="truncate text-[11px] font-semibold text-tp-slate-700">{title}</p>
           <p className="truncate text-[10px] text-tp-slate-500">{subtitle}</p>

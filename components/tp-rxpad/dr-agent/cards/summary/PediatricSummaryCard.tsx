@@ -4,9 +4,8 @@ import React from "react"
 
 import { CardShell } from "../CardShell"
 import { InlineDataRow } from "../InlineDataRow"
-import { FooterCTA } from "../FooterCTA"
-import { InsightBox } from "../InsightBox"
-import { ArrowRight2 } from "iconsax-reactjs"
+import { SectionTag } from "../SectionTag"
+import { FooterCTA, FooterCTAGroupTertiary, FooterDivider } from "../FooterCTA"
 import { SidebarLink } from "../SidebarLink"
 import type { PediatricsData } from "../../types"
 
@@ -34,57 +33,10 @@ export function PediatricSummaryCard({ data, onSidebarNav }: PediatricSummaryCar
   ].filter(Boolean) as Array<{ key: string; value: string; flag?: FlagValue }>
 
   /* ─ Vaccine row ─ */
-  const vaccineValues: Array<{ key: string; value: string; flag?: FlagValue }> = []
-
-  if (data.vaccinesPending != null && data.vaccinesPending > 0) {
-    vaccineValues.push({
-      key: "Pending",
-      value: String(data.vaccinesPending),
-      flag: "warning",
-    })
-  }
-  if (data.vaccinesOverdue != null && data.vaccinesOverdue > 0) {
-    vaccineValues.push({
-      key: "Overdue",
-      value: `${data.vaccinesOverdue}${
-        data.overdueVaccineNames && data.overdueVaccineNames.length > 0
-          ? ` (${data.overdueVaccineNames.join(", ")})`
-          : ""
-      }`,
-      flag: "high",
-    })
-  }
-  /* If everything is up to date */
-  if (
-    vaccineValues.length === 0 &&
-    (data.vaccinesPending === 0 || data.vaccinesOverdue === 0)
-  ) {
-    vaccineValues.push({
-      key: "Status",
-      value: "Up to date",
-      flag: "success",
-    })
-  }
-
-  /* ─ Insights ─ */
-  const insightMessages: string[] = []
-  if (data.milestoneNotes && data.milestoneNotes.length > 0) {
-    insightMessages.push(...data.milestoneNotes)
-  }
-  if (data.alerts && data.alerts.length > 0) {
-    insightMessages.push(...data.alerts)
-  }
-
-  const insightVariant =
-    data.alerts && data.alerts.length > 0
-      ? data.alerts.some(
-          (a) =>
-            a.toLowerCase().includes("critical") ||
-            a.toLowerCase().includes("severe"),
-        )
-        ? ("red" as const)
-        : ("amber" as const)
-      : ("purple" as const)
+  /* Vaccine display: plain text, no color coding on counts */
+  const hasPending = data.vaccinesPending != null && data.vaccinesPending > 0
+  const hasOverdue = data.vaccinesOverdue != null && data.vaccinesOverdue > 0
+  const isUpToDate = !hasPending && !hasOverdue
 
   return (
     <CardShell
@@ -95,23 +47,11 @@ export function PediatricSummaryCard({ data, onSidebarNav }: PediatricSummaryCar
       collapsible
       sidebarLink={
         onSidebarNav ? (
-          <div className="flex items-center">
-            <FooterCTA
-              label="View growth chart"
-              onClick={() => onSidebarNav("growth")}
-              iconRight={<ArrowRight2 size={14} variant="Linear" />}
-              fullWidth
-              align="center"
-            />
-            <div className="h-[20px] flex-shrink-0" style={{ width: "1px", background: "linear-gradient(180deg, transparent 0%, #CBD5E1 50%, transparent 100%)" }} />
-            <FooterCTA
-              label="View vaccine history"
-              onClick={() => onSidebarNav("vaccine")}
-              iconRight={<ArrowRight2 size={14} variant="Linear" />}
-              fullWidth
-              align="center"
-            />
-          </div>
+          <FooterCTAGroupTertiary>
+            <FooterCTA label="View growth chart" onClick={() => onSidebarNav("growth")} fullWidth />
+            <FooterDivider />
+            <FooterCTA label="View vaccine history" onClick={() => onSidebarNav("vaccine")} fullWidth />
+          </FooterCTAGroupTertiary>
         ) : undefined
       }
     >
@@ -127,23 +67,35 @@ export function PediatricSummaryCard({ data, onSidebarNav }: PediatricSummaryCar
           />
         )}
 
-        {/* Vaccines */}
-        {vaccineValues.length > 0 && (
-          <InlineDataRow
-            tag="Vaccines"
-            tagIcon="injection"
-            values={vaccineValues}
-            onTagClick={() => onSidebarNav?.("vaccine")}
-            source="existing"
-          />
-        )}
+        {/* Vaccines — plain text format: Pending: 2 | Overdue: 1 (names) */}
+        <div className="text-[16px] leading-[1.7] px-[3px] -mx-[3px]">
+          <SectionTag label="Vaccines" icon="injection" onClick={() => onSidebarNav?.("vaccine")} />{" "}
+          {isUpToDate ? (
+            <span className="text-tp-slate-700">Up to date</span>
+          ) : (
+            <>
+              {hasPending && (
+                <>
+                  <span className="text-tp-slate-400">Pending: </span>
+                  <span className="font-medium text-tp-slate-700">{data.vaccinesPending}</span>
+                </>
+              )}
+              {hasPending && hasOverdue && (
+                <span className="mx-[6px] text-tp-slate-200">|</span>
+              )}
+              {hasOverdue && (
+                <>
+                  <span className="text-tp-slate-400">Overdue: </span>
+                  <span className="font-medium text-tp-slate-700">{data.vaccinesOverdue}</span>
+                  {data.overdueVaccineNames && data.overdueVaccineNames.length > 0 && (
+                    <span className="text-tp-slate-400"> ({data.overdueVaccineNames.join(", ")})</span>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </div>
 
-        {/* Insight box */}
-        {insightMessages.length > 0 && (
-          <InsightBox variant={insightVariant}>
-            {insightMessages.join(" · ")}
-          </InsightBox>
-        )}
       </div>
     </CardShell>
   )

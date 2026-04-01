@@ -29,7 +29,7 @@ export function ChartTypeToggle({ chartType, onChange }: ChartTypeToggleProps) {
         type="button"
         onClick={() => onChange("line")}
         className={cn(
-          "relative z-10 flex items-center px-[10px] text-[10px] font-medium rounded-[5px] transition-colors",
+          "relative z-10 flex items-center px-[10px] text-[12px] font-medium rounded-[5px] transition-colors",
           chartType === "line" ? "text-tp-slate-800" : "text-tp-slate-400",
         )}
       >
@@ -40,7 +40,7 @@ export function ChartTypeToggle({ chartType, onChange }: ChartTypeToggleProps) {
         type="button"
         onClick={() => onChange("bar")}
         className={cn(
-          "relative z-10 flex items-center px-[10px] text-[10px] font-medium rounded-[5px] transition-colors",
+          "relative z-10 flex items-center px-[10px] text-[12px] font-medium rounded-[5px] transition-colors",
           chartType === "bar" ? "text-tp-slate-800" : "text-tp-slate-400",
         )}
       >

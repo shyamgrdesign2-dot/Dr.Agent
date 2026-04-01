@@ -520,7 +520,7 @@ function SourceDropdown({
         aria-expanded={isOpen}
       >
         <DocumentText1 size={13} variant="Linear" />
-        <span className="text-[10px] font-medium leading-[1]">Source</span>
+        <span className="text-[14px] font-medium leading-[1]">Source</span>
       </button>
 
       {/* Portal dropdown */}
@@ -542,7 +542,7 @@ function SourceDropdown({
             style={{ borderBottom: "1px solid rgba(148,163,184,0.10)" }}
           >
             <DocumentText1 size={12} variant="Bold" className="text-tp-slate-400" />
-            <p className="text-[10px] font-semibold text-tp-slate-500">
+            <p className="text-[14px] font-semibold text-tp-slate-500">
               Compiled from {sources.length} source{sources.length > 1 ? "s" : ""}
             </p>
           </div>
@@ -560,7 +560,7 @@ function SourceDropdown({
                     style={{ backgroundColor: dotColor }}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] leading-[1.4] text-tp-slate-700">
+                    <p className="text-[14px] leading-[1.5] text-tp-slate-700">
                       <span className="font-semibold">{tag}</span>
                       <span className="text-tp-slate-400 mx-[4px]">&middot;</span>
                       <span className="text-tp-slate-500">{src.description}</span>
@@ -661,6 +661,24 @@ function formatTime(iso: string): string {
   }
 }
 
+/**
+ * Typewriter hook — reveals text character by character for a streaming feel.
+ * Only runs once when the component first mounts with text; subsequent renders
+ * show the full text immediately.
+ */
+function useTypewriter(text: string, shouldAnimate: boolean, speed = 18): { displayText: string; isDone: boolean } {
+  const [charIndex, setCharIndex] = useState(shouldAnimate ? 0 : text.length)
+  const isDone = charIndex >= text.length
+
+  useEffect(() => {
+    if (!shouldAnimate || charIndex >= text.length) return
+    const t = setTimeout(() => setCharIndex(i => Math.min(i + 1, text.length)), speed)
+    return () => clearTimeout(t)
+  }, [charIndex, text.length, shouldAnimate, speed])
+
+  return { displayText: text.slice(0, charIndex), isDone }
+}
+
 export function ChatBubble({
   message,
   onFeedback,
@@ -675,6 +693,30 @@ export function ChatBubble({
   const timestamp = useMemo(() => formatTime(message.createdAt), [message.createdAt])
   const [sourceOpen, setSourceOpen] = useState(false)
 
+  // ── Track whether this is a "new" message (just appeared) for streaming ──
+  const isNewRef = useRef(true)
+  const shouldStream = isNewRef.current && !isUser && !!message.text
+  useEffect(() => { isNewRef.current = false }, [])
+
+  // ── Typewriter for assistant text ──
+  const { displayText, isDone: textDone } = useTypewriter(
+    message.text || "",
+    shouldStream,
+    16, // ~60 chars/sec
+  )
+
+  // ── Phased card reveal: card fades in after text finishes streaming ──
+  const [cardRevealed, setCardRevealed] = useState(false)
+  const hasCard = !!message.rxOutput
+  useEffect(() => {
+    if (!hasCard || isUser) { setCardRevealed(true); return }
+    if (shouldStream && !textDone) return // Wait for text to finish
+    // Small delay after text completes, then reveal card
+    const delay = message.text ? 150 : 80
+    const t = setTimeout(() => setCardRevealed(true), delay)
+    return () => clearTimeout(t)
+  }, [hasCard, isUser, message.text, shouldStream, textDone])
+
   // ---- USER bubble ----
   if (isUser) {
     return (
@@ -687,7 +729,7 @@ export function ChatBubble({
             </div>
           )}
           {message.text && (
-          <div className="rounded-[12px] rounded-br-[0px] bg-tp-slate-100 px-3 py-2 text-[12px] leading-[18px] text-tp-slate-700">
+          <div className="rounded-[12px] rounded-br-[0px] bg-tp-slate-100 px-3 py-2 text-[16px] leading-[18px] text-tp-slate-700">
               <p className="whitespace-pre-wrap">{message.text}</p>
           </div>
           )}
@@ -717,7 +759,7 @@ export function ChatBubble({
   return (
     <div className="group/msg flex w-full justify-start">
       <div className="flex w-full flex-col items-start">
-        {/* Top row: AI icon + text */}
+        {/* Top row: AI icon + text (typewriter reveal for new messages) */}
         {message.text && (
           <div className="flex items-start gap-[6px]">
             {/* AI Spark icon */}
@@ -725,9 +767,10 @@ export function ChatBubble({
               <AiBrandSparkIcon size={13} />
             </AiGradientBg>
 
-            {/* Plain text (no bubble/border/bg) */}
-            <p className="text-[12px] leading-[18px] text-tp-slate-700 whitespace-pre-wrap break-words">
-              {renderAssistantMarkdown(message.text, onPillTap)}
+            {/* Plain text with streaming reveal */}
+            <p className="text-[16px] leading-[18px] text-tp-slate-700 whitespace-pre-wrap break-words">
+              {renderAssistantMarkdown(shouldStream ? displayText : message.text, onPillTap)}
+              {shouldStream && !textDone && <span className="inline-block w-[2px] h-[14px] bg-tp-violet-400 ml-[1px] align-middle animate-pulse" />}
             </p>
           </div>
         )}
@@ -742,8 +785,16 @@ export function ChatBubble({
         )}
 
         {/* Card output -- offset to align under text (past the 20px icon + 6px gap) */}
+        {/* Phased reveal: card slides in after text finishes streaming */}
         {message.rxOutput && (
-          <div className="ml-[26px] mt-[6px] w-[calc(100%-26px)]">
+          <div
+            className={cn(
+              "ml-[26px] mt-[6px] w-[calc(100%-26px)] transition-all duration-[400ms] ease-out",
+              cardRevealed
+                ? "opacity-100 translate-y-0 scale-100"
+                : "opacity-0 translate-y-[8px] scale-[0.98]",
+            )}
+          >
             <CardRenderer
               output={message.rxOutput}
               onPillTap={onPillTap}

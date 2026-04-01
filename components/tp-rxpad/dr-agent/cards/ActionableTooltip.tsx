@@ -144,7 +144,7 @@ export function ActionableTooltip({
             className={cn(
               "fixed z-[9999]",
               "whitespace-nowrap rounded-[6px] bg-tp-slate-800 px-[8px] py-[5px]",
-              "text-[10px] leading-[1.3] text-white",
+              "text-[12px] leading-[1.3] text-white",
               "cursor-pointer select-none",
               "shadow-[0_4px_12px_rgba(0,0,0,0.15)]",
             )}

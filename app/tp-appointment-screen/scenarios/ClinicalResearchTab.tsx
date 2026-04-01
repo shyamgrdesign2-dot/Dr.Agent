@@ -482,7 +482,8 @@ const REFERENCE_LAYER_CARDS = [
     layer: "Layer 1 — Fast orientation (SBAR as reference)",
     note: "These cards handle the first read of the patient. We use SBAR as a reference lens for quick orientation, not as a strict card template.",
     cards: [
-      { kind: "patient_summary", label: "Patient Summary", mapping: "Primary orientation card for the first scan." },
+      { kind: "patient_summary", label: "Patient Summary (Detailed)", mapping: "Comprehensive patient overview with full narrative, all sections expanded." },
+      { kind: "sbar_overview", label: "SBAR Overview", mapping: "Structured handoff summary: Situation, Background, Assessment, Recommendation. Primary quick-scan card for consult prep." },
       { kind: "sbar_critical", label: "SBAR Critical", mapping: "Explicit critical-state framing when risk needs to be surfaced fast." },
       { kind: "lab_panel", label: "Lab Panel", mapping: "Flagged values compressed into a quick actionable read." },
       { kind: "last_visit", label: "Last Visit", mapping: "Recent clinical memory that supports the opening read." },

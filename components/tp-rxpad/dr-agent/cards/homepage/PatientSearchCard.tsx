@@ -53,7 +53,7 @@ export function PatientSearchCard({ data, onPatientSelect }: Props) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search patient by name..."
-            className="w-full bg-transparent text-[12px] text-tp-slate-800 placeholder:text-tp-slate-400 outline-none"
+            className="w-full bg-transparent text-[14px] text-tp-slate-800 placeholder:text-tp-slate-400 outline-none"
           />
           {query && (
             <button
@@ -79,15 +79,15 @@ export function PatientSearchCard({ data, onPatientSelect }: Props) {
                 onClick={() => onPatientSelect?.(r.patientId)}
                 className="flex w-full items-center gap-[8px] rounded-[8px] bg-tp-slate-50 px-[8px] py-[6px] text-left transition-colors hover:bg-tp-blue-50"
               >
-                <div className="flex h-[24px] w-[24px] flex-shrink-0 items-center justify-center rounded-full bg-tp-slate-200 text-[10px] font-semibold text-tp-slate-600">
+                <div className="flex h-[24px] w-[24px] flex-shrink-0 items-center justify-center rounded-full bg-tp-slate-200 text-[12px] font-semibold text-tp-slate-600">
                   {r.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[12px] font-semibold text-tp-slate-800">{r.name}</p>
-                  <p className="text-[10px] text-tp-slate-400">{r.meta}</p>
+                  <p className="truncate text-[14px] font-semibold text-tp-slate-800">{r.name}</p>
+                  <p className="text-[12px] text-tp-slate-400">{r.meta}</p>
                 </div>
                 {r.hasAppointmentToday && (
-                  <span className="rounded-[4px] bg-[#EDF8F1] px-[6px] py-[1px] text-[10px] font-semibold text-[#1B8C54]">
+                  <span className="rounded-[4px] bg-[#EDF8F1] px-[6px] py-[1px] text-[12px] font-semibold text-[#1B8C54]">
                     Today
                   </span>
                 )}
@@ -95,8 +95,8 @@ export function PatientSearchCard({ data, onPatientSelect }: Props) {
             ))
           ) : (
             <div className="rounded-[8px] bg-tp-slate-50 px-[8px] py-[10px] text-center">
-              <p className="text-[12px] text-tp-slate-500">No patients found for &ldquo;{query}&rdquo;</p>
-              <p className="mt-[2px] text-[10px] text-tp-slate-400">Try a different name or check spelling</p>
+              <p className="text-[14px] text-tp-slate-500">No patients found for &ldquo;{query}&rdquo;</p>
+              <p className="mt-[2px] text-[12px] text-tp-slate-400">Try a different name or check spelling</p>
             </div>
           )}
         </div>

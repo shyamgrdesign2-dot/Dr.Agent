@@ -230,7 +230,7 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "Last visit": "data_retrieval",
   "Last visit details": "data_retrieval",
   "Abnormal labs": "operational",
-  "Review intake data": "data_retrieval",
+  "Pre-visit intake": "data_retrieval",
   "Initial investigations": "clinical_decision",
   "Initial workup": "clinical_decision",
   "Lab overview": "data_retrieval",

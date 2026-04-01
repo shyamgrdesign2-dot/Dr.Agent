@@ -243,7 +243,7 @@ export function Grey({ children }: { children: React.ReactNode }) {
 }
 
 export function Sep() {
-  return <span className="text-tp-slate-300">{" | "}</span>;
+  return <span className="text-tp-slate-200">{" | "}</span>;
 }
 
 export function Bold({ children }: { children: React.ReactNode }) {

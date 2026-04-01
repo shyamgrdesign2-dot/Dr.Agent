@@ -260,7 +260,7 @@ export interface LabPanelData {
   panelDate: string
   flagged: LabFlag[]
   hiddenNormalCount: number
-  insight: string
+  insight?: string
 }
 
 export interface VitalTrendSeries {
@@ -618,6 +618,7 @@ export type RxAgentOutput =
   | { kind: "patient_summary"; data: SmartSummaryData; hideNarrative?: boolean }
   | { kind: "patient_narrative"; data: SmartSummaryData }
   | { kind: "sbar_critical"; data: SbarCriticalCardData }
+  | { kind: "sbar_overview"; data: SmartSummaryData }
   | { kind: "last_visit"; data: LastVisitCardData }
   | { kind: "lab_panel"; data: LabPanelData }
   | { kind: "vitals_trend_bar"; data: { title: string; series: VitalTrendSeries[] } }

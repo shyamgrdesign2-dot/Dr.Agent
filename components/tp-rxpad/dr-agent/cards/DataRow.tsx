@@ -27,12 +27,12 @@ export function DataRow({ label, unit, value, flag, refRange, isLast, onCopy, co
     )}
     style={!isLast ? { borderBottom: "0.5px solid var(--tp-slate-50, #F8FAFC)" } : undefined}
     >
-      <div className="flex-1 text-[12px] text-tp-slate-500 leading-[1.4]">
+      <div className="flex-1 text-[14px] text-tp-slate-500 leading-[1.4]">
         <span className="font-medium text-tp-slate-800">{label}</span>
-        {unit && <span className="ml-1 text-[10px] text-tp-slate-400">({unit})</span>}
-        {refRange && <span className="ml-1 text-[10px] text-tp-slate-300">{refRange}</span>}
+        {unit && <span className="ml-1 text-[12px] text-tp-slate-400">({unit})</span>}
+        {refRange && <span className="ml-1 text-[12px] text-tp-slate-200">{refRange}</span>}
       </div>
-      <div className={cn("min-w-[40px] text-right text-[12px] font-medium", valueColor)}>
+      <div className={cn("min-w-[40px] text-right text-[14px] font-medium", valueColor)}>
         {flag === "high" && "↑"}{flag === "low" && "↓"}{value}
       </div>
       {onCopy && (

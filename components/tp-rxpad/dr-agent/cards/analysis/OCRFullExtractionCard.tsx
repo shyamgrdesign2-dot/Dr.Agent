@@ -1,10 +1,12 @@
 "use client"
 
+import React, { useState } from "react"
 import { CardShell } from "../CardShell"
-import { InsightBox } from "../InsightBox"
+import { CopyIcon } from "../CopyIcon"
+import { ActionableTooltip } from "../ActionableTooltip"
 import { SidebarLink } from "../SidebarLink"
 import { TPMedicalIcon } from "@/components/tp-ui"
-import { Copy } from "iconsax-reactjs"
+import { formatWithHierarchy } from "../../shared/formatWithHierarchy"
 import type { OCRSection } from "../../types"
 
 interface OCRFullExtractionCardProps {
@@ -12,7 +14,7 @@ interface OCRFullExtractionCardProps {
     title: string
     category: string
     sections: OCRSection[]
-    insight: string
+    insight?: string
   }
   onCopySection?: (
     heading: string,
@@ -27,6 +29,23 @@ export function OCRFullExtractionCard({
   onCopySection,
   onCopyItem,
 }: OCRFullExtractionCardProps) {
+  const [copiedKey, setCopiedKey] = useState<string | null>(null)
+
+  const handleCopyItem = (item: string, dest: string, key: string) => {
+    navigator.clipboard?.writeText(item)
+    onCopyItem?.(item, dest)
+    setCopiedKey(key)
+    setTimeout(() => setCopiedKey(null), 1200)
+  }
+
+  const handleCopySection = (heading: string, items: string[], dest: string, key: string) => {
+    const text = items.join("\n")
+    navigator.clipboard?.writeText(text)
+    onCopySection?.(heading, items, dest)
+    setCopiedKey(key)
+    setTimeout(() => setCopiedKey(null), 1200)
+  }
+
   return (
     <CardShell
       icon={<span />}
@@ -44,60 +63,75 @@ export function OCRFullExtractionCard({
       copyAllTooltip="Fill complete digitized report to Medical Records"
       sidebarLink={<SidebarLink text="View original" />}
     >
-      {/* Category line */}
-      <div className="mb-1 text-[10px] text-tp-slate-400">
-        {data.category}
-      </div>
-
-      {/* Sections */}
-      {data.sections.map((section) => (
-        <div key={section.heading} className="mb-2">
-          {/* Section header bar */}
-          <div className="flex items-center gap-1.5 rounded-[6px] bg-tp-slate-50 px-2 py-[4px]">
-            <TPMedicalIcon name={section.icon} variant="bulk" size={12} className="text-tp-slate-500" />
-            <span className="flex-1 text-[12px] font-semibold text-tp-slate-700">
-              {section.heading}
-            </span>
-            <button
-              type="button"
-              onClick={() =>
-                onCopySection?.(
-                  section.heading,
-                  section.items,
-                  section.copyDestination
-                )
-              }
-              className="flex h-[20px] items-center gap-1 rounded-[6px] border border-tp-slate-200 bg-white px-1.5 text-tp-slate-600 transition-all hover:text-tp-slate-500 hover:border-tp-slate-300 hover:bg-tp-slate-50"
-              title={`Fill all ${section.heading} to ${section.copyDestination}`}
-            >
-              <Copy size={10} variant="Linear" className="text-tp-blue-500" />
-            </button>
-          </div>
-
-          {/* Items */}
-          <div className="mt-[3px] space-y-[1px] pl-2">
-            {section.items.map((item, i) => (
-              <div
-                key={`${section.heading}-${i}`}
-                className="group/item flex items-start gap-1 text-[12px] leading-[1.45] text-tp-slate-600"
-              >
-                <span className="flex-1">• {item}</span>
-                <button
-                  type="button"
-                  onClick={() => onCopyItem?.(item, section.copyDestination)}
-                  className="mt-[1px] flex-shrink-0 opacity-0 transition-opacity group-hover/item:opacity-100 text-tp-slate-600 hover:text-tp-slate-500"
-                  title={`Fill to ${section.copyDestination}`}
-                >
-                  <Copy size={14} variant="Linear" className="text-tp-blue-500" />
-                </button>
+      <div className="flex flex-col gap-[8px]">
+        {/* Sections — matching Structured Transcript pattern */}
+        {data.sections.map((section) => {
+          const sectionKey = `section-${section.heading}`
+          return (
+            <div key={section.heading}>
+              {/* Section header bar with hover copy icon */}
+              <div className="group/section-header flex items-center gap-[5px] rounded-[4px] bg-tp-slate-50 px-2 py-[3px]">
+                <TPMedicalIcon
+                  name={section.icon}
+                  variant="bulk"
+                  size={12}
+                  color="var(--tp-slate-500, #64748B)"
+                />
+                <span className="flex-1 text-[16px] font-semibold text-tp-slate-600">
+                  {section.heading}
+                </span>
+                <span className="opacity-0 group-hover/section-header:opacity-100 transition-opacity">
+                  {copiedKey === sectionKey ? (
+                    <span className="text-[14px] text-tp-success-500 font-medium">Copied</span>
+                  ) : (
+                    <ActionableTooltip
+                      label={`Fill ${section.heading.toLowerCase()} to ${section.copyDestination}`}
+                      onAction={() => handleCopySection(section.heading, section.items, section.copyDestination, sectionKey)}
+                    >
+                      <CopyIcon size={14} onClick={() => handleCopySection(section.heading, section.items, section.copyDestination, sectionKey)} />
+                    </ActionableTooltip>
+                  )}
+                </span>
               </div>
-            ))}
-          </div>
-        </div>
-      ))}
 
-      {/* Insight */}
-      <InsightBox variant="purple">{data.insight}</InsightBox>
+              {/* Bullet items with per-item hover copy */}
+              <ul className="mt-1 flex flex-col gap-[2px] pl-1">
+                {section.items.map((item, idx) => {
+                  const itemKey = `${section.heading}-${idx}`
+                  return (
+                    <li
+                      key={idx}
+                      className="group/ocr-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[2px] text-[16px] leading-[1.6] text-tp-slate-700 transition-colors hover:bg-tp-slate-50/80"
+                    >
+                      <span className="mt-[1px] flex-shrink-0 text-tp-slate-400">
+                        •
+                      </span>
+                      <span className="flex-1 font-normal">
+                        {formatWithHierarchy(item)}
+                      </span>
+                      <span className="flex-shrink-0 opacity-0 group-hover/ocr-item:opacity-100 transition-opacity">
+                        {copiedKey === itemKey ? (
+                          <span className="text-[14px] text-tp-success-500 font-medium">Copied</span>
+                        ) : (
+                          <ActionableTooltip
+                            label={`Fill to ${section.copyDestination}`}
+                            onAction={() => handleCopyItem(item, section.copyDestination, itemKey)}
+                          >
+                            <CopyIcon
+                              size={14}
+                              onClick={() => handleCopyItem(item, section.copyDestination, itemKey)}
+                            />
+                          </ActionableTooltip>
+                        )}
+                      </span>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )
+        })}
+      </div>
     </CardShell>
   )
 }

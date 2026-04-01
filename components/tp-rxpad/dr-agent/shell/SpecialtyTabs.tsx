@@ -37,7 +37,7 @@ export function SpecialtyTabs({
             type="button"
             onClick={() => onTabChange(tab.id)}
             className={cn(
-              "flex h-[22px] flex-shrink-0 items-center rounded-full px-[8px] text-[10px] font-medium leading-[1] transition-colors duration-150",
+              "flex h-[22px] flex-shrink-0 items-center rounded-full px-[8px] text-[12px] font-medium leading-[1] transition-colors duration-150",
               !isActive && "bg-tp-slate-100 text-tp-slate-600 hover:bg-tp-slate-200",
             )}
             style={

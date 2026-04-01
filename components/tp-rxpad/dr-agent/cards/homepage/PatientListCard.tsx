@@ -26,14 +26,14 @@ export function PatientListCard({ data, onPillTap }: Props) {
           const tone = TONE_COLORS[item.statusTone]
           return (
             <div key={i} className="flex items-center gap-[8px] rounded-[8px] bg-tp-slate-50 px-[8px] py-[5px]">
-              <div className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-full bg-tp-slate-200 text-[10px] font-semibold text-tp-slate-600">
+              <div className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-full bg-tp-slate-200 text-[12px] font-semibold text-tp-slate-600">
                 {item.name.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[12px] font-semibold text-tp-slate-800">{item.name}</p>
-                <p className="text-[10px] text-tp-slate-400">{item.gender}/{item.age}y &middot; {item.time}</p>
+                <p className="truncate text-[14px] font-semibold text-tp-slate-800">{item.name}</p>
+                <p className="text-[12px] text-tp-slate-400">{item.gender}/{item.age}y &middot; {item.time}</p>
               </div>
-              <span className="rounded-[4px] px-[6px] py-[1px] text-[10px] font-semibold" style={{ background: tone.bg, color: tone.color }}>
+              <span className="rounded-[4px] px-[6px] py-[1px] text-[12px] font-semibold" style={{ background: tone.bg, color: tone.color }}>
                 {item.status}
               </span>
             </div>
@@ -41,7 +41,7 @@ export function PatientListCard({ data, onPillTap }: Props) {
         })}
       </div>
       {data.totalCount > data.items.length && (
-        <p className="mt-[6px] text-center text-[10px] text-tp-blue-500 cursor-pointer hover:underline">
+        <p className="mt-[6px] text-center text-[12px] text-tp-blue-500 cursor-pointer hover:underline">
           View all {data.totalCount} patients
         </p>
       )}

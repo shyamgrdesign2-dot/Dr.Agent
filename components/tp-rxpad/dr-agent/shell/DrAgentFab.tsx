@@ -55,7 +55,7 @@ export function DrAgentFab({ onClick, hasNudge = false }: DrAgentFabProps) {
     >
       {/* Tooltip — appears on hover, left of tag */}
       <div className="pointer-events-none absolute right-[56px] top-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-        <div className="relative whitespace-nowrap rounded-[6px] bg-tp-slate-800 px-[8px] py-[4px] text-[10px] font-medium text-white shadow-lg">
+        <div className="relative whitespace-nowrap rounded-[6px] bg-tp-slate-800 px-[8px] py-[4px] text-[12px] font-medium text-white shadow-lg">
           Open Dr. Agent
           <div className="absolute right-[-4px] top-1/2 -translate-y-1/2 border-[4px] border-transparent border-l-tp-slate-800" />
         </div>
@@ -142,7 +142,7 @@ export function DrAgentFab({ onClick, hasNudge = false }: DrAgentFabProps) {
 
         {/* Vertical "Dr. Agent" label */}
         <span
-          className="select-none text-[12px] font-bold tracking-[0.5px] text-white [writing-mode:vertical-rl]"
+          className="select-none text-[14px] font-bold tracking-[0.5px] text-white [writing-mode:vertical-rl]"
           style={{ textShadow: "0 1px 3px rgba(0,0,0,0.25)" }}
         >
           Dr. Agent

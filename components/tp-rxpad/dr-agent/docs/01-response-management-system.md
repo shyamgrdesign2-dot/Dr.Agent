@@ -105,10 +105,14 @@ Every response is generated considering:
 The reply engine checks 50+ specific query patterns:
 
 ```
-"patient summary" → patient_summary card
-"vital trends"    → vitals_trend_bar card
-"suggest DDX"     → ddx card
-"CKD Stage 5"    → pomr_problem_card (matched against pomrProblems)
+"patient summary"   → sbar_overview card (primary structured summary)
+"summary"           → sbar_overview card
+"snapshot"          → sbar_overview card
+"sbar" / "handoff"  → sbar_overview card
+"detailed summary"  → patient_summary card (full GPSummaryCard)
+"vital trends"      → vitals_trend_bar card
+"suggest DDX"       → ddx card
+"CKD Stage 5"      → pomr_problem_card (matched against pomrProblems)
 "dialysis adequacy" → targeted clinical text
 "drug interactions" → drug_interaction card
 ```
@@ -161,7 +165,7 @@ The pills change as the doctor progresses through the consultation:
 
 | Phase | What happened | Pills offered |
 |-------|--------------|---------------|
-| `empty` (new patient) | No prior data | Review intake, Suggest DDX, Initial investigations |
+| `empty` (new patient) | No prior data | Pre-visit intake, Suggest DDX, Initial investigations |
 | `empty` (existing) | Has history | Patient summary, Vital trends, Lab overview, Last visit |
 | `symptoms_entered` | Symptoms recorded | Suggest DDX, Compare with last visit |
 | `dx_accepted` | Diagnosis set | Suggest medications, Investigations, Draft advice |
@@ -172,9 +176,29 @@ The pills change as the doctor progresses through the consultation:
 - Doctor clicks "Lab Results" sidebar tab → "Lab comparison", "Annual panel" pills appear
 - Doctor clicks "Past Visits" tab → "Compare visits", "Recurrence check" pills appear
 
+### Pill Deduplication
+
+Once a card has been rendered in the conversation, its corresponding canned pill is automatically removed from the pill bar to avoid redundancy.
+
+**Implementation:** `DrAgentPanel.tsx` tracks `shownCardKinds` (a Set of card kinds from rendered messages) and filters pills through a `PILL_TO_CARD_KIND` mapping:
+
+| Pill Label | Card Kind |
+|------------|-----------|
+| Patient's detailed summary | patient_summary |
+| Patient summary | sbar_overview |
+| Pre-visit intake | symptom_collector |
+| Last visit | last_visit |
+| Vital trends | vitals_trend_bar |
+| Suggest DDX | ddx |
+| Lab overview | lab_panel |
+| Obstetric summary | obstetric_summary |
+| Gynec summary | gynec_summary |
+| Growth & vaccines | pediatric_summary |
+| Vision summary | ophthal_summary |
+
 ### Pipeline Resolution
 ```
-All 4 layers generate pills → Sort by priority (lower = higher) → Deduplicate by label → Layer 1 always included → Cap at 35 total → Display
+All 4 layers generate pills → Sort by priority (lower = higher) → Deduplicate by label → Layer 1 always included → Filter pills for already-shown card kinds → Cap at 35 total → Display
 ```
 
 ---
@@ -246,7 +270,8 @@ The source is derived from the card's actual data — not hardcoded. For example
 2. Add it to the appropriate layer function in `pill-engine.ts`
 3. Set priority number (lower = shown first)
 4. Map the pill label in `PILL_INTENT_MAP`
-5. Ensure the reply engine handles the mapped intent
+5. Add the pill label to `PILL_TO_CARD_KIND` mapping if the pill corresponds to a card kind (for deduplication)
+6. Ensure the reply engine handles the mapped intent
 
 ### Adding a New Specialty
 1. Add specialty-specific pills to Layer 2 in `pill-engine.ts`
@@ -261,7 +286,7 @@ The source is derived from the card's actual data — not hardcoded. For example
 1. Doctor opens Ramesh Kumar (76M, CKD Stage 5 + DM + HTN + Anaemia)
 
 2. Agent auto-loads patient summary
-   → Card: patient_summary (SBAR-ordered)
+   → Card: sbar_overview (SBAR structured summary)
    → Source: EMR, Lab Results (8 results from 3 dates), Records (3 uploaded), Past Visit (02 Mar'26), Symptom Collector (15 Mar'26)
 
 3. Pills generated (4 layers):
@@ -292,5 +317,10 @@ The source is derived from the card's actual data — not hardcoded. For example
    → Card: completeness (shows filled/empty RxPad sections)
    → Phase: near_complete
 ```
+
+**UI rules applied throughout:**
+- All structural dividers use `|` (pipe, never `·`) with `mx-[6px]` spacing
+- SectionTag icon size is 12px (not 10px)
+- Intake pill is labeled "Pre-visit intake" (not "Review intake data")
 
 This entire flow is deterministic in the POC. For v1, the intent engine and reply engine will be replaced with LLM-based classification and generation — but the pill system, card architecture, and source provenance remain the same.

@@ -212,15 +212,7 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
               <div className="px-[12px] py-[10px]">
                 {/* Header: spark + Dr. Agent */}
                 <div className="flex items-center gap-[5px] mb-[8px]">
-                  <div
-                    className="flex h-[18px] w-[18px] items-center justify-center rounded-[5px]"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, rgba(213,101,234,0.12) 0%, rgba(103,58,172,0.12) 50%, rgba(26,25,148,0.12) 100%)",
-                    }}
-                  >
-                    <AiBrandSparkIcon size={10} />
-                  </div>
+                  <AiBrandSparkIcon size={18} withBackground />
                   <span
                     className="text-[10px] font-semibold leading-[1.2]"
                     style={{
@@ -283,9 +275,8 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
         aria-label="AI action"
         onClick={handleClick}
         className="shrink-0 inline-flex size-[42px] items-center justify-center rounded-[10px] transition-all hover:opacity-80 hover:scale-105"
-        style={{ background: AI_GRADIENT_SOFT }}
       >
-        <AiBrandSparkIcon size={20} />
+        <AiBrandSparkIcon size={42} withBackground />
       </button>
 
       {tooltip}

@@ -161,7 +161,6 @@ function mockRevenueComparison(): RevenueComparisonCardData {
     compareRefunded: 95,
     primaryDeposits: 2200,
     compareDeposits: 1800,
-    insight: "Today's billed amount is higher than yesterday. Deposits are tracked separately and excluded from this billing comparison.",
   }
 }
 
@@ -223,7 +222,6 @@ function mockLineGraph(): LineGraphCardData {
 function mockAnalyticsTable(): AnalyticsTableCardData {
   return {
     title: "Weekly Performance: KPIs",
-    insight: "Cancellation rate increased 3% this week. Consider sending day-before reminders to reduce no-shows.",
     kpis: [
       { metric: "Total Patients", thisWeek: "64", lastWeek: "58", delta: "+10%", direction: "up", isGood: true },
       { metric: "Revenue", thisWeek: "₹42,500", lastWeek: "₹38,800", delta: "+9.5%", direction: "up", isGood: true },
@@ -343,7 +341,6 @@ function mockBillingSummary(mode: BillingSummaryCardData["mode"] = "combined"): 
     totalAdvanceDebited: 500,
     footerCtaLabel: "Open OPD billing section",
     footerCtaAction: "Open OPD billing section",
-    insight: "Quick billing snapshot for the current period.",
   }
 }
 
@@ -370,7 +367,6 @@ function mockTodayCollectionSummary(): BillingSummaryCardData {
     totalAdvanceRefunded: 150,
     footerCtaLabel: "View details",
     footerCtaAction: "Open OPD billing section",
-    insight: "Today's collection only (billing + advance).",
   }
 }
 
@@ -387,7 +383,6 @@ function mockPast30DayCollectionSummary(): BillingSummaryCardData {
     totalAdvanceRefunded: 2100,
     footerCtaLabel: "Open OPD billing section",
     footerCtaAction: "Open OPD billing section",
-    insight: "Rolling 30-day collection snapshot.",
   }
 }
 
@@ -398,7 +393,6 @@ function mockGenerateInvoiceCard(): BillingSummaryCardData {
     minimal: true,
     footerCtaLabel: "Open OPD billing section",
     footerCtaAction: "Open OPD billing section",
-    insight: "Open OPD billing to choose patient, create invoice, and complete payment steps.",
   }
 }
 

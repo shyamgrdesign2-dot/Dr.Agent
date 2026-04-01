@@ -29,6 +29,7 @@ import { Hospital, User } from "iconsax-reactjs"
 import { AgentHeader } from "./shell/AgentHeader"
 import { PatientSelector } from "./shell/PatientSelector"
 import { ChatThread } from "./chat/ChatThread"
+import { WelcomeScreen, type PageContext } from "./chat/WelcomeScreen"
 import { PillBar } from "./chat/PillBar"
 import { ChatInput } from "./chat/ChatInput"
 import { AttachPanel } from "./chat/AttachPanel"
@@ -40,6 +41,28 @@ import { PATIENT_DOCUMENTS } from "./mock-data"
 
 function uid() {
   return Math.random().toString(36).slice(2, 10)
+}
+
+/** Map intent category + query keywords to a context-aware typing indicator hint */
+function getQueryHint(category: string, query: string): string {
+  const q = query.toLowerCase()
+  if (q.includes("interaction") || q.includes("drug")) return "Checking drug interactions"
+  if (q.includes("lab") || q.includes("vital") || q.includes("trend")) return "Fetching lab results"
+  if (q.includes("summary") || q.includes("snapshot") || q.includes("patient")) return "Looking up patient records"
+  if (q.includes("intake") || q.includes("pre-visit")) return "Loading intake data"
+  if (q.includes("ddx") || q.includes("diagnos")) return "Reviewing clinical guidelines"
+  if (q.includes("investigation") || q.includes("test")) return "Reviewing investigation protocols"
+  if (q.includes("document") || q.includes("report") || q.includes("upload")) return "Analyzing document"
+  switch (category) {
+    case "data_retrieval": return "Looking up patient records"
+    case "clinical_decision": return "Reviewing clinical guidelines"
+    case "clinical_question": return "Reviewing clinical data"
+    case "comparison": return "Comparing clinical data"
+    case "operational": return "Fetching clinic data"
+    case "document_analysis": return "Analyzing document"
+    case "action": return "Preparing response"
+    default: return "Reviewing clinical data"
+  }
 }
 
 function detectSpecialties(summary: SmartSummaryData): SpecialtyTabId[] {
@@ -61,45 +84,11 @@ function buildIntroMessages(
   const hasData = summary.specialtyTags.length > 0
   const messages: RxAgentChatMessage[] = []
 
-  // ── RxPad mode: always show detailed clinical summary card ──
-  if (panelMode === "rxpad" && hasData) {
-    // Build intake-based narrative if available
-    let introNarrative: string | undefined = undefined
-    if (intakeMode === "with_intake" && summary.symptomCollectorData) {
-      const sc = summary.symptomCollectorData
-      const parts: string[] = []
-      if (sc.symptoms && sc.symptoms.length > 0) {
-        const main = sc.symptoms[0]
-        const mainParts = [main.name]
-        if (main.duration) mainParts.push(main.duration)
-        if (main.severity) mainParts.push(main.severity)
-        parts.push(`Presenting with ${mainParts.join(", ")}`)
-        if (sc.symptoms.length > 1) {
-          const others = sc.symptoms.slice(1, 4).map((s) => {
-            const p = [s.name]; if (s.duration) p.push(s.duration); return p.join(" ")
-          })
-          parts.push(`Also reports: ${others.join(", ")}`)
-        }
-      }
-      introNarrative = parts.length > 0 ? `${parts.join(". ")}.` : undefined
-    }
-
-    const modifiedSummary = introNarrative
-      ? { ...summary, patientNarrative: introNarrative }
-      : summary
-
-    messages.push({
-      id: uid(),
-      role: "assistant",
-      text: `${patient.label}'s clinical summary:`,
-      createdAt: new Date().toISOString(),
-      rxOutput: {
-        kind: "patient_summary",
-        data: modifiedSummary,
-        hideNarrative: !introNarrative && !summary.patientNarrative,
-      },
-      feedbackGiven: null,
-    })
+  // ── RxPad + Homepage patient context: no pre-loaded messages ──
+  // The WelcomeScreen handles the first-time experience. When the doctor
+  // clicks a canned action (e.g. "Patient Summary"), only that response appears.
+  // No auto-generated pre-intake or summary cards — show only what the doctor asks for.
+  if (panelMode === "rxpad" || panelMode === "homepage") {
     return messages
   }
 
@@ -168,7 +157,7 @@ function StaticPatientStrip({ selectedPatientId }: { selectedPatientId: string }
 
   return (
     <div className="sticky top-0 z-10 flex justify-center pb-1 pt-2">
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-white/50 bg-white/55 px-2.5 py-1 text-[12px] font-medium text-tp-slate-600 shadow-[0_8px_20px_-12px_rgba(15,23,42,0.5)] backdrop-blur-md">
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-white/50 bg-white/55 px-2.5 py-1 text-[14px] font-medium text-tp-slate-600 shadow-[0_8px_20px_-12px_rgba(15,23,42,0.5)] backdrop-blur-md">
         {selected?.label}
         {metaParts && <span className="text-tp-slate-400">· {metaParts}</span>}
       </span>
@@ -222,7 +211,10 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
   const [doctorViewType, setDoctorViewType] = useState<DoctorViewType>("specialist_first_visit")
   const [intakeMode, setIntakeMode] = useState<"with_intake" | "without_intake">("with_intake")
   const [inputValue, setInputValue] = useState("")
+  const [isPrefilled, setIsPrefilled] = useState(false)
+  const [isPatientSheetOpen, setIsPatientSheetOpen] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
+  const [typingHint, setTypingHint] = useState("")
   const [showAttachPanel, setShowAttachPanel] = useState(false)
   const [showDocBottomSheet, setShowDocBottomSheet] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -259,14 +251,46 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
   // Show doctor view selector only for patients with POMR/SBAR data (POC: Ramesh Kumar only)
   const showDoctorViewSelector = selectedPatientId === "apt-ramesh-ckd"
 
-  const pills = useMemo(
-    () => (mode === "homepage" && selectedPatientId === HOMEPAGE_COMMON_ID)
+  // ── Pill deduplication: track which card kinds have been shown ──
+  const shownCardKinds = useMemo(() => {
+    const kinds = new Set<string>()
+    for (const msg of messages) {
+      if (msg.rxOutput?.kind) kinds.add(msg.rxOutput.kind)
+    }
+    return kinds
+  }, [messages])
+
+  /** Map pill labels to the card kind they produce — used to hide pills for already-shown cards */
+  const PILL_TO_CARD_KIND: Record<string, string> = {
+    "Patient's detailed summary": "patient_summary",
+    "Patient summary": "sbar_overview",
+    "Pre-visit intake": "symptom_collector",
+    "Pre-visit Intake": "symptom_collector",
+    "Last visit": "last_visit",
+    "Vital trends": "vitals_trend_bar",
+    "Suggest DDX": "ddx",
+    "Lab overview": "lab_panel",
+    "Lab comparison": "lab_comparison",
+    "Obstetric summary": "obstetric_summary",
+    "Gynec summary": "gynec_summary",
+    "Growth & vaccines": "pediatric_summary",
+    "Vision summary": "ophthal_summary",
+  }
+
+  const pills = useMemo(() => {
+    const rawPills = (mode === "homepage" && selectedPatientId === HOMEPAGE_COMMON_ID)
       ? generateHomepagePills(activeTab, activeRailItem, null)
       : isPatientContext
         ? generateHomepagePills(activeTab, activeRailItem, summary)
-        : generatePills(summary, phase, activeTabLens, showDoctorViewSelector ? doctorViewType : undefined),
-    [mode, activeTab, activeRailItem, isPatientContext, summary, phase, activeTabLens, selectedPatientId, showDoctorViewSelector, doctorViewType],
-  )
+        : generatePills(summary, phase, activeTabLens, showDoctorViewSelector ? doctorViewType : undefined)
+
+    // Filter out pills whose card has already been shown in the current conversation
+    return rawPills.filter(pill => {
+      const cardKind = PILL_TO_CARD_KIND[pill.label]
+      if (!cardKind) return true // Unknown mapping — always show
+      return !shownCardKinds.has(cardKind)
+    })
+  }, [mode, activeTab, activeRailItem, isPatientContext, summary, phase, activeTabLens, selectedPatientId, showDoctorViewSelector, doctorViewType, shownCardKinds])
 
   // ── Sync patient allergies to context (for RxPad medication alerts) ──
   useEffect(() => {
@@ -282,32 +306,8 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
     if (!hasMessagesForPatient) {
       let introMessages: RxAgentChatMessage[]
       if (mode === "homepage" && selectedPatientId === HOMEPAGE_COMMON_ID) {
-        // Homepage operational mode — hybrid text + visual welcome card
-        const now = new Date()
-        const todayStr = `${now.toLocaleDateString("en-US", { weekday: "short" })}, ${now.getDate()} ${now.toLocaleDateString("en-US", { month: "short" })}'${String(now.getFullYear()).slice(2)}`
-        introMessages = [{
-          id: uid(),
-          role: "assistant",
-          text: `Welcome back, Doctor! Here's your clinic overview for today.`,
-          createdAt: new Date().toISOString(),
-          rxOutput: {
-            kind: "welcome_card",
-            data: {
-              greeting: "Good morning, Doctor!",
-              date: todayStr,
-              contextLine: "Clinic running on time · Next: Priya Rao (follow-up)",
-              stats: [
-                { label: "Queued", value: 8, color: "#64748B", tab: "queue" },
-                { label: "Follow-ups", value: 3, color: "#64748B", tab: "follow-ups" },
-                { label: "Finished", value: 0, color: "#64748B", tab: "finished" },
-                { label: "Drafts", value: 2, color: "#64748B", tab: "draft" },
-                { label: "Cancelled", value: 1, color: "#64748B", tab: "cancelled" },
-                { label: "P.Digitisation", value: 2, color: "#64748B", tab: "pending-digitisation" },
-              ],
-            },
-          },
-          feedbackGiven: null,
-        }]
+        // Homepage — no intro messages; WelcomeScreen handles the first-time experience
+        introMessages = []
       } else {
         introMessages = buildIntroMessages(summary, patient, showDoctorViewSelector ? doctorViewType : undefined, intakeMode, mode)
       }
@@ -333,13 +333,15 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
     lastSignalIdRef.current = lastSignal.id
 
     if (lastSignal.type === "sidebar_pill_tap" && lastSignal.label) {
-      // Inject pill tap as user message
-      handleSend(lastSignal.label)
+      // Pre-fill input box — doctor decides whether to send
+      setInputValue(lastSignal.label)
+      setIsPrefilled(true)
     }
 
-    // AI trigger from RxPad section chips or sidebar icons → auto-send as user message
+    // AI trigger from RxPad section chips or sidebar icons → pre-fill input
     if (lastSignal.type === "ai_trigger" && lastSignal.label) {
-      handleSend(lastSignal.label)
+      setInputValue(lastSignal.label)
+      setIsPrefilled(true)
     }
 
     // When symptoms are added in RxPad, advance phase to show DDX pills
@@ -384,13 +386,16 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
       [selectedPatientId]: [...(prev[selectedPatientId] || []), userMsg],
     }))
     setInputValue("")
-    setIsTyping(true)
 
     // Classify intent — check PILL_INTENT_MAP first (exact pill labels bypass NLU)
     const pillOverride = PILL_INTENT_MAP[msg]
     const intent = pillOverride
       ? { category: pillOverride, format: "card" as const, confidence: 1 }
       : classifyIntent(msg)
+
+    // Set context-aware typing hint before showing indicator
+    setTypingHint(getQueryHint(intent.category, msg))
+    setIsTyping(true)
 
     // Build reply after a short delay (simulate thinking)
     setTimeout(() => {
@@ -511,7 +516,9 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
         [selectedPatientId]: [...(prev[selectedPatientId] || []), assistantMsg],
       }))
       setIsTyping(false)
-    }, 600 + Math.random() * 400)
+      setTypingHint("")
+    // Delay simulates AI thinking — 2-2.5s feels natural for clinical queries
+    }, 1800 + Math.random() * 700)
   }, [inputValue, selectedPatientId, summary, messagesByPatient, phaseByPatient, mode, homepagePatients])
 
   // ── Pill Tap ──
@@ -761,33 +768,13 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
     }, 800)
   }, [selectedPatientId])
 
-  // ── Clinic Overview tag auto-hide on scroll ──
+  // ── Chat scroll ref ──
   const chatScrollRef = useRef<HTMLDivElement | null>(null)
-  const lastScrollTop = useRef(0)
-  const [isTagHidden, setIsTagHidden] = useState(false)
-  const tagTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const el = chatScrollRef.current
     if (!el) return
-    const handler = () => {
-      const st = el.scrollTop
-      const isScrollingUp = st > lastScrollTop.current && st > 30
-      lastScrollTop.current = st
-      if (isScrollingUp) {
-        setIsTagHidden(true)
-        // Auto-reveal after 2s of no scroll
-        if (tagTimeoutRef.current) clearTimeout(tagTimeoutRef.current)
-        tagTimeoutRef.current = setTimeout(() => setIsTagHidden(false), 2000)
-      } else {
-        setIsTagHidden(false)
-        if (tagTimeoutRef.current) clearTimeout(tagTimeoutRef.current)
-      }
-    }
-    el.addEventListener("scroll", handler, { passive: true })
     return () => {
-      el.removeEventListener("scroll", handler)
-      if (tagTimeoutRef.current) clearTimeout(tagTimeoutRef.current)
     }
   }, [])
 
@@ -831,73 +818,35 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
         }}
       >
         <div ref={chatScrollRef} className="flex flex-1 flex-col overflow-y-auto">
-          {/* Patient context strip — auto-hides on scroll up, reappears on scroll down or after pause */}
-          {mode === "homepage" ? (
-            <div
-              className={cn(
-                "sticky top-0 z-10 flex justify-center px-3 pt-4 pb-1 transition-all duration-300 ease-out",
-                isTagHidden && "-translate-y-full opacity-0 pointer-events-none",
-              )}
-              onClick={() => setIsTagHidden(false)}
-            >
-              <PatientSelector
-                selectedId={selectedPatientId}
-                onSelect={handlePatientChange}
-                showUniversalOption
-                universalOptionId={HOMEPAGE_COMMON_ID}
-                externalPatients={homepagePatients}
-                className="flex justify-center"
-                renderTrigger={(toggle, isOpen) => (
-                  <button
-                    type="button"
-                    onClick={toggle}
-                    className="inline-flex items-center gap-[5px] rounded-full border border-tp-slate-200/40 px-3 py-[6px] shadow-[0_2px_8px_-4px_rgba(15,23,42,0.12)] transition-all hover:shadow-[0_4px_16px_-4px_rgba(15,23,42,0.18)]"
-                    style={{ background: "rgba(255,255,255,0.6)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
-                  >
-                    {/* Context icon — clinic or patient */}
-                    <span className="flex-shrink-0 text-tp-slate-500">
-                      {selectedPatientId === HOMEPAGE_COMMON_ID ? (
-                        <Hospital size={14} variant="Bulk" />
-                      ) : (
-                        <User size={14} variant="Bulk" />
-                      )}
-                    </span>
-                    <span className="truncate text-[12px] font-medium text-tp-slate-600">
-                      {selectedPatientId === HOMEPAGE_COMMON_ID ? "Clinic Overview" : patient?.label}
-                    </span>
-                    {selectedPatientId !== HOMEPAGE_COMMON_ID && patient?.gender && patient?.age && (
-                      <span className="text-[11px] font-normal text-tp-slate-400">
-                        · {patient.gender === "M" ? "M" : "F"}, {patient.age}y
-                      </span>
-                    )}
-                    <svg
-                      width={12}
-                      height={12}
-                      viewBox="0 0 12 12"
-                      fill="none"
-                      className={cn("flex-shrink-0 text-tp-slate-400 transition-transform duration-150", isOpen && "rotate-180")}
-                    >
-                      <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-                )}
-              />
-            </div>
-          ) : null}
 
-          {/* Chat messages */}
-          <ChatThread
-            messages={messages}
-            isTyping={isTyping}
-            onFeedback={handleFeedback}
-            onPillTap={handleChatPillTap}
-            onCopy={handleCopy}
-            onSidebarNav={handleSidebarNav}
-            className="flex-1"
-            activeSpecialty={activeSpecialty}
-            patientDocuments={patientDocuments}
-            onPatientSelect={handlePatientSelect}
-          />
+          {/* Welcome screen — shown when no user messages yet. Dynamic context based on patient selection. */}
+          {messages.filter(m => m.role === "user").length === 0 && !isTyping ? (
+            <WelcomeScreen
+              context={
+                mode === "homepage"
+                  ? (selectedPatientId === HOMEPAGE_COMMON_ID ? "homepage" : "patient_detail")
+                  : "rxpad"
+              }
+              patientName={selectedPatientId !== HOMEPAGE_COMMON_ID ? patient?.label : undefined}
+              hasIntake={!!summary.symptomCollectorData}
+              onActionClick={(msg) => handleSend(msg)}
+            />
+          ) : (
+            /* Chat messages */
+            <ChatThread
+              messages={messages}
+              isTyping={isTyping}
+              typingHint={typingHint}
+              onFeedback={handleFeedback}
+              onPillTap={handleChatPillTap}
+              onCopy={handleCopy}
+              onSidebarNav={handleSidebarNav}
+              className="flex-1"
+              activeSpecialty={activeSpecialty}
+              patientDocuments={patientDocuments}
+              onPatientSelect={handlePatientSelect}
+            />
+          )}
         </div>
       </div>
 
@@ -911,7 +860,8 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
             background: "linear-gradient(to top, rgba(255,255,255,0.98), rgba(255,255,255,0.4) 40%, transparent)",
           }}
         />
-        {pills.length > 0 && (
+        {/* Hide canned pills when welcome screen is showing (no user messages yet) */}
+        {pills.length > 0 && messages.filter(m => m.role === "user").length > 0 && (
           <div className="px-[4px] pt-[8px] pb-[6px]">
             <PillBar
               pills={pills}
@@ -928,12 +878,18 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
         )}
         <ChatInput
           value={inputValue}
-          onChange={setInputValue}
-          onSend={() => handleSend()}
+          onChange={(v) => { setInputValue(v); if (isPrefilled) setIsPrefilled(false) }}
+          onSend={() => { setIsPrefilled(false); handleSend() }}
           onAttach={handleAttach}
           onVoiceTranscription={handleVoiceTranscription}
           disabled={isTyping}
+          isPrefilled={isPrefilled}
           placeholder={selectedPatientId === HOMEPAGE_COMMON_ID ? "Ask about today's clinic..." : `Ask about ${patient.label}...`}
+          patientName={selectedPatientId === HOMEPAGE_COMMON_ID ? "Clinic Overview" : (patient.label || undefined)}
+          patientMeta={selectedPatientId === HOMEPAGE_COMMON_ID ? undefined : (patient.gender && patient.age ? `${patient.gender}/${patient.age}y` : undefined)}
+          onPatientClick={mode === "homepage" ? () => setIsPatientSheetOpen(true) : undefined}
+          patientLocked={mode !== "homepage"}
+          patientLockedMessage={mode !== "homepage" ? `Context is locked to ${patient?.label || "this patient"}'s ${mode === "rxpad" ? "prescription" : "details"} page` : undefined}
         />
       </div>
 
@@ -944,6 +900,20 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
           onSendDocuments={handleSendDocuments}
           onUploadNew={handleUploadNew}
           onClose={() => setShowDocBottomSheet(false)}
+          patientFirstName={patient?.label?.split(" ")[0]}
+        />
+      )}
+
+      {/* Patient/Context selector — bottom sheet overlays entire panel */}
+      {mode === "homepage" && (
+        <PatientSelector
+          selectedId={selectedPatientId}
+          onSelect={handlePatientChange}
+          showUniversalOption
+          universalOptionId={HOMEPAGE_COMMON_ID}
+          externalPatients={homepagePatients}
+          isOpen={isPatientSheetOpen}
+          onClose={() => setIsPatientSheetOpen(false)}
         />
       )}
     </div>

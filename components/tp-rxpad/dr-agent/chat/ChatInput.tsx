@@ -25,6 +25,18 @@ interface ChatInputProps {
   disabled?: boolean
   placeholder?: string
   className?: string
+  /** When true, shows animated AI gradient border (used when text is pre-filled from external trigger) */
+  isPrefilled?: boolean
+  /** Patient name shown in chip (truncatable) */
+  patientName?: string
+  /** Patient meta shown after name (e.g. "M/76y") — never truncated */
+  patientMeta?: string
+  /** Called when patient chip is clicked — opens patient selector */
+  onPatientClick?: () => void
+  /** When true, patient chip is locked (no chevron, tooltip on click). Used in RxPad/patient-detail where context can't be switched. */
+  patientLocked?: boolean
+  /** Tooltip message shown when clicking locked patient chip */
+  patientLockedMessage?: string
 }
 
 /* ── Inline SVG Icons (14-16px) ── */
@@ -207,9 +219,82 @@ function RecordingTimer({ isPaused }: { isPaused: boolean }) {
   const ss = String(elapsed % 60).padStart(2, "0")
 
   return (
-    <span className="text-[11px] font-medium tabular-nums text-tp-slate-500">
+    <span className="text-[15px] font-medium tabular-nums text-tp-slate-500">
       {mm}:{ss}
     </span>
+  )
+}
+
+/** Patient chip — shows name + (meta) inside input box. Locked mode for RxPad. */
+function PatientChip({ name, meta, locked, lockedMessage, onClick }: {
+  name: string; meta?: string; locked?: boolean; lockedMessage?: string; onClick?: () => void
+}) {
+  const [showLockedTip, setShowLockedTip] = useState(false)
+
+  const handleClick = () => {
+    if (locked) {
+      setShowLockedTip(true)
+      setTimeout(() => setShowLockedTip(false), 2500)
+    } else {
+      onClick?.()
+    }
+  }
+
+  // Split meta "M/76y" into gender and age with divider
+  const metaParts = meta ? meta.split("/") : []
+  const gender = metaParts[0] || ""
+  const age = metaParts[1] || ""
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={handleClick}
+        className={cn(
+          "inline-flex items-center gap-[4px] transition-all",
+          locked ? "cursor-default" : "hover:opacity-85",
+        )}
+        style={{ background: "var(--tp-slate-100, #F1F5F9)", borderRadius: 6, padding: "3px 5px 3px 6px", height: 24, maxWidth: 175, minWidth: 0 }}
+        aria-label={`Patient context: ${name}`}
+      >
+        {/* Bulk user icon */}
+        <span className="flex-shrink-0 text-tp-slate-600">
+          <svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+            <path opacity="0.4" d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" fill="currentColor" />
+            <path d="M12 14.5c-5.01 0-9.09 3.36-9.09 7.5 0 .28.22.5.5.5h17.18c.28 0 .5-.22.5-.5 0-4.14-4.08-7.5-9.09-7.5Z" fill="currentColor" />
+          </svg>
+        </span>
+        {/* Name — darker, truncatable */}
+        <span className="truncate" style={{ fontSize: 10, fontWeight: 600, color: "#3D3D4E", lineHeight: "12px" }}>{name}</span>
+        {/* (Gender | Age) — brackets darker, divider lighter */}
+        {meta && (
+          <span className="flex-shrink-0 whitespace-nowrap flex items-center" style={{ fontSize: 10, lineHeight: "12px" }}>
+            <span style={{ color: "#B0B7C3", fontWeight: 400 }}>(</span>
+            <span style={{ color: "#B0B7C3", fontWeight: 400 }}>{gender}</span>
+            {age && <>
+              <span className="mx-[2px]" style={{ color: "#D0D5DD", fontWeight: 400 }}>|</span>
+              <span style={{ color: "#B0B7C3", fontWeight: 400 }}>{age}</span>
+            </>}
+            <span style={{ color: "#B0B7C3", fontWeight: 400 }}>)</span>
+          </span>
+        )}
+        {/* Chevron — bigger, darker, only when not locked */}
+        {!locked && (
+          <svg width={12} height={12} viewBox="0 0 12 12" fill="none" className="flex-shrink-0" style={{ color: "#667085" }}>
+            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+      </button>
+      {/* Locked tooltip */}
+      {showLockedTip && (
+        <div className="absolute left-0 bottom-full mb-[6px] z-50">
+          <div className="rounded-[6px] bg-tp-slate-800 px-[8px] py-[5px] text-[12px] leading-[1.4] text-white shadow-lg whitespace-normal" style={{ maxWidth: 200 }}>
+            {lockedMessage || "Context switching is not available on this page"}
+            <div className="absolute left-[16px] top-full border-[4px] border-transparent border-t-tp-slate-800" />
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -224,6 +309,12 @@ export function ChatInput({
   disabled = false,
   placeholder = "Ask about this patient...",
   className,
+  isPrefilled = false,
+  patientName,
+  patientMeta,
+  onPatientClick,
+  patientLocked = false,
+  patientLockedMessage,
 }: ChatInputProps) {
   const hasText = value.trim().length > 0
   const [isRecording, setIsRecording] = useState(false)
@@ -312,7 +403,7 @@ export function ChatInput({
               )}
             />
             {isPaused ? (
-              <span className="text-[11px] text-tp-slate-400">Paused</span>
+              <span className="text-[15px] text-tp-slate-400">Paused</span>
             ) : (
               <WaveAnimation />
             )}
@@ -345,51 +436,51 @@ export function ChatInput({
           </button>
         </div>
       ) : (
-        /* ── Normal input mode — multi-line textarea with animated AI gradient border ── */
+        /* ── Normal input mode — Figma spec: two-row layout ── */
         <div
           className={cn(
-            "chat-input-border flex items-center gap-[8px] rounded-[12px] px-[10px] py-[8px]",
+            "chat-input-border flex flex-col justify-end rounded-[12px]",
+            isPrefilled && "chat-input-prefilled",
             disabled && "opacity-50",
           )}
+          style={{ padding: "8px 10.5px", gap: 12 }}
         >
           <style jsx>{`
             .chat-input-border {
-              border: 1.6px solid var(--tp-slate-200, #E2E8F0);
+              border: 1px solid #E2E2EA;
               transition: border-color 0.2s ease, box-shadow 0.2s ease;
             }
-            .chat-input-border:hover {
-              border-color: var(--tp-slate-300, #CBD5E1);
-            }
             .chat-input-border:focus-within {
-              border-color: var(--tp-blue-500, #3B82F6);
-              box-shadow: 0 0 0 2px rgba(59,130,246,0.10);
+              border-color: #A78BFA;
+              box-shadow: 0 0 0 2px rgba(167,139,250,0.10);
+            }
+            .chat-input-border textarea::placeholder {
+              color: #D0D5DD;
+              line-height: 16px;
+            }
+            /* Animated AI gradient border for pre-filled state */
+            .chat-input-border.chat-input-prefilled {
+              border-color: transparent;
+              background-image: linear-gradient(white, white),
+                linear-gradient(135deg, #D565EA, #673AAC, #1A1994, #D565EA, #673AAC);
+              background-origin: border-box;
+              background-clip: padding-box, border-box;
+              background-size: 100% 100%, 300% 300%;
+              animation: aiGradientBorderFlow 3s ease-in-out infinite;
+              box-shadow: 0 0 0 2px rgba(103,58,172,0.08);
+            }
+            .chat-input-border.chat-input-prefilled:focus-within {
+              border-color: transparent;
+              box-shadow: 0 0 0 3px rgba(103,58,172,0.12);
+            }
+            @keyframes aiGradientBorderFlow {
+              0% { background-position: 0% 0%, 0% 50%; }
+              50% { background-position: 0% 0%, 100% 50%; }
+              100% { background-position: 0% 0%, 0% 50%; }
             }
           `}</style>
-          {/* Attach */}
-          <button
-            type="button"
-            onClick={onAttach}
-            disabled={disabled}
-            className={cn(
-              "flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full",
-              "text-tp-slate-600 transition-all hover:bg-gradient-to-r hover:from-purple-50/80 hover:to-blue-50/80 hover:text-tp-blue-600 hover:shadow-[0_0_0_1px_rgba(59,130,246,0.15)]",
-              disabled && "pointer-events-none",
-            )}
-            title="Add files and more"
-          >
-            <Plus size={20} strokeWidth={2} />
-          </button>
 
-          {/* Vertical divider between attach and textarea */}
-          <div
-            className="shrink-0 self-stretch"
-            style={{
-              width: 1,
-              background: "linear-gradient(180deg, transparent 0%, #CBD5E1 50%, transparent 100%)",
-            }}
-          />
-
-          {/* Textarea — expands from 1 line to ~5 lines max */}
+          {/* Row 1: Textarea — 12px font per Figma */}
           <textarea
             ref={textareaRef}
             value={value}
@@ -399,83 +490,112 @@ export function ChatInput({
             placeholder={placeholder}
             rows={1}
             className={cn(
-              "flex-1 resize-none bg-transparent",
-              "text-[12px] leading-[1.5] text-tp-slate-800",
-              "placeholder:text-tp-slate-300",
+              "w-full resize-none bg-transparent px-[4px]",
+              "text-[14px] leading-[16px] text-tp-slate-800",
               "focus:outline-none",
             )}
-            style={{ minHeight: 20, maxHeight: 120 }}
+            style={{ minHeight: 28, maxHeight: 120, color: "#1D2939", fontWeight: 400, lineHeight: "16px" }}
           />
 
-          {quickActions.length > 0 ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+          {/* Row 2: Patient chip (left) + mic/divider/send (right) */}
+          <div className="flex items-center justify-between" style={{ height: 24 }}>
+            {/* Patient/context selector chip */}
+            {patientName ? (
+              <PatientChip
+                name={patientName}
+                meta={patientMeta}
+                locked={patientLocked}
+                lockedMessage={patientLockedMessage}
+                onClick={onPatientClick}
+              />
+            ) : <div />}
+
+            {/* Right side: attachment + divider + send/mic */}
+            <div className="flex items-center gap-[6px]">
+              {/* Attachment button — Figma SVG */}
+              <button
+                type="button"
+                onClick={onAttach}
+                disabled={disabled}
+                className={cn(
+                  "flex shrink-0 items-center justify-center transition-all hover:opacity-80",
+                  disabled && "pointer-events-none",
+                )}
+                title="Add files and more"
+              >
+                <svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+                  <path d="M0 12C0 5.37258 5.37258 0 12 0V0C18.6274 0 24 5.37258 24 12V12C24 18.6274 18.6274 24 12 24V24C5.37258 24 0 18.6274 0 12V12Z" fill="var(--tp-slate-100, #F1F5F9)" />
+                  <path d="M7.625 12H16.375" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M12 7.625V16.375" stroke="#667085" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              {/* Divider */}
+              <div className="self-stretch shrink-0" style={{ width: 1, background: "linear-gradient(180deg, rgba(208,213,221,0.2) 0%, #D0D5DD 50%, rgba(208,213,221,0.2) 100%)", opacity: 0.8 }} />
+
+              {/* Send button (when text) / Speak button (when empty) — Figma SVGs */}
+              {hasText ? (
                 <button
                   type="button"
+                  onClick={onSend}
                   disabled={disabled}
                   className={cn(
-                    "inline-flex h-[24px] shrink-0 items-center gap-[2px] rounded-[8px] border border-tp-blue-200 bg-tp-blue-50/60 px-[6px] text-[10px] font-semibold text-tp-blue-600 transition-colors hover:bg-tp-blue-100",
-                    disabled && "pointer-events-none opacity-50",
+                    "flex shrink-0 items-center justify-center transition-all hover:opacity-90",
+                    disabled && "pointer-events-none",
                   )}
-                  title="Quick clinical actions"
+                  title="Send message"
                 >
-                  AI
-                  <ChevronDown size={11} />
+                  <svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+                    <path d="M0 12C0 5.37258 5.37258 0 12 0V0C18.6274 0 24 5.37258 24 12V12C24 18.6274 18.6274 24 12 24V24C5.37258 24 0 18.6274 0 12V12Z" fill="url(#sendGrad)" />
+                    <path d="M8.2063 10.4812L12 6.68745L15.7938 10.4812" stroke="white" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M12 17.3125V6.79375" stroke="white" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+                    <defs>
+                      <linearGradient id="sendGrad" x1="-0.0224" y1="10.3128" x2="24.0296" y2="10.365" gradientUnits="userSpaceOnUse">
+                        <stop offset="0.0304" stopColor="#D565EA" />
+                        <stop offset="0.6674" stopColor="#673AAC" />
+                        <stop offset="1" stopColor="#1A1994" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
                 </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="top" className="w-[220px]">
-                {quickActions.map((pill) => (
-                  <DropdownMenuItem
-                    key={pill.id}
-                    className="text-[12px]"
-                    onSelect={(event) => {
-                      event.preventDefault()
-                      onQuickActionTap?.(pill.label)
-                    }}
-                  >
-                    {pill.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
-
-          {/* Voice / Send toggle — inside the box */}
-          {hasText ? (
-            <button
-              type="button"
-              onClick={onSend}
-              disabled={disabled}
-              className={cn(
-                "flex shrink-0 items-center justify-center transition-all",
-                disabled && "pointer-events-none",
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleMicClick}
+                  disabled={disabled}
+                  className={cn(
+                    "flex shrink-0 items-center justify-center transition-all hover:opacity-90",
+                    disabled && "pointer-events-none",
+                  )}
+                  title="Use voice to dictate"
+                >
+                  <svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+                    <path d="M0 12C0 5.37258 5.37258 0 12 0V0C18.6274 0 24 5.37258 24 12V12C24 18.6274 18.6274 24 12 24V24C5.37258 24 0 18.6274 0 12V12Z" fill="url(#micGrad)" />
+                    <path d="M5.73891 15.0152C5.31108 15.0152 4.9563 14.6605 4.9563 14.2326V9.75611C4.9563 9.32829 5.31108 8.97351 5.73891 8.97351C6.16673 8.97351 6.52152 9.32829 6.52152 9.75611V14.2326C6.52152 14.6709 6.16673 15.0152 5.73891 15.0152Z" fill="white" />
+                    <path d="M8.86934 16.5075C8.44152 16.5075 8.08673 16.1527 8.08673 15.7249V8.27446C8.08673 7.84663 8.44152 7.49185 8.86934 7.49185C9.29717 7.49185 9.65195 7.84663 9.65195 8.27446V15.7249C9.65195 16.1632 9.29717 16.5075 8.86934 16.5075Z" fill="white" />
+                    <path d="M11.9998 18C11.572 18 11.2172 17.6452 11.2172 17.2174V6.78261C11.2172 6.35478 11.572 6 11.9998 6C12.4276 6 12.7824 6.35478 12.7824 6.78261V17.2174C12.7824 17.6452 12.4276 18 11.9998 18Z" fill="white" />
+                    <path d="M15.1302 16.5075C14.7024 16.5075 14.3476 16.1527 14.3476 15.7249V8.27446C14.3476 7.84663 14.7024 7.49185 15.1302 7.49185C15.558 7.49185 15.9128 7.84663 15.9128 8.27446V15.7249C15.9128 16.1632 15.558 16.5075 15.1302 16.5075Z" fill="white" />
+                    <path d="M18.2606 15.0152C17.8328 15.0152 17.478 14.6605 17.478 14.2326V9.75611C17.478 9.32829 17.8328 8.97351 18.2606 8.97351C18.6885 8.97351 19.0433 9.32829 19.0433 9.75611V14.2326C19.0433 14.6709 18.6885 15.0152 18.2606 15.0152Z" fill="white" />
+                    <defs>
+                      <linearGradient id="micGrad" x1="-0.0224" y1="10.3128" x2="24.0296" y2="10.365" gradientUnits="userSpaceOnUse">
+                        <stop offset="0.0304" stopColor="#D565EA" />
+                        <stop offset="0.6674" stopColor="#673AAC" />
+                        <stop offset="1" stopColor="#1A1994" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </button>
               )}
-              title="Send message"
-            >
-              <AiSendIcon size={24} />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleMicClick}
-              disabled={disabled}
-              className={cn(
-                "flex shrink-0 items-center justify-center transition-all",
-                disabled && "pointer-events-none",
-              )}
-              title="Use voice to dictate"
-            >
-              <AiVoiceIcon size={24} />
-            </button>
-          )}
+            </div>
+          </div>
         </div>
       )}
 
       {/* Trust indicator — centered */}
       <div className="mt-[4px] mb-[14px] flex items-center justify-center gap-[4px]">
         <SecuritySafe size={14} variant="Bulk" className="shrink-0 text-tp-slate-300" />
-        <span className="text-[10px] leading-[1.3] text-tp-slate-300">
-          AI-assisted insights — always verify with clinical judgement
+        <span className="text-[14px] leading-[1.4] text-tp-slate-300">
+          AI-assisted insights · always verify with clinical judgement
         </span>
       </div>
     </div>

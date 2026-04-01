@@ -16,7 +16,7 @@ import { TPMedicalIcon } from "@/components/tp-ui"
 // DR. AGENT — COMPREHENSIVE SYSTEM REFERENCE
 // ═══════════════════════════════════════════════════════════════
 
-type MainTab = "card-anatomy" | "card-catalog" | "response-management"
+type MainTab = "card-anatomy" | "card-catalog" | "response-management" | "user-scenarios"
 
 // ── Helpers ──
 const noop = () => {}
@@ -264,7 +264,7 @@ const FOOTER_CONFIG = {
   ],
   rules: [
     "Footer CTA area supports 0, 1, or 2 CTAs only. Never exceed 2.",
-    "Single CTA can be left-aligned or center-aligned based on importance.",
+    "Single CTA is always left-aligned. Both tertiary and secondary single CTAs sit at the start of the footer.",
     "Arrow or navigation icons sit at the end of the text. Other action icons like print, add, download, or acknowledge sit at the start of the text.",
     "Two CTA variants can be text-link/tertiary or bordered/secondary based on scenario.",
     "In 2-CTA tertiary footers, the divider sits at the visual center and both actions balance equally around it.",
@@ -688,7 +688,7 @@ function getCardFetchFrom(kind: string): string {
   if (["last_visit", "patient_timeline"].includes(kind)) return "Past Visit history and other chronological historical modules"
   if (["lab_panel", "lab_trend", "lab_comparison"].includes(kind)) return "Lab Results history, Records OCR, or mixed lab context"
   if (["vitals_trend_bar", "vitals_trend_line"].includes(kind)) return "Vitals history and encounter vitals"
-  if (["patient_summary", "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary", "symptom_collector"].includes(kind)) {
+  if (["patient_summary", "sbar_overview", "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary", "symptom_collector"].includes(kind)) {
     return "Mixed patient context: historical sidebar modules + current encounter data"
   }
   if (["protocol_meds", "investigation_bundle", "follow_up", "advice_bundle", "rx_preview", "voice_structured_rx", "ddx"].includes(kind)) {
@@ -706,7 +706,7 @@ function getCardFetchFrom(kind: string): string {
 }
 
 function getCardUiRule(kind: string): string {
-  if (["patient_summary", "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary"].includes(kind)) return "Lead with compressed scan-friendly summary blocks, then expand into tag-led structured rows."
+  if (["patient_summary", "sbar_overview", "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary"].includes(kind)) return "Lead with compressed scan-friendly summary blocks, then expand into tag-led structured rows."
   if (["last_visit", "rx_preview", "voice_structured_rx"].includes(kind)) return "Use sectioned content with icon-led tags and expose common header copy when the entire card is copyable."
   if (["lab_panel", "med_history", "vaccination_schedule", "ocr_pathology", "ocr_extraction"].includes(kind)) return "Keep each row or section strongly structured so clinicians can inspect details without losing source meaning."
   if (["lab_trend", "lab_comparison", "vitals_trend_bar", "vitals_trend_line"].includes(kind)) return "Prioritize quick comparison and trend recognition over text density."
@@ -720,7 +720,8 @@ function getCardUiRule(kind: string): string {
 const CARD_SPECS: CardSpec[] = [
   // Summary
   { kind: "patient_summary", family: "Summary", description: "Comprehensive patient overview — vitals, labs, flags, chronic conditions, medications, narrative.", intent: "data_retrieval", whenToShow: "'Patient summary', 'overview', 'snapshot' or 'Patient's detailed summary' pill.", permutations: ["With/without labs", "With chronic conditions", "With symptom collector", "With specialty alerts", "With vitals abnormals"], dataParams: "SmartSummaryData" },
-  { kind: "symptom_collector", family: "Summary", description: "Patient-reported symptoms from pre-visit intake form.", intent: "data_retrieval", whenToShow: "'Review intake data' pill.", permutations: ["Full intake", "Partial intake", "With severity ratings"], dataParams: "SymptomCollectorData" },
+  { kind: "sbar_overview", family: "Summary", description: "ISBAR-structured patient summary — Situation (narrative), Background (history + allergies), Assessment (vitals + labs), Recommendation (action items).", intent: "data_retrieval", whenToShow: "'Patient summary' pill for SBAR/critical care view. Used in Emergency/On-call context.", permutations: ["Full SBAR with all sections", "Without labs", "With critical vitals", "With follow-up overdue", "With last visit"], dataParams: "SmartSummaryData" },
+  { kind: "symptom_collector", family: "Summary", description: "Patient-reported symptoms from pre-visit intake form.", intent: "data_retrieval", whenToShow: "'Pre-visit intake' pill.", permutations: ["Full intake", "Partial intake", "With severity ratings"], dataParams: "SymptomCollectorData" },
   { kind: "last_visit", family: "Summary", description: "Previous visit summary with copy-to-rx action.", intent: "data_retrieval", whenToShow: "'Last visit details' pill.", permutations: ["Recent (<30d)", "Old (>90d amber)", "With meds"], dataParams: "LastVisitCardData" },
   { kind: "obstetric_summary", family: "Summary", description: "ANC status, gravida/para, EDD, gestational weeks, fetal data.", intent: "data_retrieval", whenToShow: "Obstetric data exists + pill tapped.", permutations: ["Active pregnancy", "High-risk", "Post-delivery"], dataParams: "ObstetricData" },
   { kind: "gynec_summary", family: "Summary", description: "Menarche, cycle, LMP, Pap smear, flow/pain.", intent: "data_retrieval", whenToShow: "Gynec data exists + pill tapped.", permutations: ["Regular", "Irregular", "Post-menopausal"], dataParams: "GynecData" },
@@ -751,7 +752,6 @@ const CARD_SPECS: CardSpec[] = [
   { kind: "pomr_problem_card", family: "Clinical", description: "POMR single problem with completeness donut.", intent: "data_retrieval", whenToShow: "Chronic condition pills (CKD, DM, HTN).", permutations: ["CKD", "Diabetes", "HTN", "Anaemia", "High/low completeness"], dataParams: "PomrProblemCardData" },
   // Utility & Safety
   { kind: "translation", family: "Utility", description: "Language translation side-by-side + copy.", intent: "action", whenToShow: "'Translate' pill.", permutations: ["Hindi", "Telugu", "Tamil", "Kannada", "Marathi"], dataParams: "TranslationData & {copyPayload}" },
-  { kind: "completeness", family: "Utility", description: "RxPad form completeness check.", intent: "operational", whenToShow: "'Completeness check' pill.", permutations: ["All complete", "Some empty", "Critical missing"], dataParams: "{sections, emptyCount}" },
   { kind: "drug_interaction", family: "Safety", description: "Drug-drug interaction alert with severity.", intent: "clinical_question", whenToShow: "'Check interactions' or auto-triggered.", permutations: ["Critical", "Major", "Moderate", "Clear"], dataParams: "DrugInteractionData" },
   { kind: "allergy_conflict", family: "Safety", description: "Drug-allergy conflict with alternatives.", intent: "clinical_question", whenToShow: "Auto-triggered on allergy match.", permutations: ["Direct match", "Cross-reactivity", "With alternatives"], dataParams: "AllergyConflictData" },
   { kind: "follow_up_question", family: "Utility", description: "Agent asks doctor for clarification.", intent: "follow_up", whenToShow: "Ambiguous input needs clarification.", permutations: ["Single-select", "Multi-select"], dataParams: "{question, options, multiSelect}" },
@@ -779,6 +779,13 @@ const CARD_SPECS: CardSpec[] = [
   { kind: "heatmap", family: "Homepage", description: "Appointment density grid.", intent: "operational", whenToShow: "'Busiest hours' pill.", permutations: ["This week", "Month"], dataParams: "HeatmapCardData" },
   { kind: "billing_summary", family: "Homepage", description: "Session billing overview.", intent: "operational", whenToShow: "'Billing overview' pill.", permutations: ["Today", "By status"], dataParams: "BillingSummaryCardData" },
   { kind: "external_cta", family: "Homepage", description: "External link (Excel/Word download).", intent: "operational", whenToShow: "Export or download ready.", permutations: ["Excel", "Word", "Custom URL"], dataParams: "ExternalCtaCardData" },
+  { kind: "anc_schedule_list", family: "Homepage", description: "ANC schedule with overdue/due items per patient.", intent: "operational", whenToShow: "'ANC schedule' pill.", permutations: ["All due", "Overdue only", "By trimester"], dataParams: "ANCScheduleListCardData" },
+  { kind: "follow_up_rate", family: "Homepage", description: "Follow-up rate analytics with trend.", intent: "operational", whenToShow: "'Follow-up rate' pill.", permutations: ["Weekly", "Monthly", "With overdue"], dataParams: "FollowUpRateCardData" },
+  { kind: "revenue_comparison", family: "Homepage", description: "Revenue comparison between two periods.", intent: "operational", whenToShow: "'Compare revenue' pill.", permutations: ["Week-on-week", "Month-on-month"], dataParams: "RevenueComparisonCardData" },
+  { kind: "vaccination_due_list", family: "Homepage", description: "Patients with vaccinations due/overdue.", intent: "operational", whenToShow: "'Vaccination due list' pill.", permutations: ["Overdue", "Due this week", "By vaccine type"], dataParams: "VaccinationDueListCardData" },
+  { kind: "due_patients", family: "Homepage", description: "Patients with pending payment dues.", intent: "operational", whenToShow: "'Patients with due' pill.", permutations: ["This week", "Last 30 days", "All pending"], dataParams: "DuePatientsCardData" },
+  { kind: "completeness", family: "Utility", description: "Documentation completeness check with filled/empty sections.", intent: "operational", whenToShow: "'Completeness check' pill.", permutations: ["Mostly complete", "Mostly empty", "All filled"], dataParams: "{sections: CompletenessSection[], emptyCount}" },
+  { kind: "patient_narrative", family: "Text", description: "Standalone patient narrative as violet-bordered paragraph.", intent: "data_retrieval", whenToShow: "Part of patient summary flow.", permutations: ["Short (1 line)", "Full (3-4 lines)"], dataParams: "{patientNarrative, specialtyTags, followUpOverdueDays}" },
 ]
 
 const INTENTS = [
@@ -802,7 +809,7 @@ const FAMILY_COLORS: Record<string, string> = {
   Utility: "border-emerald-200 bg-emerald-50 text-emerald-700",
   Safety: "border-red-200 bg-red-50 text-red-700",
   Text: "border-slate-200 bg-slate-50 text-slate-600",
-  Homepage: "border-orange-200 bg-orange-50 text-orange-700",
+  Operational: "border-orange-200 bg-orange-50 text-orange-700",
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -815,6 +822,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
   const [catalogFilter, setCatalogFilter] = useState("all")
   const [activePhase, setActivePhase] = useState("empty")
   const [expandedPrimitive, setExpandedPrimitive] = useState<string | null>(null)
+  const [rmTab, setRmTab] = useState<"pipeline" | "card-rules" | "copy-rules">("pipeline")
   const [isDocHeaderVisible, setIsDocHeaderVisible] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 
@@ -845,13 +853,17 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
   // ── CARD ANATOMY TAB ──
   function renderCardAnatomy() {
     return (
-      <div className="space-y-12">
-        {/* ═══ CARD ANATOMY BLUEPRINT ═══ */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-1">Card Anatomy Blueprint</h3>
-          <p className="text-[11px] text-slate-500 mb-4">
-            This is the base structure every Dr. Agent card follows before we break it into header, content, section tags, insight, canned messages, and footer rules.
+      <div className="space-y-10">
+        {/* ── Page header ── */}
+        <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-blue-50/80 via-white to-violet-50/60 px-6 py-5">
+          <h3 className="text-[18px] font-bold text-slate-800 mb-1">Card Anatomy Blueprint</h3>
+          <p className="text-[12px] leading-[1.6] text-slate-500 max-w-2xl">
+            Every Dr. Agent card follows a consistent structure: header, content, section tags, insight, canned messages, and footer. This reference defines each zone, its rules, and its variants.
           </p>
+        </div>
+
+        {/* ═══ 1. CARD STRUCTURE ═══ */}
+        <DocSection number="1" title="Card Structure" subtitle="The base structure every Dr. Agent card follows. Five zones stacked top-to-bottom inside a CardShell.">
 
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-3">
@@ -901,14 +913,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               <LiveCardPreview kind="lab_panel" label="Full Card Example — all zones in one card" />
             </div>
           </div>
-        </section>
+        </DocSection>
 
-        {/* ═══ HEADER ZONE ═══ */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-1">Header Zone</h3>
-          <p className="text-[11px] text-slate-500 mb-4">
-            Show only the header component here, not the full card body. The header parts can be mixed based on scenario, but the blue primary icon, primary heading, and accordion toggle stay constant.
-          </p>
+        {/* ═══ 2. HEADER ZONE ═══ */}
+        <DocSection number="2" title="Header Zone" subtitle="The identity layer. Icon, title, optional metadata, and shared controls. Header parts are mix-and-match but the mandatory trio stays constant.">
 
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Left: Spec table */}
@@ -974,17 +982,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               />
             </div>
           </div>
-        </section>
+        </DocSection>
 
-        {/* ═══ CONTENT ZONE ═══ */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-1">Content Zone (Middle)</h3>
-          <p className="text-[11px] text-slate-500 mb-2">
-            {CONTENT_PRIMITIVES.length} content primitives power all cards. Click any primitive to see its live preview.
-          </p>
-          <p className="text-[11px] text-slate-500 mb-4">
-            Inline data rows, key:value pairs, and tags are rendered using the existing SectionTag + InlineDataRow pieces, and this documentation page does not render copy icons for those rows. Copy actions only appear when the data is newly generated/marked copyable (e.g., patient summary + last visit or newly created focused content).
-          </p>
+        {/* ═══ 3. CONTENT ZONE ═══ */}
+        <DocSection number="3" title="Content Zone" subtitle={`${CONTENT_PRIMITIVES.length} content primitives power all cards. Click any primitive below to see its live preview and full specification.`}>
 
           <div className="mb-4 overflow-x-auto rounded-xl border border-slate-200 bg-white">
             <table className="min-w-full table-fixed text-[11px]">
@@ -1091,14 +1092,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               )
             })}
           </div>
-        </section>
+        </DocSection>
 
-        {/* ═══ SECTION TAGS ═══ */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-1">All Section Tags</h3>
-          <p className="text-[11px] text-slate-500 mb-3">
-            {ALL_SECTION_TAGS.length} currently documented section tags across all cards. This is not a hard cap. These tags are always paired with icons in the product, never shown as text-only labels.
-          </p>
+        {/* ═══ 4. SECTION TAGS ═══ */}
+        <DocSection number="4" title="All Section Tags" subtitle={`${ALL_SECTION_TAGS.length} currently documented section tags across all cards. Tags are always paired with icons — never shown as text-only labels.`}>
 
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-3">
@@ -1200,12 +1197,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               <LiveCardPreview kind="rx_preview" label="Rx Preview with icon-led tags + common header copy" highlightZone="content" />
             </div>
           </div>
-        </section>
+        </DocSection>
 
-        {/* ═══ INSIGHT ZONE ═══ */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-1">Insight Zone</h3>
-          <p className="text-[11px] text-slate-500 mb-3">AI-generated interpretation. Below content, above footer. 4 color variants.</p>
+        {/* ═══ 5. INSIGHT ZONE ═══ */}
+        <DocSection number="5" title="Insight Zone" subtitle="AI-generated interpretation that sits below content and above the footer. Uses 4 color variants based on clinical severity.">
 
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="grid gap-2 sm:grid-cols-2">
@@ -1231,12 +1226,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               <LiveCardPreview kind="med_history" label="Card with insight (Med History)" highlightZone="insight" />
             </div>
           </div>
-        </section>
+        </DocSection>
 
-        {/* ═══ PILLS / CANNED MESSAGES ═══ */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-1">Pills / Canned Messages</h3>
-          <p className="text-[11px] text-slate-500 mb-3">Canned messages are the guided next-step suggestions that appear after the main card payload. They should sit above the footer and help the doctor continue the workflow without typing.</p>
+        {/* ═══ 6. PILLS / CANNED MESSAGES ═══ */}
+        <DocSection number="6" title="Pills / Canned Messages" subtitle="Guided next-step suggestions after the card payload. Sit above the footer and help the doctor continue the workflow without typing.">
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-3">
               <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -1307,12 +1300,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               <LiveCardPreview kind="lab_panel" label="Card with canned messages above footer" />
             </div>
           </div>
-        </section>
+        </DocSection>
 
-        {/* ═══ FOOTER ZONE ═══ */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-1">Footer Zone</h3>
-          <p className="text-[11px] text-slate-500 mb-3">Footer CTA zone supports 0, 1, or 2 CTAs only. Copy belongs in the header, not in the footer. This is always the final zone in the card.</p>
+        {/* ═══ 7. FOOTER ZONE ═══ */}
+        <DocSection number="7" title="Footer Zone" subtitle="CTA zone supports 0, 1, or 2 CTAs only. Copy belongs in the header, not the footer. Always the final zone in the card.">
 
           <div className="grid gap-6 lg:grid-cols-2">
             <div>
@@ -1352,7 +1343,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               <FooterVariantPreview
                 label="Single CTA - Secondary"
                 variant="secondary"
-                align="center"
+                align="left"
                 ctas={[{ text: "Acknowledge", icon: "left", iconKind: "check", tone: "green" }]}
               />
               <FooterVariantPreview
@@ -1373,14 +1364,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               />
             </div>
           </div>
-        </section>
+        </DocSection>
 
-        {/* ═══ THUMBS UP / DOWN ═══ */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-1">Thumbs Up / Thumbs Down</h3>
-          <p className="text-[11px] text-slate-500 mb-3">
-            Every AI response can carry a lightweight thumbs-up / thumbs-down feedback control in chat. This is not a card action. It is a response-quality signal that helps us understand whether the generated output actually satisfied the doctor.
-          </p>
+        {/* ═══ 8. THUMBS UP / DOWN ═══ */}
+        <DocSection number="8" title="Thumbs Up / Thumbs Down" subtitle="Lightweight feedback control in chat. Not a card action — a response-quality signal to learn whether the output satisfied the doctor.">
 
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
@@ -1418,14 +1405,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               </div>
             </div>
           </div>
-        </section>
+        </DocSection>
 
-        {/* ═══ DATA COMPLETENESS ═══ */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-1">Data Completeness Donut</h3>
-          <p className="text-[11px] text-slate-500 mb-3">
-            The completeness donut is a selective trust signal. We do not show it on every response card. We use it only on cards where there is a known expected data set and the doctor needs to judge how complete that structured view really is.
-          </p>
+        {/* ═══ 9. DATA COMPLETENESS ═══ */}
+        <DocSection number="9" title="Data Completeness Donut" subtitle="A selective trust signal shown only on cards with a known expected data set. Helps doctors judge how complete the structured view is.">
 
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
@@ -1471,14 +1454,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               </div>
             </div>
           </div>
-        </section>
+        </DocSection>
 
-        {/* ═══ SOURCE ICON ═══ */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-1">Source Icon</h3>
-          <p className="text-[11px] text-slate-500 mb-3">
-            The source icon is a trust and provenance cue. It tells the doctor that the response is backed by identifiable source data and helps explain from where the generated response was derived.
-          </p>
+        {/* ═══ 10. SOURCE ICON ═══ */}
+        <DocSection number="10" title="Source Icon" subtitle="A trust and provenance cue. Tells the doctor which source data backs the response and where it was derived from.">
 
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
@@ -1516,7 +1495,112 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               </div>
             </div>
           </div>
-        </section>
+        </DocSection>
+
+        {/* ═══ 11. iPad / TABLET CONSIDERATIONS ═══ */}
+        <DocSection number="11" title="iPad / Tablet Considerations" subtitle="Desktop interactions that may not work on iPad or tablet devices. These need alternative UX patterns for touch-first usage.">
+          <div className="space-y-4">
+            {/* Overview callout */}
+            <Callout tone="amber" label="Why this matters">
+              <ul className="space-y-1.5">
+                <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />Many doctors use iPads in clinic. Hover-dependent interactions become invisible on touch.</li>
+                <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />Tooltips triggered by hover never appear — critical information can be lost.</li>
+                <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />Copy actions that rely on hover-reveal icons become undiscoverable.</li>
+              </ul>
+            </Callout>
+
+            {/* Issues table */}
+            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+              <table className="min-w-full text-[11px]">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/60 text-left text-[10px]">
+                    <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-slate-400 w-8">#</th>
+                    <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-slate-400 w-36">Interaction</th>
+                    <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-slate-400">Desktop behavior</th>
+                    <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-slate-400">iPad issue</th>
+                    <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-slate-400">Recommended fix</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { n: 1, interaction: "Header copy icon", desktop: "Appears on hover over the card header area", issue: "Never appears — doctor cannot discover the copy action", fix: "Always show copy icon on touch devices, or show on first tap then persist" },
+                    { n: 2, interaction: "Tooltip on copy", desktop: "Hover shows 'Copy to RxPad' tooltip before clicking", issue: "No tooltip — doctor taps copy without knowing what it does", fix: "Use a brief toast or inline label ('Copied!') on tap instead of pre-action tooltip" },
+                    { n: 3, interaction: "Source icon tooltip", desktop: "Hover reveals source provenance (EMR, Lab, Records)", issue: "Source info is completely hidden", fix: "Tap to toggle a small popover/sheet showing source details" },
+                    { n: 4, interaction: "Completeness donut tooltip", desktop: "Hover shows EMR%, AI%, Missing% breakdown", issue: "Breakdown percentages never visible", fix: "Tap donut to expand inline or show a small bottom sheet with details" },
+                    { n: 5, interaction: "Pill hover states", desktop: "Pills show subtle background change and cursor pointer on hover", issue: "No visual affordance that pills are tappable", fix: "Add a subtle border or shadow to pills by default on touch to hint interactivity" },
+                    { n: 6, interaction: "Table row hover", desktop: "Rows in lab panels, med history highlight on hover for readability", issue: "No row highlighting — dense tables harder to read", fix: "Use alternating row colors (zebra stripes) on touch devices for readability" },
+                    { n: 7, interaction: "Accordion expand target", desktop: "Full header row is clickable to expand/collapse", issue: "Touch target may be too small if only the chevron is tappable", fix: "Ensure full header row is the tap target (min 44px height per Apple HIG)" },
+                    { n: 8, interaction: "Scrollable card content", desktop: "Scroll wheel works inside cards with overflow", issue: "Touch scroll can conflict with page scroll", fix: "Ensure cards use proper touch-scroll momentum and do not trap scroll" },
+                    { n: 9, interaction: "Footer CTA spacing", desktop: "CTAs are comfortable at current spacing", issue: "Touch targets may be too close together for fat fingers", fix: "Increase CTA button padding to min 44x44px touch targets on tablet" },
+                    { n: 10, interaction: "Drug interaction severity badge", desktop: "Hover on severity badge shows detailed explanation", issue: "Explanation never appears", fix: "Tap badge to expand explanation inline below the badge" },
+                    { n: 11, interaction: "Chat input", desktop: "Keyboard shortcuts (Cmd+Enter to send)", issue: "No keyboard shortcuts on iPad virtual keyboard", fix: "Ensure send button is always visible and tappable" },
+                    { n: 12, interaction: "Context menu / right-click", desktop: "Right-click for additional options on cards", issue: "No right-click on touch devices", fix: "Use long-press gesture for context menu, or provide explicit action buttons" },
+                  ].map(item => (
+                    <tr key={item.n} className="border-b border-slate-50 align-top">
+                      <td className="px-4 py-2.5 text-slate-400 font-mono text-[10px]">{item.n}</td>
+                      <td className="px-4 py-2.5 font-semibold text-slate-700">{item.interaction}</td>
+                      <td className="px-4 py-2.5 text-slate-600">{item.desktop}</td>
+                      <td className="px-4 py-2.5 text-red-600">{item.issue}</td>
+                      <td className="px-4 py-2.5 text-emerald-700">{item.fix}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Design principles for touch */}
+            <div className="grid gap-3 sm:grid-cols-3">
+              {[
+                { title: "Always visible actions", desc: "On touch devices, never hide primary actions behind hover. Copy, expand, and source should be discoverable without hovering." },
+                { title: "44px minimum targets", desc: "Apple HIG mandates 44x44pt minimum touch targets. All buttons, pills, accordion headers, and CTAs must meet this." },
+                { title: "Tap replaces hover", desc: "Every hover interaction needs a tap equivalent: tooltips become popovers, hover-reveals become always-visible or tap-to-toggle." },
+              ].map(item => (
+                <div key={item.title} className="rounded-xl border border-slate-200 bg-white px-4 py-4">
+                  <p className="text-[12px] font-semibold text-slate-800 mb-1.5">{item.title}</p>
+                  <p className="text-[11px] leading-[1.55] text-slate-500">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </DocSection>
+
+        {/* ═══ 12. FOOTER CTA RULES ═══ */}
+        <DocSection number="12" title="Footer CTA Rules" subtitle="Secondary CTAs for actions, tertiary CTAs for navigation. This rule applies across all cards.">
+          <div className="space-y-4">
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                <div className="bg-blue-600 px-4 py-2.5">
+                  <p className="text-[11px] font-bold text-white uppercase tracking-wider">Secondary CTA (Actions)</p>
+                  <p className="text-[10px] text-blue-200 mt-0.5">Bordered button, blue text, no arrow icon</p>
+                </div>
+                <div className="divide-y divide-slate-50 text-[11px]">
+                  {["Send reminder", "Acknowledge", "Confirm and Send", "Submit", "Fill to RxPad", "Send via WhatsApp", "Print prescription", "Extend trial"].map(a => (
+                    <p key={a} className="px-4 py-2 text-slate-600">{a}</p>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                <div className="bg-slate-500 px-4 py-2.5">
+                  <p className="text-[11px] font-bold text-white uppercase tracking-wider">Tertiary CTA (Navigation)</p>
+                  <p className="text-[10px] text-slate-300 mt-0.5">Text link, with arrow icon, no border</p>
+                </div>
+                <div className="divide-y divide-slate-50 text-[11px]">
+                  {["View full lab report", "See all past visits", "View detailed history", "Open sidebar tab", "Know more", "View all patients"].map(n => (
+                    <p key={n} className="px-4 py-2 text-slate-600">{n}</p>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <Callout tone="blue" label="Rule">
+              <ul className="space-y-1.5">
+                <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />If the CTA triggers an instant action (sending, filling, acknowledging, printing), use secondary CTA (bordered).</li>
+                <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />If the CTA navigates to another page or opens a sidebar, use tertiary CTA (text link with arrow).</li>
+                <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Action CTAs: no arrow icon. Navigation CTAs: always have a right arrow.</li>
+                <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Max 2 CTAs per card footer. If 2 CTAs, one can be action and one navigation.</li>
+              </ul>
+            </Callout>
+          </div>
+        </DocSection>
 
       </div>
     )
@@ -1668,199 +1752,1693 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
     )
   }
 
+  // ── Shared doc-section wrapper ──
+  const DocSection = ({ number, title, subtitle, children }: { number: string; title: string; subtitle: string; children: React.ReactNode }) => (
+    <div className="relative">
+      <div className="flex items-baseline gap-3 mb-1">
+        <span className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-md bg-violet-600 text-[11px] font-bold text-white">{number}</span>
+        <h4 className="text-[15px] font-bold text-slate-800">{title}</h4>
+      </div>
+      <p className="text-[11px] text-slate-500 mb-4 ml-[34px]">{subtitle}</p>
+      <div className="ml-[34px]">{children}</div>
+    </div>
+  )
+
+  // ── Callout box ──
+  const Callout = ({ tone, label, children }: { tone: "blue" | "amber" | "emerald" | "rose"; label: string; children: React.ReactNode }) => {
+    const styles = {
+      blue: "border-blue-200 bg-blue-50/60 text-blue-800",
+      amber: "border-amber-200 bg-amber-50/60 text-amber-800",
+      emerald: "border-emerald-200 bg-emerald-50/60 text-emerald-800",
+      rose: "border-rose-200 bg-rose-50/60 text-rose-800",
+    }
+    const dotStyles = { blue: "bg-blue-400", amber: "bg-amber-400", emerald: "bg-emerald-400", rose: "bg-rose-400" }
+    return (
+      <div className={`rounded-lg border px-4 py-3 ${styles[tone]}`}>
+        <p className="text-[10px] font-bold uppercase tracking-wider opacity-70 mb-1.5">{label}</p>
+        <div className={`space-y-1.5 text-[11px] leading-[1.55] [&_li]:flex [&_li]:items-start [&_li]:gap-2 [&_span.dot]:mt-[5px] [&_span.dot]:h-[5px] [&_span.dot]:w-[5px] [&_span.dot]:flex-shrink-0 [&_span.dot]:rounded-full [&_span.dot]:${dotStyles[tone]}`}>
+          {children}
+        </div>
+      </div>
+    )
+  }
+
   // ── RESPONSE MANAGEMENT TAB ──
   function renderResponseMgmt() {
+    const RM_TABS = [
+      { id: "pipeline" as const, label: "Pipeline & Phases" },
+      { id: "card-rules" as const, label: "Card Rules" },
+      { id: "copy-rules" as const, label: "Copy & Provenance" },
+    ]
+
+    return (
+      <div className="space-y-8">
+        {/* ── Page header ── */}
+        <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-violet-50/80 via-white to-blue-50/60 px-6 py-5">
+          <h3 className="text-[18px] font-bold text-slate-800 mb-1">Response Management Bible</h3>
+          <p className="text-[12px] leading-[1.6] text-slate-500 max-w-2xl">
+            The single operating reference for how Dr. Agent fetches, structures, shows, and copies data.
+            Every card means the same thing across Card Anatomy, Card Catalog, and this section.
+          </p>
+          <div className="mt-4 flex gap-6">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Historical sidebar sources</p>
+              <div className="flex flex-wrap gap-1">
+                {HISTORICAL_SOURCE_AREAS.map(area => (
+                  <span key={area} className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] text-slate-600">{area}</span>
+                ))}
+              </div>
+            </div>
+            <div className="border-l border-slate-200 pl-6">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-blue-400 mb-1.5">RxPad fill targets</p>
+              <div className="flex flex-wrap gap-1">
+                {RXPAD_PRIMARY_TARGETS.map(area => (
+                  <span key={area} className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] text-blue-700">{area}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Sub-tabs ── */}
+        <div className="flex gap-0 border-b border-slate-200">
+          {RM_TABS.map(tab => (
+            <button key={tab.id} onClick={() => setRmTab(tab.id)}
+              className={`relative px-5 py-2.5 text-[12px] font-medium transition-colors ${
+                rmTab === tab.id
+                  ? "text-violet-700"
+                  : "text-slate-400 hover:text-slate-600"
+              }`}>
+              {tab.label}
+              {rmTab === tab.id && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-t-full bg-violet-600" />}
+            </button>
+          ))}
+        </div>
+
+        {/* ═══ TAB 1: Pipeline & Phases ═══ */}
+        {rmTab === "pipeline" && (
+          <div className="space-y-10">
+            {/* 1. End-to-End Pipeline */}
+            <DocSection number="1" title="End-to-End Pipeline" subtitle="From doctor input to rendered card — four sequential stages.">
+              <div className="grid gap-3 lg:grid-cols-4">
+                {[
+                  { s: "1", t: "Input", icon: "keyboard", c: "from-blue-500 to-blue-600", d: "Doctor types or taps pill. Pill = direct PILL_INTENT_MAP lookup (90+ mappings). Text = normalize + keyword rules." },
+                  { s: "2", t: "Classify", icon: "filter", c: "from-violet-500 to-violet-600", d: "37 keyword rules top-to-bottom. Operational checked first. Result: 1 of 9 intents + format (text/card)." },
+                  { s: "3", t: "Build", icon: "build", c: "from-emerald-500 to-emerald-600", d: "Reply engine: intent + patient data + context = RxAgentOutput. POMR keywords = problem cards." },
+                  { s: "4", t: "Render", icon: "screen", c: "from-amber-500 to-amber-600", d: "CardRenderer switch = component. Pills refreshed. Source provenance computed." },
+                ].map((step, i) => (
+                  <div key={step.s} className="relative rounded-xl border border-slate-200 bg-white px-4 py-4">
+                    <div className={`mb-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br ${step.c} text-[13px] font-bold text-white shadow-sm`}>
+                      {step.s}
+                    </div>
+                    <p className="text-[13px] font-semibold text-slate-800 mb-1">{step.t}</p>
+                    <p className="text-[11px] leading-[1.55] text-slate-500">{step.d}</p>
+                    {i < 3 && <div className="absolute -right-[10px] top-1/2 z-10 hidden text-slate-300 lg:block">&#8594;</div>}
+                  </div>
+                ))}
+              </div>
+            </DocSection>
+
+            {/* 2. 4-Layer Pill Priority */}
+            <DocSection number="2" title="4-Layer Pill Priority" subtitle="Pills are generated using a layered priority system. Higher layers always override lower ones.">
+              <div className="space-y-2">
+                {[
+                  { l: "Layer 1", p: "P 0-9", label: "Safety", c: "border-l-red-500 bg-red-50/50", tc: "text-red-700", tag: "bg-red-100 text-red-600", d: "ALWAYS shown. SpO2 <90 = 'Review SpO2'. Allergies = 'Allergy Alert'. force:true.", rule: "Cannot be dismissed or deprioritized" },
+                  { l: "Layer 2", p: "P 10-29", label: "Clinical Flags", c: "border-l-amber-500 bg-amber-50/50", tc: "text-amber-700", tag: "bg-amber-100 text-amber-600", d: "Lab flags >=3, BP >140, SpO2 declining, specialty data, overdue follow-ups.", rule: "Shown when clinical thresholds are breached" },
+                  { l: "Layer 3", p: "P 29-49", label: "Phase-Aware", c: "border-l-violet-500 bg-violet-50/50", tc: "text-violet-700", tag: "bg-violet-100 text-violet-600", d: "empty='Summary', symptoms='DDX', dx='Meds', meds='Translate', complete='Check'. + CKD/DM condition pills.", rule: "Changes based on consultation phase" },
+                  { l: "Layer 4", p: "P 60-69", label: "Tab Lens", c: "border-l-blue-500 bg-blue-50/50", tc: "text-blue-700", tag: "bg-blue-100 text-blue-600", d: "Vitals tab='Vital trends', Lab='Lab comparison', History='Med history', Records='OCR'.", rule: "Lowest priority, context-dependent" },
+                ].map(layer => (
+                  <div key={layer.l} className={`rounded-lg border border-slate-200 border-l-[3px] ${layer.c} px-4 py-3`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase ${layer.tag}`}>{layer.l}</span>
+                      <span className={`text-[12px] font-semibold ${layer.tc}`}>{layer.label}</span>
+                      <span className="text-[10px] text-slate-400 ml-auto font-mono">{layer.p}</span>
+                    </div>
+                    <p className="text-[11px] leading-[1.5] text-slate-600">{layer.d}</p>
+                    <p className="text-[10px] text-slate-400 mt-1 italic">{layer.rule}</p>
+                  </div>
+                ))}
+              </div>
+            </DocSection>
+
+            {/* 3. Consultation Phases */}
+            <DocSection number="3" title="Consultation Phases" subtitle="The phase engine detects where the doctor is in the consultation and adjusts pill suggestions accordingly.">
+              <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                {/* Phase selector */}
+                <div className="flex border-b border-slate-100 bg-slate-50/60 px-4 py-2 gap-1">
+                  {[
+                    { id: "empty", l: "Empty", icon: "circle" },
+                    { id: "symptoms_entered", l: "Symptoms", icon: "edit" },
+                    { id: "dx_accepted", l: "Dx Accepted", icon: "check" },
+                    { id: "meds_written", l: "Meds Written", icon: "pill" },
+                    { id: "near_complete", l: "Complete", icon: "done" },
+                  ].map((p, i) => (
+                    <button key={p.id} onClick={() => setActivePhase(p.id)}
+                      className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-medium transition-all ${
+                        activePhase === p.id
+                          ? "bg-violet-600 text-white shadow-sm"
+                          : "text-slate-500 hover:bg-white hover:text-slate-700"
+                      }`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${activePhase === p.id ? "bg-white" : "bg-slate-300"}`} />
+                      {p.l}
+                    </button>
+                  ))}
+                </div>
+                {/* Phase pills */}
+                <div className="px-4 py-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-2">Suggested pills at this phase</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(activePhase === "empty" ? ["Patient summary", "Suggest DDX", "Lab overview", "Review intake data"] :
+                      activePhase === "symptoms_entered" ? ["Suggest DDX", "Compare with last visit", "Vital trends"] :
+                      activePhase === "dx_accepted" ? ["Suggest medications", "Suggest investigations", "Draft advice", "Plan follow-up"] :
+                      activePhase === "meds_written" ? ["Translate to regional", "Plan follow-up", "Completeness check"] :
+                      ["Completeness check", "Translate advice", "Visit summary"]
+                    ).map(p => (
+                      <span key={p} className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-[11px] font-medium text-violet-700">{p}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </DocSection>
+
+            {/* 4. Homepage vs Patient Context */}
+            <DocSection number="4" title="Homepage vs Patient Context" subtitle="Dr. Agent operates differently depending on whether a patient is open or the doctor is on the homepage.">
+              <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                <table className="min-w-full text-[11px]">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/60 text-left">
+                      <th className="px-4 py-2.5 w-24 text-[10px] font-semibold uppercase tracking-wider text-slate-400">Aspect</th>
+                      <th className="px-4 py-2.5">
+                        <span className="inline-flex items-center gap-1.5 rounded-md bg-orange-100 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />Homepage
+                        </span>
+                      </th>
+                      <th className="px-4 py-2.5">
+                        <span className="inline-flex items-center gap-1.5 rounded-md bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />Patient
+                        </span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      ["Cards", "Operational: queue, revenue, KPIs, analytics", "Clinical: summary, DDX, meds, labs, POMR"],
+                      ["Pills", "Homepage engine, tab/rail overrides", "4-layer pipeline, safety forced"],
+                      ["Phase", "No phase", "Full state machine"],
+                      ["Intent", "Operational + comparison", "All 9 categories"],
+                    ].map(([a, h, p]) => (
+                      <tr key={a} className="border-b border-slate-50">
+                        <td className="px-4 py-2.5 font-semibold text-slate-700">{a}</td>
+                        <td className="px-4 py-2.5 text-slate-600">{h}</td>
+                        <td className="px-4 py-2.5 text-slate-600">{p}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </DocSection>
+          </div>
+        )}
+
+        {/* ═══ TAB 2: Card Rules ═══ */}
+        {rmTab === "card-rules" && (
+          <div className="space-y-10">
+            <DocSection number="1" title="Unified Card Rules" subtitle="Every card answers four questions: when to show, what to fetch, whether to allow copy, and how to structure UI.">
+              {/* Group cards by family */}
+              {(() => {
+                const families = [...new Set(CARD_SPECS.map(c => c.family))]
+                return (
+                  <div className="space-y-6">
+                    {families.map(family => {
+                      const cards = CARD_SPECS.filter(c => c.family === family)
+                      const familyColor = FAMILY_COLORS[family] || "border-slate-200 bg-slate-50 text-slate-600"
+                      return (
+                        <div key={family}>
+                          {/* Family header */}
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className={`inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${familyColor}`}>
+                              {family}
+                            </span>
+                            <span className="text-[10px] text-slate-400">{cards.length} card{cards.length !== 1 ? "s" : ""}</span>
+                            <div className="flex-1 border-b border-dashed border-slate-200" />
+                          </div>
+                          {/* Cards table for this family */}
+                          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                            <table className="min-w-full text-[11px]">
+                              <thead>
+                                <tr className="border-b border-slate-100 bg-slate-50/60 text-left text-[10px]">
+                                  <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400 w-36">Card</th>
+                                  <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400">When to show</th>
+                                  <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400">Fetch from</th>
+                                  <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400">UI rule</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {cards.map((card, i) => (
+                                  <tr key={card.kind} className={`align-top ${i < cards.length - 1 ? "border-b border-slate-50" : ""}`}>
+                                    <td className="px-3 py-2.5">
+                                      <code className="rounded bg-violet-50 px-1.5 py-0.5 text-[10px] font-mono text-violet-700">{card.kind}</code>
+                                    </td>
+                                    <td className="px-3 py-2.5 text-slate-600 leading-[1.5]">{card.whenToShow}</td>
+                                    <td className="px-3 py-2.5 text-slate-500 leading-[1.5]">{getCardFetchFrom(card.kind)}</td>
+                                    <td className="px-3 py-2.5 text-slate-500 leading-[1.5] italic">{getCardUiRule(card.kind)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
+            </DocSection>
+          </div>
+        )}
+
+        {/* ═══ TAB 3: Copy & Provenance ═══ */}
+        {rmTab === "copy-rules" && (
+          <div className="space-y-10">
+            {/* 1. Copy Rules */}
+            <DocSection number="1" title="Copy Rules" subtitle="Determines when the header copy icon appears and what content can be copied into RxPad.">
+              <div className="space-y-3">
+                {COPY_RULE_EXPLANATIONS.map((rule, i) => {
+                  const tones = [
+                    { border: "border-l-slate-400", bg: "bg-white" },
+                    { border: "border-l-emerald-500", bg: "bg-emerald-50/30" },
+                    { border: "border-l-blue-500", bg: "bg-blue-50/30" },
+                    { border: "border-l-violet-500", bg: "bg-violet-50/30" },
+                  ]
+                  const tone = tones[i % tones.length]
+                  return (
+                    <div key={rule.title} className={`rounded-lg border border-slate-200 border-l-[3px] ${tone.border} ${tone.bg} px-4 py-3`}>
+                      <p className="text-[12px] font-semibold text-slate-800 mb-1">{rule.title}</p>
+                      <p className="text-[11px] leading-[1.6] text-slate-600">{rule.body}</p>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <div className="mt-5">
+                <Callout tone="amber" label="Key principle">
+                  <ul className="space-y-1.5">
+                    <li className="flex items-start gap-2 text-[11px]">
+                      <span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />
+                      Copy icon appears only for newly generated content or Past Visit exception.
+                    </li>
+                    <li className="flex items-start gap-2 text-[11px]">
+                      <span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />
+                      Historical data displayed from sidebar = read-only, no copy icon.
+                    </li>
+                    <li className="flex items-start gap-2 text-[11px]">
+                      <span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />
+                      Copy never goes in the footer. Whole-card copy is always a header action.
+                    </li>
+                  </ul>
+                </Callout>
+              </div>
+            </DocSection>
+
+            {/* 2. Source Provenance */}
+            <DocSection number="2" title="Source Provenance" subtitle="Where each card family gets its data, and how source trust is displayed to the doctor.">
+              <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+                {/* Source mapping */}
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-slate-50/60 px-4 py-2 border-b border-slate-100">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Data source by card type</p>
+                  </div>
+                  <div className="divide-y divide-slate-50">
+                    {[
+                      { card: "Summary", src: "EMR + Lab + Records + Visits + Intake", c: "text-blue-600" },
+                      { card: "Lab / Trends", src: "Lab Results or Records", c: "text-teal-600" },
+                      { card: "DDX / Meds", src: "Context + Protocol", c: "text-violet-600" },
+                      { card: "POMR / SBAR", src: "History + Lab + Records (ring)", c: "text-red-600" },
+                      { card: "Homepage", src: "No source provenance needed", c: "text-orange-600" },
+                    ].map(row => (
+                      <div key={row.card} className="flex items-center gap-3 px-4 py-2.5">
+                        <span className={`w-24 flex-shrink-0 text-[11px] font-semibold ${row.c}`}>{row.card}</span>
+                        <span className="text-[11px] text-slate-600">{row.src}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Completeness ring rules */}
+                <div className="space-y-3">
+                  <Callout tone="blue" label="Completeness ring">
+                    <ul className="space-y-1.5">
+                      <li className="flex items-start gap-2 text-[11px]">
+                        <span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />
+                        Only on POMR, SBAR, and OCR cards.
+                      </li>
+                      <li className="flex items-start gap-2 text-[11px]">
+                        <span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />
+                        3 segments: EMR (purple) + AI (blue) + Missing (gray).
+                      </li>
+                      <li className="flex items-start gap-2 text-[11px]">
+                        <span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />
+                        Not shown on pure-EMR (always 100%) or pure-AI cards.
+                      </li>
+                    </ul>
+                  </Callout>
+
+                  <Callout tone="emerald" label="Preview — completeness donut">
+                    <div className="flex items-center gap-3">
+                      <DataCompletenessDonut emr={65} ai={25} missing={10} size={48} />
+                      <div className="text-[11px] space-y-0.5">
+                        <p><span className="font-semibold text-violet-600">65% EMR</span> — from historical data</p>
+                        <p><span className="font-semibold text-blue-600">25% AI</span> — agent-generated</p>
+                        <p><span className="font-semibold text-slate-400">10% Missing</span> — data not available</p>
+                      </div>
+                    </div>
+                  </Callout>
+                </div>
+              </div>
+            </DocSection>
+
+            {/* 3. What this bible standardizes */}
+            <DocSection number="3" title="Standardization Principles" subtitle="These principles ensure consistency across Card Anatomy, Card Catalog, and Response Management.">
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  { title: "Four questions", desc: "Every card answers: when to show, fetch from, copy eligibility, and UI structuring." },
+                  { title: "Shared copy logic", desc: "Copy behavior is learned once from a shared rule section, not reinterpreted card by card." },
+                  { title: "Consistent language", desc: "All three tabs describe the same system with the same terminology and conventions." },
+                ].map(item => (
+                  <div key={item.title} className="rounded-xl border border-slate-200 bg-white px-4 py-4">
+                    <p className="text-[12px] font-semibold text-slate-800 mb-1.5">{item.title}</p>
+                    <p className="text-[11px] leading-[1.55] text-slate-500">{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </DocSection>
+
+            {/* 4. Text Highlighting & Color Hierarchy */}
+            <DocSection number="4" title="Text Highlighting and Color Hierarchy" subtitle="Primary clinical terms stay prominent. Supportive context in brackets becomes lighter.">
+              <div className="space-y-4">
+                <Callout tone="blue" label="Color rules">
+                  <ul className="space-y-1.5">
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Names (conditions, medications, lab values, vitals): tp-slate-700, font-medium</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Bracket content (durations, status, notes, dosage): tp-slate-400, font-normal</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Pipe dividers ( | ): tp-slate-200</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Commas: same color as surrounding text</li>
+                  </ul>
+                </Callout>
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-slate-50/60 px-4 py-2.5 border-b border-slate-100">
+                    <p className="text-[11px] font-bold text-slate-700">Live rendering examples</p>
+                  </div>
+                  <div className="divide-y divide-slate-50 px-4 py-1">
+                    <p className="py-2 text-[13px]"><span className="font-medium text-slate-700">Diabetes</span><span className="text-slate-400"> (2 years</span><span className="text-slate-200"> | </span><span className="text-slate-400">Active)</span><span className="text-slate-700">, </span><span className="font-medium text-slate-700">Hypertension</span><span className="text-slate-400"> (5 years</span><span className="text-slate-200"> | </span><span className="text-slate-400">Active)</span></p>
+                    <p className="py-2 text-[13px]"><span className="font-medium text-slate-700">Cycle</span><span className="text-slate-400"> (35-40 days, Irregular)</span></p>
+                    <p className="py-2 text-[13px]"><span className="font-medium text-slate-700">Pain</span><span className="text-slate-400"> (Moderate, 6/10)</span></p>
+                    <p className="py-2 text-[13px]"><span className="font-medium text-slate-700">Type 2 DM</span><span className="text-slate-400"> (18 years, on insulin)</span></p>
+                    <p className="py-2 text-[13px]"><span className="font-medium text-slate-700">Amlodipine 10mg</span><span className="text-slate-400"> (1 tablet</span><span className="text-slate-200"> | </span><span className="text-slate-400">Once daily</span><span className="text-slate-200"> | </span><span className="text-slate-400">After food</span><span className="text-slate-200"> | </span><span className="text-slate-400">30 days)</span></p>
+                    <p className="py-2 text-[13px]"><span className="font-medium text-slate-700">Fever</span><span className="text-slate-400"> (2 days</span><span className="text-slate-200"> | </span><span className="text-slate-400">Moderate)</span></p>
+                    <p className="py-2 text-[13px]"><span className="font-medium text-slate-700">Ibuprofen</span><span className="text-slate-400"> (5 years</span><span className="text-slate-200"> | </span><span className="text-slate-400">Active)</span></p>
+                    <p className="py-2 text-[13px]"><span className="font-medium text-slate-700">Diabetes Mellitus</span><span className="text-slate-400"> (Father, Paternal Uncle)</span></p>
+                    <p className="py-2 text-[13px]"><span className="font-medium text-slate-700">Appendectomy</span><span className="text-slate-400"> (2018</span><span className="text-slate-200"> | </span><span className="text-slate-400">Uncomplicated)</span></p>
+                    <p className="py-2 text-[13px]"><span className="font-medium text-slate-700">HPV 1</span><span className="text-slate-400"> (Due</span><span className="text-slate-200"> | </span><span className="text-slate-400">14 Jan 2026)</span></p>
+                    <p className="py-2 text-[13px]"><span className="font-medium text-slate-700">3 days</span><span className="text-slate-400"> (Recheck BP after medication adjustment)</span></p>
+                  </div>
+                </div>
+              </div>
+            </DocSection>
+
+            {/* 5. Data Formatting Convention */}
+            <DocSection number="5" title="Data Formatting Convention" subtitle="Standard format for displaying structured clinical data. Primary name highlighted, supportive details in brackets. Follows actual RxPad input field structure.">
+              <div className="space-y-4">
+                {/* Standard format */}
+                <div className="rounded-xl border border-slate-200 bg-white px-5 py-4">
+                  <p className="text-[12px] font-bold text-slate-800 mb-3">Standard format</p>
+                  <div className="rounded-lg bg-slate-900 px-4 py-3 font-mono text-[13px] text-emerald-300 leading-[1.7]">
+                    <span className="text-amber-300">PrimaryName</span> <span className="text-slate-500">(</span><span className="text-slate-400">supportive detail</span><span className="text-slate-500">)</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-2">Primary name is what the doctor looks for first. Supportive text (status, duration, notes) goes in brackets. Pipe dividers <code className="bg-slate-100 px-1 rounded text-[10px]">|</code> use tp-slate-200 (lightest). Commas use the same color as the text they sit in.</p>
+                </div>
+
+                {/* Color layering rule */}
+                <Callout tone="blue" label="Color layering">
+                  <ul className="space-y-1.5">
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Primary name: <code className="bg-white/50 px-1 rounded text-[10px]">tp-slate-700, font-medium</code> (darkest, what doctor reads first)</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Supportive text in brackets: <code className="bg-white/50 px-1 rounded text-[10px]">tp-slate-400, font-normal</code> (lighter, secondary context)</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Pipe dividers ( | ): <code className="bg-white/50 px-1 rounded text-[10px]">tp-slate-200</code> (lightest, never competes with text)</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Commas: Same color as surrounding text (tp-slate-400 or tp-slate-700 depending on context)</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Subheading labels inside sections: <code className="bg-white/50 px-1 rounded text-[10px]">tp-slate-400</code> (e.g., "Since:", "Status:", "Relationship:")</li>
+                  </ul>
+                </Callout>
+
+                {/* RxPad section-specific formatting — based on actual input fields */}
+                {(() => {
+                  // Helper to render bracket text with dividers in tp-slate-200 and text in tp-slate-400
+                  const renderBracket = (bracket: string) => {
+                    if (!bracket) return null
+                    const parts = bracket.split(" | ")
+                    return (
+                      <span className="text-slate-400">
+                        {" ("}
+                        {parts.map((part, i) => (
+                          <React.Fragment key={i}>
+                            {i > 0 && <span className="text-slate-200"> | </span>}
+                            <span>{part}</span>
+                          </React.Fragment>
+                        ))}
+                        {")"}
+                      </span>
+                    )
+                  }
+
+                  return (<>
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-slate-50/60 px-4 py-2.5 border-b border-slate-100">
+                    <p className="text-[11px] font-bold text-slate-700">RxPad section formatting (based on actual input fields)</p>
+                  </div>
+                  <div className="divide-y divide-slate-50">
+                    {[
+                      { section: "Symptoms", fields: "Name (Since | Status | Notes)", primary: "Fever", bracket: "2 days | Moderate | No measured temperature" },
+                      { section: "Examination", fields: "Name (Notes)", primary: "Lung Infection", bracket: "Mild crepitations in bilateral lower zones" },
+                      { section: "Diagnosis", fields: "Name (Since | Status)", primary: "Viral Fever", bracket: "2 days | Active" },
+                      { section: "Medication", fields: "Name Dose (Unit/Dose | Frequency | When | Duration | Notes)", primary: "Amlodipine 10mg", bracket: "1 tablet | Once daily | After food | 30 days" },
+                      { section: "Advice", fields: "Name (Notes)", primary: "Monitor BP twice daily", bracket: "Record morning and evening readings" },
+                      { section: "Lab Investigation", fields: "Test name (Notes)", primary: "Renal Function Panel", bracket: "Fasting sample required" },
+                      { section: "Follow-up", fields: "Duration (Notes)", primary: "3 days", bracket: "Recheck BP after medication adjustment" },
+                    ].map(item => (
+                      <div key={item.section} className="px-4 py-2.5">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[11px] font-semibold text-violet-700">{item.section}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">{item.fields}</span>
+                        </div>
+                        <p className="text-[12px]">
+                          <span className="font-medium text-slate-700">{item.primary}</span>
+                          {renderBracket(item.bracket)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Historical sidebar section formatting */}
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-slate-50/60 px-4 py-2.5 border-b border-slate-100">
+                    <p className="text-[11px] font-bold text-slate-700">Historical sidebar section formatting</p>
+                  </div>
+                  <div className="divide-y divide-slate-50">
+                    {[
+                      { section: "Medical Condition", fields: "Name (Duration | Status)", primary: "Type 2 Diabetes", bracket: "2 years | Active" },
+                      { section: "Allergies", fields: "Name (Duration | Status)", primary: "Ibuprofen", bracket: "5 years | Active" },
+                      { section: "Family History", fields: "Condition (Relationship)", primary: "Diabetes Mellitus", bracket: "Father, Paternal Uncle" },
+                      { section: "Lifestyle", fields: "Name (Duration | Status)", primary: "Smoking", bracket: "10 years | Active" },
+                      { section: "Surgical History", fields: "Name (Year | Remarks)", primary: "Appendectomy", bracket: "2018 | Uncomplicated" },
+                    ].map(item => (
+                      <div key={item.section} className="px-4 py-2.5">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[11px] font-semibold text-violet-700">{item.section}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">{item.fields}</span>
+                        </div>
+                        <p className="text-[12px]">
+                          <span className="font-medium text-slate-700">{item.primary}</span>
+                          {renderBracket(item.bracket)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Specialty section formatting */}
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-slate-50/60 px-4 py-2.5 border-b border-slate-100">
+                    <p className="text-[11px] font-bold text-slate-700">Specialty section formatting (Gynec, Obstetric, Vitals, Vaccine, Growth)</p>
+                  </div>
+                  <div className="divide-y divide-slate-50">
+                    {[
+                      { section: "Gynec — Menarche", parts: [{ l: "Age at:", v: "13 years" }] },
+                      { section: "Gynec — Cycle", parts: [{ l: "Type:", v: "Irregular" }, { l: "Interval:", v: "35-40 days" }] },
+                      { section: "Gynec — Flow", parts: [{ l: "Volume:", v: "Heavy" }, { l: "Duration:", v: "5 days" }, { l: "Clots:", v: "Yes" }, { l: "Pads/day:", v: "5" }] },
+                      { section: "Gynec — Pain", parts: [{ l: "Severity:", v: "None" }, { l: "Occurrence:", v: "Before Menses" }] },
+                      { section: "Obstetric — Patient Info", parts: [{ l: "LMP:", v: "14 Jan'26" }, { l: "EDD:", v: "21 Oct'26" }, { l: "Gestation:", v: "14 Weeks 2 Days" }] },
+                      { section: "Obstetric — GPLAE", parts: [{ l: "G:", v: "1" }, { l: "P:", v: "0" }, { l: "L:", v: "0" }, { l: "A:", v: "0" }, { l: "E:", v: "0" }] },
+                      { section: "Vitals", parts: [{ l: "Temperature:", v: "99.2 Frh" }, { l: "Pulse:", v: "84 /min" }, { l: "SpO2:", v: "97%" }] },
+                      { section: "Vaccine", parts: [{ l: "", v: "HPV 1" }, { l: "Status:", v: "Due" }, { l: "Given date:", v: "14 Jan'26" }] },
+                      { section: "Growth", parts: [{ l: "Height:", v: "130 cm" }, { l: "Weight:", v: "12.8 kg" }, { l: "BMI:", v: "24.2 kg/m²" }] },
+                    ].map(item => (
+                      <div key={item.section} className="px-4 py-2.5">
+                        <p className="text-[11px] font-semibold text-violet-700 mb-1">{item.section}</p>
+                        <p className="text-[12px]">
+                          {item.parts.map((p, i) => (
+                            <span key={i}>
+                              {i > 0 && <span className="text-slate-200"> | </span>}
+                              {p.l && <span className="text-slate-400">{p.l} </span>}
+                              <span className="font-medium text-slate-700">{p.v}</span>
+                            </span>
+                          ))}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                </>)
+                })()}
+              </div>
+            </DocSection>
+
+            {/* 6. Insight Engine */}
+            <DocSection number="6" title="Insight Engine" subtitle="When, why, and how Dr. Agent generates clinical insights. Minimal by design. Most cards do NOT show insights.">
+              <div className="space-y-4">
+                <Callout tone="amber" label="Design philosophy">
+                  <ul className="space-y-1.5">
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />Insights are RARE, not default. Most cards should NOT show an insight.</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />Show an insight ONLY when the doctor would miss something critical without it.</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />If the card data already tells the story (flagged values, status badges), do NOT add an insight.</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />If the card IS the recommendation (DDX, Advice, Protocol Meds), do NOT add an insight.</li>
+                  </ul>
+                </Callout>
+
+                {/* Variant rules */}
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-slate-50/60 px-4 py-2.5 border-b border-slate-100">
+                    <p className="text-[11px] font-bold text-slate-700">4 Insight variants</p>
+                  </div>
+                  <div className="divide-y divide-slate-50">
+                    {[
+                      { variant: "Red", color: "bg-red-100 text-red-700", when: "Critical or life-threatening", example: "K+ 6.8 mEq/L. Immediate ECG and calcium gluconate needed.", trigger: "Value exceeds critical clinical range (e.g., K+ > 6.0, Glucose < 40, SpO2 < 88%)" },
+                      { variant: "Amber", color: "bg-amber-100 text-amber-700", when: "Worsening trend needing attention", example: "HbA1c worsened from 7.4% to 8.2% over 3 months. Consider medication adjustment.", trigger: "Value trending in wrong direction across 2+ data points with clinical significance" },
+                      { variant: "Purple", color: "bg-violet-100 text-violet-700", when: "AI correlation across multiple data points", example: "Rising creatinine + declining eGFR + new proteinuria suggest CKD progression.", trigger: "Agent detects a pattern across multiple parameters that individually might not alarm" },
+                      { variant: "Teal", color: "bg-teal-100 text-teal-700", when: "Positive improvement", example: "LDL improved from 162 to 128 mg/dL after statin initiation.", trigger: "Value improving toward target after a clinical intervention" },
+                    ].map(item => (
+                      <div key={item.variant} className="px-4 py-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`rounded px-2 py-0.5 text-[10px] font-bold ${item.color}`}>{item.variant}</span>
+                          <span className="text-[12px] font-medium text-slate-700">{item.when}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mb-1 italic">{item.example}</p>
+                        <p className="text-[10px] text-slate-400">Trigger: {item.trigger}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Decision matrix */}
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-slate-50/60 px-4 py-2.5 border-b border-slate-100">
+                    <p className="text-[11px] font-bold text-slate-700">Insight decision matrix (all card types)</p>
+                  </div>
+                  <table className="min-w-full text-[11px]">
+                    <thead>
+                      <tr className="border-b border-slate-100 bg-slate-50/40 text-left text-[10px]">
+                        <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400 w-36">Card</th>
+                        <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400 w-20">Insight?</th>
+                        <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400">Reason</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { card: "POMR Problem Card", show: true, reason: "Shows when completeness is critically low OR a key value needs immediate action. The POMR card aggregates data, so the insight highlights what the doctor should focus on first." },
+                        { card: "SBAR Critical", show: true, reason: "The card itself IS the alert, but the recommendation section at bottom serves as the 'insight' (always red variant). Built into the card structure." },
+                        { card: "Cross-Problem Flags (in Patient Summary)", show: true, reason: "When two conditions interact dangerously (e.g., CKD + NSAIDs, DM + steroids). This is the one insight type that surfaces in the summary view because the interaction isn't visible from individual data." },
+                        { card: "Follow-up Card", show: true, reason: "Only when the AI recommends a specific interval with clinical reasoning (e.g., 'Why 3 days: BP was 170/100, needs early recheck'). Amber variant." },
+                        { card: "Lab Panel", show: false, reason: "Flagged values (red/high, blue/low) already tell the story. Adding insight text is redundant. If a value is critical, it should trigger an SBAR card instead." },
+                        { card: "Lab Comparison", show: false, reason: "Delta arrows and color coding already show worsening/improving. The comparison IS the insight." },
+                        { card: "Lab Trends", show: false, reason: "The trend line IS the insight. Doctor reads the chart." },
+                        { card: "Vital Trends", show: false, reason: "Same as lab trends. The chart tells the story." },
+                        { card: "Med History", show: false, reason: "Timeline layout is sufficient. If polypharmacy is a concern, it should be a cross-problem flag in the summary." },
+                        { card: "DDX", show: false, reason: "Doctor makes the diagnosis decision. Agent suggests, doctor decides. Insight would be presumptuous." },
+                        { card: "Protocol Meds", show: false, reason: "Safety notes are built into the card. Insight would duplicate the safety check." },
+                        { card: "Advice / Investigation", show: false, reason: "The content IS the recommendation. No meta-commentary needed." },
+                        { card: "Rx Preview", show: false, reason: "Display card, not analytical. Doctor reviews what they wrote." },
+                        { card: "Translation", show: false, reason: "Utility card. No clinical interpretation." },
+                        { card: "Drug Interaction", show: false, reason: "Severity badge + mechanism description already serve as the insight." },
+                        { card: "Allergy Conflict", show: false, reason: "The alert IS the insight. Red card with alternative suggestions." },
+                        { card: "Completeness", show: false, reason: "The checklist IS the insight. No additional commentary needed." },
+                        { card: "Vaccination", show: false, reason: "Status badges (Due/Overdue/Given) are sufficient." },
+                        { card: "OCR Pathology", show: false, reason: "Extracted values with flags are self-explanatory. If critical, should trigger SBAR." },
+                        { card: "OCR Extraction", show: false, reason: "Document sections are displayed as-is. Doctor reads the content." },
+                        { card: "Specialty Summaries (Gynec, Obstetric, Pediatric, Ophthal)", show: false, reason: "Alert badges handle the critical cases. Summary data is self-explanatory." },
+                        { card: "Homepage cards (Revenue, Queue, Analytics, etc.)", show: false, reason: "Operational data, not clinical. No clinical interpretation needed." },
+                        { card: "Text responses (fact, list, step, quote, comparison)", show: false, reason: "These ARE the agent's response. Adding insight to the response is circular." },
+                      ].map(item => (
+                        <tr key={item.card} className="border-b border-slate-50 align-top">
+                          <td className="px-3 py-2 font-medium text-slate-700">{item.card}</td>
+                          <td className="px-3 py-2">
+                            {item.show ? (
+                              <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">Yes</span>
+                            ) : (
+                              <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-400">No</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-slate-500 leading-[1.5]">{item.reason}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Per-card insight rules for the 4 cards that DO show insights */}
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-slate-50/60 px-4 py-2.5 border-b border-slate-100">
+                    <p className="text-[11px] font-bold text-slate-700">Insight rules for cards that show insights (only 4 cards)</p>
+                  </div>
+                  <div className="divide-y divide-slate-50">
+                    {[
+                      {
+                        card: "POMR Problem Card",
+                        trigger: "Completeness below 60% OR any lab value in critical range for that specific problem",
+                        priority: "1. Critical lab value for this problem (e.g., eGFR < 15 for CKD) 2. Missing expected tests overdue > 3 months 3. Cross-problem medication conflict",
+                        template: "[What is wrong]. [Clinical significance]. [What to do next].",
+                        variant: "Red if critical value, Amber if monitoring needed, Purple if AI-detected pattern",
+                        example: "eGFR declined from 15 to 11 over 6 months. CKD progression accelerating. Consider nephrology referral for dialysis transition planning.",
+                      },
+                      {
+                        card: "Cross-Problem Flags (Patient Summary)",
+                        trigger: "Two or more active conditions have a dangerous interaction that isn't obvious from individual data",
+                        priority: "1. Drug-disease interaction (e.g., NSAIDs with CKD) 2. Condition-condition interaction (e.g., DM + steroids) 3. Cumulative risk (e.g., 3+ cardiovascular risk factors)",
+                        template: "[Condition A] + [Condition B] interaction: [what the risk is]. [Recommended action].",
+                        variant: "Red if life-threatening interaction, Amber if needs monitoring",
+                        example: "CKD Stage 5 + NSAID use detected. NSAIDs contraindicated in advanced CKD. Review medication list.",
+                      },
+                      {
+                        card: "SBAR Critical",
+                        trigger: "Always present (the card only appears for critical situations). The 'Recommendation' section at the bottom IS the insight.",
+                        priority: "Single insight: the recommended next action based on the SBAR assessment",
+                        template: "Built into card structure as the 'R' (Recommendation) section of SBAR",
+                        variant: "Always Red (the entire card is a critical alert)",
+                        example: "Immediate: Administer O2, escalate to senior physician. Prepare for ICU transfer if SpO2 does not improve within 15 minutes.",
+                      },
+                      {
+                        card: "Follow-up Card",
+                        trigger: "Agent has a specific clinical reason for recommending a particular follow-up interval",
+                        priority: "Show only when the reasoning adds value beyond 'routine follow-up'. Do NOT show for standard intervals.",
+                        template: "Why [interval]: [clinical reasoning based on current visit data].",
+                        variant: "Always Amber (advisory, not critical)",
+                        example: "Why 3 days: BP was 170/100 with new antihypertensive started. Early recheck needed to confirm response and adjust dose.",
+                      },
+                    ].map(item => (
+                      <div key={item.card} className="px-4 py-3">
+                        <p className="text-[13px] font-semibold text-violet-700 mb-2">{item.card}</p>
+                        <div className="grid gap-2 text-[11px]">
+                          <div><span className="font-semibold text-slate-600">Trigger:</span> <span className="text-slate-500">{item.trigger}</span></div>
+                          <div><span className="font-semibold text-slate-600">Priority:</span> <span className="text-slate-500">{item.priority}</span></div>
+                          <div><span className="font-semibold text-slate-600">Template:</span> <span className="text-slate-500 font-mono">{item.template}</span></div>
+                          <div><span className="font-semibold text-slate-600">Variant:</span> <span className="text-slate-500">{item.variant}</span></div>
+                          <div className="rounded bg-slate-50 px-3 py-2 mt-1 italic text-slate-500">{item.example}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Callout tone="emerald" label="Backend prompt guidance">
+                  <ul className="space-y-1.5">
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-emerald-400" />Default behavior: NO insight. Only generate when a clear trigger condition is met.</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-emerald-400" />Max 1 insight per card. If multiple triggers fire, pick the highest priority one.</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-emerald-400" />Insight text: max 2 sentences. First sentence states the finding, second states the action.</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-emerald-400" />Do not repeat what the data already shows. The insight should reveal something the raw data alone does not.</li>
+                  </ul>
+                </Callout>
+              </div>
+            </DocSection>
+
+            {/* 7. Document Upload Rules */}
+            <DocSection number="7" title="Document Upload Rules" subtitle="How Dr. Agent handles uploaded documents, patient association, and contextual analysis.">
+              <div className="space-y-3">
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <table className="min-w-full text-[11px]">
+                    <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
+                      <th className="px-3 py-2 font-semibold w-36">Rule</th>
+                      <th className="px-3 py-2 font-semibold">Description</th>
+                    </tr></thead>
+                    <tbody className="divide-y divide-slate-50">
+                      <tr><td className="px-3 py-2 font-medium text-slate-700">Patient context check</td><td className="px-3 py-2 text-slate-600">When a document is uploaded and the chat context is set to a specific patient, the document is automatically associated with that patient. No follow-up question needed.</td></tr>
+                      <tr><td className="px-3 py-2 font-medium text-slate-700">Clinic Overview upload</td><td className="px-3 py-2 text-slate-600">When a document is uploaded in Clinic Overview context, Dr. Agent must determine if the document is patient-specific (prescription, pathology report, discharge summary) or generic (Excel sheet, analytics report).</td></tr>
+                      <tr><td className="px-3 py-2 font-medium text-slate-700">Patient-specific docs</td><td className="px-3 py-2 text-slate-600">If the document appears to be a prescription, pathology report, radiology report, discharge summary, or vaccination record, Dr. Agent asks: "This looks like a patient document. Would you like to associate it with a patient?" with Yes/No options.</td></tr>
+                      <tr><td className="px-3 py-2 font-medium text-slate-700">Patient search card</td><td className="px-3 py-2 text-slate-600">If doctor says Yes, show a patient search card (follow-up question card) where the doctor can search and select a patient. The document is then saved against that patient.</td></tr>
+                      <tr><td className="px-3 py-2 font-medium text-slate-700">Generic documents</td><td className="px-3 py-2 text-slate-600">If the document is generic (Excel, CSV, PDF report, analytics), proceed directly with analysis. No patient association needed. Just summarize or process as requested.</td></tr>
+                      <tr><td className="px-3 py-2 font-medium text-slate-700">Doctor says No</td><td className="px-3 py-2 text-slate-600">If doctor declines patient association, proceed with document analysis (OCR extraction, summarization, key findings) without linking to any patient record.</td></tr>
+                      <tr><td className="px-3 py-2 font-medium text-slate-700">Document types that need patient</td><td className="px-3 py-2 text-slate-600">Pathology reports, radiology reports, prescriptions, discharge summaries, vaccination records, surgical notes, referral letters.</td></tr>
+                      <tr><td className="px-3 py-2 font-medium text-slate-700">Document types that do NOT need patient</td><td className="px-3 py-2 text-slate-600">Excel spreadsheets, CSV files, clinic analytics, billing reports, insurance documents, general reference PDFs, clinical guidelines.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </DocSection>
+
+            {/* 8. Edge Cases & Response Logic */}
+            <DocSection number="7" title="Edge Cases and Response Logic" subtitle="How Dr. Agent handles ambiguous queries, large datasets, and multi-parameter requests.">
+              <div className="space-y-4">
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="divide-y divide-slate-50">
+                    {[
+                      {
+                        scenario: "Patient list with 40+ patients",
+                        question: "Doctor asks 'show today's schedule' with 40 patients in queue",
+                        response: "Show first 7 patients in the card with a 'View all 40 patients' footer CTA. Clicking the CTA navigates to the appointment queue page (not a new chat card). The card is a preview, not a full list.",
+                      },
+                      {
+                        scenario: "Vital trends without specifying which vital",
+                        question: "Doctor asks 'show vital trends' without specifying BP, SpO2, Pulse, etc.",
+                        response: "Agent asks a follow-up question: 'Which vital trend would you like to see?' with pill options for each available vital (BP, Pulse, SpO2, Temperature, Weight, BMI). Do not show all 12 vitals in one graph.",
+                      },
+                      {
+                        scenario: "Multiple vital trends at once",
+                        question: "Doctor asks 'show BP and SpO2 trends together'",
+                        response: "Show max 2-3 parameters in a single chart (each as a separate line/series). If more than 3 requested, split into multiple cards. Graph toggle (Graph/Text + Line/Bar) is always shown.",
+                      },
+                      {
+                        scenario: "Lab trends without specifying parameter",
+                        question: "Doctor asks 'show lab trends'",
+                        response: "Agent asks follow-up: 'Which lab parameter trend?' with pills for available parameters (HbA1c, eGFR, Creatinine, TSH, LDL, etc.). One parameter per trend card.",
+                      },
+                      {
+                        scenario: "Medication history with multiple diagnoses",
+                        question: "Patient has 5 active diagnoses and doctor asks 'show medication history'",
+                        response: "Show medications only (drug name + dosage in brackets + date). Do NOT show diagnosis/DX per medication. The medication timeline is purely chronological, not diagnosis-grouped.",
+                      },
+                      {
+                        scenario: "Lab panel reference ranges",
+                        question: "Should reference ranges be shown inline or hidden?",
+                        response: "Reference ranges are shown inline in a separate column (same as current). They use tp-slate-200 (lightest) so they do not compete with actual values. No eye icon needed.",
+                      },
+                      {
+                        scenario: "Chart cards always show toggles",
+                        question: "All chart-based cards (vital trends, lab trends, revenue, patient count, condition bars)",
+                        response: "Every chart card must show two toggles: 1) Graph/Text toggle (left) 2) Line/Bar toggle (right, only in graph mode). Text mode shows the same data as a simple table.",
+                      },
+                      {
+                        scenario: "Drug interaction with 10+ medications",
+                        question: "CKD patient on 11 medications, multiple interactions possible",
+                        response: "Show only the highest severity interaction as the primary card. If multiple critical interactions exist, stack max 2-3 cards. Do not flood the chat with 10 interaction cards.",
+                      },
+                      {
+                        scenario: "Empty data scenarios",
+                        question: "Doctor asks for lab trends but patient has no lab history",
+                        response: "Show a text response: 'No lab results found for this patient. Consider ordering baseline labs.' Do not show an empty chart card.",
+                      },
+                    ].map(item => (
+                      <div key={item.scenario} className="px-4 py-3">
+                        <p className="text-[12px] font-semibold text-slate-700 mb-1">{item.scenario}</p>
+                        <p className="text-[11px] text-slate-500 mb-1.5 italic">{item.question}</p>
+                        <p className="text-[11px] text-slate-600 leading-[1.55]">{item.response}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </DocSection>
+          </div>
+        )}
+
+      </div>
+    )
+  }
+
+  // ── USER SCENARIOS TAB (top-level) ──
+  function renderUserScenarios() {
     return (
       <div className="space-y-10">
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-3">Response Management Bible</h3>
-          <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-            <div className="rounded-xl border border-slate-200 bg-white p-4">
-              <p className="text-[11px] leading-[1.6] text-slate-600">
-                This section is the single operating reference for how Dr. Agent fetches, structures, shows, and copies data. The same card should mean the same thing across Card Anatomy, Card Catalog, and Response Management: same `when to show`, same fetch source, same copy rule, and same UI structuring rule.
-              </p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                  <p className="text-[10px] font-semibold text-slate-700">Historical sidebar sources</p>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {HISTORICAL_SOURCE_AREAS.map(area => (
-                      <span key={area} className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[9px] text-slate-600">{area}</span>
+
+            {/* ── SECTION HEADER: Operational Context ── */}
+            <div className="rounded-xl border-2 border-orange-200 bg-gradient-to-br from-orange-50/80 via-white to-amber-50/40 px-6 py-5">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 text-white text-[14px] font-bold">A</span>
+                <div>
+                  <h3 className="text-[17px] font-bold text-slate-800">Operational Context — Homepage & Clinic Overview</h3>
+                  <p className="text-[11px] text-slate-500">Dr. Agent behavior when no patient is open. Focus is on clinic operations, scheduling, analytics, and billing.</p>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="rounded-full bg-orange-100 border border-orange-200 px-2.5 py-0.5 text-[10px] font-medium text-orange-700">Appointment Page</span>
+                <span className="rounded-full bg-orange-100 border border-orange-200 px-2.5 py-0.5 text-[10px] font-medium text-orange-700">Follow-ups Page</span>
+                <span className="rounded-full bg-orange-100 border border-orange-200 px-2.5 py-0.5 text-[10px] font-medium text-orange-700">All Patients Page</span>
+                <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-medium text-slate-500 line-through">Pharmacy — not supported</span>
+                <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-medium text-slate-500 line-through">IPD — not supported</span>
+                <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-medium text-slate-500 line-through">Daycare — not supported</span>
+              </div>
+            </div>
+
+            {/* ─── A1. First-Time Doctor — No Data ─── */}
+            <DocSection number="A1" title="First-Time Doctor — No Data" subtitle="Doctor just signed up. No appointments, no patients, no historical data. This is the onboarding moment.">
+              <div className="space-y-4">
+                {/* Welcome scenario */}
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-gradient-to-r from-orange-50 to-amber-50 px-4 py-2.5 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded bg-orange-500 px-1.5 py-0.5 text-[9px] font-bold text-white uppercase">Scene</span>
+                      <span className="text-[12px] font-semibold text-slate-800">Doctor opens Ask Tatva for the first time</span>
+                    </div>
+                  </div>
+                  <div className="px-4 py-3 space-y-3">
+                    <div className="grid gap-3 lg:grid-cols-3">
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Card shown</p>
+                        <p className="text-[11px] font-semibold text-orange-700">welcome_card</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Personalized greeting with empty stats — all counts at 0.</p>
+                      </div>
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Intro message</p>
+                        <p className="text-[11px] text-slate-600">"Good morning, Dr. [Name]! Welcome to TatvaPractice. I'm Dr. Agent — your clinical AI assistant. Start by adding your first appointment."</p>
+                      </div>
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pills available</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          <span className="rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] text-orange-700">Add appointment</span>
+                          <span className="rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] text-orange-700">Setup clinic profile</span>
+                          <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] text-slate-500">Ask me anything</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="border-t border-dashed border-slate-200 pt-2.5">
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">What the doctor could ask</p>
+                      <div className="grid gap-1.5 sm:grid-cols-2">
+                        {[
+                          { q: "How do I add my first patient?", card: "text_step", intent: "operational" },
+                          { q: "What can you help me with?", card: "text_list", intent: "operational" },
+                          { q: "How does billing work?", card: "text_fact", intent: "operational" },
+                          { q: "Can you show me a demo?", card: "text_step", intent: "operational" },
+                        ].map(item => (
+                          <div key={item.q} className="flex items-start gap-2 rounded-lg border border-slate-100 bg-white px-3 py-2">
+                            <span className="mt-[3px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-orange-400" />
+                            <div>
+                              <p className="text-[11px] text-slate-700">"{item.q}"</p>
+                              <p className="text-[9px] text-slate-400 mt-0.5">
+                                <code className="bg-slate-100 px-1 rounded">{item.card}</code> · {item.intent}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </DocSection>
+
+            {/* ─── A2. Doctor with Minimal / Partial Data ─── */}
+            <DocSection number="A2" title="Doctor with Minimal Data" subtitle="Doctor has been using TatvaPractice for a few days. Some appointments exist, but limited history. Partial data across billing, patients, follow-ups.">
+              <div className="space-y-4">
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-gradient-to-r from-orange-50 to-amber-50 px-4 py-2.5 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded bg-orange-500 px-1.5 py-0.5 text-[9px] font-bold text-white uppercase">Scene</span>
+                      <span className="text-[12px] font-semibold text-slate-800">Doctor opens homepage — has 3 appointments today, 1 follow-up pending</span>
+                    </div>
+                  </div>
+                  <div className="px-4 py-3 space-y-3">
+                    <div className="grid gap-3 lg:grid-cols-3">
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Card shown</p>
+                        <p className="text-[11px] font-semibold text-orange-700">welcome_card</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Greeting with partial stats: Queued 3, Follow-ups 1, others at 0. Context line may show "3 patients waiting".</p>
+                      </div>
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Canned messages</p>
+                        <p className="text-[11px] text-slate-600">Phase-based pills are limited because not all tab data exists. Tab lens pills only appear for tabs that have data.</p>
+                      </div>
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pills available</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          <span className="rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] text-orange-700">Today's schedule</span>
+                          <span className="rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] text-orange-700">Follow-ups due</span>
+                          <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] text-slate-500">Ask me anything</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="border-t border-dashed border-slate-200 pt-2.5">
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">What the doctor could ask</p>
+                      <div className="grid gap-1.5 sm:grid-cols-2">
+                        {[
+                          { q: "Who's next in queue?", card: "patient_list", intent: "operational" },
+                          { q: "Show today's schedule", card: "patient_list", intent: "operational" },
+                          { q: "Any follow-ups pending?", card: "follow_up_list", intent: "operational" },
+                          { q: "How many patients seen today?", card: "text_fact", intent: "operational" },
+                          { q: "What's my revenue today?", card: "text_fact (no data)", intent: "operational" },
+                          { q: "Send reminder to follow-up patients", card: "bulk_action", intent: "operational" },
+                        ].map(item => (
+                          <div key={item.q} className="flex items-start gap-2 rounded-lg border border-slate-100 bg-white px-3 py-2">
+                            <span className="mt-[3px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-orange-400" />
+                            <div>
+                              <p className="text-[11px] text-slate-700">"{item.q}"</p>
+                              <p className="text-[9px] text-slate-400 mt-0.5">
+                                <code className="bg-slate-100 px-1 rounded">{item.card}</code> · {item.intent}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Callout tone="amber" label="Partial data behavior">
+                  <ul className="space-y-1.5">
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />Revenue charts show "No data yet" placeholder if billing module hasn't been used.</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />Analytics cards (heatmap, condition_bar, analytics_table) are only shown once sufficient data exists (7+ days of usage).</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />Patient search always works even with 1 patient in the system.</li>
+                  </ul>
+                </Callout>
+              </div>
+            </DocSection>
+
+            {/* ─── A3. Regular Doctor — Full Data ─── */}
+            <DocSection number="A3" title="Regular Doctor — Full Data" subtitle="Established clinic. Full appointment queue, historical data, billing data, follow-ups, analytics. This is the primary daily usage scenario.">
+              <div className="space-y-4">
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-gradient-to-r from-orange-50 to-amber-50 px-4 py-2.5 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded bg-orange-500 px-1.5 py-0.5 text-[9px] font-bold text-white uppercase">Scene</span>
+                      <span className="text-[12px] font-semibold text-slate-800">Doctor opens homepage — full day of appointments, analytics available</span>
+                    </div>
+                  </div>
+                  <div className="px-4 py-3 space-y-3">
+                    <div className="grid gap-3 lg:grid-cols-3">
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Card shown</p>
+                        <p className="text-[11px] font-semibold text-orange-700">welcome_card</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Full stats: Queued 7, Follow-ups 3, Finished 12, Drafts 2, Cancelled 1. Context: "Clinic running on time · Next: Priya Rao (follow-up)".</p>
+                      </div>
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Canned messages</p>
+                        <p className="text-[11px] text-slate-600">Full set of homepage pills — schedule, follow-ups, revenue, demographics, analytics, search, and bulk actions.</p>
+                      </div>
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pills available</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {["Today's schedule", "Follow-ups due", "Revenue today", "Demographics", "Weekly KPIs", "Busiest hours", "Send reminders", "Search patient"].map(p => (
+                            <span key={p} className="rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] text-orange-700">{p}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* All possible asks — comprehensive table */}
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-slate-50/60 px-4 py-2.5 border-b border-slate-100">
+                    <p className="text-[11px] font-bold text-slate-700">All possible operational asks — full data scenario</p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-[11px]">
+                      <thead>
+                        <tr className="border-b border-slate-100 bg-slate-50/40 text-left text-[10px]">
+                          <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400 w-8">#</th>
+                          <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400">Doctor asks</th>
+                          <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400 w-32">Card response</th>
+                          <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400 w-24">Intent</th>
+                          <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { n: 1, q: "Who's next?", card: "patient_list", intent: "operational", note: "Shows queue sorted by token/time" },
+                          { n: 2, q: "Today's schedule / How many patients today?", card: "patient_list", intent: "operational", note: "Full queue with status badges" },
+                          { n: 3, q: "Search Ramesh Kumar", card: "patient_search", intent: "operational", note: "Name-based search across all patients" },
+                          { n: 4, q: "Follow-ups due this week", card: "follow_up_list", intent: "operational", note: "Due + overdue follow-ups" },
+                          { n: 5, q: "Overdue follow-ups", card: "follow_up_list", intent: "operational", note: "Filtered to overdue only" },
+                          { n: 6, q: "Revenue today / How much collected?", card: "revenue_bar", intent: "operational", note: "Stacked bar — OPD, procedures, pharmacy" },
+                          { n: 7, q: "Revenue this week", card: "revenue_bar", intent: "operational", note: "Week view with daily breakdown" },
+                          { n: 8, q: "Patient demographics / Gender split", card: "donut_chart", intent: "operational", note: "Donut: male/female/other" },
+                          { n: 9, q: "Age distribution", card: "pie_chart", intent: "operational", note: "Pie: 0-18, 18-40, 40-60, 60+" },
+                          { n: 10, q: "Patient trends this month", card: "line_graph", intent: "operational", note: "Footfall trend line" },
+                          { n: 11, q: "Weekly KPIs / Performance", card: "analytics_table", intent: "operational", note: "Table: patients, avg time, revenue" },
+                          { n: 12, q: "Busiest hours / When am I busiest?", card: "heatmap", intent: "operational", note: "Hour × day density grid" },
+                          { n: 13, q: "Top conditions / Diagnosis distribution", card: "condition_bar", intent: "operational", note: "Horizontal bars: top 10 diagnoses" },
+                          { n: 14, q: "Billing overview / Pending bills", card: "billing_summary", intent: "operational", note: "Session billing with status" },
+                          { n: 15, q: "Send reminder to all follow-up patients", card: "bulk_action", intent: "operational", note: "Batch SMS/WhatsApp campaign" },
+                          { n: 16, q: "Send appointment reminder", card: "bulk_action", intent: "operational", note: "Filter: tomorrow's appointments" },
+                          { n: 17, q: "Download patient report / Export", card: "external_cta", intent: "operational", note: "Excel/Word download CTA" },
+                          { n: 18, q: "Referral summary", card: "referral", intent: "operational", note: "Top referrers, specialties" },
+                          { n: 19, q: "How many cancelled today?", card: "text_fact", intent: "operational", note: "Quick stat from queue data" },
+                          { n: 20, q: "Compare this week vs last week", card: "text_comparison", intent: "comparison", note: "Side-by-side: footfall, revenue, avg" },
+                          { n: 21, q: "What drugs do I prescribe most?", card: "condition_bar", intent: "operational", note: "Top medications frequency" },
+                          { n: 22, q: "Any pending digitisation?", card: "text_fact", intent: "operational", note: "Count of undigitized records" },
+                        ].map(item => (
+                          <tr key={item.n} className="border-b border-slate-50 align-top">
+                            <td className="px-3 py-2 text-slate-400 font-mono text-[10px]">{item.n}</td>
+                            <td className="px-3 py-2 text-slate-700">&ldquo;{item.q}&rdquo;</td>
+                            <td className="px-3 py-2"><code className="rounded bg-orange-50 border border-orange-200 px-1.5 py-0.5 text-[10px] text-orange-700">{item.card}</code></td>
+                            <td className="px-3 py-2 text-slate-500">{item.intent}</td>
+                            <td className="px-3 py-2 text-slate-500 text-[10px]">{item.note}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </DocSection>
+
+            {/* ─── A4. Operational — Page-Specific Canned Messages ─── */}
+            <DocSection number="A4" title="Page-Specific Canned Messages — Operational" subtitle="When the doctor navigates to different pages within operational context, pills change to reflect that page's focus.">
+              <div className="space-y-3">
+                {[
+                  { page: "Appointment Page", pills: ["Today's schedule", "Who's next?", "Queue overview", "Search patient", "Cancelled today", "Pending digitisation"], cardTypes: ["patient_list", "patient_search", "welcome_card", "text_fact"], border: "border-l-orange-500" },
+                  { page: "Follow-ups Page", pills: ["Follow-ups due", "Overdue follow-ups", "Send reminder", "This week's follow-ups", "Follow-up trends"], cardTypes: ["follow_up_list", "bulk_action", "line_graph"], border: "border-l-blue-500" },
+                  { page: "All Patients Page", pills: ["Search patient", "Demographics", "Patient count", "Recent patients", "Top conditions"], cardTypes: ["patient_search", "donut_chart", "text_fact", "condition_bar"], border: "border-l-violet-500" },
+                  { page: "OPD Billing Page", pills: ["Billing overview", "Revenue today", "Pending bills", "Payment split", "Download report"], cardTypes: ["billing_summary", "revenue_bar", "text_fact", "external_cta"], border: "border-l-emerald-500" },
+                ].map(item => (
+                  <div key={item.page} className={`rounded-xl border border-slate-200 border-l-[3px] ${item.border} bg-white px-4 py-3`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[12px] font-semibold text-slate-800">{item.page}</p>
+                      <div className="flex gap-1">
+                        {item.cardTypes.map(c => (
+                          <code key={c} className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-500">{c}</code>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {item.pills.map(p => (
+                        <span key={p} className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[10px] text-slate-600">{p}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DocSection>
+
+
+            {/* ════════════════════════════════════════════════════════════════ */}
+            {/* SECTION B: PATIENT CONTEXT                                     */}
+            {/* ════════════════════════════════════════════════════════════════ */}
+
+            <div className="rounded-xl border-2 border-violet-200 bg-gradient-to-br from-violet-50/80 via-white to-blue-50/40 px-6 py-5 mt-4">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-600 text-white text-[14px] font-bold">B</span>
+                <div>
+                  <h3 className="text-[17px] font-bold text-slate-800">Patient Context — Inside a Consultation</h3>
+                  <p className="text-[11px] text-slate-500">Dr. Agent behavior when a patient is open. Context changes based on the page, consultation phase, patient history, and data completeness.</p>
+                </div>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="rounded-full bg-violet-100 border border-violet-200 px-2.5 py-0.5 text-[10px] font-medium text-violet-700">RxPad Page</span>
+                <span className="rounded-full bg-violet-100 border border-violet-200 px-2.5 py-0.5 text-[10px] font-medium text-violet-700">Patient Detail Page</span>
+                <span className="rounded-full bg-violet-100 border border-violet-200 px-2.5 py-0.5 text-[10px] font-medium text-violet-700">Print Preview Page</span>
+                <span className="rounded-full bg-violet-100 border border-violet-200 px-2.5 py-0.5 text-[10px] font-medium text-violet-700">Appointment Queue Click</span>
+              </div>
+            </div>
+
+            {/* ─── B1. First-Time Patient — No History ─── */}
+            <DocSection number="B1" title="First-Time Patient — No History" subtitle="Patient visiting the clinic for the first time. No past visits, no lab results, no chronic conditions. Fresh encounter.">
+              <div className="space-y-4">
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-gradient-to-r from-violet-50 to-blue-50 px-4 py-2.5 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded bg-violet-600 px-1.5 py-0.5 text-[9px] font-bold text-white uppercase">Scene</span>
+                      <span className="text-[12px] font-semibold text-slate-800">Doctor clicks a new patient from queue — enters RxPad</span>
+                    </div>
+                  </div>
+                  <div className="px-4 py-3 space-y-3">
+                    <div className="grid gap-3 lg:grid-cols-3">
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Phase</p>
+                        <p className="text-[11px] font-semibold text-violet-700">Empty</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">RxPad is blank. No symptoms, no diagnosis, no medications entered yet.</p>
+                      </div>
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Auto-shown card</p>
+                        <p className="text-[11px] font-semibold text-violet-700">patient_summary (minimal)</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Shows basic demographics only: name, age, gender, contact. No history sections. Summary shows "First visit" badge.</p>
+                      </div>
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pills at this phase</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {["Review intake data", "Suggest DDX", "Ask me anything"].map(p => (
+                            <span key={p} className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] text-violet-700">{p}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Phase progression for first-time patient */}
+                    <div className="border-t border-dashed border-slate-200 pt-2.5">
+                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Consultation phase progression</p>
+                      <div className="space-y-2">
+                        {[
+                          { phase: "Empty", trigger: "Patient opened", pills: ["Review intake data", "Suggest DDX", "Ask me anything"], cards: ["patient_summary (minimal)"], color: "border-l-slate-400 bg-slate-50/30" },
+                          { phase: "Symptoms Entered", trigger: "Doctor types chief complaint", pills: ["Suggest DDX", "Initial investigations", "Compare vitals"], cards: ["ddx", "investigation_bundle"], color: "border-l-blue-400 bg-blue-50/30" },
+                          { phase: "Dx Accepted", trigger: "Doctor selects a diagnosis", pills: ["Suggest medications", "Suggest investigations", "Draft advice", "Plan follow-up"], cards: ["protocol_meds", "investigation_bundle", "advice_bundle", "follow_up"], color: "border-l-violet-400 bg-violet-50/30" },
+                          { phase: "Meds Written", trigger: "Doctor adds medications", pills: ["Translate to regional", "Plan follow-up", "Completeness check"], cards: ["translation", "follow_up", "completeness"], color: "border-l-emerald-400 bg-emerald-50/30" },
+                          { phase: "Near Complete", trigger: "Most RxPad fields filled", pills: ["Completeness check", "Translate advice", "Visit summary"], cards: ["completeness", "translation", "rx_preview"], color: "border-l-green-500 bg-green-50/30" },
+                        ].map(step => (
+                          <div key={step.phase} className={`rounded-lg border border-slate-200 border-l-[3px] ${step.color} px-4 py-2.5`}>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-[11px] font-semibold text-slate-800">{step.phase}</span>
+                              <span className="text-[10px] text-slate-400">— {step.trigger}</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div className="flex flex-wrap gap-1">
+                                {step.pills.map(p => (
+                                  <span key={p} className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[9px] text-violet-600">{p}</span>
+                                ))}
+                              </div>
+                              <div className="flex gap-1 ml-auto">
+                                {step.cards.map(c => (
+                                  <code key={c} className="rounded bg-slate-100 px-1 py-0.5 text-[9px] text-slate-500">{c}</code>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Callout tone="blue" label="First-time patient behavior">
+                  <ul className="space-y-1.5">
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />No "Last visit details" pill — no previous visit exists.</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />No lab trends, vital trends, or med history — all require prior data.</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Specialty pills (obstetric, gynec, pediatric, ophthal) only appear if specialty data is entered in this visit.</li>
+                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />If symptom collector intake exists, "Review intake data" pill shows symptom_collector card.</li>
+                  </ul>
+                </Callout>
+              </div>
+            </DocSection>
+
+            {/* ─── B2. Regular Patient — Full History ─── */}
+            <DocSection number="B2" title="Regular Patient — Full History" subtitle="Returning patient with past visits, lab results, medications, chronic conditions. All sidebar historical modules populated.">
+              <div className="space-y-4">
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-gradient-to-r from-violet-50 to-blue-50 px-4 py-2.5 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded bg-violet-600 px-1.5 py-0.5 text-[9px] font-bold text-white uppercase">Scene</span>
+                      <span className="text-[12px] font-semibold text-slate-800">Doctor opens regular patient with CKD, DM, labs, past visits, medications</span>
+                    </div>
+                  </div>
+                  <div className="px-4 py-3 space-y-3">
+                    <div className="grid gap-3 lg:grid-cols-3">
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Auto-shown card</p>
+                        <p className="text-[11px] font-semibold text-violet-700">patient_summary (full)</p>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Comprehensive: vitals, labs, chronic flags, active meds, allergies. Completeness donut in header for POMR.</p>
+                      </div>
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Safety pills (forced)</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] text-red-700">Allergy Alert</span>
+                          <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] text-red-700">Drug interaction</span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 mt-1">Layer 1 — always forced if applicable.</p>
+                      </div>
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/50 px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Clinical flag pills</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {["3 lab flags", "BP attention", "CKD review", "DM glycemic", "Overdue follow-up"].map(p => (
+                            <span key={p} className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] text-amber-700">{p}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Comprehensive table of all possible patient-context asks */}
+                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-slate-50/60 px-4 py-2.5 border-b border-slate-100">
+                    <p className="text-[11px] font-bold text-slate-700">All possible patient-context asks — regular patient with full data</p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-[11px]">
+                      <thead>
+                        <tr className="border-b border-slate-100 bg-slate-50/40 text-left text-[10px]">
+                          <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400 w-8">#</th>
+                          <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400 w-20">Category</th>
+                          <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400">Doctor asks</th>
+                          <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400 w-36">Card response</th>
+                          <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400 w-28">Intent</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          // Summary & Overview
+                          { n: 1, cat: "Summary", q: "Patient summary / Overview", card: "patient_summary", intent: "data_retrieval" },
+                          { n: 2, cat: "Summary", q: "Patient's detailed summary", card: "patient_summary", intent: "data_retrieval" },
+                          { n: 3, cat: "Summary", q: "Last visit details", card: "last_visit", intent: "data_retrieval" },
+                          { n: 4, cat: "Summary", q: "Review intake data", card: "symptom_collector", intent: "data_retrieval" },
+                          { n: 5, cat: "Summary", q: "Patient timeline", card: "patient_timeline", intent: "data_retrieval" },
+                          // Specialty summaries
+                          { n: 6, cat: "Specialty", q: "Obstetric summary / ANC status", card: "obstetric_summary", intent: "data_retrieval" },
+                          { n: 7, cat: "Specialty", q: "Gynec summary / Cycle details", card: "gynec_summary", intent: "data_retrieval" },
+                          { n: 8, cat: "Specialty", q: "Growth chart / Pediatric summary", card: "pediatric_summary", intent: "data_retrieval" },
+                          { n: 9, cat: "Specialty", q: "Vision / Eye summary", card: "ophthal_summary", intent: "data_retrieval" },
+                          // Labs
+                          { n: 10, cat: "Labs", q: "Lab overview / Lab results", card: "lab_panel", intent: "data_retrieval" },
+                          { n: 11, cat: "Labs", q: "HbA1c trend / Lab trend", card: "lab_trend", intent: "comparison" },
+                          { n: 12, cat: "Labs", q: "Compare labs / Lab comparison", card: "lab_comparison", intent: "comparison" },
+                          { n: 13, cat: "Labs", q: "eGFR trend", card: "lab_trend", intent: "comparison" },
+                          // Vitals
+                          { n: 14, cat: "Vitals", q: "Vital trends / BP trend", card: "vitals_trend_line", intent: "comparison" },
+                          { n: 15, cat: "Vitals", q: "Vitals bar chart", card: "vitals_trend_bar", intent: "comparison" },
+                          // Medications & History
+                          { n: 16, cat: "Meds", q: "Med history / What medications?", card: "med_history", intent: "data_retrieval" },
+                          { n: 17, cat: "Meds", q: "Vaccination schedule", card: "vaccination_schedule", intent: "data_retrieval" },
+                          // Clinical Decision
+                          { n: 18, cat: "Decision", q: "Suggest DDX / Differential diagnosis", card: "ddx", intent: "clinical_decision" },
+                          { n: 19, cat: "Decision", q: "Suggest medications", card: "protocol_meds", intent: "clinical_decision" },
+                          { n: 20, cat: "Decision", q: "Suggest investigations", card: "investigation_bundle", intent: "clinical_decision" },
+                          { n: 21, cat: "Decision", q: "Clinical guidelines for CKD", card: "clinical_guideline", intent: "clinical_decision" },
+                          // Action
+                          { n: 22, cat: "Action", q: "Draft advice / Write advice", card: "advice_bundle", intent: "action" },
+                          { n: 23, cat: "Action", q: "Plan follow-up", card: "follow_up", intent: "action" },
+                          { n: 24, cat: "Action", q: "Translate to Hindi / Regional language", card: "translation", intent: "action" },
+                          { n: 25, cat: "Action", q: "Prescription preview", card: "rx_preview", intent: "action" },
+                          // Safety & Alerts
+                          { n: 26, cat: "Safety", q: "Check drug interactions", card: "drug_interaction", intent: "clinical_question" },
+                          { n: 27, cat: "Safety", q: "Allergy check / Allergy alert", card: "allergy_conflict", intent: "clinical_question" },
+                          // Clinical Problems
+                          { n: 28, cat: "Clinical", q: "CKD status / POMR CKD", card: "pomr_problem_card", intent: "data_retrieval" },
+                          { n: 29, cat: "Clinical", q: "Diabetes management / DM review", card: "pomr_problem_card", intent: "data_retrieval" },
+                          { n: 30, cat: "Clinical", q: "SBAR / Critical summary", card: "sbar_critical", intent: "data_retrieval" },
+                          // Document Analysis
+                          { n: 31, cat: "Analysis", q: "Analyze this report (uploaded)", card: "ocr_pathology", intent: "document_analysis" },
+                          { n: 32, cat: "Analysis", q: "Extract from discharge summary", card: "ocr_extraction", intent: "document_analysis" },
+                          // Utility
+                          { n: 33, cat: "Utility", q: "Completeness check", card: "completeness", intent: "operational" },
+                          { n: 34, cat: "Utility", q: "Referral summary", card: "referral", intent: "operational" },
+                          // Text responses
+                          { n: 35, cat: "Clinical Q", q: "What is the dose of Metformin?", card: "text_fact", intent: "clinical_question" },
+                          { n: 36, cat: "Clinical Q", q: "Steps for wound care", card: "text_step", intent: "clinical_question" },
+                          { n: 37, cat: "Clinical Q", q: "Metformin vs Glimepiride", card: "text_comparison", intent: "clinical_question" },
+                          { n: 38, cat: "Clinical Q", q: "JNC guidelines for hypertension", card: "text_quote", intent: "clinical_question" },
+                          { n: 39, cat: "Clinical Q", q: "Side effects of Atorvastatin", card: "text_list", intent: "clinical_question" },
+                          { n: 40, cat: "Clinical Q", q: "Is SpO2 92 dangerous?", card: "text_alert", intent: "clinical_question" },
+                          // Voice
+                          { n: 41, cat: "Voice", q: "(Voice input: 'Tab Amoxicillin 500mg TDS for 5 days')", card: "voice_structured_rx", intent: "action" },
+                          // Clarification
+                          { n: 42, cat: "Utility", q: "(Ambiguous question needing clarification)", card: "follow_up_question", intent: "follow_up" },
+                        ].map(item => (
+                          <tr key={item.n} className="border-b border-slate-50 align-top">
+                            <td className="px-3 py-2 text-slate-400 font-mono text-[10px]">{item.n}</td>
+                            <td className="px-3 py-2"><span className="rounded bg-violet-50 border border-violet-200 px-1.5 py-0.5 text-[9px] font-medium text-violet-600">{item.cat}</span></td>
+                            <td className="px-3 py-2 text-slate-700">&ldquo;{item.q}&rdquo;</td>
+                            <td className="px-3 py-2"><code className="rounded bg-violet-50 border border-violet-200 px-1.5 py-0.5 text-[10px] text-violet-700">{item.card}</code></td>
+                            <td className="px-3 py-2 text-slate-500 text-[10px]">{item.intent}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </DocSection>
+
+            {/* ─── B3. Page-Specific Canned Messages — Patient Context ─── */}
+            <DocSection number="B3" title="Page-Specific Canned Messages — Patient Context" subtitle="When a patient is open, the pills change based on which page the doctor is viewing. Each page surfaces contextually relevant actions.">
+              <div className="space-y-3">
+                {[
+                  {
+                    page: "RxPad Page (Main Prescription)",
+                    desc: "Primary workspace. Pills follow the 4-layer priority and change with consultation phase (empty → symptoms → dx → meds → complete).",
+                    pills: ["Patient summary", "Suggest DDX", "Suggest medications", "Lab overview", "Translate", "Completeness check", "Plan follow-up"],
+                    cardTypes: ["patient_summary", "ddx", "protocol_meds", "lab_panel", "translation", "completeness", "follow_up"],
+                    border: "border-l-violet-500",
+                    phases: true,
+                  },
+                  {
+                    page: "Patient Detail Page",
+                    desc: "Viewing patient profile, history tabs (vitals, labs, records, etc.). Pills adapt to the active sidebar tab.",
+                    pills: ["Vital trends", "Lab comparison", "Med history", "OCR analysis", "Obstetric summary", "Chronic timeline"],
+                    cardTypes: ["vitals_trend_line", "lab_comparison", "med_history", "ocr_extraction", "obstetric_summary", "patient_timeline"],
+                    border: "border-l-blue-500",
+                    phases: false,
+                  },
+                  {
+                    page: "Print Preview Page",
+                    desc: "Doctor previewing the prescription before printing. Pills focus on verification and translation.",
+                    pills: ["Completeness check", "Translate to regional", "Prescription preview", "Draft advice"],
+                    cardTypes: ["completeness", "translation", "rx_preview", "advice_bundle"],
+                    border: "border-l-emerald-500",
+                    phases: false,
+                  },
+                  {
+                    page: "Appointment Queue → Patient Click",
+                    desc: "Doctor clicks a patient from the queue. Transition from operational to patient context. Auto-shows summary.",
+                    pills: ["Patient summary", "Last visit", "Review intake data", "Lab overview"],
+                    cardTypes: ["patient_summary", "last_visit", "symptom_collector", "lab_panel"],
+                    border: "border-l-orange-500",
+                    phases: false,
+                  },
+                ].map(item => (
+                  <div key={item.page} className={`rounded-xl border border-slate-200 border-l-[3px] ${item.border} bg-white overflow-hidden`}>
+                    <div className="px-4 py-3">
+                      <p className="text-[12px] font-semibold text-slate-800 mb-0.5">{item.page}</p>
+                      <p className="text-[10px] text-slate-500 mb-2">{item.desc}</p>
+                      <div className="flex items-start gap-4">
+                        <div className="flex-1">
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pills</p>
+                          <div className="flex flex-wrap gap-1">
+                            {item.pills.map(p => (
+                              <span key={p} className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] text-violet-600">{p}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Cards</p>
+                          <div className="flex flex-wrap gap-1">
+                            {item.cardTypes.map(c => (
+                              <code key={c} className="rounded bg-slate-100 px-1 py-0.5 text-[9px] text-slate-500">{c}</code>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {item.phases && (
+                      <div className="bg-violet-50/40 px-4 py-2 border-t border-violet-100">
+                        <p className="text-[9px] text-violet-600 font-medium">Phase-aware: pills rotate through Empty → Symptoms → Dx Accepted → Meds Written → Complete based on RxPad state.</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </DocSection>
+
+            {/* ─── B4. Patient Detail Page — Tab Lens Scenarios ─── */}
+            <DocSection number="B4" title="Patient Detail — Tab Lens Scenarios" subtitle="When the doctor switches between sidebar tabs on the patient detail page, the pill suggestions change to reflect the active data view.">
+              <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <table className="min-w-full text-[11px]">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/60 text-left text-[10px]">
+                      <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400 w-32">Active Tab</th>
+                      <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400">Context-specific pills</th>
+                      <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400 w-40">Primary cards</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { tab: "Past Visits", pills: ["Compare visits", "Recurrence check", "Last visit details"], cards: ["last_visit", "patient_timeline"] },
+                      { tab: "Vitals", pills: ["Vital trends", "Graph view", "BP attention"], cards: ["vitals_trend_line", "vitals_trend_bar"] },
+                      { tab: "History", pills: ["Med history search", "Chronic timeline", "Med review"], cards: ["med_history", "patient_timeline"] },
+                      { tab: "Lab Results", pills: ["Lab comparison", "Annual panel", "Lab trends", "Flag review"], cards: ["lab_comparison", "lab_panel", "lab_trend"] },
+                      { tab: "Medical Records", pills: ["OCR analysis", "Report extract", "Upload new"], cards: ["ocr_pathology", "ocr_extraction"] },
+                      { tab: "Obstetric", pills: ["Obstetric summary", "ANC schedule", "Fetal monitoring"], cards: ["obstetric_summary"] },
+                      { tab: "Gynecology", pills: ["Gynec summary", "Cycle history"], cards: ["gynec_summary"] },
+                      { tab: "Vaccine", pills: ["Vaccination schedule", "Overdue vaccines"], cards: ["vaccination_schedule"] },
+                      { tab: "Growth", pills: ["Growth chart", "Milestone check", "Pediatric summary"], cards: ["pediatric_summary"] },
+                      { tab: "Ophthalmology", pills: ["Vision summary", "IOP trend"], cards: ["ophthal_summary"] },
+                    ].map(item => (
+                      <tr key={item.tab} className="border-b border-slate-50 align-top">
+                        <td className="px-3 py-2.5 font-semibold text-slate-700">{item.tab}</td>
+                        <td className="px-3 py-2.5">
+                          <div className="flex flex-wrap gap-1">
+                            {item.pills.map(p => (
+                              <span key={p} className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] text-blue-600">{p}</span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <div className="flex flex-wrap gap-1">
+                            {item.cards.map(c => (
+                              <code key={c} className="rounded bg-slate-100 px-1 py-0.5 text-[9px] text-slate-500">{c}</code>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </DocSection>
+
+            {/* ─── B5. Safety-Critical Scenarios ─── */}
+            <DocSection number="B5" title="Safety-Critical Scenarios" subtitle="These scenarios trigger Layer 1 forced pills. They override all other pills and cannot be dismissed.">
+              <div className="space-y-3">
+                {[
+                  {
+                    scenario: "SpO2 drops below 90%",
+                    trigger: "Vitals entry or real-time monitoring",
+                    forcedPill: "Review SpO2",
+                    card: "sbar_critical",
+                    response: "SBAR card auto-generated: Situation (SpO2 at 88%), Background (patient history), Assessment (critical hypoxemia), Recommendation (immediate oxygen, escalation).",
+                    tone: "border-l-red-500 bg-red-50/30",
+                  },
+                  {
+                    scenario: "Known allergy conflicts with prescribed drug",
+                    trigger: "Doctor adds a medication that matches allergy list",
+                    forcedPill: "Allergy Alert",
+                    card: "allergy_conflict",
+                    response: "Allergy conflict card: shows the conflicting drug, allergy, severity, and alternative medications.",
+                    tone: "border-l-red-500 bg-red-50/30",
+                  },
+                  {
+                    scenario: "Drug-drug interaction detected",
+                    trigger: "Doctor adds a medication that interacts with existing meds",
+                    forcedPill: "Drug interaction",
+                    card: "drug_interaction",
+                    response: "Interaction card: severity (critical/major/moderate), mechanism, clinical significance, and recommendation.",
+                    tone: "border-l-amber-500 bg-amber-50/30",
+                  },
+                  {
+                    scenario: "Critical lab value (e.g., K+ > 6.0)",
+                    trigger: "Lab result with critical flag",
+                    forcedPill: "Critical lab alert",
+                    card: "sbar_critical",
+                    response: "SBAR format with critical lab highlighted, trend context, and immediate action recommendations.",
+                    tone: "border-l-red-500 bg-red-50/30",
+                  },
+                  {
+                    scenario: "BP > 180/120 — Hypertensive crisis",
+                    trigger: "Vitals entry flagged as crisis",
+                    forcedPill: "BP critical",
+                    card: "sbar_critical",
+                    response: "Urgent card with prior BP trend, current reading, and emergency protocol recommendation.",
+                    tone: "border-l-red-500 bg-red-50/30",
+                  },
+                ].map(item => (
+                  <div key={item.scenario} className={`rounded-xl border border-slate-200 border-l-[3px] ${item.tone} px-4 py-3`}>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <p className="text-[12px] font-semibold text-slate-800 mb-0.5">{item.scenario}</p>
+                        <p className="text-[10px] text-slate-500 mb-1.5">Trigger: {item.trigger}</p>
+                        <p className="text-[11px] text-slate-600 leading-[1.55]">{item.response}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                        <span className="rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700">{item.forcedPill}</span>
+                        <code className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-500">{item.card}</code>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DocSection>
+
+            {/* ─── B6. Chronic Disease Management Scenarios ─── */}
+            <DocSection number="B6" title="Chronic Disease Management Scenarios" subtitle="Scenarios specific to patients with ongoing chronic conditions — CKD, Diabetes, Hypertension, Anaemia. Each condition has dedicated POMR cards and specialized pills.">
+              <div className="space-y-3">
+                {[
+                  {
+                    condition: "CKD (Chronic Kidney Disease)",
+                    pills: ["CKD review", "eGFR trend", "Dialysis adequacy", "Fluid balance", "Bone mineral", "CV risk in CKD"],
+                    cards: ["pomr_problem_card", "lab_trend", "clinical_guideline"],
+                    asks: ["What's the current eGFR?", "Is dialysis adequacy maintained?", "Check potassium levels", "KDIGO stage assessment", "Medication adjustment for renal dose"],
+                    color: "border-l-purple-500",
+                  },
+                  {
+                    condition: "Diabetes Mellitus",
+                    pills: ["DM glycemic control", "HbA1c trend", "Insulin adjustment", "Foot exam reminder", "Eye screening due"],
+                    cards: ["pomr_problem_card", "lab_trend", "clinical_guideline"],
+                    asks: ["HbA1c trend over 6 months", "Is insulin dose adequate?", "ADA guidelines for type 2", "Metformin vs Glimepiride", "When is next eye screening?"],
+                    color: "border-l-blue-500",
+                  },
+                  {
+                    condition: "Hypertension",
+                    pills: ["BP trend", "Medication review", "JNC guidelines", "Target BP check", "Lifestyle advice"],
+                    cards: ["pomr_problem_card", "vitals_trend_line", "clinical_guideline"],
+                    asks: ["BP trend last 3 months", "Is current medication controlling BP?", "JNC 8 recommendations", "Any end-organ damage?", "Drug adjustment for elevated BP"],
+                    color: "border-l-teal-500",
+                  },
+                  {
+                    condition: "Anaemia",
+                    pills: ["Iron stores", "EPO dosing", "Hemoglobin trend", "Transfusion history", "CBC review"],
+                    cards: ["pomr_problem_card", "lab_trend", "lab_panel"],
+                    asks: ["Current hemoglobin level?", "Iron stores adequate?", "EPO dose review", "CBC trend over 3 months", "Transfusion need assessment"],
+                    color: "border-l-rose-500",
+                  },
+                ].map(item => (
+                  <div key={item.condition} className={`rounded-xl border border-slate-200 border-l-[3px] ${item.color} bg-white overflow-hidden`}>
+                    <div className="px-4 py-3">
+                      <p className="text-[13px] font-semibold text-slate-800 mb-2">{item.condition}</p>
+                      <div className="grid gap-3 lg:grid-cols-3">
+                        <div>
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Condition-specific pills</p>
+                          <div className="flex flex-wrap gap-1">
+                            {item.pills.map(p => (
+                              <span key={p} className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] text-violet-600">{p}</span>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Card types</p>
+                          <div className="flex flex-wrap gap-1">
+                            {item.cards.map(c => (
+                              <code key={c} className="rounded bg-slate-100 px-1 py-0.5 text-[9px] text-slate-500">{c}</code>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Common asks</p>
+                          <ul className="space-y-0.5">
+                            {item.asks.map(a => (
+                              <li key={a} className="flex items-start gap-1.5 text-[10px] text-slate-600">
+                                <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />
+                                {a}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DocSection>
+
+            {/* ─── B7. Specialty Encounter Scenarios ─── */}
+            <DocSection number="B7" title="Specialty Encounter Scenarios" subtitle="When specialty-specific data exists (obstetric, gynecology, pediatric, ophthalmology), dedicated summary cards and pills become available.">
+              <div className="space-y-3">
+                {[
+                  {
+                    specialty: "Obstetrics",
+                    when: "Patient has active pregnancy / ANC data",
+                    autoCard: "obstetric_summary",
+                    pills: ["Obstetric summary", "ANC schedule", "Fetal monitoring", "EDD calculator", "High-risk flags"],
+                    permutations: ["Active pregnancy", "High-risk pregnancy", "Post-delivery follow-up"],
+                    color: "border-l-pink-500",
+                  },
+                  {
+                    specialty: "Gynecology",
+                    when: "Patient has gynec history (menarche, cycle, Pap smear data)",
+                    autoCard: "gynec_summary",
+                    pills: ["Gynec summary", "Cycle history", "Pap smear status", "Menopause assessment"],
+                    permutations: ["Regular cycle", "Irregular cycle", "Post-menopausal"],
+                    color: "border-l-fuchsia-500",
+                  },
+                  {
+                    specialty: "Pediatrics",
+                    when: "Patient is a child (age < 18) with growth/vaccine data",
+                    autoCard: "pediatric_summary",
+                    pills: ["Growth chart", "Vaccine schedule", "Milestone check", "Overdue vaccines"],
+                    permutations: ["Infant (0-1y)", "Child (1-12y)", "Adolescent (12-18y)", "Overdue vaccines"],
+                    color: "border-l-cyan-500",
+                  },
+                  {
+                    specialty: "Ophthalmology",
+                    when: "Patient has ophthal data (VA, IOP, refraction, slit lamp)",
+                    autoCard: "ophthal_summary",
+                    pills: ["Vision summary", "IOP trend", "Refraction history", "Fundus review"],
+                    permutations: ["Normal vision", "Elevated IOP (glaucoma suspect)", "Refractive error", "Diabetic retinopathy screening"],
+                    color: "border-l-indigo-500",
+                  },
+                ].map(item => (
+                  <div key={item.specialty} className={`rounded-xl border border-slate-200 border-l-[3px] ${item.color} bg-white px-4 py-3`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[13px] font-semibold text-slate-800">{item.specialty}</span>
+                      <span className="text-[10px] text-slate-400">— {item.when}</span>
+                    </div>
+                    <div className="grid gap-3 lg:grid-cols-3 mt-2">
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Auto-shown card</p>
+                        <code className="rounded bg-violet-50 border border-violet-200 px-1.5 py-0.5 text-[10px] text-violet-700">{item.autoCard}</code>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pills</p>
+                        <div className="flex flex-wrap gap-1">
+                          {item.pills.map(p => (
+                            <span key={p} className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] text-violet-600">{p}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-1">Permutations</p>
+                        <div className="flex flex-wrap gap-1">
+                          {item.permutations.map(p => (
+                            <span key={p} className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-500">{p}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DocSection>
+
+            {/* ─── B8. Document Analysis Scenarios ─── */}
+            <DocSection number="B8" title="Document Analysis Scenarios" subtitle="When the doctor uploads or scans a document (lab report, discharge summary, prescription), OCR-based cards are triggered.">
+              <div className="space-y-3">
+                {[
+                  { scenario: "Upload pathology / lab report", trigger: "Doctor uploads CBC, lipid, renal, liver report image or PDF", card: "ocr_pathology", details: "OCR extracts parameters, flags abnormals, computes confidence score. Insight compares with previous values if available.", permutations: ["CBC", "Lipid profile", "Renal function", "Liver function", "Low-confidence OCR"] },
+                  { scenario: "Upload discharge summary", trigger: "Doctor uploads discharge summary from another hospital", card: "ocr_extraction", details: "Full text extraction organized by sections: diagnosis, procedures, medications, follow-up instructions.", permutations: ["Discharge summary", "Referral letter", "OP consultation notes"] },
+                  { scenario: "Upload old prescription", trigger: "Doctor scans patient's existing prescription from another doctor", card: "ocr_extraction", details: "Extracts medication list, dosages, and instructions. Can be copied into current RxPad.", permutations: ["Single prescription", "Multiple prescriptions", "Illegible portions"] },
+                ].map(item => (
+                  <div key={item.scenario} className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[12px] font-semibold text-slate-800">{item.scenario}</p>
+                      <code className="rounded bg-pink-50 border border-pink-200 px-1.5 py-0.5 text-[10px] text-pink-700">{item.card}</code>
+                    </div>
+                    <p className="text-[10px] text-slate-500 mb-1.5">Trigger: {item.trigger}</p>
+                    <p className="text-[11px] text-slate-600 leading-[1.55] mb-2">{item.details}</p>
+                    <div className="flex flex-wrap gap-1">
+                      {item.permutations.map(p => (
+                        <span key={p} className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-500">{p}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DocSection>
+
+            {/* ─── B9. Voice Input Scenarios ─── */}
+            <DocSection number="B9" title="Voice Input Scenarios" subtitle="When the doctor uses voice dictation instead of typing, the voice engine parses the input into structured RxPad sections.">
+              <div className="space-y-3">
+                {[
+                  { input: "Tab Amoxicillin 500mg TDS for 5 days, Tab Paracetamol 650mg SOS", card: "voice_structured_rx", result: "Parsed into Medication section: 2 drugs with dose, frequency, duration." },
+                  { input: "Patient complains of fever since 3 days, cough, body ache", card: "voice_structured_rx", result: "Parsed into Symptoms section: fever (3 days), cough, body ache." },
+                  { input: "Diagnosis: Acute pharyngitis. Advice: warm fluids, gargles, rest", card: "voice_structured_rx", result: "Parsed into Diagnosis + Advice sections." },
+                  { input: "Follow up after 5 days if not improving", card: "voice_structured_rx", result: "Parsed into Follow-up section with 5-day interval." },
+                ].map((item, i) => (
+                  <div key={i} className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+                    <div className="flex items-start gap-3">
+                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 text-[10px] mt-0.5">&#127908;</span>
+                      <div className="flex-1">
+                        <p className="text-[11px] text-slate-700 font-medium mb-1">&ldquo;{item.input}&rdquo;</p>
+                        <p className="text-[10px] text-slate-500">{item.result}</p>
+                      </div>
+                      <code className="rounded bg-violet-50 border border-violet-200 px-1.5 py-0.5 text-[9px] text-violet-700 flex-shrink-0">{item.card}</code>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </DocSection>
+
+            {/* ─── Coverage Summary ─── */}
+            <div className="rounded-xl border-2 border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-50/60 px-6 py-5">
+              <h4 className="text-[15px] font-bold text-slate-800 mb-3">Card Coverage Summary</h4>
+              <p className="text-[11px] text-slate-500 mb-4">Every card type from the catalog is covered across the scenarios above. Here's the mapping at a glance.</p>
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-orange-500 mb-2">Operational context cards ({["welcome_card", "patient_list", "patient_search", "follow_up_list", "revenue_bar", "bulk_action", "donut_chart", "pie_chart", "line_graph", "analytics_table", "condition_bar", "heatmap", "billing_summary", "external_cta", "referral"].length})</p>
+                  <div className="flex flex-wrap gap-1">
+                    {["welcome_card", "patient_list", "patient_search", "follow_up_list", "revenue_bar", "bulk_action", "donut_chart", "pie_chart", "line_graph", "analytics_table", "condition_bar", "heatmap", "billing_summary", "external_cta", "referral"].map(c => (
+                      <code key={c} className="rounded bg-orange-50 border border-orange-200 px-1.5 py-0.5 text-[9px] text-orange-700">{c}</code>
                     ))}
                   </div>
                 </div>
-                <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
-                  <p className="text-[10px] font-semibold text-blue-700">Primary RxPad fill targets</p>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {RXPAD_PRIMARY_TARGETS.map(area => (
-                      <span key={area} className="rounded-full border border-blue-200 bg-white px-2 py-0.5 text-[9px] text-blue-700">{area}</span>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-violet-500 mb-2">Patient context cards ({["patient_summary", "symptom_collector", "last_visit", "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary", "lab_panel", "lab_trend", "lab_comparison", "vitals_trend_line", "vitals_trend_bar", "med_history", "patient_timeline", "vaccination_schedule", "ddx", "protocol_meds", "investigation_bundle", "follow_up", "advice_bundle", "rx_preview", "voice_structured_rx", "translation", "drug_interaction", "allergy_conflict", "clinical_guideline", "completeness", "follow_up_question", "pomr_problem_card", "sbar_critical", "ocr_pathology", "ocr_extraction", "referral"].length})</p>
+                  <div className="flex flex-wrap gap-1">
+                    {["patient_summary", "symptom_collector", "last_visit", "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary", "lab_panel", "lab_trend", "lab_comparison", "vitals_trend_line", "vitals_trend_bar", "med_history", "patient_timeline", "vaccination_schedule", "ddx", "protocol_meds", "investigation_bundle", "follow_up", "advice_bundle", "rx_preview", "voice_structured_rx", "translation", "drug_interaction", "allergy_conflict", "clinical_guideline", "completeness", "follow_up_question", "pomr_problem_card", "sbar_critical", "ocr_pathology", "ocr_extraction", "referral"].map(c => (
+                      <code key={c} className="rounded bg-violet-50 border border-violet-200 px-1.5 py-0.5 text-[9px] text-violet-700">{c}</code>
+                    ))}
+                  </div>
+                </div>
+                <div className="lg:col-span-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-teal-500 mb-2">Text response cards ({["text_fact", "text_alert", "text_list", "text_step", "text_quote", "text_comparison"].length})</p>
+                  <div className="flex flex-wrap gap-1">
+                    {["text_fact", "text_alert", "text_list", "text_step", "text_quote", "text_comparison"].map(c => (
+                      <code key={c} className="rounded bg-teal-50 border border-teal-200 px-1.5 py-0.5 text-[9px] text-teal-700">{c}</code>
                     ))}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-              <p className="mb-2 text-[11px] font-semibold text-amber-800">What this bible standardizes</p>
-              <ul className="space-y-1">
-                <li className="flex items-start gap-1.5 text-[10px] leading-[1.45] text-amber-700">
-                  <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-amber-500" />
-                  Every card should be understandable using the same four questions: when to show, fetch from, copy eligibility, and UI structuring.
-                </li>
-                <li className="flex items-start gap-1.5 text-[10px] leading-[1.45] text-amber-700">
-                  <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-amber-500" />
-                  Copy behavior should be learned once from a shared rule section, not reinterpreted card by card.
-                </li>
-                <li className="flex items-start gap-1.5 text-[10px] leading-[1.45] text-amber-700">
-                  <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-amber-500" />
-                  Card Anatomy, Card Catalog, and Response Management should describe the same system with consistent language.
-                </li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-3">Copy Rules</h3>
-          <div className="grid gap-3 lg:grid-cols-2">
-            {COPY_RULE_EXPLANATIONS.map(rule => (
-              <div key={rule.title} className="rounded-xl border border-slate-200 bg-white px-4 py-3">
-                <p className="mb-1 text-[11px] font-semibold text-slate-800">{rule.title}</p>
-                <p className="text-[10px] leading-[1.55] text-slate-600">{rule.body}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Pipeline */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-3">End-to-End Pipeline</h3>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
-            {[
-              { s: "1", t: "Input", c: "bg-blue-100 text-blue-700 border-blue-200", d: "Doctor types or taps pill. Pill = direct PILL_INTENT_MAP lookup (90+ mappings). Text = normalize + keyword rules." },
-              { s: "2", t: "Classify", c: "bg-violet-100 text-violet-700 border-violet-200", d: "37 keyword rules top-to-bottom. Operational checked first. Result: 1 of 9 intents + format (text/card)." },
-              { s: "3", t: "Build", c: "bg-emerald-100 text-emerald-700 border-emerald-200", d: "Reply engine: intent + patient data + context = RxAgentOutput. POMR keywords = problem cards." },
-              { s: "4", t: "Render", c: "bg-amber-100 text-amber-700 border-amber-200", d: "CardRenderer switch = component. Pills refreshed. Source provenance computed." },
-            ].map(s => (
-              <div key={s.s} className="flex gap-3">
-                <div className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border text-[12px] font-bold ${s.c}`}>{s.s}</div>
-                <div><p className="text-[11px] font-semibold text-slate-800">{s.t}</p><p className="text-[10px] text-slate-600">{s.d}</p></div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 4-Layer Pill Pipeline */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-3">4-Layer Pill Priority</h3>
-          <div className="space-y-1.5">
-            {[
-              { l: "Layer 1: Safety (P 0-9)", c: "bg-red-50 border-red-200 text-red-700", d: "ALWAYS shown. SpO2 <90 = 'Review SpO2'. Allergies = 'Allergy Alert'. force:true." },
-              { l: "Layer 2: Clinical Flags (P 10-29)", c: "bg-amber-50 border-amber-200 text-amber-700", d: "Lab flags >=3, BP >140, SpO2 declining, specialty data, overdue follow-ups." },
-              { l: "Layer 3: Phase-Aware (P 29-49)", c: "bg-violet-50 border-violet-200 text-violet-700", d: "empty='Summary', symptoms='DDX', dx='Meds', meds='Translate', complete='Check'. + CKD/DM condition pills." },
-              { l: "Layer 4: Tab Lens (P 60-69)", c: "bg-blue-50 border-blue-200 text-blue-700", d: "Vitals tab='Vital trends', Lab='Lab comparison', History='Med history', Records='OCR'. Lowest priority." },
-            ].map(l => (
-              <div key={l.l} className={`rounded-lg border ${l.c} px-3 py-2`}>
-                <p className="text-[11px] font-bold">{l.l}</p>
-                <p className="text-[10px] opacity-80">{l.d}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Phase Engine */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-3">Consultation Phases</h3>
-          <div className="flex gap-1 mb-2">
-            {[
-              { id: "empty", l: "Empty" }, { id: "symptoms_entered", l: "Symptoms" }, { id: "dx_accepted", l: "Dx Accepted" },
-              { id: "meds_written", l: "Meds Written" }, { id: "near_complete", l: "Complete" },
-            ].map(p => (
-              <button key={p.id} onClick={() => setActivePhase(p.id)}
-                className={`rounded-lg px-2.5 py-1 text-[10px] font-medium ${activePhase === p.id ? "bg-violet-100 text-violet-700 border border-violet-200" : "border border-slate-200 text-slate-500"}`}>
-                {p.l}
-              </button>
-            ))}
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-            <div className="flex flex-wrap gap-1">
-              {(activePhase === "empty" ? ["Patient summary", "Suggest DDX", "Lab overview", "Review intake data"] :
-                activePhase === "symptoms_entered" ? ["Suggest DDX", "Compare with last visit", "Vital trends"] :
-                activePhase === "dx_accepted" ? ["Suggest medications", "Suggest investigations", "Draft advice", "Plan follow-up"] :
-                activePhase === "meds_written" ? ["Translate to regional", "Plan follow-up", "Completeness check"] :
-                ["Completeness check", "Translate advice", "Visit summary"]
-              ).map(p => <span key={p} className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] text-violet-700">{p}</span>)}
-            </div>
-          </div>
-        </section>
-
-        {/* Source & Trust */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-3">Source Provenance</h3>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 space-y-1 text-[10px] text-slate-600">
-              {[["Summary", "EMR + Lab + Records + Visits + Intake"], ["Lab/Trends", "Lab Results or Records"], ["DDX/Meds", "Context + Protocol"], ["POMR/SBAR", "History + Lab + Records (ring)"], ["Homepage", "No source"]].map(([c, s]) => (
-                <div key={c} className="flex gap-2"><span className="font-semibold text-slate-700 w-20 flex-shrink-0">{c}</span>{s}</div>
-              ))}
-            </div>
-            <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] text-slate-600">
-              <p><strong>Completeness ring:</strong> Only on POMR, SBAR, OCR. 3 segments: EMR (purple) + AI (blue) + Missing (gray).</p>
-              <p className="mt-1"><strong>Not shown on:</strong> Pure-EMR (always 100%) or pure-AI cards.</p>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-3">Unified Card Rules</h3>
-          <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table className="min-w-full text-[10px]">
-              <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
-                <th className="px-3 py-2 font-semibold w-32">Card</th>
-                <th className="px-3 py-2 font-semibold w-28">Family</th>
-                <th className="px-3 py-2 font-semibold">When to show</th>
-                <th className="px-3 py-2 font-semibold">Fetch from</th>
-                <th className="px-3 py-2 font-semibold">UI rule</th>
-              </tr></thead>
-              <tbody>
-                {CARD_SPECS.map(card => (
-                  <tr key={card.kind} className="border-b border-slate-50 align-top">
-                    <td className="px-3 py-2 font-mono text-[9px] text-violet-700">{card.kind}</td>
-                    <td className="px-3 py-2 text-slate-700">{card.family}</td>
-                    <td className="px-3 py-2 text-slate-600 leading-[1.45]">{card.whenToShow}</td>
-                    <td className="px-3 py-2 text-slate-600 leading-[1.45]">{getCardFetchFrom(card.kind)}</td>
-                    <td className="px-3 py-2 text-slate-600 leading-[1.45]">{getCardUiRule(card.kind)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        {/* Homepage vs Patient */}
-        <section>
-          <h3 className="text-[16px] font-bold text-slate-800 mb-3">Homepage vs Patient Context</h3>
-          <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-            <table className="min-w-full text-[10px]">
-              <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
-                <th className="px-3 py-1.5 w-20">Aspect</th>
-                <th className="px-3 py-1.5"><span className="rounded bg-orange-100 px-1 py-0.5 text-orange-700">Homepage</span></th>
-                <th className="px-3 py-1.5"><span className="rounded bg-violet-100 px-1 py-0.5 text-violet-700">Patient</span></th>
-              </tr></thead>
-              <tbody>
-                {[["Cards", "Operational: queue, revenue, KPIs, analytics", "Clinical: summary, DDX, meds, labs, POMR"],
-                  ["Pills", "Homepage engine, tab/rail overrides", "4-layer pipeline, safety forced"],
-                  ["Phase", "No phase", "Full state machine"],
-                  ["Intent", "Operational + comparison", "All 9 categories"]
-                ].map(([a, h, p]) => (
-                  <tr key={a} className="border-b border-slate-50">
-                    <td className="px-3 py-1.5 font-medium text-slate-700">{a}</td>
-                    <td className="px-3 py-1.5 text-slate-600">{h}</td>
-                    <td className="px-3 py-1.5 text-slate-600">{p}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
       </div>
     )
   }
@@ -1875,6 +3453,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           { id: "card-anatomy" as MainTab, label: "Card Anatomy & Patterns" },
           { id: "card-catalog" as MainTab, label: "Card Catalog" },
           { id: "response-management" as MainTab, label: "Response Management" },
+          { id: "user-scenarios" as MainTab, label: "User Scenarios" },
         ]).map(tab => (
           <button key={tab.id} onClick={() => setMainTab(tab.id)}
             className={`rounded-lg px-4 py-2 text-[12px] font-medium transition-colors ${
@@ -1889,6 +3468,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
       {mainTab === "card-anatomy" && renderCardAnatomy()}
       {mainTab === "card-catalog" && renderCardCatalog()}
       {mainTab === "response-management" && renderResponseMgmt()}
+      {mainTab === "user-scenarios" && renderUserScenarios()}
     </div>
   )
 

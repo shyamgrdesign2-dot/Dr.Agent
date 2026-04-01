@@ -177,36 +177,10 @@ export function buildSummaryNarrative(
     parts.push(specialtyLead)
   }
 
-  // ── Step 1: Critical alert prefix — abnormal vitals ──
-  const criticalAlerts: string[] = []
-  if (data.todayVitals) {
-    if (data.todayVitals.bp) {
-      const sys = parseInt(data.todayVitals.bp.split("/")[0], 10)
-      if (!isNaN(sys) && (sys >= 160 || sys <= 80)) {
-        criticalAlerts.push(`BP ${data.todayVitals.bp}`)
-      }
-    }
-    if (data.todayVitals.spo2) {
-      const spo2 = parseInt(data.todayVitals.spo2, 10)
-      if (!isNaN(spo2) && spo2 < 94) {
-        criticalAlerts.push(`SpO\u2082 ${spo2}%`)
-      }
-    }
-    // Specialty-specific vital alerts
-    if (specialty === "obstetric" && data.todayVitals.bp) {
-      const sys = parseInt(data.todayVitals.bp.split("/")[0], 10)
-      if (!isNaN(sys) && sys >= 140 && !criticalAlerts.some((a) => a.startsWith("BP"))) {
-        criticalAlerts.push(`BP ${data.todayVitals.bp}`)
-      }
-    }
-  }
-  if (criticalAlerts.length > 0) {
+  // ── Step 1: Removed — Critical alert prefix was removed as per design review.
+  // Abnormal vitals are shown in the vitals InlineDataRow with flag colors instead.
+  if (false) {
     parts.push(
-      <span key="critical">
-        {parts.length > 0 ? " " : ""}
-        <NarrCritical>{"\u26A0 " + criticalAlerts.join(", ")}</NarrCritical>
-        {". "}
-      </span>,
     )
   }
 
@@ -224,7 +198,7 @@ export function buildSummaryNarrative(
           <React.Fragment key={`cond-${i}`}>
             {i > 0 && i === conditions.length - 1 ? " and " : i > 0 ? ", " : ""}
             <NarrBold>{name}</NarrBold>
-            {duration ? ` (${duration})` : ""}
+            {duration ? <span className="text-tp-slate-400"> ({duration})</span> : ""}
           </React.Fragment>
         )
       })
@@ -238,12 +212,12 @@ export function buildSummaryNarrative(
     }
   }
 
-  // ── Step 3: Allergies — critical for safety (always shown) ──
+  // ── Step 3: Allergies — shown in normal text (not highlighted) ──
   if (data.allergies && data.allergies.length > 0) {
     parts.push(
       <span key="allergies">
         {parts.length > 0 ? ". Allergic to " : "Allergic to "}
-        <NarrCritical>{data.allergies.slice(0, 2).join(", ")}</NarrCritical>
+        <span className="text-tp-slate-700">{data.allergies.slice(0, 2).join(", ")}</span>
       </span>,
     )
   }
@@ -279,7 +253,7 @@ export function buildSummaryNarrative(
     parts.push(
       <span key="overdue">
         {parts.length > 0 ? ". " : ""}
-        <NarrCritical>Follow-up overdue by {data.followUpOverdueDays}d</NarrCritical>
+        <span className="text-tp-slate-400">Follow-up overdue by {data.followUpOverdueDays} days</span>
       </span>,
     )
   }
@@ -675,7 +649,7 @@ export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed,
         {/* Clinical narrative — compact patient snapshot (hidden when detailed summary is triggered) */}
         {!hideNarrative && narrativeParts && narrativeParts.length > 0 && (
           <div className="rounded-[8px] bg-tp-slate-50 border-l-[3px] border-tp-violet-300 px-3 py-2">
-            <p className="text-[12px] italic leading-[1.6] text-tp-slate-500">
+            <p className="text-[16px] italic leading-[1.7] text-tp-slate-500">
               &ldquo;{narrativeParts}&rdquo;
             </p>
           </div>

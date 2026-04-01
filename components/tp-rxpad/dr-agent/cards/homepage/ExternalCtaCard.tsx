@@ -25,11 +25,12 @@ export function ExternalCtaCard({ data }: Props) {
           rel={rel}
           tone="primary"
           iconRight={<ArrowRight2 size={14} variant="Linear" />}
+          compact
         />
       }
     >
       <div className="rounded-[10px] border border-tp-slate-100 bg-tp-slate-50/60 px-[8px] py-[7px]">
-        <p className="text-[12px] leading-[1.45] text-tp-slate-600">{data.description}</p>
+        <p className="text-[16px] leading-[1.5] text-tp-slate-600">{data.description}</p>
       </div>
     </CardShell>
   )

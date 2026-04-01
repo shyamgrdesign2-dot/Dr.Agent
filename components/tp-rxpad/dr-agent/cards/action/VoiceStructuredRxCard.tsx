@@ -51,13 +51,13 @@ export function VoiceStructuredRxCard({ data, onCopy }: VoiceStructuredRxCardPro
         <button
           type="button"
           onClick={() => setShowOriginal((v) => !v)}
-          className="text-left text-[10px] font-medium text-tp-slate-400 hover:text-tp-slate-500 transition-colors"
+          className="text-left text-[14px] font-medium text-tp-slate-400 hover:text-tp-slate-500 transition-colors"
         >
           {showOriginal ? "▾ Hide original text" : "▸ Show original text"}
         </button>
 
         {showOriginal && (
-          <p className="text-[12px] italic leading-[1.6] text-tp-slate-400 bg-tp-slate-50 rounded-[6px] px-[8px] py-[6px]">
+          <p className="text-[16px] italic leading-[1.7] text-tp-slate-400 bg-tp-slate-50 rounded-[6px] px-[8px] py-[6px]">
             &ldquo;{data.voiceText}&rdquo;
           </p>
         )}
@@ -73,7 +73,7 @@ export function VoiceStructuredRxCard({ data, onCopy }: VoiceStructuredRxCardPro
                 size={12}
                 color="var(--tp-slate-500, #64748B)"
               />
-              <span className="flex-1 text-[12px] font-semibold text-tp-slate-600">
+              <span className="flex-1 text-[16px] font-semibold text-tp-slate-600">
                 {section.title}
               </span>
               <span className="opacity-0 group-hover/section-header:opacity-100 transition-opacity">
@@ -93,7 +93,7 @@ export function VoiceStructuredRxCard({ data, onCopy }: VoiceStructuredRxCardPro
                 return (
                   <li
                     key={idx}
-                    className="group/voice-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[2px] text-[12px] leading-[1.5] text-tp-slate-700 transition-colors hover:bg-tp-slate-50/80"
+                    className="group/voice-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[2px] text-[16px] leading-[1.6] text-tp-slate-700 transition-colors hover:bg-tp-slate-50/80"
                   >
                     <span className="mt-[1px] flex-shrink-0 text-tp-slate-400">
                       •
@@ -106,7 +106,7 @@ export function VoiceStructuredRxCard({ data, onCopy }: VoiceStructuredRxCardPro
                     </span>
                     <span className="flex-shrink-0 opacity-0 group-hover/voice-item:opacity-100 transition-opacity">
                       {copiedKey === itemKey ? (
-                        <span className="text-[10px] text-tp-success-500 font-medium">Copied</span>
+                        <span className="text-[14px] text-tp-success-500 font-medium">Copied</span>
                       ) : (
                         <ActionableTooltip
                           label={`Fill to RxPad`}

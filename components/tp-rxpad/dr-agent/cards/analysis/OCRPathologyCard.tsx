@@ -2,9 +2,7 @@
 
 import { useState } from "react"
 import { CardShell } from "../CardShell"
-import { DataRow } from "../DataRow"
-import { InsightBox } from "../InsightBox"
-import { ChatPillButton } from "../ActionRow"
+import { cn } from "@/lib/utils"
 import type { OCRParameter } from "../../types"
 import type { RxPadCopyPayload } from "@/components/tp-rxpad/rxpad-sync-context"
 
@@ -14,10 +12,19 @@ interface OCRPathologyCardProps {
     category: string
     parameters: OCRParameter[]
     normalCount: number
-    insight: string
+    insight?: string
   }
   onPillTap?: (label: string) => void
   onCopy?: (payload: RxPadCopyPayload) => void
+}
+
+function FlagArrow({ flag }: { flag?: "high" | "low" }) {
+  if (!flag) return null
+  return (
+    <span className="text-[12px]">
+      {flag === "high" ? "\u2191" : "\u2193"}
+    </span>
+  )
 }
 
 export function OCRPathologyCard({ data, onPillTap, onCopy }: OCRPathologyCardProps) {
@@ -25,15 +32,7 @@ export function OCRPathologyCard({ data, onPillTap, onCopy }: OCRPathologyCardPr
 
   const flaggedParams = data.parameters.filter((p) => p.flag)
   const normalParams = data.parameters.filter((p) => !p.flag)
-
-  /** Copy a single parameter to Lab Results */
-  const handleCopyParam = (param: OCRParameter) => {
-    onCopy?.({
-      sourceDateLabel: "Today",
-      targetSection: "labResults",
-      labInvestigations: [`${param.name}: ${param.value}${param.refRange ? ` (ref: ${param.refRange})` : ""}`],
-    })
-  }
+  const visibleParams = showNormal ? data.parameters : flaggedParams
 
   return (
     <CardShell
@@ -42,11 +41,7 @@ export function OCRPathologyCard({ data, onPillTap, onCopy }: OCRPathologyCardPr
       title={data.title}
       badge={
         flaggedParams.length > 0
-          ? {
-              label: `${flaggedParams.length} flagged`,
-              color: "#DC2626",
-              bg: "#FEE2E2",
-            }
+          ? { label: `${flaggedParams.length} flagged`, color: "#DC2626", bg: "#FEE2E2" }
           : undefined
       }
       copyAll={() =>
@@ -57,60 +52,49 @@ export function OCRPathologyCard({ data, onPillTap, onCopy }: OCRPathologyCardPr
         })
       }
       copyAllTooltip="Fill complete digitized report to Lab Results"
-      actions={
-        <ChatPillButton label="Compare with previous" onClick={() => onPillTap?.("Compare with previous")} />
-      }
     >
-      {/* Category / confidence line */}
-      <div className="mb-1 text-[10px] text-tp-slate-400">
-        {data.category}
+      {/* Table — matching LabPanelCard format */}
+      <div className="overflow-hidden rounded-[8px] border border-tp-slate-100">
+        {/* Header */}
+        <div className="grid grid-cols-3 gap-[1px] bg-tp-slate-50 px-[8px] py-[4px] text-[14px] font-semibold text-tp-slate-500">
+          <span>Parameter</span>
+          <span>Value</span>
+          <span>Ref Range</span>
+        </div>
+        {/* Rows */}
+        {visibleParams.map((param, i) => (
+          <div
+            key={param.name}
+            className={cn(
+              "grid grid-cols-3 gap-[1px] px-[8px] py-[6px] text-[16px]",
+              i % 2 === 0 ? "bg-white" : "bg-tp-slate-50",
+            )}
+          >
+            <span className="font-medium text-tp-slate-700 truncate">{param.name}</span>
+            <span className={cn(
+              "flex items-center gap-[3px] font-medium",
+              param.flag ? "text-tp-error-600" : "text-tp-slate-800",
+            )}>
+              <FlagArrow flag={param.flag} />
+              {param.value}
+            </span>
+            <span className="text-tp-slate-400">{param.refRange ?? "\u2014"}</span>
+          </div>
+        ))}
       </div>
-
-      {/* Flagged parameters */}
-      {flaggedParams.map((param, i) => (
-        <DataRow
-          key={param.name}
-          label={param.name}
-          value={param.value}
-          flag={param.flag}
-          refRange={param.refRange}
-          isLast={
-            !showNormal && i === flaggedParams.length - 1
-          }
-          onCopy={() => handleCopyParam(param)}
-          copyTooltip={`Fill ${param.name} to Lab Results`}
-        />
-      ))}
 
       {/* Normal toggle */}
       {data.normalCount > 0 && (
         <button
           type="button"
           onClick={() => setShowNormal(!showNormal)}
-          className="mt-1 w-full text-center text-[10px] font-medium text-tp-blue-500 transition-colors hover:text-tp-blue-600"
+          className="mt-[6px] w-full text-center text-[14px] font-medium text-tp-blue-500 transition-colors hover:text-tp-blue-600"
         >
           {showNormal
-            ? "− Hide normal values"
+            ? "\u2212 Hide normal values"
             : `+ ${data.normalCount} normal`}
         </button>
       )}
-
-      {/* Show normal params when toggled */}
-      {showNormal &&
-        normalParams.map((param, i) => (
-          <DataRow
-            key={param.name}
-            label={param.name}
-            value={param.value}
-            refRange={param.refRange}
-            isLast={i === normalParams.length - 1}
-            onCopy={() => handleCopyParam(param)}
-            copyTooltip={`Fill ${param.name} to Lab Results`}
-          />
-        ))}
-
-      {/* Insight */}
-      <InsightBox variant="red">{data.insight}</InsightBox>
     </CardShell>
   )
 }

@@ -1,10 +1,12 @@
 "use client"
 
+import React from "react"
 import { CardShell } from "../CardShell"
-import { ChatPillButton } from "../ActionRow"
-import { FooterCTA } from "../FooterCTA"
-import { SectionTag, SECTION_TAG_ICON_MAP } from "../SectionTag"
-import { Printer, ArrowRight2 } from "iconsax-reactjs"
+import { FooterCTA, FooterCTAGroup } from "../FooterCTA"
+import { SECTION_TAG_ICON_MAP } from "../SectionTag"
+import { TPMedicalIcon } from "@/components/tp-ui"
+import { formatWithHierarchy } from "../../shared/formatWithHierarchy"
+import { Printer, Share } from "iconsax-reactjs"
 import type { RxPreviewCardData } from "../../types"
 
 interface Props {
@@ -14,16 +16,31 @@ interface Props {
 
 function Section({ label, items }: { label: string; items: string[] }) {
   if (items.length === 0) return null
+  const iconName = SECTION_TAG_ICON_MAP[label]
   return (
     <div className="mb-[6px]">
-      <div className="mb-[3px]">
-        <SectionTag label={label} icon={SECTION_TAG_ICON_MAP[label]} />
+      {/* Full-width section header bar — matching Structured Transcript pattern */}
+      <div className="flex items-center gap-[5px] rounded-[4px] bg-tp-slate-50 px-2 py-[3px] mb-[4px]">
+        {iconName && (
+          <TPMedicalIcon
+            name={iconName}
+            variant="bulk"
+            size={12}
+            color="var(--tp-slate-500, #64748B)"
+          />
+        )}
+        <span className="flex-1 text-[16px] font-semibold text-tp-slate-600">
+          {label}
+        </span>
       </div>
-      <div className="space-y-[1px] pl-[2px]">
+      <ul className="flex flex-col gap-[2px] pl-1">
         {items.map((item, i) => (
-          <p key={i} className="text-[12px] leading-[1.45] text-tp-slate-700">• {item}</p>
+          <li key={i} className="flex items-start gap-[6px] px-1 py-[2px] text-[16px] leading-[1.6] text-tp-slate-700">
+            <span className="mt-[1px] flex-shrink-0 text-tp-slate-400">•</span>
+            <span className="flex-1">{formatWithHierarchy(item)}</span>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   )
 }
@@ -35,29 +52,16 @@ export function RxPreviewCard({ data, onPillTap }: Props) {
       tpIconName="clipboard-activity"
       title="Prescription Preview"
       date={data.date}
-      actions={
-        <ChatPillButton label="Edit Rx" onClick={() => onPillTap?.("Edit Rx")} />
-      }
+
       sidebarLink={
-        <div className="flex items-center">
-          <FooterCTA
-            label="Print prescription"
-            iconLeft={<Printer size={14} variant="Linear" />}
-            fullWidth
-            align="center"
-          />
-          <div className="h-[20px] flex-shrink-0" style={{ width: "1px", background: "linear-gradient(180deg, transparent 0%, #CBD5E1 50%, transparent 100%)" }} />
-          <FooterCTA
-            label="Share digitally"
-            iconRight={<ArrowRight2 size={14} variant="Linear" />}
-            fullWidth
-            align="center"
-          />
-        </div>
+        <FooterCTAGroup>
+          <FooterCTA label="Print prescription" tone="secondary" fullWidth iconLeft={<Printer size={14} variant="Linear" />} />
+          <FooterCTA label="Share digitally" tone="secondary" fullWidth iconLeft={<Share size={14} variant="Linear" />} />
+        </FooterCTAGroup>
       }
     >
       {/* Patient */}
-      <div className="mb-[8px] rounded-[6px] bg-tp-slate-50 px-2.5 py-[4px] text-[12px]">
+      <div className="mb-[8px] rounded-[6px] bg-tp-slate-50 px-2.5 py-[4px] text-[16px]">
         <span className="font-medium text-tp-slate-600">Patient:</span>{" "}
         <span className="text-tp-slate-800">{data.patientName}</span>
       </div>
@@ -69,10 +73,18 @@ export function RxPreviewCard({ data, onPillTap }: Props) {
 
       {data.followUp && (
         <div>
-          <div className="mb-[3px]">
-            <SectionTag label="Follow-up" icon={SECTION_TAG_ICON_MAP["Follow-up"]} />
+          <div className="flex items-center gap-[5px] rounded-[4px] bg-tp-slate-50 px-2 py-[3px] mb-[4px]">
+            <TPMedicalIcon
+              name={SECTION_TAG_ICON_MAP["Follow-up"] ?? "medical-record"}
+              variant="bulk"
+              size={12}
+              color="var(--tp-slate-500, #64748B)"
+            />
+            <span className="flex-1 text-[16px] font-semibold text-tp-slate-600">
+              Follow-up
+            </span>
           </div>
-          <p className="text-[12px] text-tp-slate-700 pl-[2px]">{data.followUp}</p>
+          <p className="text-[16px] leading-[1.6] pl-[10px]">{formatWithHierarchy(data.followUp)}</p>
         </div>
       )}
     </CardShell>

@@ -3,13 +3,43 @@
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * FOOTER CTA — Pixel-perfect match to Card Anatomy Footer Zone
+ * ═══════════════════════════════════════════════════════════════
+ *
+ * Specs (from FooterVariantPreview in Card Anatomy):
+ *   Height:        36px
+ *   Border radius: 10px
+ *   Font:          12px, medium weight
+ *   Padding:       px-2
+ *   Icon gap:      4px
+ *
+ * SINGLE CTA:
+ *   Width:    w-[250px] max-w-full (fixed, left-aligned)
+ *   Align:    always left (justify-start)
+ *
+ * TWO CTAs:
+ *   Width:    flex-1 each (equal split, fills full card width)
+ *   Tertiary: gradient divider between them
+ *   Secondary: 24px (w-6) spacer between them, NO divider
+ *
+ * TONES:
+ *   primary (tertiary):  transparent bg, blue text — NAVIGATION
+ *   secondary:           border + white bg, blue text — ACTIONS
+ *   danger:              border + white bg, red text — Cancel/destructive
+ *   success:             border + white bg, green text — Confirmed
+ *   neutral:             transparent bg, gray text — Disabled
+ * ═══════════════════════════════════════════════════════════════
+ */
+
 interface FooterCTAProps {
   label: string
   onClick?: () => void
   href?: string
   target?: string
   rel?: string
-  tone?: "primary" | "danger" | "neutral" | "success"
+  tone?: "primary" | "secondary" | "danger" | "neutral" | "success"
   iconLeft?: React.ReactNode
   iconRight?: React.ReactNode
   disabled?: boolean
@@ -18,14 +48,21 @@ interface FooterCTAProps {
   compact?: boolean
 }
 
-const baseClassName =
-  "inline-flex h-[36px] items-center justify-center gap-[4px] rounded-[10px] px-3 text-[12px] font-medium transition-all"
+// Tertiary tones (no border, transparent bg)
+const tertiaryTones: Record<string, string> = {
+  primary: "text-tp-blue-500 hover:bg-tp-blue-50/60",
+  neutral: "text-tp-slate-400",
+}
 
-const toneClassName: Record<NonNullable<FooterCTAProps["tone"]>, string> = {
-  primary: "bg-transparent text-tp-blue-500 hover:bg-tp-blue-50/60 hover:text-tp-blue-600",
-  danger: "bg-transparent text-tp-error-600 hover:bg-tp-error-50/60 hover:text-tp-error-700",
-  neutral: "bg-transparent text-tp-slate-500 hover:bg-tp-slate-50 hover:text-tp-slate-600",
-  success: "bg-transparent text-tp-green-600 hover:bg-tp-green-50/70 hover:text-tp-green-700",
+// Secondary/bordered tones (border + white bg)
+const borderedTones: Record<string, string> = {
+  secondary: "border-blue-200 text-tp-blue-500 hover:border-blue-300 hover:bg-tp-blue-50/60",
+  danger: "border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50/70",
+  success: "border-emerald-200 text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50/70",
+}
+
+function isBorderedTone(tone: string): boolean {
+  return tone === "secondary" || tone === "danger" || tone === "success"
 }
 
 function buildClassName({
@@ -34,12 +71,21 @@ function buildClassName({
   fullWidth = false,
   compact = false,
 }: Pick<FooterCTAProps, "tone" | "disabled" | "fullWidth" | "compact">) {
+  // Single CTA: hug content starting at min 200px, grow with text, cap at available space.
+  // Two CTAs (fullWidth): flex-1 each, equal split filling full footer width.
+  // Compact: no min-width, just hug the text.
+  const widthClass = fullWidth ? "flex-1 w-0" : compact ? "" : "min-w-[200px]"
+  const base = `${widthClass} inline-flex h-[36px] items-center justify-center gap-[4px] rounded-[10px] px-3 text-[14px] font-medium transition-colors`
+
+  const bordered = isBorderedTone(tone)
+  const toneClass = bordered
+    ? `border bg-white ${borderedTones[tone] || borderedTones.secondary}`
+    : `${tertiaryTones[tone] || tertiaryTones.primary}`
+
   return cn(
-    baseClassName,
-    toneClassName[tone],
-    fullWidth && "w-full",
-    compact && "px-2",
-    disabled && "cursor-not-allowed bg-transparent text-tp-slate-400 hover:bg-transparent hover:text-tp-slate-400"
+    base,
+    toneClass,
+    disabled && "cursor-not-allowed opacity-40 pointer-events-none"
   )
 }
 
@@ -57,38 +103,77 @@ export function FooterCTA({
   fullWidth = false,
   compact = false,
 }: FooterCTAProps) {
-  const wrapperClassName = cn("flex", align === "center" ? "justify-center" : "justify-start")
   const className = buildClassName({ tone, disabled, fullWidth, compact })
+
+  const content = (
+    <>
+      {iconLeft && <span className="flex-shrink-0">{iconLeft}</span>}
+      <span className="truncate">{label}</span>
+      {iconRight && <span className="flex-shrink-0">{iconRight}</span>}
+    </>
+  )
+
+  // When fullWidth (2-CTA layout): render button directly with flex-1, no wrapper div
+  if (fullWidth) {
+    if (href) {
+      return <Link href={href} target={target} rel={rel} className={className}>{content}</Link>
+    }
+    return <button type="button" onClick={onClick} disabled={disabled} className={className}>{content}</button>
+  }
+
+  // Single CTA: wrap in left-aligned flex container
+  const wrapperClassName = cn("flex", align === "center" ? "justify-center" : "justify-start")
 
   if (href) {
     return (
       <div className={wrapperClassName}>
-        <Link
-          href={href}
-          target={target}
-          rel={rel}
-          className={className}
-        >
-          {iconLeft}
-          <span>{label}</span>
-          {iconRight}
-        </Link>
+        <Link href={href} target={target} rel={rel} className={className}>{content}</Link>
       </div>
     )
   }
 
   return (
     <div className={wrapperClassName}>
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
-        className={className}
-      >
-        {iconLeft}
-        <span>{label}</span>
-        {iconRight}
-      </button>
+      <button type="button" onClick={onClick} disabled={disabled} className={className}>{content}</button>
     </div>
+  )
+}
+
+/**
+ * Two-CTA wrapper for TERTIARY footers.
+ * Equal split with centered gradient divider between them.
+ */
+export function FooterCTAGroupTertiary({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center">
+      {children}
+    </div>
+  )
+}
+
+/**
+ * Two-CTA wrapper for SECONDARY/bordered footers.
+ * Equal split with 24px (w-6) spacing between bordered buttons.
+ */
+export function FooterCTAGroup({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-6">
+      {children}
+    </div>
+  )
+}
+
+/**
+ * Gradient divider line — use between two TERTIARY CTAs only.
+ */
+export function FooterDivider() {
+  return (
+    <div
+      className="h-[20px] flex-shrink-0"
+      style={{
+        width: "1px",
+        background: "linear-gradient(180deg, transparent 0%, #CBD5E1 50%, transparent 100%)",
+      }}
+    />
   )
 }

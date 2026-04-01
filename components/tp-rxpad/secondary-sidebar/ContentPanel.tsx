@@ -47,28 +47,27 @@ const SECTION_TITLES: Record<NavItemId, string> = {
 function sectionHeaderAiLabel(activeId: NavItemId, title: string): string | null {
   switch (activeId) {
     case "pastVisits":
-      return "Summarize all past visits"
+      return "Ask Dr. Agent to summarize all past visits"
     case "vitals":
-      return "Summarize all vitals"
+      return "Ask Dr. Agent to analyze today's vitals and flag concerns"
     case "history":
-      return "Summarize medical history"
+      return "Ask Dr. Agent to summarize the complete medical history"
     case "gynec":
-      return "Summarize gynec history"
+      return "Ask Dr. Agent to review gynecological history and due screenings"
     case "obstetric":
-      return "Summarize obstetric history"
+      return "Ask Dr. Agent to review obstetric history and pending ANC items"
     case "vaccine":
-      return "Summarize vaccination history"
+      return "Ask Dr. Agent to check vaccination schedule and pending doses"
     case "growth":
-      return "Summarize growth trends"
+      return "Ask Dr. Agent to analyze growth trends and percentiles"
     case "labResults":
-      return "Summarize all lab results"
+      return "Ask Dr. Agent to review flagged lab values and trends"
     case "personalNotes":
-      return "Summarize personal notes"
-    // Keep records unchanged as requested.
+      return "Ask Dr. Agent to summarize your personal notes"
     case "medicalRecords":
       return null
     default:
-      return `Summarize ${title.toLowerCase()}`
+      return `Ask Dr. Agent about ${title.toLowerCase()}`
   }
 }
 

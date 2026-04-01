@@ -165,7 +165,7 @@ function getLayer3(phase: ConsultPhase, summary: SmartSummaryData): CannedPill[]
     if (isNewPatient) {
       // New patient — no past data to show, focus on intake + initial workup
       const pills: CannedPill[] = []
-      if (hasSymptoms) pills.push({ id: "phase-intake", label: "Review intake data", priority: 30, layer: 3, tone: "primary" })
+      if (hasSymptoms) pills.push({ id: "phase-intake", label: "Pre-visit intake", priority: 30, layer: 3, tone: "primary" })
       pills.push({ id: "phase-ddx", label: "Suggest DDX", priority: 32, layer: 3, tone: "primary" })
       pills.push({ id: "phase-initial-workup", label: "Initial investigations", priority: 34, layer: 3, tone: "primary" })
       pills.push({ id: "phase-ask", label: "Ask me anything", priority: 36, layer: 3, tone: "primary" })

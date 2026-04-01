@@ -627,7 +627,7 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       slitLamp: "Mild conjunctival congestion bilateral, no corneal staining",
       fundus: "Normal disc and macula OU",
       lastExamDate: "12 Jan'26",
-      alerts: ["Conjunctival symptoms — allergic conjunctivitis vs viral"],
+      alerts: ["Conjunctival symptoms (allergic conjunctivitis vs viral)"],
     },
   },
   "apt-anjali": {
@@ -677,7 +677,7 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       slitLamp: "No abnormality detected",
       fundus: "Normal disc and macula OU",
       lastExamDate: "10 Oct'24",
-      alerts: ["Digital eye strain — screen time > 8h/day, near VA slightly reduced"],
+      alerts: ["Digital eye strain (screen time > 8h/day, near VA slightly reduced)"],
     },
   },
   "apt-vikram": {
@@ -727,7 +727,7 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       fundus: "Normal disc, mild arteriolar narrowing OU",
       lastExamDate: "15 Sep'24",
       glassPrescription: "+1.5 DS both eyes",
-      alerts: ["Presbyopia — corrective lenses recommended", "Arteriolar narrowing — correlate with BP"],
+      alerts: ["Presbyopia (corrective lenses recommended)", "Arteriolar narrowing (correlate with BP)"],
     },
   },
   "apt-priya": {
@@ -789,7 +789,7 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       painScore: "2/10",
       lmp: "14 Jun'25",
       lastPapSmear: "20 Jan'25",
-      alerts: ["Currently pregnant — see obstetric summary"],
+      alerts: ["Currently pregnant (see obstetric summary)"],
     },
     obstetricData: {
       gravida: 1,
@@ -808,7 +808,7 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       lastExamDate: "18 Feb'26",
       ancDue: ["Growth scan due in 5 days", "Td/TT booster due this week"],
       vaccineStatus: "Td/TT Dose 1 given",
-      alerts: ["BP 130/85 — borderline, monitor closely", "ANC growth scan overdue"],
+      alerts: ["BP 130/85 (borderline, monitor closely)", "ANC growth scan overdue"],
     },
     ophthalData: {
       vaRight: "6/6",
@@ -844,7 +844,7 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
     },
     labFlagCount: 1,
     todayVitals: {
-      bp: "—",
+      bp: "-",
       pulse: "104",
       spo2: "97%",
       temp: "99.0 F",
@@ -878,7 +878,7 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       milestoneNotes: ["Speech delay noted by parent", "Fine motor skills age-appropriate"],
       feedingNotes: "Picky eater, low appetite past 2 weeks",
       lastGrowthDate: "03 Feb'26",
-      alerts: ["Weight below 25th percentile — nutritional review", "MMR-2 overdue"],
+      alerts: ["Weight below 25th percentile (nutritional review)", "MMR-2 overdue"],
     },
     ophthalData: {
       vaRight: "6/6",
@@ -886,7 +886,7 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       slitLamp: "Normal anterior segment OU",
       fundus: "Normal disc and macula OU",
       lastExamDate: "05 Jan'26",
-      alerts: ["Mild intermittent exotropia — follow-up in 3 months"],
+      alerts: ["Mild intermittent exotropia (follow-up in 3 months)"],
     },
   },
   "apt-lakshmi": {
@@ -894,7 +894,7 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
     followUpOverdueDays: 0,
     patientNarrative:
       "I have heavy menstrual bleeding since 6 months with fatigue and lower abdominal pain during periods. I was diagnosed with PCOS in 2018 and had partial thyroidectomy in 2020. I want to check if my thyroid dose needs adjustment and whether my bleeding needs further evaluation.",
-    familyHistory: ["Mother — Diabetes", "Sister — PCOS"],
+    familyHistory: ["Mother (Diabetes)", "Sister (PCOS)"],
     lifestyleNotes: ["Sedentary work pattern", "Irregular meal timings"],
     allergies: [],
     chronicConditions: ["PCOS", "Hypothyroidism"],
@@ -944,7 +944,7 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
         { name: "Lower abdominal pain", duration: "during periods", severity: "Moderate" },
       ],
       medicalHistory: ["PCOS diagnosed 2018", "Thyroidectomy 2020 (partial)"],
-      familyHistory: ["Mother — Diabetes", "Sister — PCOS"],
+      familyHistory: ["Mother (Diabetes)", "Sister (PCOS)"],
     },
     gynecData: {
       cycleRegularity: "Irregular",
@@ -954,7 +954,7 @@ const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
       lmp: "18 Feb'26",
       lastPapSmear: "Mar 2024",
       painScore: "6/10",
-      alerts: ["Heavy flow with low Hb — evaluate for menorrhagia", "Pap smear overdue > 1 year"],
+      alerts: ["Heavy flow with low Hb (evaluate for menorrhagia)", "Pap smear overdue > 1 year"],
     },
     obstetricData: {
       gravida: 2,
@@ -2015,11 +2015,11 @@ function IntroAlertStrip({ summaryData }: { summaryData: SmartSummaryData }) {
   }
   // SpO2 < 90 — true emergency
   if (summaryData.todayVitals?.spo2 && Number.parseInt(summaryData.todayVitals.spo2) < 90) {
-    items.push({ text: `SpO2 ${summaryData.todayVitals.spo2}% — Critical`, tone: "critical" })
+    items.push({ text: `SpO2 ${summaryData.todayVitals.spo2}% (Critical)`, tone: "critical" })
   }
   // BP >= 180 — hypertensive urgency
   if (summaryData.todayVitals?.bp && Number.parseInt(summaryData.todayVitals.bp) >= 180) {
-    items.push({ text: `BP ${summaryData.todayVitals.bp} — Hypertensive urgency`, tone: "critical" })
+    items.push({ text: `BP ${summaryData.todayVitals.bp} (Hypertensive urgency)`, tone: "critical" })
   }
   // F/U overdue > 7 days
   if (summaryData.followUpOverdueDays > 7) {
@@ -2563,9 +2563,9 @@ const VISIT_SUMMARY_ARCHIVE: LastVisitCardData[] = [
   {
     visitDate: "27 Jan'26",
     sections: [
-      { short: "Symptoms", value: "Fever — 2 days | High severity | Evening spikes, Eye redness — 2 days | Bilateral | Watering" },
+      { short: "Symptoms", value: "Fever (2 days | High severity | Evening spikes), Eye redness (2 days | Bilateral | Watering)" },
       { short: "Diagnosis", value: "Viral fever, Conjunctivitis" },
-      { short: "Medication", value: "Telma20 — 1-0-0-1 · BF · 4d, Metsmail 500 — 1-0-0-1 · AF · 4d" },
+      { short: "Medication", value: "Telma20 (1-0-0-1 | Before food | 4 days), Metsmail 500 (1-0-0-1 | After food | 4 days)" },
       { short: "Lab Tests", value: "CBC, LFT" },
       { short: "Advice", value: "Hydration, eye hygiene and steam inhalation, avoid screen time" },
       { short: "Follow-up", value: "Review in 2 weeks with lab reports" },
@@ -2590,9 +2590,9 @@ const VISIT_SUMMARY_ARCHIVE: LastVisitCardData[] = [
   {
     visitDate: "26 Jan'26",
     sections: [
-      { short: "Symptoms", value: "Fever — 3 days | Moderate, Cough — dry | 4 days, Throat discomfort — mild" },
+      { short: "Symptoms", value: "Fever (3 days | Moderate), Cough (dry | 4 days), Throat discomfort (mild)" },
       { short: "Diagnosis", value: "Upper respiratory infection" },
-      { short: "Medication", value: "Azithromycin 500mg — 1-0-0-0 · AF · 3d, Paracetamol 650 — SOS · AF · If fever >100°F" },
+      { short: "Medication", value: "Azithromycin 500mg (1-0-0-0 | After food | 3 days), Paracetamol 650 (As needed | After food | If fever >100°F)" },
       { short: "Lab Tests", value: "CBC" },
       { short: "Follow-up", value: "Review in 5 days" },
     ],
@@ -2960,7 +2960,7 @@ function buildRxAgentReply({
 
   if (q.includes("patient snapshot")) {
     return {
-      reply: "Patient smart snapshot — compact overview for quick pre-consult review.",
+      reply: "Patient smart snapshot: compact overview for quick pre-consult review.",
       nextPhase: "in_progress",
       rxOutput: {
         kind: "patient_summary",
@@ -3380,11 +3380,11 @@ function buildRxAgentReply({
         title: "Advice and Instructions",
         subtitle: "Auto-generated from diagnosis",
         items: [
-          { label: "Adequate hydration — 2.5 to 3L water daily", selected: true },
+          { label: "Adequate hydration (2.5 to 3L water daily)", selected: true },
           { label: "Steam inhalation twice daily", selected: true },
           { label: "Avoid cold beverages and dust exposure" },
           { label: "Light diet, avoid oily and spicy food" },
-          { label: "Monitor temperature — revisit if fever > 101°F persists 48h" },
+          { label: "Monitor temperature (revisit if fever > 101°F persists 48h)" },
         ],
         shareMessage: "Patient-ready advice is prepared for sharing.",
         copyPayload: {
@@ -3428,7 +3428,7 @@ function buildRxAgentReply({
       rxOutput: {
         kind: "cascade",
         diagnosis: "Viral Fever",
-        meds: ["Paracetamol 650mg — 1-0-0-1 · AF · 5d · SOS if fever>100°F", "Levocetirizine 5mg — 0-0-0-1 · AF · 5d", "Ibuprofen 400mg — 1-0-1-0 · AF · 3d · If pain"],
+        meds: ["Paracetamol 650mg (1-0-0-1 | After food | 5 days | As needed if fever>100°F)", "Levocetirizine 5mg (0-0-0-1 | After food | 5 days)", "Ibuprofen 400mg (1-0-1-0 | After food | 3 days | If pain)"],
         investigations: ["CBC", "CRP", "Urine Routine"],
         advice: "Hydration, eye hygiene, steam inhalation and red-flag counseling.",
         followUp: "2 weeks",
@@ -3915,13 +3915,13 @@ function LastVisitCard({
                         <span className="mt-[6px] block size-[4px] shrink-0 rounded-full bg-tp-slate-300" />
                         <span className="min-w-0 flex-1 text-[11.5px] leading-[16px] text-tp-slate-600">
                           {isMed ? (() => {
-                            // Parse: "DrugName — detail" or "DrugName (detail)"
-                            const dashSplit = entry.split(" — ")
-                            if (dashSplit.length >= 2) {
+                            // Parse: "DrugName (detail)" bracket format
+                            const parenMatch = entry.match(/^(.+?)(\s*\(.+\))$/)
+                            if (parenMatch) {
                               return (
                                 <>
-                                  <span className="font-semibold text-tp-slate-700">{dashSplit[0].trim()}</span>
-                                  <span className="text-tp-slate-400"> — {dashSplit.slice(1).join(" — ").trim()}</span>
+                                  <span className="font-semibold text-tp-slate-700">{parenMatch[1].trim()}</span>
+                                  <span className="text-tp-slate-400">{parenMatch[2]}</span>
                                 </>
                               )
                             }
@@ -3929,17 +3929,17 @@ function LastVisitCard({
                             return (
                               <>
                                 <span className="font-semibold text-tp-slate-700">{med.name || entry}</span>
-                                {med.detail ? <span className="text-tp-slate-400"> — {med.detail}</span> : null}
+                                {med.detail ? <span className="text-tp-slate-400"> ({med.detail})</span> : null}
                               </>
                             )
                           })() : isSx ? (() => {
-                            // Parse: "SymptomName — detail"
-                            const dashSplit = entry.split(" — ")
-                            if (dashSplit.length >= 2) {
+                            // Parse: "SymptomName (detail)" bracket format
+                            const parenMatch = entry.match(/^(.+?)(\s*\(.+\))$/)
+                            if (parenMatch) {
                               return (
                                 <>
-                                  <span className="font-semibold text-tp-slate-700">{dashSplit[0].trim()}</span>
-                                  <span className="text-tp-slate-400"> — {dashSplit.slice(1).join(" — ").trim()}</span>
+                                  <span className="font-semibold text-tp-slate-700">{parenMatch[1].trim()}</span>
+                                  <span className="text-tp-slate-400">{parenMatch[2]}</span>
                                 </>
                               )
                             }
@@ -5012,14 +5012,10 @@ function CascadeCard({
       {/* ── Drug Rows (bordered) ── */}
       <div className="overflow-hidden rounded-[8px] border-[0.5px] border-tp-slate-150">
         {data.meds.map((med, idx) => {
-          // Parse: "DrugName — detail" or "DrugName (detail)" or just name
-          const dashSplit = med.split(" — ")
+          // Parse: "DrugName (detail)" bracket format
           let drugName = med
           let drugDetail = ""
-          if (dashSplit.length >= 2) {
-            drugName = dashSplit[0].trim()
-            drugDetail = dashSplit.slice(1).join(" — ").trim()
-          } else {
+          {
             const parenMatch = med.match(/^([^(]+)\((.+)\)$/)
             if (parenMatch) {
               drugName = parenMatch[1].trim()
@@ -5773,7 +5769,7 @@ function buildSpecialtySnapshot(tab: SpecialtyTabId, summaryData: SmartSummaryDa
       headline: "Specialty snapshot",
       keyItems: [
         g.lmp ? `LMP: ${g.lmp}` : "LMP: Not recorded",
-        `Cycle: ${g.cycleRegularity ?? "—"}, ${g.cycleLength ?? "—"}`,
+        `Cycle: ${g.cycleRegularity ?? "-"}, ${g.cycleLength ?? "-"}`,
         g.flowIntensity ? `Flow: ${g.flowIntensity}` : null,
       ].filter(Boolean) as string[],
       alerts: g.alerts ?? [],
@@ -5785,7 +5781,7 @@ function buildSpecialtySnapshot(tab: SpecialtyTabId, summaryData: SmartSummaryDa
     return {
       headline: "Specialty snapshot",
       keyItems: [
-        o.vaRight || o.vaLeft ? `VA: OD ${o.vaRight ?? "—"} / OS ${o.vaLeft ?? "—"}` : null,
+        o.vaRight || o.vaLeft ? `VA: OD ${o.vaRight ?? "-"} / OS ${o.vaLeft ?? "-"}` : null,
         o.slitLamp ? `Slit Lamp: ${o.slitLamp}` : null,
         o.lastExamDate ? `Last exam: ${o.lastExamDate}` : null,
       ].filter(Boolean) as string[],
@@ -6845,7 +6841,7 @@ function SpecialtyContextBlock({ specialtyId, content, accentBorder, icon, label
 function buildGynecContextContent(g: NonNullable<SmartSummaryData["gynecData"]>): React.ReactNode {
   return (
     <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-tp-slate-600">
-      {g.cycleRegularity && <span>{g.cycleRegularity}, {g.cycleLength ?? "—"}</span>}
+      {g.cycleRegularity && <span>{g.cycleRegularity}, {g.cycleLength ?? "-"}</span>}
       {g.flowIntensity && <><span className="text-tp-slate-300">|</span><span>Flow {g.flowIntensity}{g.padsPerDay ? `, ${g.padsPerDay} pads/day` : ""}</span></>}
       {g.lmp && <><span className="text-tp-slate-300">|</span><span className="font-medium text-tp-slate-700">LMP {g.lmp}</span></>}
       {g.lastPapSmear && <><span className="text-tp-slate-300">|</span><span>Pap {g.lastPapSmear}</span></>}
@@ -6857,8 +6853,8 @@ function buildGynecContextContent(g: NonNullable<SmartSummaryData["gynecData"]>)
 function buildOphthalContextContent(o: NonNullable<SmartSummaryData["ophthalData"]>): React.ReactNode {
   return (
     <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-[11px]">
-      {(o.vaRight || o.vaLeft) && <><span className="font-semibold text-tp-slate-500">VA</span><span className="text-tp-slate-700">OD {o.vaRight ?? "—"} | OS {o.vaLeft ?? "—"}</span></>}
-      {(o.nearVaRight || o.nearVaLeft) && <><span className="font-semibold text-tp-slate-500">Near</span><span className="text-tp-slate-700">OD {o.nearVaRight ?? "—"} | OS {o.nearVaLeft ?? "—"}</span></>}
+      {(o.vaRight || o.vaLeft) && <><span className="font-semibold text-tp-slate-500">VA</span><span className="text-tp-slate-700">OD {o.vaRight ?? "-"} | OS {o.vaLeft ?? "-"}</span></>}
+      {(o.nearVaRight || o.nearVaLeft) && <><span className="font-semibold text-tp-slate-500">Near</span><span className="text-tp-slate-700">OD {o.nearVaRight ?? "-"} | OS {o.nearVaLeft ?? "-"}</span></>}
       {o.iop && <><span className="font-semibold text-tp-slate-500">IOP</span><span className="text-tp-slate-700">OD {o.iop.right} | OS {o.iop.left}</span></>}
       {o.slitLamp && <><span className="font-semibold text-tp-slate-500">Slit</span><span className="text-tp-slate-700">{o.slitLamp}</span></>}
       {o.fundus && <><span className="font-semibold text-tp-slate-500">Fundus</span><span className="text-tp-slate-700">{o.fundus}</span></>}
@@ -6899,11 +6895,11 @@ function buildPediatricsContextContent(p: NonNullable<SmartSummaryData["pediatri
       <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
         {p.ageDisplay && <span className="font-semibold text-tp-slate-700">{p.ageDisplay}</span>}
         {p.heightCm != null && (
-          <span className="text-tp-slate-600">Ht {p.heightCm}cm <span className="text-[10px] text-tp-slate-400">({p.heightPercentile ?? "—"})</span></span>
+          <span className="text-tp-slate-600">Ht {p.heightCm}cm <span className="text-[10px] text-tp-slate-400">({p.heightPercentile ?? "-"})</span></span>
         )}
         {p.weightKg != null && (
           <span className={cn("text-tp-slate-600", p.weightPercentile && Number.parseInt(p.weightPercentile) < 25 && "font-semibold text-tp-error-600")}>
-            Wt {p.weightKg}kg <span className="text-[10px] text-tp-slate-400">({p.weightPercentile ?? "—"})</span>
+            Wt {p.weightKg}kg <span className="text-[10px] text-tp-slate-400">({p.weightPercentile ?? "-"})</span>
           </span>
         )}
         {p.ofcCm != null && <span className="text-tp-slate-600">OFC {p.ofcCm}cm</span>}
@@ -7043,7 +7039,7 @@ function buildCollapsedInfo(s: SmartSummaryData, specialty: SpecialtyTabId): { t
     if (g.flowIntensity) tokens.push(`Flow ${g.flowIntensity}`)
   } else if (specialty === "ophthal" && s.ophthalData) {
     const o = s.ophthalData
-    if (o.vaRight || o.vaLeft) tokens.push(`VA OD ${o.vaRight ?? "—"} OS ${o.vaLeft ?? "—"}`)
+    if (o.vaRight || o.vaLeft) tokens.push(`VA OD ${o.vaRight ?? "-"} OS ${o.vaLeft ?? "-"}`)
     if (o.slitLamp && !["no abnormality", "no abnormality detected", "normal anterior segment ou"].includes(o.slitLamp.toLowerCase()))
       tokens.push("Slit Lamp abnormal")
   } else if (specialty === "obstetric" && s.obstetricData) {
@@ -7381,7 +7377,7 @@ function PatientSummaryCard({
                         <span
                           className="size-[4px] rounded-full"
                           style={{ backgroundColor: provDot }}
-                          title={prov?.source === "emr" ? "Source: EMR (verified)" : prov?.source === "ai_extracted" ? `Source: AI-extracted from ${prov.extractedFrom || "uploaded document"} — verify before acting` : "Not available in any source — needs ordering"}
+                          title={prov?.source === "emr" ? "Source: EMR (verified)" : prov?.source === "ai_extracted" ? `Source: AI-extracted from ${prov.extractedFrom || "uploaded document"} (verify before acting)` : "Not available in any source (needs ordering)"}
                         />
                       )}
                       {prov?.source === "ai_extracted" && prov.extractedFrom && (

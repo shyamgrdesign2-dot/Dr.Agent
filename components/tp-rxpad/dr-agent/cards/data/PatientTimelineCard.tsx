@@ -48,15 +48,15 @@ export function PatientTimelineCard({ data, onSidebarNav }: Props) {
 
               {/* Content */}
               <div className="flex items-start gap-[8px]">
-                <span className="w-[60px] flex-shrink-0 text-[10px] text-tp-slate-400">{event.date}</span>
+                <span className="w-[60px] flex-shrink-0 text-[14px] text-tp-slate-400">{event.date}</span>
                 <div className="flex-1">
                   <span
-                    className="mr-[4px] rounded-[3px] px-1 py-[0.5px] text-[10px] font-medium uppercase"
+                    className="mr-[4px] rounded-[3px] px-1 py-[0.5px] text-[14px] font-medium uppercase"
                     style={{ color: cfg.color, backgroundColor: cfg.bg }}
                   >
                     {event.type}
                   </span>
-                  <span className="text-[12px] leading-[1.5] text-tp-slate-700">{event.summary}</span>
+                  <span className="text-[16px] leading-[1.6] text-tp-slate-700">{event.summary}</span>
                 </div>
               </div>
             </div>

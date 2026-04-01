@@ -138,7 +138,7 @@ export function DataCompletenessDonut({ emr, ai, missing, size = "md" }: DataCom
                 border: "1px solid rgba(148,163,184,0.2)",
               }}
             >
-              <p className="mb-[5px] text-[10px] font-semibold text-tp-slate-600">Data Completeness</p>
+              <p className="mb-[5px] text-[14px] font-semibold text-tp-slate-600">Data Completeness</p>
 
               {/* Horizontal stacked bar */}
               <div className="mb-[5px] flex h-[5px] w-full overflow-hidden rounded-full">
@@ -148,7 +148,7 @@ export function DataCompletenessDonut({ emr, ai, missing, size = "md" }: DataCom
               </div>
 
               {/* Legend row */}
-              <div className="flex items-center gap-[8px] text-[10px] leading-[1.3]">
+              <div className="flex items-center gap-[8px] text-[14px] leading-[1.4]">
                 <span className="flex items-center gap-[3px]">
                   <span className="inline-block h-[5px] w-[5px] rounded-full" style={{ background: EMR_COLOR_TOOLTIP }} />
                   <span className="text-tp-slate-500">{emr}% EMR</span>

@@ -267,7 +267,7 @@ function buildQuickSnapshot(data: SymptomCollectorData): React.ReactNode[] {
       const conditionNodes = conditions.map((c, i) => (
         <React.Fragment key={`cond-${i}`}>
           {i > 0 && i === conditions.length - 1 ? " and " : i > 0 ? ", " : ""}
-          <B>{c.name}</B>{c.duration ? ` ${c.duration}` : ""}
+          <B>{c.name}</B>{c.duration ? <span className="text-tp-slate-400"> {c.duration}</span> : ""}
         </React.Fragment>
       ))
       parts.push(<span key="conditions">Patient with {conditionNodes}</span>)
@@ -380,7 +380,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed,
         {/* Quick snapshot — quotation-style block */}
         {showSnapshot && (
           <div className="rounded-[8px] bg-tp-slate-50 border-l-[3px] border-tp-violet-300 px-3 py-2">
-            <p className="text-[12px] italic leading-[1.6] text-tp-slate-500">
+            <p className="text-[16px] italic leading-[1.7] text-tp-slate-500">
               &ldquo;{snapshotParts}&rdquo;
             </p>
           </div>
@@ -401,7 +401,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed,
                   color="var(--tp-slate-500, #64748B)"
                 />
               )}
-              <span className="flex-1 text-[12px] font-semibold text-tp-slate-600">
+              <span className="flex-1 text-[16px] font-semibold text-tp-slate-600">
                 {section.title}
               </span>
               <span className="opacity-0 group-hover/section-header:opacity-100 transition-opacity">
@@ -422,7 +422,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed,
                 return (
                   <li
                     key={idx}
-                    className="group/reported-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[2px] text-[12px] leading-[1.5] text-tp-slate-700 transition-colors hover:bg-tp-slate-50/80"
+                    className="group/reported-item flex items-start gap-[6px] rounded-[4px] px-1 -mx-1 py-[2px] text-[16px] leading-[1.6] text-tp-slate-700 transition-colors hover:bg-tp-slate-50/80"
                   >
                     <span className="mt-[1px] flex-shrink-0 text-tp-slate-400">
                       •
@@ -439,7 +439,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed,
                     </span>
                     <span className="flex-shrink-0 opacity-0 group-hover/reported-item:opacity-100 transition-opacity">
                       {copiedKey === itemKey ? (
-                        <span className="text-[10px] text-tp-success-500 font-medium">Copied</span>
+                        <span className="text-[14px] text-tp-success-500 font-medium">Copied</span>
                       ) : (
                         <ActionableTooltip
                           label={`Fill "${item.name}" to RxPad`}

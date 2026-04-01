@@ -50,19 +50,29 @@ export function ObstetricExpandedCard({ data, onSidebarNav }: ObstetricExpandedC
     },
   ].filter(Boolean) as Array<{ key: string; value: string; flag?: FlagValue }>
 
-  /* ─ ANC & Vaccines row ─ */
-  const ancVaccineValues: Array<{ key: string; value: string; flag?: FlagValue }> = []
+  /* ─ ANC & Vaccines row — single combined value ─ */
+  const ancVaccineParts: string[] = []
 
   if (data.ancDue && data.ancDue.length > 0) {
-    data.ancDue.forEach((item) => {
-      ancVaccineValues.push({ key: "ANC", value: item, flag: ancVaccineFlag(item) })
-    })
+    ancVaccineParts.push(...data.ancDue)
   }
   if (data.vaccineStatus && data.vaccineStatus.length > 0) {
     data.vaccineStatus.forEach((item) => {
-      ancVaccineValues.push({ key: "Vaccine", value: item, flag: ancVaccineFlag(item) })
+      const colonIdx = item.indexOf(":")
+      if (colonIdx > -1) {
+        const name = item.slice(0, colonIdx).trim()
+        const status = item.slice(colonIdx + 1).trim()
+        ancVaccineParts.push(`${name} (${status})`)
+      } else {
+        ancVaccineParts.push(item)
+      }
     })
   }
+
+  const ancVaccineValues: Array<{ key: string; value: string; flag?: FlagValue }> =
+    ancVaccineParts.length > 0
+      ? [{ key: "", value: ancVaccineParts.join(", ") }]
+      : []
 
   /* ─ Last exam row ─ */
   const examValues = [

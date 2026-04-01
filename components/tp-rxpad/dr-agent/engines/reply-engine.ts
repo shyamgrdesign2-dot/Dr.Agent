@@ -598,16 +598,21 @@ export function buildReply(
     }
   }
 
-  // === PATIENT SUMMARY ===
-  if (normalized.includes("summary") || normalized.includes("snapshot") || normalized.includes("patient")) {
-    const patient = summary.specialtyTags.length > 0
-      ? summary.specialtyTags.join(", ")
-      : null
+  // === SBAR OVERVIEW (explicit) ===
+  if (normalized.includes("sbar") || normalized.includes("s-bar") || normalized.includes("handoff")) {
     return {
-      text: patient
-        ? `I've prepared ${patient}'s clinical summary for you.`
-        : "This is a new patient \u2014 no records found yet. You can begin by adding history or uploading reports.",
-      rxOutput: { kind: "patient_summary", data: summary },
+      text: "Here's the clinical summary.",
+      rxOutput: { kind: "sbar_overview", data: summary },
+    }
+  }
+
+  // === PATIENT SUMMARY (now returns SBAR overview as primary) ===
+  if (normalized.includes("summary") || normalized.includes("snapshot") || normalized.includes("patient")) {
+    return {
+      text: summary.specialtyTags.length > 0
+        ? "Here's the patient's clinical summary."
+        : "This is a new patient, no records found yet. You can begin by adding history or uploading reports.",
+      rxOutput: { kind: "sbar_overview", data: summary },
     }
   }
 
@@ -677,9 +682,6 @@ export function buildReply(
         kind: "med_history",
         data: {
           entries,
-          insight: summary.allergies?.length
-            ? `Known allergies: ${summary.allergies.join(", ")}. All current medications have been checked against this list.`
-            : "No known allergies. All medications are within standard protocols.",
         },
       },
     }
@@ -873,7 +875,6 @@ export function buildReply(
               { heading: "Medications", icon: "pill", items: (summary.activeMeds || []).slice(0, 3), copyDestination: "rxpad" },
               { heading: "Investigations", icon: "Lab", items: summary.lastVisit?.labTestsSuggested ? splitRespectingParens(summary.lastVisit.labTestsSuggested) : ["No investigations noted"], copyDestination: "rxpad" },
             ],
-            insight: `Extracted from uploaded document. ${summary.recordAlerts?.[0] || "Review for accuracy."}`,
           },
         },
       }
@@ -895,7 +896,6 @@ export function buildReply(
           category: "Blood Investigation",
           parameters,
           normalCount: Math.max(0, 12 - parameters.length),
-          insight: buildLabInsight(summary.keyLabs),
         },
       },
     }
@@ -1119,7 +1119,6 @@ export function buildReply(
           panelDate: summary.lastVisit?.date || "Recent",
           flagged: summary.keyLabs,
           hiddenNormalCount: Math.max(0, 17 - summary.keyLabs.length),
-          insight: buildLabInsight(summary.keyLabs),
         },
       },
     }
@@ -1359,7 +1358,6 @@ export function buildReply(
             direction: lab.flag === "high" ? "up" as const : "down" as const,
             isFlagged: true,
           })),
-          insight: buildLabInsight(summary.keyLabs),
         },
       },
     }
@@ -1472,8 +1470,8 @@ export function buildReply(
     return {
       text: summary.specialtyTags.length > 0
         ? `Pre-consult summary ready. Key points: ${summary.chronicConditions?.join(", ") || "No chronic conditions"}, ${summary.labFlagCount > 0 ? `${summary.labFlagCount} flagged labs` : "labs normal"}, ${summary.followUpOverdueDays > 0 ? `follow-up overdue ${summary.followUpOverdueDays}d` : "follow-up on track"}.`
-        : "This is a new patient, no prior data available for pre-consult prep. You can start by reviewing the intake form or asking for symptoms.",
-      rxOutput: summary.specialtyTags.length > 0 ? { kind: "patient_summary", data: summary } : undefined,
+        : "New patient, no prior data available for pre-consult prep. You can start by reviewing the intake form or asking for symptoms.",
+      rxOutput: summary.specialtyTags.length > 0 ? { kind: "sbar_overview", data: summary } : undefined,
     }
   }
 
@@ -2222,8 +2220,6 @@ function buildPathologyReply(): ReplyResult {
           { name: "Creatinine", value: "1.1 mg/dL", refRange: "0.7-1.3" },
         ],
         normalCount: 1,
-        insight:
-          "WBC\u2191 and CRP\u2191 suggest active infection. Platelet count borderline low \u2014 monitor for dengue. Glucose and HbA1c confirm poor glycemic control.",
       },
     },
   }
@@ -2261,8 +2257,6 @@ function buildRadiologyReply(): ReplyResult {
             copyDestination: "medical-records",
           },
         ],
-        insight:
-          "Endometrial thickness of 12mm warrants clinical correlation given the patient's age and symptoms.",
       },
     },
   }
@@ -2309,8 +2303,6 @@ function buildPrescriptionReply(): ReplyResult {
             copyDestination: "follow-up",
           },
         ],
-        insight:
-          "Standard prenatal prescription. All medications align with current gestational age. No contraindicated drugs detected.",
       },
     },
   }
@@ -2337,8 +2329,6 @@ function buildGenericDocReply(): ReplyResult {
             copyDestination: "medical-records",
           },
         ],
-        insight:
-          "Document has been processed. Please review the extracted content and confirm where you'd like it saved.",
       },
     },
   }

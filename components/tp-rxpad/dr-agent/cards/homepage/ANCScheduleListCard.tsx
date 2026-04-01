@@ -32,7 +32,7 @@ export function ANCScheduleListCard({ data, onPillTap }: Props) {
           <FooterCTA
             label={`Send reminder to all (${data.items.length})`}
             onClick={handleSendAll}
-            tone="primary"
+            tone="secondary"
             iconLeft={<NotificationBing size={14} variant="Bulk" />}
           />
         ) : undefined
@@ -45,26 +45,26 @@ export function ANCScheduleListCard({ data, onPillTap }: Props) {
             <div key={i} className="flex items-center gap-[8px] rounded-[8px] bg-tp-slate-50 px-[8px] py-[6px] transition-colors">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-[4px]">
-                  <p className="truncate text-[12px] font-medium text-tp-slate-800">
+                  <p className="truncate text-[14px] font-medium text-tp-slate-800">
                     {item.patientName}
                   </p>
-                  <span className="flex-shrink-0 rounded-[4px] bg-tp-violet-50 px-[5px] py-[1px] text-[8px] font-semibold text-tp-violet-600">
+                  <span className="flex-shrink-0 rounded-[4px] bg-tp-violet-50 px-[5px] py-[1px] text-[12px] font-semibold text-tp-violet-600">
                     {item.gestationalAge}
                   </span>
                   {item.isOverdue && (
-                    <span className="flex-shrink-0 rounded-[4px] bg-tp-error-50 px-[5px] py-[1px] text-[8px] font-semibold uppercase text-tp-error-600">
+                    <span className="flex-shrink-0 rounded-[4px] bg-tp-error-50 px-[5px] py-[1px] text-[12px] font-semibold uppercase text-tp-error-600">
                       Overdue
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] text-tp-slate-400">
+                <p className="text-[12px] text-tp-slate-400">
                   {item.ancItem} · Due {item.dueWeek}
                 </p>
               </div>
               <button
                 type="button"
                 disabled={isDisabled}
-                className="flex-shrink-0 rounded-[6px] border border-tp-blue-400 bg-transparent px-[10px] py-[3px] text-[10px] font-medium text-tp-blue-600 transition-colors hover:bg-tp-blue-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-shrink-0 rounded-[6px] border border-tp-blue-400 bg-transparent px-[10px] py-[3px] text-[12px] font-medium text-tp-blue-600 transition-colors hover:bg-tp-blue-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={() => handleRemindItem(i, item.patientName)}
               >
                 Remind

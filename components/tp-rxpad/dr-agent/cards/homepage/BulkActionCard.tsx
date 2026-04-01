@@ -3,7 +3,7 @@ import React, { useState } from "react"
 import { CloseCircle, Flash, TickCircle } from "iconsax-reactjs"
 import { CardShell } from "../CardShell"
 import type { BulkActionCardData } from "../../types"
-import { FooterCTA } from "../FooterCTA"
+import { FooterCTA, FooterCTAGroup } from "../FooterCTA"
 
 interface Props { data: BulkActionCardData; onPillTap?: (label: string) => void }
 
@@ -24,51 +24,37 @@ export function BulkActionCard({ data, onPillTap }: Props) {
             disabled
             tone="neutral"
             iconLeft={<TickCircle size={14} variant="Bold" />}
-            align="center"
           />
         ) : (
-          <div className="flex items-center">
-            <FooterCTA
-              label="Confirm & Send"
-              onClick={() => setConfirmed(true)}
-              tone="primary"
-              iconLeft={<TickCircle size={14} variant="Bold" />}
-              fullWidth
-            />
-            <div className="w-6 flex-shrink-0" />
-            <FooterCTA
-              label="Cancel"
-              onClick={() => onPillTap?.("Cancel bulk action")}
-              tone="danger"
-              iconLeft={<CloseCircle size={14} variant="Bold" />}
-              fullWidth
-            />
-          </div>
+          <FooterCTAGroup>
+            <FooterCTA label="Confirm & Send" onClick={() => setConfirmed(true)} tone="success" fullWidth />
+            <FooterCTA label="Cancel" onClick={() => onPillTap?.("Cancel bulk action")} tone="danger" fullWidth />
+          </FooterCTAGroup>
         )
       }
     >
       {confirmed ? (
         <div className="rounded-[8px] bg-tp-green-50 p-[10px] text-center">
-          <p className="text-[12px] font-semibold text-tp-green-700">Action confirmed</p>
-          <p className="mt-[2px] text-[10px] text-tp-green-600">Sent to {data.totalCount} recipients</p>
+          <p className="text-[14px] font-semibold text-tp-green-700">Action confirmed</p>
+          <p className="mt-[2px] text-[12px] text-tp-green-600">Sent to {data.totalCount} recipients</p>
         </div>
       ) : (
         <>
           {/* Message Preview */}
           <div className="mb-[10px] rounded-[8px] bg-tp-slate-50 p-[8px]">
-            <p className="mb-[2px] text-[10px] font-semibold uppercase tracking-wider text-tp-slate-400">Message Preview</p>
-            <p className="text-[12px] text-tp-slate-700 italic">&ldquo;{data.messagePreview}&rdquo;</p>
+            <p className="mb-[2px] text-[12px] font-semibold uppercase tracking-wider text-tp-slate-400">Message Preview</p>
+            <p className="text-[14px] text-tp-slate-700 italic">&ldquo;{data.messagePreview}&rdquo;</p>
           </div>
 
           {/* Recipients */}
           <div className="mb-[8px]">
-            <p className="mb-[3px] text-[10px] font-semibold uppercase tracking-wider text-tp-slate-400">Recipients ({data.totalCount})</p>
+            <p className="mb-[3px] text-[12px] font-semibold uppercase tracking-wider text-tp-slate-400">Recipients ({data.totalCount})</p>
             <div className="space-y-[2px]">
               {visibleRecipients.map((name, i) => (
-                <p key={i} className="text-[12px] text-tp-slate-700">&bull; {name}</p>
+                <p key={i} className="text-[14px] text-tp-slate-700">&bull; {name}</p>
               ))}
               {remainingCount > 0 && (
-                <p className="text-[10px] text-tp-slate-400">+ {remainingCount} more</p>
+                <p className="text-[12px] text-tp-slate-400">+ {remainingCount} more</p>
               )}
             </div>
           </div>

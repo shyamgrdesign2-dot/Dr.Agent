@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { CardShell } from "../CardShell"
-import { Danger } from "iconsax-reactjs"
+import { Danger, ShieldTick } from "iconsax-reactjs"
 import type { AllergyConflictData } from "../../types"
 import { FooterCTA } from "../FooterCTA"
 
@@ -33,25 +33,25 @@ export function AllergyConflictCard({
           label={overridden ? "Override applied" : "Override - I accept the risk"}
           onClick={handleOverride}
           disabled={overridden}
-          tone={overridden ? "neutral" : "danger"}
-          iconLeft={!overridden ? <Danger size={14} variant="Linear" /> : undefined}
+          tone="secondary"
+          iconLeft={<ShieldTick size={14} variant="Linear" />}
         />
       }
     >
       {/* Drug → Allergen */}
-      <div className="mb-2 text-[12px] font-semibold text-tp-error-700">
+      <div className="mb-2 text-[16px] font-semibold text-tp-error-700">
         {data.drug} → {data.allergen}
       </div>
 
       {/* Contraindicated label */}
       <div className="mb-1 flex items-center gap-1.5">
-        <span className="inline-flex rounded-[4px] bg-tp-error-100 px-1.5 py-[2px] text-[10px] font-semibold uppercase text-tp-error-700">
+        <span className="inline-flex rounded-[4px] bg-tp-error-100 px-1.5 py-[2px] text-[14px] font-semibold uppercase text-tp-error-700">
           Contraindicated
         </span>
       </div>
 
       {/* Alternative suggestion */}
-      <div className="mt-1 rounded-[6px] bg-tp-slate-50 px-2 py-[5px] text-[12px] leading-[1.45] text-tp-slate-600">
+      <div className="mt-1 rounded-[6px] bg-tp-slate-50 px-2 py-[5px] text-[16px] leading-[1.55] text-tp-slate-600">
         <strong className="text-tp-slate-800">
           Alternative:
         </strong>{" "}

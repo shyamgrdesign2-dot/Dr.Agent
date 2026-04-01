@@ -109,7 +109,7 @@ export function CopyTooltip({
               onClick={() => handleCopy(opt.value, opt.label)}
               className={cn(
                 "flex w-full items-center gap-[6px] px-[8px] py-[4px] text-left",
-                "text-[10px] leading-[1.4] text-tp-slate-600",
+                "text-[12px] leading-[1.4] text-tp-slate-600",
                 "transition-colors hover:bg-tp-slate-50 hover:text-tp-slate-800",
                 copied === opt.label && "text-tp-success-600 bg-tp-success-50",
               )}
@@ -128,7 +128,7 @@ export function CopyTooltip({
             onClick={() => handleCopy(copyAllValue, "all")}
             className={cn(
               "flex w-full items-center gap-[6px] px-[8px] py-[4px] text-left",
-              "text-[10px] leading-[1.4] font-medium text-tp-slate-700",
+              "text-[12px] leading-[1.4] font-medium text-tp-slate-700",
               "transition-colors hover:bg-tp-blue-50 hover:text-tp-blue-600",
               copied === "all" && "text-tp-success-600 bg-tp-success-50",
             )}

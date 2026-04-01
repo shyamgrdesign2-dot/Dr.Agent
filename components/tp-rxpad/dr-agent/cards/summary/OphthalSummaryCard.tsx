@@ -4,7 +4,6 @@ import React from "react"
 
 import { CardShell } from "../CardShell"
 import { InlineDataRow } from "../InlineDataRow"
-import { InsightBox } from "../InsightBox"
 import { SidebarLink } from "../SidebarLink"
 import type { OphthalData } from "../../types"
 
@@ -35,18 +34,6 @@ export function OphthalSummaryCard({ data, onSidebarNav }: OphthalSummaryCardPro
     data.slitLamp && { key: "Slit Lamp", value: data.slitLamp },
     data.fundus && { key: "Fundus", value: data.fundus },
   ].filter(Boolean) as Array<{ key: string; value: string; flag?: FlagValue }>
-
-  /* ─ Alerts ─ */
-  const hasAlerts = data.alerts && data.alerts.length > 0
-  const alertVariant = hasAlerts
-    ? data.alerts!.some(
-        (a) =>
-          a.toLowerCase().includes("critical") ||
-          a.toLowerCase().includes("severe"),
-      )
-      ? ("red" as const)
-      : ("amber" as const)
-    : undefined
 
   return (
     <CardShell
@@ -80,12 +67,6 @@ export function OphthalSummaryCard({ data, onSidebarNav }: OphthalSummaryCardPro
           <InlineDataRow tag="Findings" tagIcon="stethoscope" values={suppValues} source="existing" />
         )}
 
-        {/* Alerts */}
-        {hasAlerts && alertVariant && (
-          <InsightBox variant={alertVariant}>
-            {data.alerts!.join(" · ")}
-          </InsightBox>
-        )}
       </div>
     </CardShell>
   )

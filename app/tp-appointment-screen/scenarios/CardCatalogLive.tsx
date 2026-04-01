@@ -12,7 +12,7 @@ import type { RxPadCopyPayload } from "@/components/tp-rxpad/rxpad-sync-context"
 // Reusable dummy payload
 const DUMMY_PAYLOAD: RxPadCopyPayload = { sourceDateLabel: "Demo" }
 
-// ═══════ MOCK DATA FOR ALL 40 CARD KINDS ═══════
+// ═══════ MOCK DATA FOR ALL 60 CARD KINDS ═══════
 
 export interface CatalogEntry {
   kind: string
@@ -37,10 +37,10 @@ export const CATALOG: CatalogEntry[] = [
         familyHistory: ["Father: MI at 52", "Mother: T2DM"],
         lifestyleNotes: ["Sedentary", "Occasional smoker"],
         allergies: ["Sulfonamides", "Ibuprofen"],
-        chronicConditions: ["Hypertension Stage II", "Type 2 DM", "Dyslipidemia"],
+        chronicConditions: ["Hypertension Stage II (5yr, Active, on Amlodipine 5mg)", "Type 2 Diabetes Mellitus (7yr, Active, on Metformin 500mg)", "Dyslipidemia (3yr, Active, on Atorvastatin 10mg)"],
         labFlagCount: 3,
         todayVitals: { bp: "152/96", pulse: "82", spo2: "97%", temp: "98.4", weight: "78 kg", bmi: "27.3" },
-        activeMeds: ["Amlodipine 5mg OD", "Metformin 500mg BD", "Atorvastatin 10mg HS"],
+        activeMeds: ["Amlodipine 5mg (Once daily)", "Metformin 500mg (Twice daily)", "Atorvastatin 10mg (At bedtime)"],
         keyLabs: [
           { name: "HbA1c", value: "8.2%", flag: "high", refRange: "< 6.5%" },
           { name: "LDL", value: "142", unit: "mg/dL", flag: "high", refRange: "< 100" },
@@ -86,7 +86,7 @@ export const CATALOG: CatalogEntry[] = [
         sections: [
           { tag: "Symptoms", icon: "stethoscope", items: [{ label: "Chest tightness", detail: "on exertion" }, { label: "Fatigue" }] },
           { tag: "Diagnosis", icon: "clipboard-activity", items: [{ label: "Unstable Angina", severity: "high" }, { label: "Hypertension Stage II" }] },
-          { tag: "Medication", icon: "capsule", items: [{ label: "Amlodipine 5mg", detail: "OD" }, { label: "Aspirin 75mg", detail: "OD" }] },
+          { tag: "Medication", icon: "capsule", items: [{ label: "Amlodipine 5mg", detail: "Once daily" }, { label: "Aspirin 75mg", detail: "Once daily" }] },
         ],
         copyAllPayload: DUMMY_PAYLOAD,
       },
@@ -178,7 +178,6 @@ export const CATALOG: CatalogEntry[] = [
           { name: "Hemoglobin", value: "10.8", unit: "g/dL", flag: "low", refRange: "13-17" },
         ],
         hiddenNormalCount: 14,
-        insight: "HbA1c has worsened from 7.4% to 8.2% over 3 months. Consider medication adjustment.",
       },
     },
   },
@@ -243,7 +242,6 @@ export const CATALOG: CatalogEntry[] = [
           { parameter: "Creatinine", prevValue: "1.2", currValue: "1.4", prevDate: "Dec 25", currDate: "Mar 26", delta: "+0.2", direction: "up", isFlagged: true },
           { parameter: "TSH", prevValue: "2.8", currValue: "2.6", prevDate: "Dec 25", currDate: "Mar 26", delta: "-0.2", direction: "down", isFlagged: false },
         ],
-        insight: "3 of 4 parameters worsened. HbA1c and LDL need immediate attention.",
       },
     },
   },
@@ -256,12 +254,11 @@ export const CATALOG: CatalogEntry[] = [
       kind: "med_history",
       data: {
         entries: [
-          { drug: "Amlodipine 5mg", dosage: "OD", date: "Jan 2024", diagnosis: "Hypertension", source: "prescribed" },
-          { drug: "Metformin 500mg", dosage: "BD", date: "Mar 2024", diagnosis: "Type 2 DM", source: "prescribed" },
-          { drug: "Atorvastatin 10mg", dosage: "HS", date: "Jun 2024", diagnosis: "Dyslipidemia", source: "prescribed" },
-          { drug: "Aspirin 75mg", dosage: "OD", date: "Sep 2025", diagnosis: "Cardiac prophylaxis", source: "uploaded" },
+          { drug: "Amlodipine 5mg", dosage: "Once daily", date: "Jan 2024", diagnosis: "Hypertension", source: "prescribed" },
+          { drug: "Metformin 500mg", dosage: "Twice daily", date: "Mar 2024", diagnosis: "Type 2 DM", source: "prescribed" },
+          { drug: "Atorvastatin 10mg", dosage: "At bedtime", date: "Jun 2024", diagnosis: "Dyslipidemia", source: "prescribed" },
+          { drug: "Aspirin 75mg", dosage: "Once daily", date: "Sep 2025", diagnosis: "Cardiac prophylaxis", source: "uploaded" },
         ],
-        insight: "Patient on 4 active medications. Last medication change was 6 months ago.",
       },
     },
   },
@@ -297,8 +294,8 @@ export const CATALOG: CatalogEntry[] = [
         diagnosis: "Hypertensive Urgency",
         meds: [
           { name: "Nifedipine", dosage: "10mg", timing: "Sublingual STAT", duration: "Single dose", notes: "Monitor BP q15min" },
-          { name: "Amlodipine", dosage: "10mg", timing: "OD", duration: "Ongoing", notes: "Increase from 5mg" },
-          { name: "Telmisartan", dosage: "40mg", timing: "OD", duration: "Ongoing", notes: "Add ARB for dual therapy" },
+          { name: "Amlodipine", dosage: "10mg", timing: "Once daily", duration: "Ongoing", notes: "Increase from 5mg" },
+          { name: "Telmisartan", dosage: "40mg", timing: "Once daily", duration: "Ongoing", notes: "Add ARB for dual therapy" },
         ],
         safetyCheck: "No contraindications found. eGFR > 30, K+ normal.",
         copyPayload: DUMMY_PAYLOAD,
@@ -371,11 +368,11 @@ export const CATALOG: CatalogEntry[] = [
     output: {
       kind: "voice_structured_rx",
       data: {
-        voiceText: "Patient has headache for 3 days, dizziness, BP 152/96. Diagnosis hypertensive urgency. Give nifedipine 10mg sublingual stat, increase amlodipine to 10mg OD, add telmisartan 40mg. Order renal panel and ECG. Follow up in 3 days.",
+        voiceText: "Patient has headache for 3 days, dizziness, BP 152/96. Diagnosis hypertensive urgency. Give nifedipine 10mg sublingual stat, increase amlodipine to 10mg once daily, add telmisartan 40mg. Order renal panel and ECG. Follow up in 3 days.",
         sections: [
           { sectionId: "symptoms", title: "Symptoms", tpIconName: "stethoscope", items: [{ name: "Headache", detail: "3 days" }, { name: "Dizziness" }] },
           { sectionId: "diagnosis", title: "Diagnosis", tpIconName: "clipboard-activity", items: [{ name: "Hypertensive Urgency" }] },
-          { sectionId: "medication", title: "Medication", tpIconName: "capsule", items: [{ name: "Nifedipine 10mg", detail: "SL STAT" }, { name: "Amlodipine 10mg", detail: "OD" }, { name: "Telmisartan 40mg", detail: "OD" }] },
+          { sectionId: "medication", title: "Medication", tpIconName: "capsule", items: [{ name: "Nifedipine 10mg", detail: "Sublingual STAT" }, { name: "Amlodipine 10mg", detail: "Once daily" }, { name: "Telmisartan 40mg", detail: "Once daily" }] },
           { sectionId: "investigation", title: "Investigation", tpIconName: "test-tube", items: [{ name: "Renal Function Panel" }, { name: "ECG" }] },
         ],
         copyAllPayload: DUMMY_PAYLOAD,
@@ -401,7 +398,6 @@ export const CATALOG: CatalogEntry[] = [
           { name: "MCV", value: "72 fL", refRange: "80 - 100", flag: "low", confidence: "medium" },
         ],
         normalCount: 8,
-        insight: "Microcytic anemia with mild leukocytosis. Consider iron studies and peripheral smear.",
       },
     },
   },
@@ -416,11 +412,10 @@ export const CATALOG: CatalogEntry[] = [
         title: "Discharge Summary - City Hospital",
         category: "Discharge Summary",
         sections: [
-          { heading: "Diagnosis", icon: "clipboard-activity", items: ["Acute coronary syndrome", "Hypertension Stage II", "Type 2 DM"], copyDestination: "Diagnosis" },
-          { heading: "Medications", icon: "capsule", items: ["Aspirin 75mg OD", "Clopidogrel 75mg OD", "Atorvastatin 40mg HS", "Metoprolol 25mg BD"], copyDestination: "Medication" },
-          { heading: "Investigations", icon: "test-tube", items: ["Troponin I: 2.4 ng/mL (H)", "ECG: ST depression V4-V6", "Echo: EF 50%"], copyDestination: "Lab Results" },
+          { heading: "Diagnosis", icon: "Diagnosis", items: ["Acute coronary syndrome", "Hypertension Stage II", "Type 2 DM"], copyDestination: "Diagnosis" },
+          { heading: "Medications", icon: "Tablets", items: ["Aspirin 75mg (Once daily)", "Clopidogrel 75mg (Once daily)", "Atorvastatin 40mg (At bedtime)", "Metoprolol 25mg (Twice daily)"], copyDestination: "Medication" },
+          { heading: "Investigations", icon: "test-tube-02", items: ["Troponin I: 2.4 ng/mL (H)", "ECG: ST depression V4-V6", "Echo: EF 50%"], copyDestination: "Lab Results" },
         ],
-        insight: "Critical findings: Troponin elevated, reduced EF. Needs cardiac follow-up within 1 week.",
       },
     },
   },
@@ -476,7 +471,7 @@ export const CATALOG: CatalogEntry[] = [
   {
     kind: "follow_up_question",
     family: "Utility",
-    label: "Follow-Up Question",
+    label: "Follow-Up Question (Radio)",
     output: {
       kind: "follow_up_question",
       data: {
@@ -488,22 +483,15 @@ export const CATALOG: CatalogEntry[] = [
   },
 
   {
-    kind: "completeness",
+    kind: "follow_up_question",
     family: "Utility",
-    label: "Documentation Completeness",
+    label: "Follow-Up Question (Checkbox)",
     output: {
-      kind: "completeness",
+      kind: "follow_up_question",
       data: {
-        emptyCount: 3,
-        sections: [
-          { name: "Symptoms", filled: true, count: 4 },
-          { name: "Examination", filled: true, count: 3 },
-          { name: "Diagnosis", filled: true, count: 2 },
-          { name: "Medication", filled: true, count: 4 },
-          { name: "Advice", filled: false, count: 0 },
-          { name: "Lab Investigation", filled: false, count: 0 },
-          { name: "Follow-up", filled: false, count: 0 },
-        ],
+        question: "Select all symptoms the patient is currently experiencing:",
+        options: ["Chest pain on exertion", "Shortness of breath", "Palpitations", "Dizziness", "Fatigue"],
+        multiSelect: true,
       },
     },
   },
@@ -524,7 +512,7 @@ export const CATALOG: CatalogEntry[] = [
           { name: "Creatinine", value: "1.4", unit: "mg/dL", flag: "high", provenance: "ai_extracted" },
           { name: "UACR", value: "82", unit: "mg/g", flag: "high", provenance: "emr" },
         ],
-        meds: ["Metformin 500mg BD", "Glimepiride 1mg OD", "Telmisartan 40mg OD"],
+        meds: ["Metformin 500mg (Twice daily)", "Glimepiride 1mg (Once daily)", "Telmisartan 40mg (Once daily)"],
         missingFields: [
           { field: "Foot examination", reason: "Not documented in recent encounters", prompt: "Document foot exam" },
           { field: "Retina screening", reason: "No recent ophthalmology note found", prompt: "Review retina screening" },
@@ -534,6 +522,39 @@ export const CATALOG: CatalogEntry[] = [
           { label: "EMR - Lab Results", date: "05 Mar 2026", type: "emr" },
           { label: "Uploaded KFT Report", date: "03 Mar 2026", type: "uploaded" },
           { label: "Rx #44281 - Dr. Menon", date: "22 Feb 2026", type: "rx" },
+        ],
+      },
+    },
+  },
+
+  {
+    kind: "sbar_overview",
+    family: "Summary",
+    label: "SBAR Overview",
+    output: {
+      kind: "sbar_overview",
+      data: {
+        specialtyTags: ["General Medicine", "Diabetology"],
+        followUpOverdueDays: 5,
+        sbarSituation: "25M, 3-day fever with evening spikes, dry cough, bilateral conjunctivitis. Known DM 1yr + HTN 6mo. BP 70/60, SpO2 93%, Temp 104\u00B0F. Working Dx: Viral fever, conjunctivitis.",
+        chronicConditions: ["Diabetes (1yr, Active, on Metsmail 500mg)", "Hypertension (6mo, Active)"],
+        allergies: ["Dust", "Egg"],
+        activeMeds: ["Telma 20mg (Twice daily)", "Metsmail 500mg (Once daily)"],
+        labFlagCount: 3,
+        todayVitals: { bp: "70/60", pulse: "78", spo2: "93", temp: "104", weight: "94" },
+        keyLabs: [
+          { name: "HbA1c", value: "8.1", unit: "%", flag: "high", refRange: "<7%" },
+          { name: "LDL", value: "142", unit: "mg/dL", flag: "high", refRange: "<100" },
+          { name: "Vitamin D", value: "18", unit: "ng/mL", flag: "low", refRange: "30-100" },
+        ],
+        lastVisit: {
+          date: "27 Jan'26", vitals: "", symptoms: "Fever (2d, high), Eye redness (2d, bilateral)",
+          examination: "Conjunctival congestion bilateral", diagnosis: "Viral fever, Conjunctivitis",
+          medication: "Paracetamol 650mg", labTestsSuggested: "CBC, LFT",
+        },
+        dueAlerts: ["HbA1c recheck overdue", "Eye exam due"],
+        crossProblemFlags: [
+          { text: "Hypotension + high HbA1c — risk of diabetic crisis", problems: ["DM", "HTN"], severity: "high" },
         ],
       },
     },
@@ -614,25 +635,8 @@ export const CATALOG: CatalogEntry[] = [
   // ── G. Homepage / Operational Family ───────────────────────
 
   {
-    kind: "text_list",
-    family: "Homepage",
-    label: "Intro Text (above Welcome Card)",
-    output: {
-      kind: "text_list",
-      data: {
-        items: [
-          "Good morning, Dr. Sharma! You have 7 patients queued today.",
-          "2 follow-ups are overdue — Meera Joshi (post-surgery) and Rohit Das (lab review).",
-          "Rajesh Sharma (10:00 AM) has 3 new flagged lab values since his last visit.",
-          "2 draft prescriptions are pending your review.",
-        ],
-      },
-    },
-  },
-
-  {
     kind: "welcome_card",
-    family: "Homepage",
+    family: "Operational",
     label: "Welcome Card",
     output: {
       kind: "welcome_card",
@@ -654,7 +658,7 @@ export const CATALOG: CatalogEntry[] = [
 
   {
     kind: "patient_list",
-    family: "Homepage",
+    family: "Operational",
     label: "Patient List (Queue)",
     output: {
       kind: "patient_list",
@@ -673,7 +677,7 @@ export const CATALOG: CatalogEntry[] = [
 
   {
     kind: "patient_search",
-    family: "Homepage",
+    family: "Operational",
     label: "Patient Search",
     output: {
       kind: "patient_search",
@@ -690,7 +694,7 @@ export const CATALOG: CatalogEntry[] = [
 
   {
     kind: "follow_up_list",
-    family: "Homepage",
+    family: "Operational",
     label: "Follow-Up List",
     output: {
       kind: "follow_up_list",
@@ -708,7 +712,7 @@ export const CATALOG: CatalogEntry[] = [
 
   {
     kind: "revenue_bar",
-    family: "Homepage",
+    family: "Operational",
     label: "Revenue Bar Chart",
     output: {
       kind: "revenue_bar",
@@ -731,7 +735,7 @@ export const CATALOG: CatalogEntry[] = [
 
   {
     kind: "bulk_action",
-    family: "Homepage",
+    family: "Operational",
     label: "Bulk Action Card",
     output: {
       kind: "bulk_action",
@@ -746,7 +750,7 @@ export const CATALOG: CatalogEntry[] = [
 
   {
     kind: "donut_chart",
-    family: "Homepage",
+    family: "Operational",
     label: "Donut Chart",
     output: {
       kind: "donut_chart",
@@ -766,7 +770,7 @@ export const CATALOG: CatalogEntry[] = [
 
   {
     kind: "pie_chart",
-    family: "Homepage",
+    family: "Operational",
     label: "Pie Chart",
     output: {
       kind: "pie_chart",
@@ -786,7 +790,7 @@ export const CATALOG: CatalogEntry[] = [
 
   {
     kind: "line_graph",
-    family: "Homepage",
+    family: "Operational",
     label: "Line Graph",
     output: {
       kind: "line_graph",
@@ -809,7 +813,7 @@ export const CATALOG: CatalogEntry[] = [
 
   {
     kind: "analytics_table",
-    family: "Homepage",
+    family: "Operational",
     label: "Analytics Table",
     output: {
       kind: "analytics_table",
@@ -821,14 +825,13 @@ export const CATALOG: CatalogEntry[] = [
           { metric: "Revenue", thisWeek: "48.5K", lastWeek: "42.1K", delta: "+15.2%", direction: "up", isGood: true },
           { metric: "No-Shows", thisWeek: "3", lastWeek: "5", delta: "-40%", direction: "down", isGood: true },
         ],
-        insight: "Strong week across all metrics. Wait times improved significantly with new queue management.",
       },
     },
   },
 
   {
     kind: "condition_bar",
-    family: "Homepage",
+    family: "Operational",
     label: "Condition Distribution",
     output: {
       kind: "condition_bar",
@@ -848,7 +851,7 @@ export const CATALOG: CatalogEntry[] = [
 
   {
     kind: "heatmap",
-    family: "Homepage",
+    family: "Operational",
     label: "Appointment Heatmap",
     output: {
       kind: "heatmap",
@@ -939,11 +942,11 @@ export const CATALOG: CatalogEntry[] = [
       data: {
         title: "Clinical Timeline",
         events: [
-          { date: "Mar 2026", type: "visit", summary: "Current visit — headache, dizziness, BP 152/96" },
-          { date: "Feb 2026", type: "lab", summary: "HbA1c 8.2%, LDL 162 mg/dL — both elevated" },
-          { date: "Dec 2025", type: "visit", summary: "Routine follow-up — BP stable at 138/88" },
-          { date: "Sep 2025", type: "procedure", summary: "Coronary angiography — 40% LAD stenosis" },
-          { date: "Aug 2025", type: "admission", summary: "Admitted for acute chest pain — ACS ruled out" },
+          { date: "Mar 2026", type: "visit", summary: "Current visit (headache, dizziness, BP 152/96)" },
+          { date: "Feb 2026", type: "lab", summary: "HbA1c 8.2%, LDL 162 mg/dL (both elevated)" },
+          { date: "Dec 2025", type: "visit", summary: "Routine follow-up (BP stable at 138/88)" },
+          { date: "Sep 2025", type: "procedure", summary: "Coronary angiography (40% LAD stenosis)" },
+          { date: "Aug 2025", type: "admission", summary: "Acute chest pain admission (ACS ruled out)" },
         ],
       },
     },
@@ -960,21 +963,21 @@ export const CATALOG: CatalogEntry[] = [
         date: "09 Mar 2026",
         diagnoses: ["Hypertensive Urgency", "Type 2 Diabetes Mellitus"],
         medications: [
-          "Nifedipine 10mg — SL STAT",
-          "Amlodipine 10mg — OD (increased from 5mg)",
-          "Telmisartan 40mg — OD (new)",
-          "Metformin 500mg — BD (continue)",
+          "Nifedipine 10mg (Sublingual, Stat dose)",
+          "Amlodipine 10mg (Once daily, increased from 5mg)",
+          "Telmisartan 40mg (Once daily, new)",
+          "Metformin 500mg (Twice daily, continue)",
         ],
         investigations: ["Renal Function Panel", "ECG", "Urine Microalbumin"],
         advice: ["Monitor BP twice daily", "Reduce salt intake", "Brisk walk 30 min daily"],
-        followUp: "3 days — recheck BP after medication adjustment",
+        followUp: "3 days (Recheck BP after medication adjustment)",
       },
     },
   },
 
   {
     kind: "billing_summary",
-    family: "Homepage",
+    family: "Operational",
     label: "Billing Summary",
     output: {
       kind: "billing_summary",
@@ -999,7 +1002,7 @@ export const CATALOG: CatalogEntry[] = [
   },
   {
     kind: "external_cta",
-    family: "Homepage",
+    family: "Operational",
     label: "External CTA (Excel/Word Link)",
     output: {
       kind: "external_cta",
@@ -1059,6 +1062,148 @@ export const CATALOG: CatalogEntry[] = [
       },
     },
   },
+
+  // ── Missing Operational Cards ─────────────────────────────────
+
+  {
+    kind: "anc_schedule_list",
+    family: "Operational",
+    label: "ANC Schedule List",
+    output: {
+      kind: "anc_schedule_list",
+      data: {
+        title: "ANC Schedule Due",
+        overdueCount: 2,
+        dueCount: 5,
+        items: [
+          { patientName: "Priya Sharma", patientId: "P001", ancItem: "ANC-2 (Second Trimester Scan)", dueWeek: "Week 20", gestationalAge: "18 weeks", isOverdue: true },
+          { patientName: "Anjali Patel", patientId: "P002", ancItem: "ANC-3 (Glucose Tolerance Test)", dueWeek: "Week 24", gestationalAge: "22 weeks", isOverdue: false },
+          { patientName: "Lakshmi K", patientId: "P003", ancItem: "ANC-1 (Registration + Baseline)", dueWeek: "Week 12", gestationalAge: "10 weeks", isOverdue: true },
+        ],
+      },
+    },
+  },
+
+  {
+    kind: "follow_up_rate",
+    family: "Operational",
+    label: "Follow-up Rate",
+    output: {
+      kind: "follow_up_rate",
+      data: {
+        title: "Follow-up Rate",
+        currentRate: 82,
+        lastWeekRate: 78,
+        dueToday: 12,
+        overdueToday: 3,
+        completedThisWeek: 45,
+        scheduledThisWeek: 28,
+        trend: [
+          { label: "W1", rate: 75 },
+          { label: "W2", rate: 78 },
+          { label: "W3", rate: 79 },
+          { label: "W4", rate: 82 },
+        ],
+      },
+    },
+  },
+
+  {
+    kind: "revenue_comparison",
+    family: "Operational",
+    label: "Revenue Comparison",
+    output: {
+      kind: "revenue_comparison",
+      data: {
+        title: "Revenue Comparison",
+        primaryDateLabel: "This Week",
+        compareDateLabel: "Last Week",
+        primaryRevenue: 125000,
+        compareRevenue: 98500,
+        primaryRefunded: 8000,
+        compareRefunded: 5200,
+        primaryDeposits: 15000,
+        compareDeposits: 12000,
+        insight: "Revenue increased by 26.8% week-on-week",
+      },
+    },
+  },
+
+  {
+    kind: "vaccination_due_list",
+    family: "Operational",
+    label: "Vaccination Due List",
+    output: {
+      kind: "vaccination_due_list",
+      data: {
+        title: "Vaccination Due",
+        overdueCount: 1,
+        dueCount: 4,
+        items: [
+          { patientName: "Arjun Kumar", patientId: "C001", vaccineName: "Pentavalent", dose: "Dose 2/3", dueDate: "Mar 25, 2026", isOverdue: true },
+          { patientName: "Divya Nair", patientId: "C002", vaccineName: "MMR", dose: "Dose 1/2", dueDate: "Apr 5, 2026", isOverdue: false },
+          { patientName: "Meera S", patientId: "C003", vaccineName: "IPV Booster", dose: "Dose 1/1", dueDate: "Apr 10, 2026", isOverdue: false },
+        ],
+      },
+    },
+  },
+
+  {
+    kind: "due_patients",
+    family: "Operational",
+    label: "Due Patients",
+    output: {
+      kind: "due_patients",
+      data: {
+        title: "Patient Dues",
+        periodLabel: "Last 30 Days",
+        patientCount: 18,
+        totalDueAmount: 67500,
+        asOf: "Mar 31, 2026",
+        ctaLabel: "View All",
+      },
+    },
+  },
+
+  // ── Missing Utility Card ──────────────────────────────────────
+
+  {
+    kind: "completeness",
+    family: "Utility",
+    label: "Completeness Check",
+    output: {
+      kind: "completeness",
+      data: {
+        sections: [
+          { name: "Chief Complaint", filled: true, count: 1 },
+          { name: "Vital Signs", filled: true, count: 5 },
+          { name: "Physical Examination", filled: false, count: 0 },
+          { name: "Diagnosis", filled: true, count: 2 },
+          { name: "Medication", filled: false, count: 0 },
+          { name: "Advice", filled: true, count: 1 },
+          { name: "Follow-up", filled: false, count: 0 },
+        ],
+        emptyCount: 3,
+      },
+    },
+  },
+
+  // ── Missing Text Card ─────────────────────────────────────────
+
+  {
+    kind: "patient_narrative",
+    family: "Text",
+    label: "Patient Narrative",
+    output: {
+      kind: "patient_narrative",
+      data: {
+        patientNarrative: "45-year-old male with uncontrolled hypertension and Type 2 diabetes since 2019. Presenting with persistent headache (3 days), dizziness (1 week), and blurred vision (2 days). Missed last 2 follow-ups. Currently on Amlodipine 5mg and Metformin 500mg.",
+        specialtyTags: ["Hypertension", "Type 2 DM"],
+        followUpOverdueDays: 12,
+        labFlagCount: 3,
+      },
+    },
+  },
 ]
 
 // ═══════ FAMILY METADATA ═══════
@@ -1067,12 +1212,13 @@ const FAMILIES = [
   { id: "all", label: "All Cards", count: CATALOG.length },
   { id: "Summary", label: "Summary", count: CATALOG.filter(c => c.family === "Summary").length },
   { id: "Data", label: "Data", count: CATALOG.filter(c => c.family === "Data").length },
+  { id: "Clinical", label: "Clinical", count: CATALOG.filter(c => c.family === "Clinical").length },
   { id: "Action", label: "Action", count: CATALOG.filter(c => c.family === "Action").length },
   { id: "Analysis", label: "Analysis", count: CATALOG.filter(c => c.family === "Analysis").length },
   { id: "Utility", label: "Utility", count: CATALOG.filter(c => c.family === "Utility").length },
   { id: "Safety", label: "Safety", count: CATALOG.filter(c => c.family === "Safety").length },
   { id: "Text", label: "Text", count: CATALOG.filter(c => c.family === "Text").length },
-  { id: "Homepage", label: "Homepage", count: CATALOG.filter(c => c.family === "Homepage").length },
+  { id: "Operational", label: "Operational", count: CATALOG.filter(c => c.family === "Operational").length },
 ]
 
 // ═══════ COMPONENT ═══════

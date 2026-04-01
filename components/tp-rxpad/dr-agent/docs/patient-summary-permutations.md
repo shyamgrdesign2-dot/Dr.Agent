@@ -59,7 +59,7 @@ The Patient Summary card is the most complex card in the system. Its content is 
 │  [No labs section — none available]                    │
 │  [No concern trend — no historical data]               │
 │                                                        │
-│  Pills: Review intake, Suggest DDX, Initial workup     │
+│  Pills: Pre-visit intake, Suggest DDX, Initial workup     │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -293,6 +293,8 @@ One-liner format: `"[Conditions] patient, on [key meds], last visited [date] wit
 
 Generated from: `patientNarrative` + `chronicConditions[0..2]` + `activeMeds[0..2]` + `lastVisit.date` + `lastVisit.diagnosis`
 
+**SBAR alignment note:** The `patientNarrative` field is now the primary source for the SBAR Overview Card's Situation line (Priority 1), ensuring the tooltip summary shown on the appointment queue hover matches the Situation text inside the consultation. This creates a consistent experience as the doctor transitions from queue to consult. See `sbar-overview-card-spec.md` Section 3 for the full priority chain.
+
 **If no history:** `"New patient with [self-reported symptoms]. [Allergy note]."`
 **If no symptoms:** `"Returning patient with [conditions]. Last visit [date], [diagnosis]."`
 
@@ -480,3 +482,52 @@ When the doctor opens the homepage (no patient selected), the agent shows:
 | Returning + Symptoms + History + Multi-specialty | Anjali P (apt-anjali) | Ophthalmology + Gynec on GP base |
 | Returning + Symptoms + History + Overdue Follow-up | Vikram S (apt-vikram) | Metabolic syndrome, risk stratification |
 | **Returning + No Symptoms + Full History (Registered)** | **Suresh N (reg-suresh)** | **History-only workflow, registered patient** |
+
+---
+
+## 8. SBAR Overview Card (`sbar_overview`) Handling Per Permutation
+
+The `sbar_overview` card is the primary summary shown when a doctor asks for "Patient Summary". It renders using the same `SmartSummaryData` but presents it in SBAR sections. Each section is independently shown/hidden based on data availability.
+
+### P1: New Patient, No History
+
+| Section | Shown? | Content |
+|---------|--------|---------|
+| **S (Situation)** | Yes | "New patient, no prior clinical data available." |
+| **B (Background)** | Hidden | No conditions, no allergies, no meds |
+| **A (Assessment)** | Hidden | No vitals, no labs |
+| **Last Visit** | Hidden | No prior visits |
+| **R (Recommendation)** | Hidden | No actionable items |
+
+### P2: Returning, History Only (No Intake)
+
+| Section | Shown? | Content |
+|---------|--------|---------|
+| **S (Situation)** | Yes | Composed from chronic conditions + current meds + last visit date |
+| **B (Background)** | Yes | Conditions, allergies, active meds (max 6) |
+| **A (Assessment)** | Conditional | Vitals if recorded today; Labs if available |
+| **Last Visit** | Yes | Date, diagnosis, symptoms from previous visit |
+| **R (Recommendation)** | Conditional | Follow-up overdue, critical vitals, due alerts |
+
+### P3: Returning, Full Data (History + Intake)
+
+| Section | Shown? | Content |
+|---------|--------|---------|
+| **S (Situation)** | Yes | Composed from symptoms + chronic conditions + drug allergies + meds + last visit |
+| **B (Background)** | Yes | Full: Conditions, allergies (with drug allergies), active meds |
+| **A (Assessment)** | Yes | Today's vitals with flags + key labs with indicators |
+| **Last Visit** | Yes | Full previous visit context |
+| **R (Recommendation)** | Yes | All applicable: overdue follow-up, critical vitals, due alerts, cross-problem flags |
+
+### P4: Limited History (Partial Data)
+
+| Section | Shown? | Content |
+|---------|--------|---------|
+| **S (Situation)** | Yes | Whatever is available (may be 1 sentence) |
+| **B (Background)** | Partial | Only sub-sections with data (e.g., meds but no allergies) |
+| **A (Assessment)** | Partial | Vitals or labs (whichever is available) |
+| **Last Visit** | Conditional | Only if prior visit exists |
+| **R (Recommendation)** | Conditional | Only critical items |
+
+### Key Rule
+Each section is hidden entirely if it has no data. No placeholder dashes, no "N/A" values, no empty labels. The card gracefully degrades from 5 sections (richest) to 1 section (Situation only for new patients).

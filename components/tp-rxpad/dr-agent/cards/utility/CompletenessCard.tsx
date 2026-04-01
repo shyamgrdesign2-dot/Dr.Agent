@@ -2,7 +2,7 @@
 
 import { CheckCircle, Circle } from "lucide-react"
 import { CardShell } from "../CardShell"
-import { ChatPillButton } from "../ActionRow"
+
 import { cn } from "@/lib/utils"
 import type { CompletenessSection } from "../../types"
 
@@ -15,36 +15,6 @@ interface CompletenessCardProps {
 }
 
 export function CompletenessCard({ data, onPillTap }: CompletenessCardProps) {
-  const emptySections = data.sections.filter((s) => !s.filled)
-
-  // Generate action pills for empty sections
-  const actionPills: Array<{ label: string }> = []
-  for (const section of emptySections) {
-    const name = section.name.toLowerCase()
-    if (
-      name.includes("investigation") ||
-      name.includes("lab")
-    ) {
-      actionPills.push({ label: "Suggest inv" })
-    } else if (
-      name.includes("advice") ||
-      name.includes("notes")
-    ) {
-      actionPills.push({ label: "Advice" })
-    } else if (
-      name.includes("follow") ||
-      name.includes("next")
-    ) {
-      actionPills.push({ label: "Follow-up" })
-    }
-  }
-
-  // Deduplicate pills
-  const uniquePills = actionPills.filter(
-    (pill, i, arr) =>
-      arr.findIndex((p) => p.label === pill.label) === i
-  )
-
   return (
     <CardShell
       icon={<span />}
@@ -59,19 +29,7 @@ export function CompletenessCard({ data, onPillTap }: CompletenessCardProps) {
             }
           : undefined
       }
-      actions={
-        uniquePills.length > 0 ? (
-          <>
-            {uniquePills.map((pill) => (
-              <ChatPillButton
-                key={pill.label}
-                label={pill.label}
-                onClick={() => onPillTap?.(pill.label)}
-              />
-            ))}
-          </>
-        ) : undefined
-      }
+
     >
       <div className="space-y-0">
         {data.sections.map((section, i) => (
@@ -90,7 +48,7 @@ export function CompletenessCard({ data, onPillTap }: CompletenessCardProps) {
             {/* Section name */}
             <span
               className={cn(
-                "flex-1 text-[12px]",
+                "flex-1 text-[16px]",
                 section.filled
                   ? "text-tp-slate-600"
                   : "font-medium text-tp-slate-500"
@@ -101,7 +59,7 @@ export function CompletenessCard({ data, onPillTap }: CompletenessCardProps) {
 
             {/* Count badge */}
             {section.count != null && (
-              <span className="rounded-[4px] bg-tp-slate-100 px-1 py-[0.5px] text-[10px] text-tp-slate-400">
+              <span className="rounded-[4px] bg-tp-slate-100 px-1 py-[0.5px] text-[14px] text-tp-slate-400">
                 {section.count}
               </span>
             )}

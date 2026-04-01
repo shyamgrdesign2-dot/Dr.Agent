@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowLeft2, Hospital, User, Activity, Microscope, Heart, Eye, Woman, DocumentText, Cpu, Brush2, SearchNormal1 } from "iconsax-reactjs"
+import { ArrowLeft2, Hospital, User, Activity, Microscope, Heart, Eye, Woman, DocumentText, Cpu, Brush2, SearchNormal1, MagicStar } from "iconsax-reactjs"
 import DesignSystemTab from "./DesignSystemTab"
 import PatientSummaryLogicTab from "./PatientSummaryLogicTab"
 import ClinicalResearchTab from "./ClinicalResearchTab"
 import { IntentClassificationContent } from "@/app/intent-classification/page"
+import FtuxDiscoveryTab from "./FtuxDiscoveryTab"
 
 // ─────────────────────────────────────────────────────────────
 // Scenarios Documentation Page
@@ -520,7 +521,7 @@ const PHASES = [
 
 // ─── Page Component ──────────────────────────────────────────
 
-type PageTab = "clinical-research" | "summary-logic" | "intent-classification" | "design-system" | "scenarios"
+type PageTab = "clinical-research" | "summary-logic" | "intent-classification" | "design-system" | "scenarios" | "ftux-discovery"
 
 export default function ScenariosPage() {
   const [expandedPatient, setExpandedPatient] = useState<string | null>("apt-zerodata")
@@ -581,6 +582,7 @@ export default function ScenariosPage() {
                 { id: "intent-classification" as PageTab, label: "Response System", icon: <Cpu size={14} variant="Bold" /> },
                 { id: "summary-logic" as PageTab, label: "Patient Summary", icon: <DocumentText size={14} variant="Bold" /> },
                 { id: "design-system" as PageTab, label: "Card System & Spec", icon: <Brush2 size={14} variant="Bold" /> },
+                { id: "ftux-discovery" as PageTab, label: "Discovery & FTUX", icon: <MagicStar size={14} variant="Bold" /> },
               ]).map(tab => (
                 <button
                   key={tab.id}
@@ -631,6 +633,10 @@ export default function ScenariosPage() {
       ) : activeTab === "summary-logic" ? (
         <div className="mx-auto max-w-5xl px-6 py-8">
           <PatientSummaryLogicTab />
+        </div>
+      ) : activeTab === "ftux-discovery" ? (
+        <div className="mx-auto max-w-5xl px-6 py-8">
+          <FtuxDiscoveryTab />
         </div>
       ) : (
       <div className="mx-auto max-w-5xl px-6 py-8">

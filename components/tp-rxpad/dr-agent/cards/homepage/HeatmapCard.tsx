@@ -1,8 +1,9 @@
 "use client"
 import React from "react"
-import { Calendar2 } from "iconsax-reactjs"
+import { Calendar2, DocumentDownload } from "iconsax-reactjs"
 import { CardShell } from "../CardShell"
 import { SidebarLink } from "../SidebarLink"
+import { FooterCTA } from "../FooterCTA"
 import type { HeatmapCardData } from "../../types"
 import { downloadAsExcel } from "../../utils/downloadExcel"
 
@@ -30,11 +31,11 @@ export function HeatmapCard({ data, onPillTap }: Props) {
     <CardShell
       icon={<Calendar2 size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
       title={data.title}
-      sidebarLink={<SidebarLink text="Download as Excel" onClick={handleDownload} />}
+      sidebarLink={<FooterCTA label="Download as Excel" onClick={handleDownload} tone="secondary" iconLeft={<DocumentDownload size={14} variant="Linear" />} />}
     >
       <div className="py-[2px]">
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-[10px]">
+        <table className="w-full border-collapse text-[12px]">
           <thead>
             <tr>
               <th className="p-[3px] text-left font-semibold text-tp-slate-400" />
@@ -68,7 +69,7 @@ export function HeatmapCard({ data, onPillTap }: Props) {
       </div>
 
       {/* Legend */}
-      <div className="mt-[6px] flex gap-[10px] text-[8px] text-tp-slate-400">
+      <div className="mt-[6px] flex gap-[10px] text-[12px] text-tp-slate-400">
         <span className="flex items-center gap-[3px]"><span className="inline-block h-[8px] w-[8px] rounded-[2px]" style={{ background: INTENSITY_COLORS.low }} /> 1&ndash;3</span>
         <span className="flex items-center gap-[3px]"><span className="inline-block h-[8px] w-[8px] rounded-[2px]" style={{ background: INTENSITY_COLORS.medium }} /> 4&ndash;6</span>
         <span className="flex items-center gap-[3px]"><span className="inline-block h-[8px] w-[8px] rounded-[2px]" style={{ background: INTENSITY_COLORS.high }} /> 7+</span>

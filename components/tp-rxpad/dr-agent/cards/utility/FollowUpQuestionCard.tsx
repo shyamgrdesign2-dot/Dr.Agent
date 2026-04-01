@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { TickCircle } from "iconsax-reactjs"
+import { TickCircle, Send2 } from "iconsax-reactjs"
 import { CardShell } from "../CardShell"
 import { CheckboxRow } from "../CheckboxRow"
 import { RadioRow } from "../RadioRow"
@@ -64,9 +64,8 @@ export function FollowUpQuestionCard({
           label={`Submit${selectedOptions.length > 0 ? ` (${selectedOptions.length})` : ""}`}
           onClick={() => onSubmit?.(selectedOptions)}
           disabled={selectedOptions.length === 0}
-          tone="primary"
-          align="center"
-          iconLeft={<TickCircle size={14} variant="Linear" />}
+          tone="secondary"
+          iconLeft={<TickCircle size={14} variant="Bold" />}
         />
       }
     >

@@ -2,7 +2,6 @@
 
 import { type SidebarPill, SIDEBAR_TAB_PILLS } from "./sidebar-pills"
 import { useRxPadSync } from "@/components/tp-rxpad/rxpad-sync-context"
-import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
 import { AiGradientBg } from "@/components/tp-rxpad/dr-agent/shared/AiGradientBg"
 
 /**
@@ -54,11 +53,6 @@ export function SidebarPillBar({ sectionId }: { sectionId: string }) {
                 onClick={() => handlePillClick(pill)}
                 className={`inline-flex h-[26px] items-center gap-1 whitespace-nowrap ${pill.danger ? DANGER_PILL_CLASS : AI_PILL_CLASS}`}
               >
-                {pill.icon === "spark" ? (
-                  <AiBrandSparkIcon size={12} className="flex-shrink-0" />
-                ) : (
-                  <span className="text-[10px]">{pill.icon}</span>
-                )}
                 {pill.label}
               </button>
             ))}

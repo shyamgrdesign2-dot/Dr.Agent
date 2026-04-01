@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { SectionTag } from "./SectionTag"
 import { ActionableTooltip } from "./ActionableTooltip"
 import { CopyIcon } from "./CopyIcon"
@@ -75,6 +76,69 @@ function extractDisplayName(subValue: string): string {
   return match ? match[1].trim() : subValue.trim()
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════
+ * COLOR HIERARCHY SYSTEM FOR INLINE VALUES
+ * ═══════════════════════════════════════════════════════════════
+ *
+ * Simple rule:
+ *   • Text before brackets → tp-slate-700 (primary, dark)
+ *   • Text inside brackets → tp-slate-400 (secondary, lighter)
+ *   • Pipe dividers ( | ) and dot ( · ) → tp-slate-200 (lightest)
+ *   • Commas stay same color as surrounding text
+ *
+ * That's it. No complex classification of what's "numeric" vs "clinical".
+ * The bracket is the only delimiter between primary and secondary.
+ *
+ * Examples:
+ *   "Diabetes (2yr, Active)" → "Diabetes" dark + "(2yr, Active)" light
+ *   "35-40 days (Irregular)" → "35-40 days" dark + "(Irregular)" light
+ *   "7 days · Heavy (5 pads/day)" → "7 days" dark + "·" lightest + "Heavy" dark + "(5 pads/day)" light
+ * ═══════════════════════════════════════════════════════════════
+ */
+
+function renderWithColorHierarchy(text: string, flagClass: string): React.ReactNode {
+  // 1. Parenthetical suffixes: "Diabetes (1yr)" → primary + (secondary)
+  const parenMatch = text.match(/^(.+?)(\s*\([^)]+\))$/)
+  if (parenMatch) {
+    return (
+      <>
+        <span className={flagClass}>{parenMatch[1].trim()}</span>
+        <span className="text-tp-slate-400 font-normal">{parenMatch[2]}</span>
+      </>
+    )
+  }
+
+  // 2. Dot/bullet separated: "7 days · Heavy (5 pads/day)"
+  if (text.includes(" · ")) {
+    const segments = text.split(" · ")
+    return (
+      <>
+        {segments.map((seg, i) => {
+          const trimSeg = seg.trim()
+          const innerParen = trimSeg.match(/^(.+?)(\s*\([^)]+\))$/)
+          return (
+            <React.Fragment key={i}>
+              {i > 0 && <span className="text-tp-slate-200"> · </span>}
+              {innerParen ? (
+                <>
+                  <span className={flagClass}>{innerParen[1].trim()}</span>
+                  <span className="text-tp-slate-400 font-normal">{innerParen[2]}</span>
+                </>
+              ) : (
+                <span className={flagClass}>{trimSeg}</span>
+              )}
+            </React.Fragment>
+          )
+        })}
+      </>
+    )
+  }
+
+  // 3. Default: primary (dark)
+  return <span className={flagClass}>{text}</span>
+}
+
 export function InlineDataRow({
   tag,
   tagIcon,
@@ -106,20 +170,19 @@ export function InlineDataRow({
   }
 
   /** Render a single (non-compound) value with ActionableTooltip */
+  /** Render a single (non-compound) value with color hierarchy applied */
   const renderSimpleValue = (v: InlineValue) => {
     const flagPrefix = v.flag === "high" ? "\u2191" : v.flag === "low" ? "\u2193" : ""
     const displayValue = `${flagPrefix}${v.value}`
     const copyText = `${v.key}: ${displayValue}`
     const tooltipLabel = `Fill ${truncate(copyText)} to ${destinationLabel}`
+    const flagClass = cn(FLAG_STYLES[v.flag || "normal"])
 
     if (!showCopy) {
       return (
         <span className="inline-flex items-baseline">
-          <span className="text-tp-slate-400">{v.key}:&nbsp;</span>
-          <span className={cn(FLAG_STYLES[v.flag || "normal"])}>
-            {displayValue}
-          </span>
-
+          {v.key && <span className="text-tp-slate-400">{v.key}:&nbsp;</span>}
+          {renderWithColorHierarchy(displayValue, flagClass)}
         </span>
       )
     }
@@ -130,11 +193,8 @@ export function InlineDataRow({
         onAction={() => handleCopyText(copyText)}
       >
         <span className="inline-flex items-baseline cursor-pointer">
-          <span className="text-tp-slate-400">{v.key}:&nbsp;</span>
-          <span className={cn(FLAG_STYLES[v.flag || "normal"])}>
-            {displayValue}
-          </span>
-
+          {v.key && <span className="text-tp-slate-400">{v.key}:&nbsp;</span>}
+          {renderWithColorHierarchy(displayValue, flagClass)}
         </span>
       </ActionableTooltip>
     )
@@ -150,14 +210,12 @@ export function InlineDataRow({
     if (!showCopy) {
       return (
         <span className="inline">
-          <span className="text-tp-slate-400">{v.key}:&nbsp;</span>
+          {v.key && <span className="text-tp-slate-400">{v.key}:&nbsp;</span>}
           {subValues.map((sub, j) => (
             <span key={j}>
-              <span className={cn(FLAG_STYLES[v.flag || "normal"])}>
-                {sub}
-              </span>
+              {renderWithColorHierarchy(sub, cn(FLAG_STYLES[v.flag || "normal"]))}
               {j < subValues.length - 1 && (
-                <span className="text-tp-slate-800">, </span>
+                <span className="text-tp-slate-400">, </span>
               )}
             </span>
           ))}
@@ -172,10 +230,10 @@ export function InlineDataRow({
           label={keyTooltipLabel}
           onAction={() => handleCopyText(keyCopyText)}
         >
-          <span className="text-tp-slate-400 cursor-pointer">{v.key}:&nbsp;</span>
+          <span className="text-tp-slate-400 cursor-pointer">{v.key ? `${v.key}: ` : ""}</span>
         </ActionableTooltip>
 
-        {/* Each sub-value gets its own tooltip */}
+        {/* Each sub-value gets its own tooltip — with color hierarchy for durations */}
         {subValues.map((sub, j) => {
           const displayName = extractDisplayName(sub)
           const subTooltipLabel = `Fill ${truncate(displayName)} to ${destinationLabel}`
@@ -186,12 +244,12 @@ export function InlineDataRow({
                 label={subTooltipLabel}
                 onAction={() => handleCopyText(sub)}
               >
-                <span className={cn(FLAG_STYLES[v.flag || "normal"], "cursor-pointer")}>
-                  {sub}
+                <span className="cursor-pointer">
+                  {renderWithColorHierarchy(sub, cn(FLAG_STYLES[v.flag || "normal"]))}
                 </span>
               </ActionableTooltip>
               {j < subValues.length - 1 && (
-                <span className="text-tp-slate-800">, </span>
+                <span className="text-tp-slate-400">, </span>
               )}
             </span>
           )
@@ -203,7 +261,7 @@ export function InlineDataRow({
   return (
     <div
       className={cn(
-        "relative rounded-[4px] px-[3px] -mx-[3px] text-[12px] leading-[1.7] text-tp-slate-800 transition-colors",
+        "relative rounded-[4px] px-[3px] -mx-[3px] text-[16px] leading-[1.7] text-tp-slate-800 transition-colors",
         showCopy
           ? "group/section pr-[20px] hover:bg-tp-slate-50/80"
           : "",
@@ -229,14 +287,14 @@ export function InlineDataRow({
             : renderSimpleValue(v)
           }
           {i < values.length - 1 && (
-            <span className="mx-[3px] text-tp-slate-300">|</span>
+            <span className="mx-[6px] text-tp-slate-200">|</span>
           )}
         </span>
       ))}
 
       {/* Trailing note — lighter italic text (e.g. doctor name on last visit) */}
       {trailingNote && (
-        <span className="ml-[4px] text-[10px] italic text-tp-slate-400 font-normal">
+        <span className="ml-[4px] text-[14px] italic text-tp-slate-400 font-normal">
           — {trailingNote}
         </span>
       )}

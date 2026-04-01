@@ -1,7 +1,7 @@
 # Dr. Agent — Card Catalog (Detailed)
 
 > Every card: what it does, when to use it, what triggers it, and how to vary it.
-> 54 card kinds organized by family.
+> 60 card kinds organized by family.
 
 ---
 
@@ -17,9 +17,40 @@
 
 ---
 
-## A. Summary Family (7 cards)
+## A. Summary Family (8 cards)
 
-### A1. `patient_summary` — Patient Overview
+### A0. `sbar_overview` — SBAR Patient Summary
+**What it does:** Structured patient handoff card using SBAR framework: Situation (short summary), Background (conditions, allergies, meds), Assessment (vitals, labs with flags), Recommendation (actionable alerts). Primary quick-scan card for consultation prep.
+
+**When triggered:**
+- "Patient summary", "summary", "snapshot" pills or free-text
+- "sbar", "s-bar", "handoff" queries
+- Pre-consult prep queries
+
+**Scenario:** Doctor opens a patient record and needs a structured 30-second scan: what's the situation, what's the history, what are today's numbers, and what needs attention right now.
+
+**Key params:** `SmartSummaryData` (same as patient_summary). Data mapped internally:
+- **S (Situation):** Composed from symptoms, chronic conditions, drug allergies, current meds, last visit (follows SUMMARY_COMPOSITION_ORDER). Falls back to `sbarSituation` if pre-written.
+- **B (Background):** `chronicConditions[]`, `allergies[]`, `activeMeds[]` (max 6, shortened). Rendered with `formatWithHierarchy()` for color differentiation.
+- **A (Assessment):** `todayVitals` (BP, Pulse, SpO2, Temp, Wt) + `keyLabs[]` (max 4, with flag indicators).
+- **R (Recommendation):** `followUpOverdueDays`, critical vitals (BP<=90 or >=160, SpO2<92, Temp>=104), top 2 `dueAlerts`, 1 critical `crossProblemFlag`.
+
+**Permutations:**
+| Permutation | Data present | What changes |
+|-------------|-------------|--------------|
+| New patient, no data | None | Situation: "New patient, no prior clinical data available." All other sections hidden |
+| Returning, no intake | chronicConditions, meds, lastVisit | S from conditions + last visit. B, A (if vitals), Last Visit shown. |
+| Returning with intake | + symptomCollectorData | Richest: S from symptoms + conditions. All sections visible. |
+| Limited history | Only some fields | Each section shown/hidden independently per data availability |
+
+**Completeness donut:** No
+**Source tag:** EMR + Lab Results + Past Visits
+
+**Compared to patient_summary:** SBAR Overview is the primary summary (quick structured scan, ~30 seconds). GPSummaryCard (patient_summary) is the detailed summary (comprehensive, ~2 minutes).
+
+---
+
+### A1. `patient_summary` — Patient Overview (Detailed)
 **What it does:** Full patient snapshot at consultation start — vitals, labs, history, last visit, specialty data. Follows SBAR ordering.
 
 **When triggered:**
@@ -48,13 +79,13 @@
 ---
 
 ### A2. `patient_narrative` — Clinical Narrative
-**What it does:** Standalone italic narrative block — the AI-generated clinical summary sentence.
+**What it does:** Standalone violet-bordered narrative paragraph block — the AI-generated clinical summary. Renders without CardShell.
 
-**When triggered:** Used internally as part of patient_summary rendering. Rarely standalone.
+**When triggered:** Used internally as part of patient_summary rendering. Can also appear standalone in chat.
 
 **Scenario:** When only the narrative is needed without the full card (e.g., inline in chat text).
 
-**Key params:** `SmartSummaryData` (same as patient_summary)
+**Key params:** `patientNarrative`, `specialtyTags`, `followUpOverdueDays`, `labFlagCount`
 
 **Permutations:** Same as patient_summary — narrative text adapts to available data.
 
@@ -306,7 +337,7 @@
 
 ---
 
-## C. Clinical Family (1 card)
+## C. Clinical Family (2 cards)
 
 ### C1. `pomr_problem_card` — Problem-Oriented Medical Record
 **What it does:** Per-problem card for chronic conditions — shows relevant labs (with provenance), current medications, missing fields with actionable prompts, and a data completeness donut.
@@ -337,6 +368,25 @@
 - Missing fields as interactive chips with prompts (e.g., "Order PTH test")
 - Cross-problem flags via InsightBox
 - Data completeness donut in the header
+
+---
+
+### C2. `sbar_critical` — Emergency Summary
+**What it does:** SBAR-structured emergency summary for critical patients — Situation, Background, Assessment, Recommendation. Used for emergency handoff.
+
+**When triggered:** Critical patient detected (SpO2 < 90, emergency vitals)
+
+**Scenario:** Emergency case. Doctor needs structured handoff format — what's happening, what's the history, what's critical, what to do.
+
+**Key params:**
+- S (situation): narrative
+- B (background): active problems
+- A (assessment): critical flags (2-column grid)
+- R (recommendation): key medications + recent ER admissions
+- allergies with red badges
+
+**Completeness donut:** Yes (EMR 70% + AI 20% + Missing 10%)
+**Source tag:** EMR + AI
 
 ---
 
@@ -519,7 +569,7 @@
 
 **When triggered:** "Completeness check" pill, near_complete phase
 
-**Key params:** `sections[]` (name, filled, count?), `emptyCount`
+**Key params:** `sections[]` (name, filled, count), `emptyCount`
 
 **Source tag:** EMR
 
@@ -586,7 +636,7 @@
 
 ---
 
-## H. Text Family (6 variants)
+## H. Text Family (7 variants)
 
 ### H1. `text_fact` — Single Fact Display
 **Scenario:** Doctor asks "What's the normal range for PTH?" → Concise answer with source.
@@ -606,9 +656,14 @@
 ### H6. `text_comparison` — Two-Column Comparison
 **Scenario:** "Compare Metformin vs Glimepiride" → Side-by-side comparison.
 
+### H7. `patient_narrative` — Patient Narrative Block
+**What it does:** Violet-bordered narrative paragraph. Renders without CardShell.
+**Scenario:** Inline clinical narrative in chat or as a standalone summary block.
+**Key params:** `patientNarrative`, `specialtyTags`, `followUpOverdueDays`, `labFlagCount`
+
 ---
 
-## I. Homepage / Operational Family (12+ cards)
+## I. Operational Family (19 cards)
 
 ### I1. `welcome_card` — Daily Greeting
 **Scenario:** Doctor opens the app. Sees today's schedule, patient count, pending follow-ups.
@@ -624,28 +679,62 @@
 **Scenario:** Doctor asks "Details about Neha" → Search card with results, clickable to load patient.
 **Key params:** `query`, `results[]` (name, meta, hasAppointmentToday)
 
-### I5-I12. Analytics & Revenue Cards
-`revenue_bar`, `revenue_comparison`, `donut_chart`, `pie_chart`, `line_graph`, `analytics_table`, `condition_bar`, `heatmap`, `billing_summary`, `vaccination_due_list`, `anc_schedule_list`, `due_patients`, `follow_up_rate`, `bulk_action`, `external_cta`
+### I5. `revenue_bar` — Daily Revenue Bar Chart
+**Scenario:** Doctor checks daily revenue breakdown by consultation type.
+**Key params:** `title`, `series[]`, `total`, `periodLabel`
 
-**Scenario:** Clinic analytics — revenue tracking, patient demographics, appointment density, diagnosis breakdown.
+### I6. `revenue_comparison` — Revenue Comparison
+**What it does:** Side-by-side revenue comparison across two date ranges with refunds and deposits.
+**Scenario:** Doctor compares this week's revenue to last week, or this month to previous month.
+**Key params:** `title`, `primaryDateLabel`, `compareDateLabel`, `primaryRevenue`, `compareRevenue`, `primaryRefunded`, `compareRefunded`, `primaryDeposits`, `compareDeposits`, `insight`
 
----
+### I7. `donut_chart` — Patient Distribution Donut
+**Scenario:** Demographics or condition distribution as a donut chart.
+**Key params:** `title`, `segments[]`, `total`
 
-## SBAR Critical Card (Special)
+### I8. `pie_chart` — Consultation Type Breakdown
+**Scenario:** Consultation type split (new vs. follow-up, in-clinic vs. teleconsult).
+**Key params:** `title`, `segments[]`, `total`
 
-### `sbar_critical` — Emergency Summary
-**What it does:** SBAR-structured emergency summary — Situation, Background, Assessment, Recommendation. Used for critical patients.
+### I9. `line_graph` — Daily Patient Count Trend
+**Scenario:** Patient volume over a date range.
+**Key params:** `title`, `series[]`, `xLabels[]`
 
-**When triggered:** Critical patient detected (SpO2 < 90, emergency vitals)
+### I10. `analytics_table` — KPI Dashboard
+**Scenario:** Weekly KPIs with week-over-week comparison.
+**Key params:** `title`, `columns[]`, `rows[]`
 
-**Scenario:** Emergency case. Doctor needs structured handoff format — what's happening, what's the history, what's critical, what to do.
+### I11. `condition_bar` — Top Conditions
+**Scenario:** Most common diagnoses as horizontal bars.
+**Key params:** `title`, `items[]` (condition, count, percentage)
 
-**Key params:**
-- S (situation): narrative
-- B (background): active problems
-- A (assessment): critical flags (2-column grid)
-- R (recommendation): key medications + recent ER admissions
-- allergies with red badges
+### I12. `heatmap` — Appointment Density
+**Scenario:** Busiest hours/days shown as a heatmap grid.
+**Key params:** `title`, `xLabels[]`, `yLabels[]`, `data[][]`
 
-**Completeness donut:** Yes (EMR 70% + AI 20% + Missing 10%)
-**Source tag:** EMR + AI
+### I13. `billing_summary` — Session Billing
+**Scenario:** Payment status breakdown for billing queries.
+**Key params:** `title`, `items[]`, `totalCollected`, `totalPending`
+
+### I14. `anc_schedule_list` — ANC Schedule List
+**What it does:** Lists ANC patients with due/overdue status for clinic-level tracking.
+**Scenario:** Doctor or staff reviews which pregnant patients are due or overdue for their ANC visits.
+**Key params:** `title`, `overdueCount`, `dueCount`, `items[]` (patientName, patientId, ancItem, dueWeek, gestationalAge, isOverdue)
+
+### I15. `follow_up_rate` — Follow-Up Rate Analytics
+**What it does:** Follow-up compliance rate with trend sparkline and daily counts.
+**Scenario:** Doctor reviews follow-up adherence: what percentage of scheduled follow-ups were completed this week.
+**Key params:** `title`, `currentRate`, `lastWeekRate`, `dueToday`, `overdueToday`, `completedThisWeek`, `scheduledThisWeek`, `trend[]` (label, rate)
+
+### I16. `vaccination_due_list` — Vaccination Due List
+**What it does:** Lists patients due or overdue for vaccinations, with vaccine name and dose.
+**Scenario:** Staff checks which patients need vaccination reminders.
+**Key params:** `title`, `overdueCount`, `dueCount`, `items[]` (patientName, patientId, vaccineName, dose, dueDate, isOverdue)
+
+### I17. `due_patients` — Patient Dues Summary
+**What it does:** Summary of outstanding patient dues with count and total amount.
+**Scenario:** Doctor or billing staff reviews pending payments.
+**Key params:** `title`, `periodLabel`, `patientCount`, `totalDueAmount`, `asOf`, `ctaLabel`
+
+### I-extra. `bulk_action`, `external_cta`
+**Scenario:** Batch operations (SMS reminders) and external CTAs (links to reports, tools).

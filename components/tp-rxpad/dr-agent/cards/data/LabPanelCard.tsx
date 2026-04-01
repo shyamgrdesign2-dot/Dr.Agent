@@ -1,8 +1,7 @@
 "use client"
 
 import { CardShell } from "../CardShell"
-import { InsightBox } from "../InsightBox"
-import { ChatPillButton } from "../ActionRow"
+
 import { SidebarLink } from "../SidebarLink"
 import { cn } from "@/lib/utils"
 import type { LabPanelData } from "../../types"
@@ -36,12 +35,7 @@ export function LabPanelCard({ data, onPillTap, onSidebarNav }: LabPanelCardProp
           : undefined
       }
       dataSources={["EMR Records", "Lab Reports"]}
-      actions={
-        <>
-          <ChatPillButton label="Compare prev" onClick={() => onPillTap?.("Compare prev")} />
-          <ChatPillButton label="HbA1c trend" onClick={() => onPillTap?.("HbA1c trend")} />
-        </>
-      }
+
       sidebarLink={
         <SidebarLink
           text={data.hiddenNormalCount > 0
@@ -55,7 +49,7 @@ export function LabPanelCard({ data, onPillTap, onSidebarNav }: LabPanelCardProp
       {/* Grid-based lab results table */}
       <div className="overflow-hidden rounded-[8px] border border-tp-slate-100">
         {/* Header */}
-        <div className="grid grid-cols-3 gap-[1px] bg-tp-slate-100 px-[8px] py-[4px] text-[10px] font-medium text-tp-slate-500 uppercase tracking-wider">
+        <div className="grid grid-cols-3 gap-[1px] bg-tp-slate-100 px-[8px] py-[4px] text-[14px] font-medium text-tp-slate-500 uppercase tracking-wider">
           <span>Parameter</span>
           <span>Value</span>
           <span>Ref Range</span>
@@ -65,9 +59,8 @@ export function LabPanelCard({ data, onPillTap, onSidebarNav }: LabPanelCardProp
             <div
               key={item.name}
               className={cn(
-                "grid grid-cols-3 gap-[1px] px-[8px] py-[6px] text-[12px]",
+                "grid grid-cols-3 gap-[1px] px-[8px] py-[6px] text-[16px]",
                 i % 2 === 0 ? "bg-white" : "bg-tp-slate-50",
-                "border-l-[2px] border-tp-error-300",
               )}
             >
               <span className="font-medium text-tp-slate-700 truncate">{item.name}</span>
@@ -80,8 +73,6 @@ export function LabPanelCard({ data, onPillTap, onSidebarNav }: LabPanelCardProp
         ))}
       </div>
 
-      {/* Insight */}
-      <InsightBox variant="red">{data.insight}</InsightBox>
     </CardShell>
   )
 }

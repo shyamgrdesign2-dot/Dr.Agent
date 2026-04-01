@@ -4,6 +4,7 @@ import React from "react"
 import { CardShell } from "../CardShell"
 import { DataCompletenessDonut, type SourceDocEntry } from "../DataCompletenessDonut"
 import { SectionTag, SECTION_TAG_ICON_MAP } from "../SectionTag"
+import { formatWithHierarchy } from "../../shared/formatWithHierarchy"
 import { cn } from "@/lib/utils"
 import type { PomrProblemCardData } from "../../types"
 
@@ -74,7 +75,7 @@ export function PomrProblemCard({ data, onPillTap, onOpenDocument }: PomrProblem
       <div className="flex flex-col gap-[8px]">
         {/* Labs — inline with SectionTag (same line, like InlineDataRow pattern) */}
         {data.labs.length > 0 && (
-          <div className="text-[12px] leading-[1.7] text-tp-slate-800">
+          <div className="text-[16px] leading-[1.8] text-tp-slate-800">
             <SectionTag label="Key Labs" icon={SECTION_TAG_ICON_MAP["Key Labs"]} />{" "}
             {data.labs.map((lab, i) => (
               <span key={lab.name}>
@@ -85,7 +86,7 @@ export function PomrProblemCard({ data, onPillTap, onOpenDocument }: PomrProblem
                   {lab.unit ? ` ${lab.unit}` : ""}
                 </span>
                 {i < data.labs.length - 1 && (
-                  <span className="mx-[3px] text-tp-slate-300">|</span>
+                  <span className="mx-[6px] text-tp-slate-200">|</span>
                 )}
               </span>
             ))}
@@ -94,11 +95,14 @@ export function PomrProblemCard({ data, onPillTap, onOpenDocument }: PomrProblem
 
         {/* Medications — inline with SectionTag, regular text (not tags) */}
         {data.meds.length > 0 && (
-          <div className="text-[12px] leading-[1.7] text-tp-slate-800">
+          <div className="text-[16px] leading-[1.8] text-tp-slate-800">
             <SectionTag label="Current Medications" icon={SECTION_TAG_ICON_MAP["Current Medications"]} />{" "}
-            <span className="text-tp-slate-700">
-              {data.meds.join(", ")}
-            </span>
+            {data.meds.map((med, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <span className="text-tp-slate-400">, </span>}
+                {formatWithHierarchy(med)}
+              </React.Fragment>
+            ))}
           </div>
         )}
 
@@ -115,21 +119,12 @@ export function PomrProblemCard({ data, onPillTap, onOpenDocument }: PomrProblem
               {data.missingFields.map((mf, i) => (
                 <div
                   key={i}
-                  className="flex items-start gap-[6px] text-[12px]"
+                  className="flex items-start gap-[6px] text-[16px]"
                 >
-                  <span className="mt-[1px] flex-shrink-0 text-[10px] text-amber-500">{"\u25CF"}</span>
+                  <span className="mt-[1px] flex-shrink-0 text-[14px] text-amber-500">{"\u25CF"}</span>
                   <div className="min-w-0">
                     <span className="font-medium text-tp-slate-700">{mf.field}</span>
                     <span className="text-tp-slate-400"> — {mf.reason}</span>
-                    {mf.prompt && (
-                      <button
-                        type="button"
-                        className="ml-[6px] text-[10px] font-medium text-tp-blue-500 hover:underline"
-                        onClick={() => onPillTap?.(mf.prompt)}
-                      >
-                        {mf.prompt}
-                      </button>
-                    )}
                   </div>
                 </div>
               ))}

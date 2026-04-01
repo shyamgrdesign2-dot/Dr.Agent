@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { ClipboardTick } from "iconsax-reactjs"
 import { CardShell } from "../CardShell"
 import { CheckboxRow } from "../CheckboxRow"
-import { ChatPillButton } from "../ActionRow"
-import { SidebarLink } from "../SidebarLink"
+
+import { FooterCTA } from "../FooterCTA"
 import type { InvestigationItem } from "../../types"
 import type { RxPadCopyPayload } from "@/components/tp-rxpad/rxpad-sync-context"
 
@@ -55,22 +56,21 @@ export function InvestigationCard({
       }}
       copyAllTooltip={selectedCount > 0 ? `Fill ${selectedCount} selected to RxPad` : "Fill all to RxPad"}
       dataSources={["AI-Generated"]}
-      actions={
-        <>
-          <ChatPillButton label="Suggest more" onClick={() => onPillTap?.("Suggest more investigations")} />
-          <ChatPillButton label="Cost estimate" onClick={() => onPillTap?.("Investigation cost estimate")} />
-        </>
-      }
+
       sidebarLink={
         selectedCount > 0 ? (
-          <SidebarLink
-            text={`Fill selected to RxPad (${selectedCount})`}
+          <FooterCTA
+            label={`Fill selected to RxPad (${selectedCount})`}
             onClick={() => onCopy?.(data.copyPayload)}
+            tone="secondary"
+            iconLeft={<ClipboardTick size={14} variant="Linear" />}
           />
         ) : (
-          <SidebarLink
-            text="Fill all to RxPad"
+          <FooterCTA
+            label="Fill all to RxPad"
             onClick={() => onCopy?.(data.copyPayload)}
+            tone="secondary"
+            iconLeft={<ClipboardTick size={14} variant="Linear" />}
           />
         )
       }

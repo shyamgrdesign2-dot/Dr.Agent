@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import type { RxAgentChatMessage, SpecialtyTabId, PatientDocument } from "../types"
 import { ChatBubble } from "./ChatBubble"
@@ -20,6 +20,8 @@ interface ChatThreadProps {
   patientDocuments?: PatientDocument[]
   /** Callback when a patient is selected from search card */
   onPatientSelect?: (patientId: string) => void
+  /** Context-aware hint for the typing indicator (e.g. "Looking up patient records") */
+  typingHint?: string
 }
 
 export function ChatThread({
@@ -33,8 +35,20 @@ export function ChatThread({
   activeSpecialty,
   patientDocuments,
   onPatientSelect,
+  typingHint,
 }: ChatThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
+  // Track which message IDs have already been "seen" — skip animation for those
+  const seenRef = useRef<Set<string>>(new Set())
+  const [, forceRender] = useState(0)
+
+  // Mark all current messages as seen on mount (so initial load doesn't animate)
+  useEffect(() => {
+    if (seenRef.current.size === 0 && messages.length > 0) {
+      messages.forEach((m) => seenRef.current.add(m.id))
+      forceRender((n) => n + 1)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-scroll to bottom on new messages or when typing starts
   useEffect(() => {
@@ -55,8 +69,20 @@ export function ChatThread({
         const isSameRole = prevMessage?.role === message.role
         const spacing = index === 0 ? "" : isSameRole ? "mt-[6px]" : "mt-[16px]"
 
+        // Stream-in animation: only for NEW assistant messages WITHOUT text.
+        // Text-bearing messages use the typewriter hook in ChatBubble instead,
+        // so the CSS opacity animation would hide the typewriter effect.
+        const isNew = !seenRef.current.has(message.id)
+        const isAssistant = message.role === "assistant"
+        if (isNew) seenRef.current.add(message.id)
+        const animate = isNew && isAssistant && !message.text
+
         return (
-          <div key={message.id} className={spacing}>
+          <div
+            key={message.id}
+            className={cn(spacing, animate && "chat-stream-in")}
+            style={animate ? { animationDelay: `${(index - (messages.length - 1)) * 0 + 50}ms` } as React.CSSProperties : undefined}
+          >
             <ChatBubble
               message={message}
               onFeedback={onFeedback}
@@ -71,15 +97,39 @@ export function ChatThread({
         )
       })}
 
-      {/* Typing indicator */}
+      {/* Typing indicator — contextual thinking state */}
       {isTyping && (
-        <div className="mt-[10px] flex justify-start">
-          <TypingIndicator />
+        <div className="mt-[10px]">
+          <TypingIndicator queryHint={typingHint} />
         </div>
       )}
 
       {/* Bottom sentinel for auto-scroll */}
       <div ref={bottomRef} />
+
+      {/* Stream-in animation for new assistant messages */}
+      <style>{`
+        @keyframes chatStreamIn {
+          0% {
+            opacity: 0;
+            transform: translateY(10px);
+            filter: blur(2px);
+          }
+          50% {
+            opacity: 0.7;
+            transform: translateY(3px);
+            filter: blur(0.5px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+          }
+        }
+        .chat-stream-in {
+          animation: chatStreamIn 550ms cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+      `}</style>
     </div>
   )
 }

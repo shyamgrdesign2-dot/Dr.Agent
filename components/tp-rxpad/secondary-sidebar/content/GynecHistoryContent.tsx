@@ -20,15 +20,20 @@ type GynecSection = {
 
 const GYNEC_SECTIONS: GynecSection[] = [
   {
+    id: "lmp",
+    title: "LMP",
+    content: (
+      <p className="whitespace-pre-wrap leading-[20px]">
+        <Grey>LMP: </Grey><span>15 Feb&apos;26</span>
+      </p>
+    ),
+  },
+  {
     id: "menarche",
     title: "Menarche",
     content: (
       <p className="whitespace-pre-wrap leading-[20px]">
-        <Grey>Age at: </Grey>
-        <span>12 years </span>
-        <Sep />
-        <Grey>Notes: </Grey>
-        <span>Menarche reported at expected age with no early-cycle complications</span>
+        <Grey>Age at: </Grey><span>13 years</span>
       </p>
     ),
   },
@@ -37,14 +42,9 @@ const GYNEC_SECTIONS: GynecSection[] = [
     title: "Cycle",
     content: (
       <p className="whitespace-pre-wrap leading-[20px]">
-        <Grey>Type: </Grey>
-        <span>Regular </span>
+        <Grey>Type: </Grey><span>Irregular</span>
         <Sep />
-        <Grey>Cycle Interval: </Grey>
-        <span>28 days </span>
-        <Sep />
-        <Grey>Notes: </Grey>
-        <span>Last three cycles regular, no missed cycle in past 6 months</span>
+        <Grey>Interval: </Grey><span>35-40 days</span>
       </p>
     ),
   },
@@ -53,14 +53,13 @@ const GYNEC_SECTIONS: GynecSection[] = [
     title: "Flow",
     content: (
       <p className="whitespace-pre-wrap leading-[20px]">
-        <Grey>Volume: </Grey>
-        <span>Moderate </span>
+        <Grey>Volume: </Grey><span>Heavy</span>
         <Sep />
-        <Grey>No of pads per day: </Grey>
-        <span>3 </span>
+        <Grey>Duration: </Grey><span>5 days</span>
         <Sep />
-        <Grey>Notes: </Grey>
-        <span>No passage of clots reported in recent cycles</span>
+        <Grey>Clots: </Grey><span>Yes</span>
+        <Sep />
+        <Grey>Pads/day: </Grey><span>5</span>
       </p>
     ),
   },
@@ -69,14 +68,9 @@ const GYNEC_SECTIONS: GynecSection[] = [
     title: "Pain",
     content: (
       <p className="whitespace-pre-wrap leading-[20px]">
-        <Grey>Level: </Grey>
-        <span>Mild dysmenorrhea </span>
+        <Grey>Severity: </Grey><span>None</span>
         <Sep />
-        <Grey>Status: </Grey>
-        <span>Intermittent </span>
-        <Sep />
-        <Grey>Notes: </Grey>
-        <span>Improves with hydration and over-the-counter analgesics</span>
+        <Grey>Occurrence: </Grey><span>Before Menses</span>
       </p>
     ),
   },
@@ -85,14 +79,7 @@ const GYNEC_SECTIONS: GynecSection[] = [
     title: "Lifecycle Hormonal Changes",
     content: (
       <p className="whitespace-pre-wrap leading-[20px]">
-        <Grey>LA at: </Grey>
-        <span>Not attained </span>
-        <Sep />
-        <Grey>LA type: </Grey>
-        <span>NA </span>
-        <Sep />
-        <Grey>LA Notes: </Grey>
-        <span>No menopausal symptoms currently reported</span>
+        <Grey>Stage: </Grey><span>Perimenopause</span>
       </p>
     ),
   },
@@ -102,7 +89,6 @@ const GYNEC_SECTIONS: GynecSection[] = [
     content: (
       <p className="whitespace-pre-wrap leading-[20px]">
         Patient reports good medication adherence and tracks cycles on mobile app.
-        No intermenstrual bleeding or post-coital bleeding reported in recent visits.
       </p>
     ),
   },

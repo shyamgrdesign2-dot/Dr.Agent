@@ -143,6 +143,8 @@ Pills regenerated for new context
 
 This bypass is critical: pill taps are INSTANT and RELIABLE. No keyword matching, no confidence scores, no false positives.
 
+**Pill deduplication:** Pills corresponding to already-shown cards are filtered from the pill bar. `DrAgentPanel.tsx` tracks `shownCardKinds` and removes pills whose mapped card kind has already been rendered in the conversation (see `PILL_TO_CARD_KIND` mapping in `01-response-management-system.md`).
+
 ---
 
 ## Part 3: Response Formatting Nuances
@@ -192,7 +194,7 @@ Every text response follows these formatting rules:
 ```
 Data: Empty EMR, no prior visits, no labs
 Agent shows: "New patient. No prior clinical data available."
-Pills: Review intake, Suggest DDX, Initial investigations, Ask anything
+Pills: Pre-visit intake, Suggest DDX, Initial investigations, Ask anything
 Interaction: Doctor enters symptoms → DDX suggested → Protocol meds → Advice
 ```
 
@@ -200,7 +202,7 @@ Interaction: Doctor enters symptoms → DDX suggested → Protocol meds → Advi
 ```
 Data: Symptom collector data filled, no EMR history
 Agent shows: Symptom collector card + minimal patient summary
-Pills: Review intake, Suggest DDX, Compare with last visit (disabled)
+Pills: Pre-visit intake, Suggest DDX, Compare with last visit (disabled)
 Specialty: If intake mentions pregnancy → obstetric pills appear
 ```
 
@@ -371,6 +373,7 @@ Closes on: outside click or hover leave (250ms grace)
 
 | Decision | Reasoning |
 |----------|-----------|
+| Pill deduplication by card kind | Once a card is shown, its pill is redundant — removing it reduces clutter and guides the doctor to unexplored actions |
 | Max 35 pills | Chronic disease workflows generate many actionable items — scrollable pill bar accommodates this |
 | Safety pills can't be displaced | A doctor must ALWAYS see allergy alerts and critical vital warnings |
 | Phase-aware pills | Don't suggest "Plan follow-up" at consultation start — it's irrelevant then |
@@ -384,6 +387,9 @@ Closes on: outside click or hover leave (250ms grace)
 | Specialty changes pills, not data | Data is structured per clinical guidelines regardless of viewer — only the framing changes |
 | Copy-first workflow | Every data point should be one click away from the prescription — zero re-typing |
 | No modal interruptions | AI operates in a side panel — never blocks the prescription flow |
+| Divider character: pipe `\|` not `·` | All structural dividers use `\|` with `mx-[6px]` spacing for consistent visual separation |
+| SectionTag icon: 12px | Standardized at 12px (not 10px) for visual consistency across all card sections |
+| "Pre-visit intake" naming | Pill label is "Pre-visit intake" (not "Review intake data") to match the WelcomeScreen action label |
 
 ---
 

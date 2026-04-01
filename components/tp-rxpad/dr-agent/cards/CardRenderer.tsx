@@ -24,6 +24,7 @@ import { PediatricSummaryCard } from "./summary/PediatricSummaryCard"
 import { OphthalSummaryCard } from "./summary/OphthalSummaryCard"
 import { PatientReportedCard } from "./summary/PatientReportedCard"
 import { LastVisitCard } from "./summary/LastVisitCard"
+import { SbarOverviewCard } from "./summary/SbarOverviewCard"
 
 // Data Cards (B1-B6)
 import { LabPanelCard } from "./data/LabPanelCard"
@@ -138,7 +139,7 @@ function renderCard(
       if (!narrativeParts || narrativeParts.length === 0) return <></>
       return (
         <div className="rounded-[8px] bg-tp-slate-50 border-l-[3px] border-tp-violet-300 px-3 py-2">
-          <p className="text-[12px] italic leading-[1.6] text-tp-slate-500">
+          <p className="text-[16px] italic leading-[1.7] text-tp-slate-500">
             &ldquo;{narrativeParts}&rdquo;
           </p>
         </div>
@@ -262,7 +263,7 @@ function renderCard(
       return <CompletenessCard data={output.data} onPillTap={onPillTap} />
 
     case "drug_interaction":
-      // DrugInteractionCard expects { data: DrugInteractionData; onAcknowledge? }
+      // DrugInteractionCard expects { data: DrugInteractionData }
       return <DrugInteractionCard data={output.data} />
 
     case "allergy_conflict":
@@ -280,23 +281,26 @@ function renderCard(
     case "sbar_critical":
       return <SbarCriticalCard data={output.data} />
 
+    case "sbar_overview":
+      return <SbarOverviewCard data={output.data} onSidebarNav={onSidebarNav} activeSpecialty={activeSpecialty} />
+
     case "patient_search":
       return <PatientSearchCard data={output.data} onPatientSelect={onPatientSelect} />
 
     // -- Text-Only Kinds -----------------------------------------------------
     case "text_fact":
       return (
-        <div className="rounded-[8px] bg-tp-slate-50 px-[10px] py-[8px] text-[12px] text-tp-slate-700">
+        <div className="rounded-[8px] bg-tp-slate-50 px-[10px] py-[8px] text-[16px] text-tp-slate-700 leading-[1.6]">
           <p className="mb-[2px] font-semibold text-tp-slate-800">{output.data.context}</p>
-          <p>{output.data.value}</p>
-          <p className="mt-[4px] text-[10px] text-tp-slate-400">Source: {output.data.source}</p>
+          <p>{highlightClinicalText(output.data.value)}</p>
+          <p className="mt-[4px] text-[14px] text-tp-slate-400">Source: {output.data.source}</p>
         </div>
       )
 
     case "text_alert":
       return (
         <div
-          className={`rounded-[8px] px-[10px] py-[8px] text-[12px] font-medium ${
+          className={`rounded-[8px] px-[10px] py-[8px] text-[16px] font-medium ${
             output.data.severity === "critical"
               ? "bg-tp-error-50 text-tp-error-700"
               : output.data.severity === "high"
@@ -310,9 +314,9 @@ function renderCard(
 
     case "text_list":
       return (
-        <ul className="list-inside list-disc space-y-[2px] text-[12px] text-tp-slate-700">
+        <ul className="list-inside list-disc space-y-[3px] text-[16px] text-tp-slate-700 leading-[1.6]">
           {output.data.items.map((item, i) => (
-            <li key={i}>{item}</li>
+            <li key={i}>{highlightClinicalText(item)}</li>
           ))}
         </ul>
       )
@@ -410,9 +414,9 @@ function renderCard(
       return (
         <div className="space-y-[4px]">
           {output.data.steps.map((step, i) => (
-            <div key={i} className="flex items-start gap-[8px] text-[12px] text-tp-slate-700" style={{ borderLeft: "2px solid var(--tp-blue-200, #BFDBFE)", paddingLeft: "8px" }}>
+            <div key={i} className="flex items-start gap-[8px] text-[16px] text-tp-slate-700" style={{ borderLeft: "2px solid var(--tp-blue-200, #BFDBFE)", paddingLeft: "8px" }}>
               <span className="font-semibold text-tp-blue-500">{i + 1}.</span>
-              <span className="leading-[1.5]">{step}</span>
+              <span className="leading-[1.6]">{step}</span>
             </div>
           ))}
         </div>
@@ -421,10 +425,10 @@ function renderCard(
     case "text_quote":
       return (
         <div>
-          <div className="rounded-[6px] px-[10px] py-[8px] text-[12px] italic leading-[1.5] text-tp-slate-600" style={{ borderLeft: "3px solid var(--tp-violet-200, #DDD6FE)" }}>
+          <div className="rounded-[6px] px-[10px] py-[8px] text-[16px] italic leading-[1.6] text-tp-slate-600" style={{ borderLeft: "3px solid var(--tp-violet-200, #DDD6FE)" }}>
             &ldquo;{output.data.quote}&rdquo;
           </div>
-          <p className="mt-[4px] text-[10px] text-tp-slate-400">— {output.data.source}</p>
+          <p className="mt-[4px] text-[14px] text-tp-slate-400">— {output.data.source}</p>
         </div>
       )
 
@@ -432,15 +436,15 @@ function renderCard(
       return (
         <div className="grid grid-cols-2 gap-[1px] overflow-hidden rounded-[8px] border border-tp-slate-100">
           <div className="bg-tp-slate-50 px-[8px] py-[6px]">
-            <p className="mb-[4px] text-[10px] font-medium text-tp-slate-500">{output.data.labelA}</p>
+            <p className="mb-[4px] text-[14px] font-medium text-tp-slate-500">{output.data.labelA}</p>
             {output.data.itemsA.map((item, i) => (
-              <p key={i} className="text-[12px] leading-[1.5] text-tp-slate-700">• {item}</p>
+              <p key={i} className="text-[16px] leading-[1.6] text-tp-slate-700">• {item}</p>
             ))}
           </div>
           <div className="bg-white px-[8px] py-[6px]">
-            <p className="mb-[4px] text-[10px] font-medium text-tp-slate-500">{output.data.labelB}</p>
+            <p className="mb-[4px] text-[14px] font-medium text-tp-slate-500">{output.data.labelB}</p>
             {output.data.itemsB.map((item, i) => (
-              <p key={i} className="text-[12px] leading-[1.5] text-tp-slate-700">• {item}</p>
+              <p key={i} className="text-[16px] leading-[1.6] text-tp-slate-700">• {item}</p>
             ))}
           </div>
         </div>
@@ -450,7 +454,7 @@ function renderCard(
       // Exhaustive check -- if new kinds are added, TypeScript will flag this
       const _exhaustive: never = output
       return (
-        <div className="rounded-[8px] bg-tp-slate-50 p-[8px] text-[12px] text-tp-slate-400">
+        <div className="rounded-[8px] bg-tp-slate-50 p-[8px] text-[16px] text-tp-slate-400">
           Unknown card type: {(_exhaustive as RxAgentOutput).kind}
         </div>
       )

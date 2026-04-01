@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Doctor Agent renders **45+ card variants** organized into families. Each card has:
+The Doctor Agent renders **60 card variants** organized into families. Each card has:
 - A **kind** (discriminated union tag in `RxAgentOutput`)
 - A **family** (logical grouping by clinical purpose)
 - A **data type** (TypeScript interface in `types.ts`)
@@ -22,7 +22,7 @@ Cards are categorized by **what they serve the doctor**:
 | **Utility** | Helper tools (translate, completeness, etc.) | No — utility functions |
 | **Safety** | Critical alerts that interrupt workflow | No — alert-only |
 | **Text** | Lightweight text responses (no card shell) | No — text-only |
-| **Homepage** | Clinic-level operational dashboard | No — operational data |
+| **Operational** | Clinic-level operational dashboard | No — operational data |
 
 **Donut chart rule**: Only show the data completeness donut on cards with a **fixed expected data set** where missing data is clinically meaningful. Currently only `pomr_problem_card` qualifies — it manages its own donut internally.
 
@@ -30,13 +30,14 @@ Cards are categorized by **what they serve the doctor**:
 
 ## Card Families
 
-### A. Summary Family (7 cards)
+### A. Summary Family (8 cards)
 
 Cards that present patient overviews and intake data. Shown at consultation start or when the doctor asks for a snapshot. Content follows **SBAR conceptual ordering** (Situation → Background → Assessment → Recommendation).
 
 | Kind | Component | Description | When Shown |
 |------|-----------|-------------|------------|
-| `patient_summary` | GPSummaryCard | Full patient overview: history, labs, last visit, vitals (SBAR-ordered) | Consultation start, "Patient summary" pill |
+| `sbar_overview` | SbarOverviewCard | SBAR-structured patient summary (Situation, Background, Assessment, Recommendation) | "Summary" pill, "sbar" query, pre-consult prep |
+| `patient_summary` | GPSummaryCard | Full detailed patient overview: history, labs, last visit, vitals | "Detailed summary" pill, explicit request |
 | `symptom_collector` | PatientReportedCard | Patient-reported symptoms from intake form | Consultation start (if intake data exists) |
 | `last_visit` | LastVisitCard | Previous visit summary with copy-to-rx | "Last visit" pill, data_retrieval intent |
 | `obstetric_summary` | ObstetricSummaryCard | Obstetric data (GP, EDD, ANC, vaccines) | Obstetric patients, specialty tab |
@@ -68,13 +69,14 @@ Cards that display clinical data — labs, vitals, trends, timelines. Read-only 
 | `vaccination_schedule` | VaccinationScheduleCard | Vaccine schedule with status badges | Pediatric context, vaccine queries |
 | `patient_timeline` | PatientTimelineCard | Chronological event timeline | "View all records" navigation |
 
-### C. Clinical Family (1 card + donut component)
+### C. Clinical Family (2 cards + donut component)
 
 Problem-oriented cards for patients with chronic/multi-morbidity conditions. These are the **only cards with data completeness indicators** because they require a fixed expected data set.
 
 | Kind | Component | Description | When Shown |
 |------|-----------|-------------|------------|
 | `pomr_problem_card` | PomrProblemCard | Per-problem card (CKD, HTN, DM, Anaemia) with completeness donut, labs, meds, missing fields | POMR problem pills, clinical keyword queries |
+| `sbar_critical` | SbarCriticalCard | SBAR-structured emergency summary for critical patients | Critical patient detected (SpO2 < 90, emergency vitals) |
 
 **PomrProblemCard structure:**
 - Header: Problem name + status badge + internal completeness donut (18px SVG)
@@ -131,7 +133,7 @@ Critical safety alerts that interrupt workflow.
 | `drug_interaction` | DrugInteractionCard | Drug-drug interaction alert | Medication entry triggers check |
 | `allergy_conflict` | AllergyConflictCard | Drug-allergy conflict alert | Medication entry triggers check |
 
-### H. Text Family (6 variants)
+### H. Text Family (7 variants)
 
 Lightweight text-only responses (no card shell needed for simple answers).
 
@@ -143,8 +145,9 @@ Lightweight text-only responses (no card shell needed for simple answers).
 | `text_step` | Numbered steps with left accent | Step-by-step instructions | Procedure instructions |
 | `text_quote` | Italic blockquote | Clinical reference quotation | Guideline citations |
 | `text_comparison` | Two-column grid | Side-by-side comparison | Drug/treatment comparisons |
+| `patient_narrative` | Violet-bordered paragraph | Patient narrative block (no CardShell) | Inline clinical narrative display |
 
-### I. Homepage / Operational Family (12 cards)
+### I. Operational Family (19 cards)
 
 Clinic-level operational cards for the homepage dashboard.
 
@@ -152,9 +155,12 @@ Clinic-level operational cards for the homepage dashboard.
 |------|-----------|-------------|------------|
 | `welcome_card` | WelcomeCard | Daily greeting with stats and tips | Homepage load |
 | `patient_list` | PatientListCard | Queue or filtered patient list | "View Queue" pill |
+| `patient_search` | PatientSearchCard | Patient search results with clickable entries | "Search patient" query |
 | `follow_up_list` | FollowUpListCard | Upcoming follow-ups with overdue flags | "Follow-ups" pill |
 | `revenue_bar` | RevenueBarCard | Daily revenue bar chart | "Revenue" pill |
+| `revenue_comparison` | RevenueComparisonCard | Revenue comparison across two date ranges | "Compare revenue" pill |
 | `bulk_action` | BulkActionCard | Batch SMS/reminder interface | "Send reminders" pill |
+| `external_cta` | ExternalCtaCard | External link CTA (reports, tools) | Contextual external links |
 | `donut_chart` | DonutChartCard | Patient distribution donut | "Demographics" pill |
 | `pie_chart` | PieChartCard | Consultation type breakdown | Analytics queries |
 | `line_graph` | LineGraphCard | Daily patient count trend | "Patient volume" pill |
@@ -162,6 +168,10 @@ Clinic-level operational cards for the homepage dashboard.
 | `condition_bar` | ConditionBarCard | Top conditions horizontal bars | "Diagnosis breakdown" pill |
 | `heatmap` | HeatmapCard | Appointment density heatmap | "Busiest hours" pill |
 | `billing_summary` | BillingSummaryCard | Session billing with payment status | Billing queries |
+| `anc_schedule_list` | ANCScheduleListCard | ANC schedule with overdue/due patients | "ANC schedule" pill, obstetric operational queries |
+| `follow_up_rate` | FollowUpRateCard | Follow-up rate analytics with trend | "Follow-up rate" pill |
+| `vaccination_due_list` | VaccinationDueListCard | Vaccination due/overdue patient list | "Vaccination due" pill |
+| `due_patients` | DuePatientsCard | Patient dues summary with total amount | "Pending dues" pill |
 
 ---
 

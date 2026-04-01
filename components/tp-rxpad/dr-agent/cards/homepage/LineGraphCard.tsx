@@ -1,102 +1,101 @@
 "use client"
-import React from "react"
-import { TrendUp } from "iconsax-reactjs"
+
+import React, { useState } from "react"
+import { TrendUp, DocumentDownload } from "iconsax-reactjs"
+import {
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, ReferenceLine, ResponsiveContainer,
+} from "recharts"
 import { CardShell } from "../CardShell"
-import { ChatPillButton } from "../ActionRow"
-import { SidebarLink } from "../SidebarLink"
+import { FooterCTA } from "../FooterCTA"
+import { ViewToggle } from "../ViewToggle"
+import { ChartTypeToggle } from "../ChartTypeToggle"
 import type { LineGraphCardData } from "../../types"
 import { downloadAsExcel } from "../../utils/downloadExcel"
 
 interface Props { data: LineGraphCardData; onPillTap?: (label: string) => void }
 
 export function LineGraphCard({ data, onPillTap }: Props) {
-  const chartW = 260
-  const chartH = 80
-  const padding = { top: 8, right: 10, bottom: 20, left: 30 }
-  const plotW = chartW - padding.left - padding.right
-  const plotH = chartH - padding.top - padding.bottom
-
-  const maxVal = Math.max(...data.points.map(p => p.value), data.average) * 1.15
-  const minVal = 0
-
-  const points = data.points.map((p, i) => {
-    const x = padding.left + (i / Math.max(data.points.length - 1, 1)) * plotW
-    const y = padding.top + plotH - ((p.value - minVal) / (maxVal - minVal)) * plotH
-    return { x, y, ...p }
-  })
-
-  const polyline = points.map(p => `${p.x},${p.y}`).join(" ")
-  const avgY = padding.top + plotH - ((data.average - minVal) / (maxVal - minVal)) * plotH
+  const [viewMode, setViewMode] = useState<"graph" | "text">("graph")
+  const [chartType, setChartType] = useState<"line" | "bar">("bar")
 
   const dirArrow = data.changeDirection === "up" ? "\u2191" : data.changeDirection === "down" ? "\u2193" : "\u2192"
   const dirColor = data.changeDirection === "up" ? "#15803D" : data.changeDirection === "down" ? "#DC2626" : "#6D28D9"
 
   const handleDownload = () => {
-    downloadAsExcel(
-      "patient_volume",
-      ["Period", "Value"],
-      data.points.map(p => [p.label, String(p.value)]),
-    )
+    downloadAsExcel("patient_volume", ["Period", "Value"], data.points.map(p => [p.label, String(p.value)]))
   }
+
+  // Recharts data
+  const rechartsData = data.points.map(p => ({ name: p.label, value: p.value }))
+  const pointCount = rechartsData.length
+  const chartHeight = 160
+  const minWidth = Math.max(300, pointCount * 60)
 
   return (
     <CardShell
       icon={<TrendUp size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
       title={data.title}
       badge={{ label: `${dirArrow} ${data.changePercent}`, color: dirColor, bg: data.changeDirection === "up" ? "#DCFCE7" : data.changeDirection === "down" ? "#FEE2E2" : "#EDE9FE" }}
-      sidebarLink={<SidebarLink text="Download as Excel" onClick={handleDownload} />}
-      actions={
-        <>
-          <ChatPillButton label="Compare months" onClick={() => onPillTap?.("Compare with last month")} />
-        </>
-      }
+      sidebarLink={<FooterCTA label="Download as Excel" onClick={handleDownload} tone="secondary" iconLeft={<DocumentDownload size={14} variant="Linear" />} />}
     >
-      <div className="py-[2px]">
-      <svg width={chartW} height={chartH} className="block w-full" viewBox={`0 0 ${chartW} ${chartH}`}>
-        {/* Grid lines */}
-        {[0, 0.25, 0.5, 0.75, 1].map((frac, i) => {
-          const y = padding.top + plotH * (1 - frac)
-          const val = Math.round(minVal + (maxVal - minVal) * frac)
-          return (
-            <g key={i}>
-              <line x1={padding.left} y1={y} x2={chartW - padding.right} y2={y} stroke="#E0DDD6" strokeWidth={0.5} />
-              <text x={padding.left - 4} y={y + 3} textAnchor="end" style={{ fontSize: "7px", fill: "#9E978B", fontFamily: "DM Sans" }}>{val}</text>
-            </g>
-          )
-        })}
-
-        {/* Average dashed line */}
-        <line x1={padding.left} y1={avgY} x2={chartW - padding.right} y2={avgY} stroke="#7049C7" strokeWidth={0.8} strokeDasharray="3,3" opacity={0.5} />
-        <text x={chartW - padding.right + 2} y={avgY + 3} style={{ fontSize: "6px", fill: "#7049C7", fontFamily: "DM Sans" }}>avg</text>
-
-        {/* Area fill */}
-        <polygon
-          points={`${points[0].x},${padding.top + plotH} ${polyline} ${points[points.length - 1].x},${padding.top + plotH}`}
-          fill="url(#lineGradient)"
-          opacity={0.15}
-        />
-
-        {/* Line */}
-        <polyline points={polyline} fill="none" stroke="#3B6FE0" strokeWidth={1.5} strokeLinejoin="round" />
-
-        {/* Dots */}
-        {points.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r={2.5} fill="white" stroke="#3B6FE0" strokeWidth={1.2} />
-        ))}
-
-        {/* X labels */}
-        {points.map((p, i) => (
-          <text key={i} x={p.x} y={chartH - 4} textAnchor="middle" style={{ fontSize: "7px", fill: "#9E978B", fontFamily: "DM Sans" }}>{p.label}</text>
-        ))}
-
-        <defs>
-          <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3B6FE0" />
-            <stop offset="100%" stopColor="#3B6FE0" stopOpacity={0} />
-          </linearGradient>
-        </defs>
-      </svg>
+      <div className="flex items-center justify-between mb-[6px]">
+        <ViewToggle viewMode={viewMode} onChange={setViewMode} />
+        {viewMode === "graph" && <ChartTypeToggle chartType={chartType} onChange={setChartType} />}
       </div>
+
+      {viewMode === "graph" ? (
+        <div className="overflow-x-auto -mx-1 px-1">
+          <div style={{ minWidth, height: chartHeight }}>
+            <ResponsiveContainer width="100%" height="100%">
+              {chartType === "line" ? (
+                <LineChart data={rechartsData} margin={{ top: 16, right: 8, bottom: 4, left: -8 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--tp-slate-100, #F1F5F9)" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#9E978B" }} tickLine={false} axisLine={{ stroke: "#E2E8F0" }} />
+                  <YAxis tick={{ fontSize: 10, fill: "#9E978B" }} tickLine={false} axisLine={false} tickCount={5} width={36} />
+                  <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E2E8F0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }} />
+                  <ReferenceLine y={data.average} stroke="#7049C7" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: "avg", position: "right", fontSize: 10, fill: "#7049C7" }} />
+                  <Line type="monotone" dataKey="value" stroke="#3B6FE0" strokeWidth={2} dot={{ r: 3, fill: "white", strokeWidth: 1.5, stroke: "#3B6FE0" }} activeDot={{ r: 5 }} label={{ position: "top", fontSize: 9, fill: "#3B6FE0", fontWeight: 600 }} />
+                </LineChart>
+              ) : (
+                <BarChart data={rechartsData} margin={{ top: 16, right: 8, bottom: 4, left: -8 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--tp-slate-100, #F1F5F9)" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#9E978B" }} tickLine={false} axisLine={{ stroke: "#E2E8F0" }} />
+                  <YAxis tick={{ fontSize: 10, fill: "#9E978B" }} tickLine={false} axisLine={false} tickCount={5} width={36} />
+                  <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E2E8F0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }} />
+                  <ReferenceLine y={data.average} stroke="#7049C7" strokeDasharray="3 3" strokeOpacity={0.5} label={{ value: "avg", position: "right", fontSize: 10, fill: "#7049C7" }} />
+                  <Bar dataKey="value" fill="#3B6FE0" radius={[3, 3, 0, 0]} maxBarSize={24} opacity={0.8} label={{ position: "top", fontSize: 9, fill: "#3B6FE0", fontWeight: 600 }} />
+                </BarChart>
+              )}
+            </ResponsiveContainer>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-[8px] border border-tp-slate-100 overflow-hidden">
+          <table className="w-full text-[14px]">
+            <thead>
+              <tr className="bg-tp-slate-50">
+                <th className="text-left px-[8px] py-[6px] font-semibold text-tp-slate-500">Period</th>
+                <th className="text-right px-[8px] py-[6px] font-semibold text-tp-slate-500">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.points.map((p, i) => (
+                <tr key={i} className={i % 2 === 1 ? "bg-tp-slate-50/50" : ""}>
+                  <td className="text-left px-[8px] py-[6px] text-tp-slate-500">{p.label}</td>
+                  <td className="text-right px-[8px] py-[6px] font-semibold text-tp-slate-700">{p.value}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-tp-slate-100">
+                <td className="text-left px-[8px] py-[6px] text-tp-slate-500 font-medium">Average</td>
+                <td className="text-right px-[8px] py-[6px] font-semibold text-purple-600">{data.average}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      )}
     </CardShell>
   )
 }

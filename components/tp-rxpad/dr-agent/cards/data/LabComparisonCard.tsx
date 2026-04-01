@@ -1,7 +1,7 @@
 "use client"
 
 import { CardShell } from "../CardShell"
-import { InsightBox } from "../InsightBox"
+
 import { SidebarLink } from "../SidebarLink"
 import { cn } from "@/lib/utils"
 import type { LabComparisonRow } from "../../types"
@@ -9,7 +9,7 @@ import type { LabComparisonRow } from "../../types"
 interface LabComparisonCardProps {
   data: {
     rows: LabComparisonRow[]
-    insight: string
+    insight?: string
   }
 }
 
@@ -55,20 +55,19 @@ export function LabComparisonCard({ data }: LabComparisonCardProps) {
       {/* Grid-based comparison table */}
       <div className="overflow-hidden rounded-[8px] border border-tp-slate-100">
         {/* Header */}
-        <div className="grid grid-cols-4 gap-[1px] bg-tp-slate-100 px-[8px] py-[4px] text-[10px] font-medium text-tp-slate-500 uppercase tracking-wider">
+        <div className="grid grid-cols-4 gap-[1px] bg-tp-slate-100 px-[8px] py-[4px] text-[14px] font-medium text-tp-slate-500 uppercase tracking-wider">
           <span>Parameter</span>
           <span>{prevDate}</span>
           <span>{currDate}</span>
-          <span>Delta</span>
+          <span>Change</span>
         </div>
         {/* Rows */}
         {data.rows.map((row, i) => (
           <div
             key={row.parameter}
             className={cn(
-              "grid grid-cols-4 gap-[1px] px-[8px] py-[7px] text-[12px]",
+              "grid grid-cols-4 gap-[1px] px-[8px] py-[7px] text-[16px]",
               i % 2 === 0 ? "bg-white" : "bg-tp-slate-50",
-              row.isFlagged && "border-l-[2px] border-tp-error-300",
             )}
           >
             <span className="font-medium text-tp-slate-700 truncate">{row.parameter}</span>
@@ -82,7 +81,7 @@ export function LabComparisonCard({ data }: LabComparisonCardProps) {
               <DirectionArrow direction={row.direction} />
               <span
                 className={cn(
-                  "text-[10px] font-medium",
+                  "text-[14px] font-medium",
                   row.direction === "up" && "text-tp-error-500",
                   row.direction === "down" && "text-tp-success-600",
                   row.direction === "stable" && "text-tp-slate-400",
@@ -95,8 +94,6 @@ export function LabComparisonCard({ data }: LabComparisonCardProps) {
         ))}
       </div>
 
-      {/* Insight */}
-      <InsightBox variant="red">{data.insight}</InsightBox>
     </CardShell>
   )
 }

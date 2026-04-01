@@ -51,7 +51,7 @@ export function AiTriggerChip({
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
         "inline-flex h-[22px] items-center gap-[4px] rounded-full px-[8px]",
-        "text-[10px] font-medium transition-all",
+        "text-[12px] font-medium transition-all",
         "animate-[fadeIn_300ms_ease-out]",
         className,
       )}

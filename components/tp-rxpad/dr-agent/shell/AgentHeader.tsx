@@ -119,15 +119,12 @@ export function AgentHeader({
 
   return (
     <div className={cn("relative z-20", className)}>
-      {/* Header — AI gradient bg with blur */}
+      {/* Header — Figma spec: 42px, gradient 270deg */}
       <div
-        className="relative overflow-visible flex items-center justify-between px-[14px]"
+        className="relative overflow-visible flex items-center justify-between px-[12px]"
         style={{
           height: 52,
-          background: "linear-gradient(135deg, rgba(213,101,234,0.12) 0%, rgba(103,58,172,0.10) 40%, rgba(26,25,148,0.12) 100%)",
-          boxShadow: "0 1px 2px rgba(103,58,172,0.04), 0 2px 6px rgba(26,25,148,0.03)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
+          background: "linear-gradient(270deg, #8C33A0 0%, #2B2A64 100%)",
         }}
       >
         {/* Subtle noise grain */}
@@ -135,18 +132,7 @@ export function AgentHeader({
 
         {/* Left: spark icon + title + unified dropdown */}
         <div className="relative z-10 flex items-center gap-[6px]">
-          <AiGradientBg size={28} borderRadius={8}>
-            <AiBrandSparkIcon size={16} className="flex-shrink-0" />
-          </AiGradientBg>
-          <span
-            className="text-[16px] font-semibold leading-[1.2]"
-            style={{
-              background: AI_GRADIENT,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
+          <span className="text-[16px] font-semibold text-white" style={{ letterSpacing: "0.1px", lineHeight: "17px" }}>
             Dr. Agent
           </span>
 
@@ -157,16 +143,16 @@ export function AgentHeader({
               onClick={() => setDropdownOpen((v) => !v)}
               className={cn(
                 "flex items-center gap-[4px] rounded-full px-[7px] py-[2px]",
-                "text-[10px] leading-[1.3] text-tp-slate-400",
-                "bg-white/30 backdrop-blur-sm transition-colors duration-150",
-                "hover:bg-white/50 hover:text-tp-slate-600",
-                dropdownOpen && "bg-white/50 text-tp-slate-600",
+                "text-[12px] leading-[1.3] text-white/60",
+                "bg-white/10 backdrop-blur-sm transition-colors duration-150",
+                "hover:bg-white/20 hover:text-white/90",
+                dropdownOpen && "bg-white/20 text-white/90",
               )}
             >
               {/* Compact badge chips */}
               {badgeParts.map((part, i) => (
                 <React.Fragment key={part}>
-                  {i > 0 && <span className="text-tp-slate-300">·</span>}
+                  {i > 0 && <span className="text-white/30">·</span>}
                   <span>{part}</span>
                 </React.Fragment>
               ))}
@@ -201,14 +187,14 @@ export function AgentHeader({
               >
                 {/* Demo notice */}
                 <div className="border-b border-tp-slate-100 px-[10px] py-[4px]">
-                  <p className="text-[8px] leading-[1.3] text-tp-slate-400 italic">
+                  <p className="text-[10px] leading-[1.3] text-tp-slate-400 italic">
                     Demo only — not in production
                   </p>
                 </div>
 
                 {/* ── Section 1: Specialty ── */}
                 <div className="px-[10px] pt-[6px] pb-[2px]">
-                  <p className="text-[8px] font-semibold uppercase tracking-wider text-tp-slate-400 mb-[3px]">Specialty</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-tp-slate-400 mb-[3px]">Specialty</p>
                   <div className="flex flex-wrap gap-[4px] pb-[6px]">
                     {SPECIALTY_OPTIONS.map((opt) => {
                       const isActive = opt.id === activeSpecialty
@@ -218,7 +204,7 @@ export function AgentHeader({
                           type="button"
                           onClick={() => handleSpecialtySelect(opt.id)}
                           className={cn(
-                            "rounded-full px-[8px] py-[3px] text-[10px] leading-[1.3] transition-all duration-100",
+                            "rounded-full px-[8px] py-[3px] text-[12px] leading-[1.3] transition-all duration-100",
                             isActive
                               ? "bg-tp-slate-700 text-white font-medium"
                               : "bg-tp-slate-50 text-tp-slate-500 hover:bg-tp-slate-100 hover:text-tp-slate-700",
@@ -236,7 +222,7 @@ export function AgentHeader({
                   <>
                     <div className="mx-[10px] border-t border-tp-slate-100" />
                     <div className="px-[10px] pt-[6px] pb-[2px]">
-                      <p className="text-[8px] font-semibold uppercase tracking-wider text-tp-slate-400 mb-[3px]">View as</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-tp-slate-400 mb-[3px]">View as</p>
                       <div className="flex flex-wrap gap-[4px] pb-[6px]">
                         {DOCTOR_VIEW_OPTIONS.map((opt) => {
                           const isActive = opt.id === doctorViewType
@@ -246,7 +232,7 @@ export function AgentHeader({
                               type="button"
                               onClick={() => onDoctorViewChange(opt.id)}
                               className={cn(
-                                "rounded-full px-[8px] py-[3px] text-[10px] leading-[1.3] transition-all duration-100",
+                                "rounded-full px-[8px] py-[3px] text-[12px] leading-[1.3] transition-all duration-100",
                                 isActive
                                   ? "bg-tp-violet-600 text-white font-medium"
                                   : "bg-tp-slate-50 text-tp-slate-500 hover:bg-tp-violet-50 hover:text-tp-violet-700",
@@ -266,7 +252,7 @@ export function AgentHeader({
                   <>
                     <div className="mx-[10px] border-t border-tp-slate-100" />
                     <div className="px-[10px] pt-[6px] pb-[6px]">
-                      <p className="text-[8px] font-semibold uppercase tracking-wider text-tp-slate-400 mb-[3px]">Intake</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-tp-slate-400 mb-[3px]">Intake</p>
                       <div className="flex gap-[4px]">
                         {INTAKE_OPTIONS.map((opt) => {
                           const isActive = opt.id === intakeMode
@@ -276,7 +262,7 @@ export function AgentHeader({
                               type="button"
                               onClick={() => onIntakeModeChange(opt.id)}
                               className={cn(
-                                "rounded-full px-[8px] py-[3px] text-[10px] leading-[1.3] transition-all duration-100",
+                                "rounded-full px-[8px] py-[3px] text-[12px] leading-[1.3] transition-all duration-100",
                                 isActive
                                   ? "bg-tp-blue-600 text-white font-medium"
                                   : "bg-tp-slate-50 text-tp-slate-500 hover:bg-tp-blue-50 hover:text-tp-blue-700",
@@ -295,14 +281,18 @@ export function AgentHeader({
           </div>
         </div>
 
-        {/* Right: close button */}
+        {/* Right: close/minimize button */}
         <button
           type="button"
           onClick={onClose}
-          className="relative z-10 text-tp-slate-500 transition-colors hover:text-tp-slate-700"
+          className="relative z-10 flex h-[24px] w-[24px] items-center justify-center rounded-[5px] transition-colors hover:bg-white/10"
           aria-label="Minimize agent"
         >
-          <SidebarRight size={18} variant="Linear" />
+          <svg width={17} height={17} viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="18" height="18" rx="3" stroke="rgba(255,255,255,0.8)" strokeWidth="1.44" />
+            <path d="M9 3v18" stroke="rgba(255,255,255,0.8)" strokeWidth="1.44" />
+            <path d="M13 9l3 3-3 3" stroke="rgba(255,255,255,0.8)" strokeWidth="1.44" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
       </div>
     </div>

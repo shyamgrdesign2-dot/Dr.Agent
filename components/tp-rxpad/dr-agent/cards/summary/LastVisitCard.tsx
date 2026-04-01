@@ -53,23 +53,22 @@ function copySectionText(section: LastVisitCardSection): string {
 
 /* ── helper: map section items to InlineDataRow values ── */
 function sectionToInlineValues(section: LastVisitCardSection) {
-  // If items have distinct detail text (different from label), show key:value pairs
-  const itemsWithDetail = section.items.filter((item) => item.detail && item.detail !== item.label)
+  // All sections: use bracket format "Name (detail)" so color hierarchy
+  // renders name as primary (dark) and detail as secondary (lighter)
+  // Items without detail just show the label.
+  // All items combined into a single row, comma-separated.
+  const formatted = section.items.map((item) => {
+    if (item.detail && item.detail !== item.label) {
+      return `${item.label} (${item.detail})`
+    }
+    return item.label
+  }).filter(Boolean)
 
-  if (itemsWithDetail.length > 0) {
-    return itemsWithDetail.map((item) => ({
-      key: item.label,
-      value: item.detail || "",
-    }))
-  }
-
-  // If items only have labels or detail === label, combine into a single row
-  const labels = section.items.map((i) => i.label).filter(Boolean)
-  if (labels.length === 0) return []
+  if (formatted.length === 0) return []
 
   return [{
-    key: section.tag,
-    value: labels.join(", "),
+    key: "",
+    value: formatted.join(", "),
   }]
 }
 
@@ -139,7 +138,7 @@ export function LastVisitCard({
               />
               {/* Section notes as subtle italic line */}
               {section.notes && (
-                <p className="pl-1 text-[12px] italic leading-[1.5] text-tp-slate-400">
+                <p className="pl-1 text-[16px] italic leading-[1.6] text-tp-slate-400">
                   {section.notes}
                 </p>
               )}

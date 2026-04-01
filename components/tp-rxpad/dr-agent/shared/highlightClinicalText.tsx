@@ -14,12 +14,32 @@ import React from "react"
  * - AiPatientTooltip (summary hover)
  */
 
-/** Bold inline helper — semibold, non-italic, darker text for contrast in italic narrative */
-function HighlightBold({ children }: { children: React.ReactNode }) {
+/**
+ * PRIMARY highlight — semibold, dark text for important clinical terms.
+ * Used for: conditions, medications, lab values, vitals, clinical events.
+ * Follows secondary sidebar pattern: font-semibold text-tp-slate-700.
+ */
+function HighlightPrimary({ children }: { children: React.ReactNode }) {
   return <span className="font-semibold not-italic text-tp-slate-700">{children}</span>
 }
 
-const CLINICAL_PATTERNS = [
+/**
+ * SECONDARY highlight — normal weight, muted text for supportive context.
+ * Used for: durations, dates, parenthetical info, age context, follow-up timing.
+ * Follows secondary sidebar pattern: font-normal text-tp-slate-400.
+ * This ensures doctor's eye goes to the clinical term first, not the duration.
+ */
+function HighlightSecondary({ children }: { children: React.ReactNode }) {
+  return <span className="font-normal not-italic text-tp-slate-400">{children}</span>
+}
+
+/** Backward compat alias */
+function HighlightBold({ children }: { children: React.ReactNode }) {
+  return <HighlightPrimary>{children}</HighlightPrimary>
+}
+
+// ── PRIMARY patterns: important clinical data (bold + dark) ──
+const PRIMARY_PATTERNS = [
   // Conditions & diagnoses
   /\bCKD\s+Stage\s+\d+\b/gi,
   /\bType\s+\d+\s+D(?:M|iabetes(?:\s+Mellitus)?)\b/gi,
@@ -35,45 +55,74 @@ const CLINICAL_PATTERNS = [
   // Clinical events & counts
   /\b\d+\s*(?:ER|hospital)\s+admissions?\b/gi,
   /\bacute\s+fluid\s+overload\b/gi,
-  // Durations (e.g., 2 years, 4 days, 1 week)
-  /\b\d+[\s-]*(?:years?|yr|months?|mo|weeks?|wk|days?|d)\b/gi,
-  // Dates (e.g., 12 Jan'26, 02-Mar-2026)
-  /\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)(?:'\d{2})?/gi,
   // Pregnancy context
   /\bG\d+P\d+(?:L\d+)?(?:A\d+)?\b/gi,
   /\bLMP\s+\S+/gi,
   /\bEDD\s+\S+/gi,
-  // Age at start
-  /^\d+-year-old\s+(?:male|female)/gi,
   // Follow-up overdue
   /\bfollow-?up\s+overdue(?:\s+by\s+\d+\s*d(?:ays?)?)?\b/gi,
 ]
 
+// ── SECONDARY patterns: ONLY parenthetical/bracketed content (tp-slate-400) ──
+// Simple rule: only text inside parentheses is secondary.
+// Standalone durations, dates, numbers are PRIMARY (dark).
+const SECONDARY_PATTERNS = [
+  // Full parenthetical blocks: (2yr), (5yr | Active), (childhood), (2019, resolved), etc.
+  /\([^)]+\)/gi,
+]
+
+type MatchType = "primary" | "secondary"
+
 /**
- * Highlight clinical terms in text — returns React nodes with semibold highlights.
- * Used for narrative/summary text rendering across the Dr Agent panel.
+ * Highlight clinical terms in text — returns React nodes with two-tier highlighting:
+ *
+ * **Primary** (semibold + dark): Conditions, medications, lab values, vitals
+ * **Secondary** (normal + muted): Durations, dates, supportive context
+ *
+ * This creates a visual hierarchy where the doctor's eye is drawn to the
+ * clinical term first, not the supporting temporal/contextual data.
+ *
+ * Pattern follows the secondary historical sidebar: primary data in tp-slate-700,
+ * supportive data in tp-slate-400.
  */
 export function highlightClinicalText(text: string): React.ReactNode {
-  const matches: Array<{ start: number; end: number }> = []
-  for (const pat of CLINICAL_PATTERNS) {
+  const matches: Array<{ start: number; end: number; type: MatchType }> = []
+
+  // Collect primary matches
+  for (const pat of PRIMARY_PATTERNS) {
     pat.lastIndex = 0
     let m: RegExpExecArray | null
     let safety = 0
     while ((m = pat.exec(text)) !== null && safety++ < 100) {
-      matches.push({ start: m.index, end: m.index + m[0].length })
+      matches.push({ start: m.index, end: m.index + m[0].length, type: "primary" })
+      if (!pat.global) break
+    }
+  }
+
+  // Collect secondary matches
+  for (const pat of SECONDARY_PATTERNS) {
+    pat.lastIndex = 0
+    let m: RegExpExecArray | null
+    let safety = 0
+    while ((m = pat.exec(text)) !== null && safety++ < 100) {
+      matches.push({ start: m.index, end: m.index + m[0].length, type: "secondary" })
       if (!pat.global) break
     }
   }
 
   if (matches.length === 0) return text
 
-  // Sort and merge overlapping
-  matches.sort((a, b) => a.start - b.start)
-  const merged: Array<{ start: number; end: number }> = [matches[0]]
+  // Sort by start position; primary wins over secondary when overlapping
+  matches.sort((a, b) => a.start - b.start || (a.type === "primary" ? -1 : 1))
+
+  // Merge overlapping — primary takes precedence
+  const merged: Array<{ start: number; end: number; type: MatchType }> = [matches[0]]
   for (let i = 1; i < matches.length; i++) {
     const last = merged[merged.length - 1]
     if (matches[i].start <= last.end) {
+      // Overlap: extend range, primary wins
       last.end = Math.max(last.end, matches[i].end)
+      if (matches[i].type === "primary") last.type = "primary"
     } else {
       merged.push(matches[i])
     }
@@ -85,7 +134,12 @@ export function highlightClinicalText(text: string): React.ReactNode {
     if (m.start > cursor) {
       parts.push(text.slice(cursor, m.start))
     }
-    parts.push(<HighlightBold key={`h-${i}`}>{text.slice(m.start, m.end)}</HighlightBold>)
+    const segment = text.slice(m.start, m.end)
+    if (m.type === "primary") {
+      parts.push(<HighlightPrimary key={`h-${i}`}>{segment}</HighlightPrimary>)
+    } else {
+      parts.push(<HighlightSecondary key={`h-${i}`}>{segment}</HighlightSecondary>)
+    }
     cursor = m.end
   })
   if (cursor < text.length) {

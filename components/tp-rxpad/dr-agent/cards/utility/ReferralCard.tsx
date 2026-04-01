@@ -44,18 +44,18 @@ export function ReferralCard({ data, onPillTap }: Props) {
               {/* Row 1: Doctor + specialty + action */}
               <div className="flex items-center justify-between mb-[3px]">
                 <div className="flex items-center gap-[6px] min-w-0">
-                  <span className="text-[12px] font-medium text-tp-slate-800 truncate">
+                  <span className="text-[16px] font-medium text-tp-slate-800 truncate">
                     {item.doctorName}
                   </span>
                   <span
-                    className="shrink-0 rounded-[4px] px-1.5 py-[1px] text-[10px] font-medium uppercase"
+                    className="shrink-0 rounded-[4px] px-1.5 py-[1px] text-[14px] font-medium uppercase"
                     style={{ color: "#4B4AD5", backgroundColor: "#EEF2FF" }}
                   >
                     {item.specialty}
                   </span>
                 </div>
                 <button
-                  className="shrink-0 ml-2 rounded-[6px] border border-tp-violet-200 bg-white px-2 py-[2px] text-[10px] font-medium text-tp-violet-600 hover:bg-tp-violet-50 transition-colors"
+                  className="shrink-0 ml-2 rounded-[6px] border border-tp-violet-200 bg-white px-2 py-[2px] text-[14px] font-medium text-tp-violet-600 hover:bg-tp-violet-50 transition-colors"
                   onClick={() => onPillTap?.(`Contact ${item.doctorName}`)}
                 >
                   Contact
@@ -63,12 +63,12 @@ export function ReferralCard({ data, onPillTap }: Props) {
               </div>
 
               {/* Row 2: Phone + count */}
-              <p className="text-[10px] text-tp-slate-600 truncate">
+              <p className="text-[14px] text-tp-slate-600 truncate">
                 {item.doctorPhone} · {item.patientsReferred} referred patient{item.patientsReferred > 1 ? "s" : ""}
               </p>
 
               {/* Row 3: Top reason */}
-              <p className="text-[10px] text-tp-slate-400 truncate mt-[1px]">
+              <p className="text-[14px] text-tp-slate-400 truncate mt-[1px]">
                 Top reason: {item.topReason}
               </p>
             </div>

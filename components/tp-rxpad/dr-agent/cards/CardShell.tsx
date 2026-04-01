@@ -28,12 +28,12 @@ export function SourceInfoIcon({ sources }: { sources: string[] }) {
       {/* Tooltip */}
       {isHovered && (
         <div className="absolute right-0 top-full z-[100] mt-[4px] min-w-[160px] max-w-[220px] rounded-[8px] border border-tp-slate-100/80 bg-white/95 px-[10px] py-[8px] shadow-[0_4px_16px_rgba(0,0,0,0.08)] backdrop-blur-md">
-          <p className="mb-[4px] text-[8px] font-semibold uppercase tracking-wider text-tp-slate-400">Sources</p>
+          <p className="mb-[4px] text-[12px] font-semibold uppercase tracking-wider text-tp-slate-400">Sources</p>
           <div className="flex flex-col gap-[3px]">
             {sources.map((src, i) => (
               <div key={i} className="flex items-center gap-[5px]">
                 <div className="h-[5px] w-[5px] flex-shrink-0 rounded-full bg-tp-violet-400" />
-                <span className="text-[10px] leading-[1.3] text-tp-slate-600">{src}</span>
+                <span className="text-[14px] leading-[1.4] text-tp-slate-600">{src}</span>
               </div>
             ))}
           </div>
@@ -114,11 +114,11 @@ export function CardShell({
 
         {/* Title + Date */}
         <div className="flex min-w-0 flex-col text-tp-slate-800">
-          <span className="max-w-[200px] text-[12px] font-semibold leading-[1.3] truncate" title={title}>
+          <span className="max-w-[200px] text-[16px] font-semibold leading-[1.4] truncate" title={title}>
             {title}
           </span>
           {date && (
-            <span className="mt-[1px] max-w-[200px] text-[10px] font-normal text-tp-slate-400 leading-[1.3] truncate">
+            <span className="mt-[1px] max-w-[200px] text-[14px] font-normal text-tp-slate-400 leading-[1.4] truncate">
               {date}
             </span>
           )}
@@ -149,7 +149,7 @@ export function CardShell({
         {/* Badge — truncated with tooltip if too long */}
         {badge && (
           <span
-            className="max-w-[100px] truncate rounded-[4px] px-[6px] py-[3px] text-[10px] font-semibold leading-[1.2]"
+            className="max-w-[100px] truncate rounded-[4px] px-[6px] py-[3px] text-[14px] font-semibold leading-[1.2]"
             style={{ background: badge.bg, color: badge.color }}
             title={badge.label}
           >

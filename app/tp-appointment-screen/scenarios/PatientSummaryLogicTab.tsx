@@ -3,37 +3,38 @@
 import React, { useState, useCallback } from "react"
 
 // ─────────────────────────────────────────────────────────────
-// Patient Short Summary Generation — Complete E2E Documentation
-// Covers: data sources, fetch logic, medical history breakdown,
-// sentence formation rules, specialty filtering (supported only),
+// SBAR Patient Summary, Complete Generation Spec
+// Covers: SBAR framework (Situation, Background, Assessment,
+// Recommendation), data sources, fetch logic, medical history
+// breakdown, sentence formation rules, specialty-aware filtering,
 // permutation scenarios, appointment status summaries,
-// agent response templates, and acceptance criteria.
+// agent response templates, color hierarchy, and acceptance criteria.
 // ─────────────────────────────────────────────────────────────
 
 // ── Data Constants ────────────────────────────────────────────
 
 const SOURCE_CHECKLIST = {
   historical: [
-    { item: "Past visits", detail: "Previous encounter records — symptoms, diagnosis, treatment, follow-up notes" },
-    { item: "Vitals history", detail: "BP, SpO₂, Temp, HR, Weight, BMI trends across visits" },
+    { item: "Past visits", detail: "Previous encounter records, symptoms, diagnosis, treatment, follow-up notes" },
+    { item: "Vitals history", detail: "BP, SpO2, Temp, HR, Weight, BMI trends across visits" },
     { item: "Medical history", detail: "Chronic conditions, allergies, lifestyle, surgical history, family history, additional notes" },
     { item: "Ophthal history", detail: "VA (unaided, with glasses, pinhole, near), IOP (R/L mmHg), anterior/posterior segment, slit lamp, fundus, glass Rx" },
     { item: "Gynec history", detail: "Menarche age, cycle type/interval, flow volume/pads/day, pain level, lifecycle hormonal changes, notes" },
     { item: "Obstetric history", detail: "GPLAE, LMP, EDD, gestation weeks, per-pregnancy details (MOD, baby weight, remarks), examination (oedema, BMI, BP)" },
-    { item: "Vaccination history", detail: "Pending/upcoming/given vaccines — with week/age, brand, due/given dates, overdue flags" },
-    { item: "Growth history", detail: "Height (cm), weight (kg), BMI, OFC (head circumference) — date-based entries with chart view" },
-    { item: "Lab results", detail: "CBC, LFT, KFT, Thyroid, HbA1c, Lipid, Urine — all historical panels with flags" },
+    { item: "Vaccination history", detail: "Pending/upcoming/given vaccines, with week/age, brand, due/given dates, overdue flags" },
+    { item: "Growth history", detail: "Height (cm), weight (kg), BMI, OFC (head circumference), date-based entries with chart view" },
+    { item: "Lab results", detail: "CBC, LFT, KFT, Thyroid, HbA1c, Lipid, Urine, all historical panels with flags" },
     { item: "Uploaded medical records", detail: "External reports, discharge summaries, scanned documents (OCR-ready)" },
   ],
   currentEncounter: [
-    { item: "Symptom collector payload", detail: "Self-reported symptoms, duration, severity, questions to doctor — from patient app" },
+    { item: "Symptom collector payload", detail: "Self-reported symptoms, duration, severity, questions to doctor, from patient app" },
     { item: "Current visit vitals", detail: "Vitals recorded by nurse/receptionist in this encounter" },
-    { item: "Current RxPad entries", detail: "If doctor has already started entering — meds, diagnosis, investigations" },
+    { item: "Current RxPad entries", detail: "If doctor has already started entering: meds, diagnosis, investigations" },
   ],
   identity: [
     { item: "Patient demographics", detail: "Name, age, gender, UHID, contact" },
     { item: "Appointment context", detail: "New / Follow-up / Walk-in + specialty of the consulting doctor" },
-    { item: "Appointment status", detail: "Queue / Finished / Cancelled / Draft / Pending Digitisation — determines summary type" },
+    { item: "Appointment status", detail: "Queue / Finished / Cancelled / Draft / Pending Digitisation, determines summary type" },
   ],
 }
 
@@ -42,7 +43,7 @@ const MEDICAL_HISTORY_BREAKDOWN = [
     field: "Chronic Conditions (Medical Conditions)",
     priority: "PRIMARY",
     color: "#EF4444",
-    description: "Active chronic diseases — Diabetes, Hypertension, Asthma, COPD, Thyroid disorders, Epilepsy, etc.",
+    description: "Active chronic diseases: Diabetes, Hypertension, Asthma, COPD, Thyroid disorders, Epilepsy, etc.",
     summaryRule: "ALWAYS include in summary when present. This is the most critical piece of medical history for the doctor.",
     example: "Known case of Type 2 DM (1yr) and Hypertension (6mo).",
   },
@@ -51,14 +52,14 @@ const MEDICAL_HISTORY_BREAKDOWN = [
     priority: "HIGH",
     color: "#F59E0B",
     description: "Drug allergies (Sulfonamides, Penicillin), food allergies (Egg, Prawns), environmental (Dust, Pollen).",
-    summaryRule: "Include in summary when present — especially drug allergies. Critical for prescription safety.",
+    summaryRule: "Include in summary when present, especially drug allergies. Critical for prescription safety.",
     example: "Allergies: Sulfonamides (drug), Dust, Egg.",
   },
   {
     field: "Surgical History",
     priority: "HIGH",
     color: "#F59E0B",
-    description: "Past surgeries — Appendectomy, C-section, Knee replacement, CABG, Cataract surgery, etc.",
+    description: "Past surgeries: Appendectomy, C-section, Knee replacement, CABG, Cataract surgery, etc.",
     summaryRule: "Include when present and clinically relevant to current complaint or specialty context.",
     example: "H/o Appendectomy (2018), L-knee arthroscopy (2022).",
   },
@@ -66,9 +67,9 @@ const MEDICAL_HISTORY_BREAKDOWN = [
     field: "Family History",
     priority: "CONTEXTUAL",
     color: "#8B5CF6",
-    description: "Hereditary conditions in immediate family — DM, HTN, Cancer, Heart disease, Thyroid disorders.",
+    description: "Hereditary conditions in immediate family: DM, HTN, Cancer, Heart disease, Thyroid disorders.",
     summaryRule: "Mention only if space permits and family history is directly relevant (e.g., strong cardiac family history for a cardiac patient).",
-    example: "Family h/o: Father — DM + CAD, Mother — Hypothyroid.",
+    example: "Family h/o: Father, DM + CAD. Mother, Hypothyroid.",
   },
   {
     field: "Lifestyle",
@@ -82,7 +83,7 @@ const MEDICAL_HISTORY_BREAKDOWN = [
     field: "Additional History",
     priority: "LOW",
     color: "#94A3B8",
-    description: "Any other notes the patient or previous doctor has recorded — travel history, occupational exposure, previous hospital admissions.",
+    description: "Any other notes the patient or previous doctor has recorded: travel history, occupational exposure, previous hospital admissions.",
     summaryRule: "Include only if exceptionally relevant. Usually omitted from short summary.",
     example: "Recent travel to malaria-endemic area (2 weeks ago).",
   },
@@ -133,74 +134,74 @@ const SUMMARY_COMPOSITION_ORDER = [
 
 const SENTENCE_FORMATION_EXAMPLES = [
   {
-    scenario: "Full data — Symptoms + Chronic + Meds + Last visit",
+    scenario: "Full data, Symptoms + Chronic + Meds + Last visit",
     specialty: "General Medicine",
     availableData: ["Symptom collector", "Chronic conditions", "Drug allergy", "Active meds", "Last visit", "Vitals", "Labs"],
     agentOutput: `Presents with **fever** (3d, moderate) and **dry cough** (2d). Known case of **Diabetes Mellitus** (1yr) and **Hypertension** (6mo). **Allergic to Sulfonamides.** On **Metformin** 500mg BD, **Amlodipine** 5mg OD. Last visited **27 Jan** for **viral fever**, treated with **Paracetamol**, **Cetirizine**.`,
-    reasoning: "All pieces available. Key clinical terms bolded: symptoms, chronic diseases, allergy, medications. Last visit line bolds date, diagnosis, and medication names. No em-dashes. Full disease names used.",
+    reasoning: "All pieces available. Key clinical terms bolded: symptoms, chronic diseases, allergy, medications. Last visit line bolds date, diagnosis, and medication names. Full disease names used.",
   },
   {
-    scenario: "Symptoms only — New patient with symptom collector",
+    scenario: "Symptoms only, New patient with symptom collector",
     specialty: "General Medicine",
     availableData: ["Symptom collector", "Self-reported allergy", "Self-reported meds"],
     agentOutput: `New patient. Presents with **knee pain** (1wk, right knee) and **morning stiffness** (3d). Self-reported **allergy: Sulfonamides.** Currently taking **Vitamin D3** 60K weekly, **Calcium** 500mg daily. No prior visit history available.`,
     reasoning: "New patient with intake data only. Symptoms, allergy, and medication names bolded. Qualifiers simplified. Self-reported label used for unverified data.",
   },
   {
-    scenario: "History only — No symptom collector",
+    scenario: "History only, No symptom collector",
     specialty: "Diabetology",
     availableData: ["Chronic conditions", "Active meds", "Labs", "Last visit", "Vitals"],
     agentOutput: `Known case of **Diabetes Mellitus Type 2** (1yr) and **Hypertension** (6mo). On **Metformin** 500mg BD, **Telmisartan** 40mg OD. **HbA1c trending up** (7.2 to 8.1%). Last visited **27 Jan**, follow-up overdue 5d. No intake symptoms submitted today.`,
-    reasoning: "No symptom collector. Opens with chronic conditions using full names. Lab trend bolded. Last visit date bolded. 'Last visited' instead of 'Last seen'. No em-dashes.",
+    reasoning: "No symptom collector. Opens with chronic conditions using full names. Lab trend bolded. Last visit date bolded. 'Last visited' instead of 'Last seen'.",
   },
   {
-    scenario: "Partial data — Only chronic conditions and allergy",
+    scenario: "Partial data, Only chronic conditions and allergy",
     specialty: "General Medicine",
     availableData: ["Chronic conditions", "Allergies"],
     agentOutput: `Known case of **Bronchial Asthma** (5yr). **Allergic to Penicillin.** No current medications, lab data, or prior visit records available.`,
     reasoning: "Minimal data. Chronic condition and allergy bolded. Honestly states what is missing without filler.",
   },
   {
-    scenario: "Zero data — Completely new patient",
+    scenario: "Zero data, Completely new patient",
     specialty: "Any",
     availableData: [],
-    agentOutput: `New patient — no historical clinical data or symptom collector submission available. Recommend: collect symptoms via intake form, record vitals, and begin clinical assessment.`,
+    agentOutput: `New patient, no historical clinical data or symptom collector submission available. Recommend: collect symptoms via intake form, record vitals, and begin clinical assessment.`,
     reasoning: "Explicit new-patient fallback. Provides next-action prompts instead of empty summary.",
   },
   {
-    scenario: "Pediatric — Growth + vaccine context",
+    scenario: "Pediatric, Growth + vaccine context",
     specialty: "Pediatrics",
     availableData: ["Symptom collector", "Growth data", "Vaccine history", "Vitals"],
     agentOutput: `Presents with **recurrent cough** (2wk) and **low-grade fever** (4d). Weight: 12kg (25th percentile, age-appropriate). OFC: 47cm. **Vaccines up to date** through 18mo schedule. No chronic conditions on record.`,
     reasoning: "Pediatric specialty. Symptoms bolded. Growth (weight, percentile, OFC) and vaccine data prioritized. Gynec/obstetric suppressed.",
   },
   {
-    scenario: "Gynec — Menstrual + hormonal context",
+    scenario: "Gynec, Menstrual + hormonal context",
     specialty: "Gynecology",
     availableData: ["Symptom collector", "Gynec history", "Chronic conditions", "Last visit"],
     agentOutput: `Presents with **irregular periods** (3mo) and **lower abdominal pain** (1wk). Known case of **PCOS** (2yr), **Hypothyroid** (1yr). Cycle: irregular, 45d interval, moderate flow (3 pads/day), mild dysmenorrhea. LMP: 15 Feb. Last visited 10 Jan, USG normal, TSH slightly elevated. On **Letrozole** 2.5mg, **Thyronorm** 50mcg.`,
-    reasoning: "Symptoms, chronic conditions, and medication names bolded. Gynec-specific fields included. No em-dashes in last visit.",
+    reasoning: "Symptoms, chronic conditions, and medication names bolded. Gynec-specific fields included.",
   },
   {
-    scenario: "Ophthal — Vision + IOP context",
+    scenario: "Ophthal, Vision + IOP context",
     specialty: "Ophthalmology",
     availableData: ["Ophthal history", "Chronic conditions", "Active meds", "Vitals"],
     agentOutput: `Known case of **Diabetes Mellitus Type 2** (8yr), presenting for annual fundus screening. Last VA: R 6/9, L 6/12. IOP: R 16, L 18 mmHg. Anterior segment: clear both eyes. Fundus: **mild NPDR** (R). Glass Rx: RE -1.25DS, LE -1.75DS. On **Metformin** 1g BD, **Insulin Glargine** 16U HS.`,
-    reasoning: "Ophthal-specific data leads. DM full name used, bolded. Fundus finding (NPDR) bolded as concerning. Medication names bolded. No em-dashes.",
+    reasoning: "Ophthal-specific data leads. DM full name used, bolded. Fundus finding (NPDR) bolded as concerning. Medication names bolded.",
   },
   {
-    scenario: "Obstetric — GPLAE + pregnancy context",
+    scenario: "Obstetric, GPLAE + pregnancy context",
     specialty: "Obstetrics",
     availableData: ["Symptom collector", "Obstetric history", "Vitals", "Labs", "Active meds"],
     agentOutput: `G2P1L1A0, LMP 15 Sep, EDD 22 Jun, currently 26wk. Presents with **mild swelling in feet** (1wk). BP: **130/85 (borderline)**. Pedal oedema: mild. Previous pregnancy: NVD, baby 3.2kg, uneventful. On **Iron + Folic acid**, **Calcium**. Recent labs: **Hb 10.2 (mild anemia)**, GCT pending.`,
-    reasoning: "GPLAE/LMP/EDD always leads. Symptoms, borderline BP, concerning lab value (low Hb), and medications bolded. No em-dashes.",
+    reasoning: "GPLAE/LMP/EDD always leads. Symptoms, borderline BP, concerning lab value (low Hb), and medications bolded.",
   },
   {
-    scenario: "Concerning disease — Cancer history",
+    scenario: "Concerning disease, Cancer history",
     specialty: "General Medicine",
     availableData: ["Chronic conditions", "Surgical history", "Active meds", "Labs", "Last visit"],
     agentOutput: `Known case of **Carcinoma Breast** (Stage IIA, diagnosed 2024), post-mastectomy. On **Tamoxifen** 20mg OD. Also: **Hypertension** (3yr) on **Losartan** 50mg. Recent labs: CBC normal, **LFT mildly deranged** (SGPT 58). Last visited 1 month ago for routine oncology follow-up, advised PET-CT.`,
-    reasoning: "Concerning disease (cancer) bolded and full name used. All medications, abnormal labs, and chronic conditions bolded. 'Last visited' format with no em-dashes.",
+    reasoning: "Concerning disease (cancer) bolded and full name used. All medications, abnormal labs, and chronic conditions bolded. 'Last visited' format.",
   },
 ]
 
@@ -209,9 +210,9 @@ const SPECIALTY_RULES = [
     specialty: "General Practice / Medicine",
     include: ["Past visits", "Vitals", "Medical history (all sub-fields)", "Labs", "Meds", "Allergies", "Symptom collector"],
     hide: ["Specialty blocks (ophthal/gynec/obstetric/pediatric) unless clearly present and relevant"],
-    priorityNote: "Broadest scope — show everything that is available. Suppress only specialty-specific domains that have no data.",
+    priorityNote: "Broadest scope. Show everything that is available. Suppress only specialty-specific domains that have no data.",
     dataFields: "All general clinical fields. No specialty-specific sidebar data.",
-    shortSummaryFocus: "Symptoms → Chronic → Allergy → Meds → Last visit. Standard composition order.",
+    shortSummaryFocus: "Symptoms -> Chronic -> Allergy -> Meds -> Last visit. Standard composition order.",
   },
   {
     specialty: "Ophthalmology",
@@ -219,7 +220,7 @@ const SPECIALTY_RULES = [
     hide: ["Gynec history", "Obstetric history", "Pediatric growth/vaccine", "Surgical history unrelated to eyes"],
     priorityNote: "Ophthal-specific data leads the summary. DM/HTN chronic conditions are relevant (affect eyes). IOP color coding: Green <21, Amber 21-24, Red >24 mmHg.",
     dataFields: "VA (unaided, with glasses, pinhole, near) per eye | IOP (mmHg) per eye with color coding | Anterior segment (R/L) | Posterior segment (R/L) | Slit lamp findings | Fundus examination | Glass prescription | Last exam date | Alerts (digital eye strain, pregnancy vision)",
-    shortSummaryFocus: "Lead with VA + IOP readings. Frame chronic conditions in ophthal context (e.g., 'DM (8yr) — for fundus screening').",
+    shortSummaryFocus: "Lead with VA + IOP readings. Frame chronic conditions in ophthal context (e.g., 'DM (8yr), for fundus screening').",
   },
   {
     specialty: "Gynecology",
@@ -239,10 +240,10 @@ const SPECIALTY_RULES = [
   },
   {
     specialty: "Pediatrics",
-    include: ["Growth data (height, weight, BMI, OFC — with percentiles)", "Vaccine history (pending/upcoming/given with overdue flags)", "Vitals", "Relevant labs", "Meds", "Allergies", "Last visit", "Symptom collector"],
+    include: ["Growth data (height, weight, BMI, OFC, with percentiles)", "Vaccine history (pending/upcoming/given with overdue flags)", "Vitals", "Relevant labs", "Meds", "Allergies", "Last visit", "Symptom collector"],
     hide: ["Gynec history", "Obstetric history", "Ophthal (unless relevant)", "Lifestyle (not applicable for children)"],
     priorityNote: "Growth/development and vaccine status are primary. Age-appropriate context framing.",
-    dataFields: "Growth: age, height (cm), weight (kg), BMI, OFC (cm) — date-based with chart view | Vaccines: pending (week/age, name, due/overdue status), upcoming, given (grouped by period, with brand + dates) | Milestones, feeding notes",
+    dataFields: "Growth: age, height (cm), weight (kg), BMI, OFC (cm), date-based with chart view | Vaccines: pending (week/age, name, due/overdue status), upcoming, given (grouped by period, with brand + dates) | Milestones, feeding notes",
     shortSummaryFocus: "Mention weight + percentile + OFC. Vaccine status (up to date / overdue). Age-appropriate framing.",
   },
 ]
@@ -256,7 +257,7 @@ const APPOINTMENT_STATUS_SUMMARIES = [
     icon: "Q",
     summaryType: "Pre-consultation summary",
     description: "Patient is waiting to be seen. This is the standard short summary shown when the doctor opens the appointment.",
-    behavior: "Generate the standard short summary following the strict composition order (symptoms → chronic → allergy → meds → last visit). This is the primary use case documented throughout this spec.",
+    behavior: "Generate the standard short summary following the strict composition order (symptoms -> chronic -> allergy -> meds -> last visit). This is the primary use case documented throughout this spec.",
     exampleOutput: `Presents with **fever** (3d, moderate) and **dry cough** (2d). Known case of **Diabetes Mellitus** (1yr) and **Hypertension** (6mo). **Allergic to Sulfonamides.** On **Metformin** 500mg BD, **Amlodipine** 5mg OD. Last visited **27 Jan** for **viral fever**, treated with **Paracetamol**, **Cetirizine**.`,
     dataUsed: "Symptom collector + Historical data + Current vitals (if recorded)",
     hoverSummary: "Same summary shown on appointment list hover tooltip. Character cap ~220 for tooltip context.",
@@ -266,21 +267,21 @@ const APPOINTMENT_STATUS_SUMMARIES = [
     color: "#10B981",
     icon: "F",
     summaryType: "Post-consultation summary",
-    description: "Patient consultation is complete. Summary should reflect WHAT happened during the consultation, not what the patient came in with. Only show fields that have data — skip empty fields entirely.",
-    behavior: "Generate a structured consultation outcome summary with labeled fields. Each field on its own line. Only show fields that have data — never hallucinate missing fields. Pull from the completed RxPad data.",
+    description: "Patient consultation is complete. Summary should reflect WHAT happened during the consultation, not what the patient came in with. Only show fields that have data. Skip empty fields entirely.",
+    behavior: "Generate a structured consultation outcome summary with labeled fields. Each field on its own line. Only show fields that have data. Never hallucinate missing fields. Pull from the completed RxPad data.",
     exampleOutput: `**Came for:** Persistent cough, mild fever\n**Diagnosed:** Acute Bronchitis\n**Prescribed:** Azithromycin 500mg, Levocetrizine 5mg\n**Lab/Inv:** Chest X-ray, CBC\n**Examination:** Bilateral rhonchi, mild pharyngeal congestion\n**Advised:** Steam inhalation, warm fluids, rest\n**Follow-up:** 16 Mar'26`,
-    dataUsed: "Completed RxPad data — Diagnosis, Medications, Investigations, Advice, Examination, Surgery, Notes, Follow-up",
+    dataUsed: "Completed RxPad data: Diagnosis, Medications, Investigations, Advice, Examination, Surgery, Notes, Follow-up",
     hoverSummary: "Short: 'Came for: cough + fever. Dx: Acute Bronchitis. Rx: Azithromycin, Levocetrizine. F/U: 16 Mar.'",
     compositionOrder: [
-      "1. 'Came for:' — Chief complaint (keep it short, no duration unless critical)",
-      "2. 'Diagnosed:' — Final diagnosis entered by doctor",
-      "3. 'Prescribed:' — Key medications with dosage",
-      "4. 'Lab/Inv:' — Investigations ordered (only if any)",
-      "5. 'Examination:' — Key examination findings (only if recorded)",
-      "6. 'Surgery:' — Procedure performed (only if any)",
-      "7. 'Advised:' — Key advice given (only if any)",
-      "8. 'Notes:' — Additional doctor notes (only if any)",
-      "9. 'Follow-up:' — Follow-up date (only if scheduled)",
+      "1. 'Came for:' Chief complaint (keep it short, no duration unless critical)",
+      "2. 'Diagnosed:' Final diagnosis entered by doctor",
+      "3. 'Prescribed:' Key medications with dosage",
+      "4. 'Lab/Inv:' Investigations ordered (only if any)",
+      "5. 'Examination:' Key examination findings (only if recorded)",
+      "6. 'Surgery:' Procedure performed (only if any)",
+      "7. 'Advised:' Key advice given (only if any)",
+      "8. 'Notes:' Additional doctor notes (only if any)",
+      "9. 'Follow-up:' Follow-up date (only if scheduled)",
     ],
   },
   {
@@ -289,16 +290,16 @@ const APPOINTMENT_STATUS_SUMMARIES = [
     icon: "C",
     summaryType: "Cancellation summary",
     description: "Appointment was cancelled. Summary should explain what it was for, why cancelled, and whether rescheduled. Timestamp shown as tertiary metadata, not a heading.",
-    behavior: "Generate a short cancellation summary. Only show 'Rescheduled:' if rescheduled. Timestamp appears as small tertiary text at the bottom — not as a labeled heading.",
+    behavior: "Generate a short cancellation summary. Only show 'Rescheduled:' if rescheduled. Timestamp appears as small tertiary text at the bottom, not as a labeled heading.",
     exampleOutput: `**Appointment type:** Follow-up (Diabetes + Hypertension review)\n**Reason:** Patient called, couldn't make it\n**Rescheduled:** 25 Mar'26\nCancelled at 10:15 am`,
     exampleNoReason: `**Appointment type:** Follow-up (Diabetes + Hypertension review)\n**Reason:** Not recorded\nCancelled at 10:15 am`,
     dataUsed: "Appointment reason/type + Cancellation reason (if recorded) + Reschedule info (if any) + Cancellation timestamp",
     hoverSummary: "Short: 'Cancelled follow-up (DM + HTN). Rescheduled to 25 Mar.'",
     compositionOrder: [
-      "1. 'Appointment type:' — What the appointment was for",
-      "2. 'Reason:' — Why cancelled (if recorded, else 'Not recorded')",
-      "3. 'Rescheduled:' — New date (ONLY if rescheduled, else omit entirely)",
-      "4. Timestamp — Small tertiary text: 'Cancelled at 10:15 am' (not a bold heading)",
+      "1. 'Appointment type:' What the appointment was for",
+      "2. 'Reason:' Why cancelled (if recorded, else 'Not recorded')",
+      "3. 'Rescheduled:' New date (ONLY if rescheduled, else omit entirely)",
+      "4. Timestamp as small tertiary text: 'Cancelled at 10:15 am' (not a bold heading)",
     ],
   },
   {
@@ -306,24 +307,24 @@ const APPOINTMENT_STATUS_SUMMARIES = [
     color: "#F59E0B",
     icon: "D",
     summaryType: "Incomplete consultation summary",
-    description: "Doctor started the consultation but hasn't finished/submitted. Shows a checklist of RxPad section fill-state. Applicable ONLY for Point-and-Click RX mode — not for Voice RX or other input types.",
-    behavior: "Generate a checklist showing each RxPad section with a check or cross. Timestamp shown as small tertiary text. For Voice RX / non-P&C modes, show a simple 'Draft — in progress' fallback instead of the checklist.",
+    description: "Doctor started the consultation but hasn't finished/submitted. Shows a checklist of RxPad section fill-state. Applicable ONLY for Point-and-Click RX mode, not for Voice RX or other input types.",
+    behavior: "Generate a checklist showing each RxPad section with a check or cross. Timestamp shown as small tertiary text. For Voice RX / non-P&C modes, show a simple 'Draft, in progress' fallback instead of the checklist.",
     exampleOutput: `✓ Symptoms entered\n✓ Diagnosis entered\n✓ Medications: 2 drugs\n✗ Advice empty\n✗ Investigations empty\n✗ Follow-up not set\nLast modified: 1:45 pm`,
     exampleMinimal: `✗ Symptoms empty\n✗ Diagnosis empty\n✗ Medications empty\n✗ Advice empty\n✗ Investigations empty\n✗ Follow-up not set\nOnly vitals recorded.\nLast modified: 11:30 am`,
     dataUsed: "RxPad section fill-state + Last modified timestamp + RX input mode (Point-and-Click / Voice / Template)",
-    hoverSummary: "Short: 'Draft — 3/6 sections filled. Last modified: 1:45 pm.'",
-    rxModeNote: "Point-and-Click RX only. For Voice RX, show: 'Draft — voice prescription in progress.' For other modes, show: 'Draft — in progress.'",
+    hoverSummary: "Short: 'Draft, 3/6 sections filled. Last modified: 1:45 pm.'",
+    rxModeNote: "Point-and-Click RX only. For Voice RX, show: 'Draft, voice prescription in progress.' For other modes, show: 'Draft, in progress.'",
     compositionOrder: [
-      "1. Check RX input mode — if NOT Point-and-Click, use fallback (see note below)",
-      "2. Checklist of RxPad sections (✓ filled / ✗ empty):",
-      "   — Symptoms (✓ with count or ✗ empty)",
-      "   — Diagnosis (✓ entered or ✗ empty)",
-      "   — Medications (✓ with drug count or ✗ empty)",
-      "   — Advice (✓ entered or ✗ empty)",
-      "   — Investigations (✓ with count or ✗ empty)",
-      "   — Follow-up (✓ with date or ✗ not set)",
+      "1. Check RX input mode. If NOT Point-and-Click, use fallback (see note below)",
+      "2. Checklist of RxPad sections (check filled / cross empty):",
+      "   Symptoms (check with count or cross empty)",
+      "   Diagnosis (check entered or cross empty)",
+      "   Medications (check with drug count or cross empty)",
+      "   Advice (check entered or cross empty)",
+      "   Investigations (check with count or cross empty)",
+      "   Follow-up (check with date or cross not set)",
       "3. Timestamp as tertiary text: 'Last modified: 1:45 pm'",
-      "4. Fallback: Voice RX → 'Draft — voice prescription in progress.' | Template RX → 'Draft — in progress.'",
+      "4. Fallback: Voice RX -> 'Draft, voice prescription in progress.' | Template RX -> 'Draft, in progress.'",
     ],
   },
   {
@@ -333,9 +334,9 @@ const APPOINTMENT_STATUS_SUMMARIES = [
     summaryType: "No AI summary",
     description: "This appointment was handwritten and is awaiting digitisation. There is no structured data for the AI to summarize.",
     behavior: "Do NOT show any AI-generated summary. Remove the AI summary section entirely for this status. Show a simple status indicator instead.",
-    exampleOutput: `—`,
-    dataUsed: "None — no structured data available",
-    hoverSummary: "Show: 'Pending digitisation — no digital record available.'",
+    exampleOutput: `\u2014`,
+    dataUsed: "None, no structured data available",
+    hoverSummary: "Show: 'Pending digitisation, no digital record available.'",
     compositionOrder: [
       "1. No AI summary generated",
       "2. Show status: 'Awaiting digitisation'",
@@ -350,8 +351,8 @@ const MISSING_DATA_SCENARIOS = [
     title: "Full history + Symptom collector available",
     historyAvailable: true,
     symptomCollector: true,
-    description: "Best case — all data sources present.",
-    behavior: "Generate complete summary following strict order: symptoms → chronic → allergy → meds → last visit. Include specialty-relevant data.",
+    description: "Best case. All data sources present.",
+    behavior: "Generate complete summary following strict order: symptoms -> chronic -> allergy -> meds -> last visit. Include specialty-relevant data.",
     exampleOpener: `"Presents with [symptoms]. Known case of [chronic]. Allergic to [drug]. On [meds]. Last seen [date] for [reason]."`,
     badge: "Complete",
     badgeColor: "#10B981",
@@ -396,7 +397,7 @@ const MISSING_DATA_SCENARIOS = [
     symptomCollector: false,
     description: "Completely new patient with zero data in the system and no intake submission.",
     behavior: "Generate explicit new-patient fallback message. Provide next-action prompts to guide the doctor on what to collect.",
-    exampleOpener: `"New patient — no historical clinical data or symptom collector submission available. Recommend: collect symptoms via intake form, record vitals, and begin clinical assessment."`,
+    exampleOpener: `"New patient, no historical clinical data or symptom collector submission available. Recommend: collect symptoms via intake form, record vitals, and begin clinical assessment."`,
     badge: "New patient",
     badgeColor: "#6B7280",
   },
@@ -407,7 +408,7 @@ const MISSING_DATA_SCENARIOS = [
     symptomCollector: true,
     description: "Full data with critical abnormal values that need immediate attention.",
     behavior: "Follow standard order but prefix critical values prominently. Use signal words like 'Critical', 'Declining', 'Abnormal'.",
-    exampleOpener: `"BP 70/60 (critical low), SpO₂ 93% (declining). Presents with [symptoms]. Known case of [chronic]..."`,
+    exampleOpener: `"BP 70/60 (critical low), SpO2 93% (declining). Presents with [symptoms]. Known case of [chronic]..."`,
     badge: "Critical",
     badgeColor: "#EF4444",
   },
@@ -420,25 +421,25 @@ const AGENT_RESPONSE_RULES = [
   { rule: "Signal words for urgency", detail: "Use 'Critical', 'Declining', 'Trending up', 'Overdue', 'Flagged', 'Abnormal' to draw attention." },
   { rule: "No empty mentions", detail: "Never say 'No allergies', 'No family history'. If data is absent, simply skip that section." },
   { rule: "Self-reported labeling", detail: "When data comes from symptom collector (not verified EMR), prefix with 'Self-reported' or 'Patient reports'." },
-  { rule: "Date formatting", detail: "Use short date format — '27 Jan', '15 Feb'. Include year only if different from current year." },
+  { rule: "Date formatting", detail: "Use short date format: '27 Jan', '15 Feb'. Include year only if different from current year." },
   { rule: "Medication format", detail: "Drug name + strength + frequency. E.g., 'Metformin 500mg BD'. Max 3 key meds. If more, say '+ 2 others'." },
-  { rule: "Specialty context framing", detail: "Frame chronic conditions in specialty context. E.g., Ophthal: 'DM (8yr) — for fundus screening'." },
+  { rule: "Specialty context framing", detail: "Frame chronic conditions in specialty context. E.g., Ophthal: 'DM (8yr), for fundus screening'." },
   { rule: "New patient identification", detail: "When isNewPatient is true, always begin with 'New patient.' to prime the doctor's expectations." },
   { rule: "Follow-up context", detail: "For follow-up appointments, include what the follow-up is for and whether it is overdue." },
   { rule: "No data dumping", detail: "Never list all labs, all vitals, or all past visits. Summarize trends and pick top 2-3 data points." },
   { rule: "Bold key clinical terms", detail: "Bold (**bold**) these in the output: symptom names, chronic disease names, allergy names, medication names, concerning lab values, and any high-risk flags. This helps the doctor's eye catch critical terms instantly." },
-  { rule: "No em-dashes", detail: "Do not use em-dashes (—) in the summary. Use commas, periods, or 'and' for sentence flow. E.g., 'Last visited **27 Jan** for **viral fever**, treated with **Paracetamol**' instead of 'Last seen 27 Jan — Rx: Paracetamol'." },
+  { rule: "No em-dashes", detail: "Do not use em-dashes in the summary. Use commas, periods, or 'and' for sentence flow. E.g., 'Last visited **27 Jan** for **viral fever**, treated with **Paracetamol**' instead of 'Last seen 27 Jan, Rx: Paracetamol'." },
   { rule: "Simplify qualifiers", detail: "Avoid verbose qualifiers like 'evening spikes', 'night worsening'. Use severity (mild/moderate/severe) or omit if not clinically significant. E.g., 'fever (3d, moderate)' not 'fever (3d, evening spikes)'." },
-  { rule: "Last visit format", detail: "Use 'Last visited **[date]** for **[diagnosis]**, treated with **[key meds]**'. Bold the date, diagnosis/symptom, and medication names. Not 'Last seen [date] — Dx: X, Rx: Y'." },
-  { rule: "Hallucination prevention", detail: "NEVER infer, assume, or fabricate data that is not explicitly present in the source. If a field is missing, skip it entirely. If all data is missing, show the appropriate fallback (e.g., 'New patient — no prior records available.'). Better to show less than to hallucinate." },
-  { rule: "Minimize unnecessary detail", detail: "Don't add qualifiers unless clinically relevant. '1 week' duration is fine if needed — but avoid 'evening spikes', 'night worsening' unless they change the clinical picture. If extra detail is important for the doctor to notice, include it even if 4-5 extra words. If not, omit." },
+  { rule: "Last visit format", detail: "Use 'Last visited **[date]** for **[diagnosis]**, treated with **[key meds]**'. Bold the date, diagnosis/symptom, and medication names." },
+  { rule: "Hallucination prevention", detail: "NEVER infer, assume, or fabricate data that is not explicitly present in the source. If a field is missing, skip it entirely. If all data is missing, show the appropriate fallback (e.g., 'New patient, no prior records available.'). Better to show less than to hallucinate." },
+  { rule: "Minimize unnecessary detail", detail: "Don't add qualifiers unless clinically relevant. '1 week' duration is fine if needed, but avoid 'evening spikes', 'night worsening' unless they change the clinical picture. If extra detail is important for the doctor to notice, include it even if 4-5 extra words. If not, omit." },
   { rule: "No digital data fallback", detail: "When only images/scans exist (no structured digital data), disable the AI summary tooltip. Show: 'No digitized record available.' For Pending Digitisation status, hide the AI summary section entirely." },
-  { rule: "RX mode awareness", detail: "Draft checklist is only applicable for Point-and-Click RX. For Voice RX: show 'Draft — voice prescription in progress.' For Template/other RX modes: show 'Draft — in progress.' The info/tooltip icon should be disabled when checklist is not applicable." },
+  { rule: "RX mode awareness", detail: "Draft checklist is only applicable for Point-and-Click RX. For Voice RX: show 'Draft, voice prescription in progress.' For Template/other RX modes: show 'Draft, in progress.' The info/tooltip icon should be disabled when checklist is not applicable." },
 ]
 
 const BACKEND_ALGORITHM = `onAppointmentOpen(patientId, appointmentId):
 
-  // ─── Step 1: Fetch all applicable data sources ───
+  // Step 1: Fetch all applicable data sources
   demographics   = fetchPatientDemographics(patientId)
   appointmentCtx = fetchAppointmentContext(appointmentId)
   medicalHistory = fetchMedicalHistory(patientId)
@@ -450,7 +451,7 @@ const BACKEND_ALGORITHM = `onAppointmentOpen(patientId, appointmentId):
   specialtyData  = fetchSpecialtyData(patientId, appointmentCtx.specialty)
   rxPadState     = fetchRxPadState(appointmentId)  // for finished/draft
 
-  // ─── Step 2: Route by appointment status ───
+  // Step 2: Route by appointment status
   switch (appointmentCtx.status):
     case 'queue':        return buildPreConsultSummary(...)
     case 'finished':     return buildPostConsultSummary(rxPadState, ...)
@@ -458,108 +459,121 @@ const BACKEND_ALGORITHM = `onAppointmentOpen(patientId, appointmentId):
     case 'draft':        return buildDraftSummary(rxPadState, ...)
     case 'pending_digi': return { shortSummary: null, showAI: false }
 
-  // ─── Pre-consultation summary (Queue) ───
+  // Pre-consultation summary (Queue)
   buildPreConsultSummary(data):
     summary = normalizeToCanonicalSummary(data)
     visibleDomains = filterBySpecialty(summary, specialty)
     riskSignals = deriveRiskSignals(summary)
     sentences = []
-    if (riskSignals.hasCritical) → append critical alert
-    if (symptomCollector)        → append symptom opener
-    if (chronicConditions)       → append chronic statement
-    if (drugAllergies)           → append allergy mention
-    if (activeMeds)              → append med snapshot (max 3)
-    if (lastVisit)               → append last visit one-liner
-    if (empty + newPatient)      → append fallback message
-    if (!symptomCollector && !newPatient) → append missing intake note
+    if (riskSignals.hasCritical) -> append critical alert
+    if (symptomCollector)        -> append symptom opener
+    if (chronicConditions)       -> append chronic statement
+    if (drugAllergies)           -> append allergy mention
+    if (activeMeds)              -> append med snapshot (max 3)
+    if (lastVisit)               -> append last visit one-liner
+    if (empty + newPatient)      -> append fallback message
+    if (!symptomCollector && !newPatient) -> append missing intake note
     return { shortSummary: sentences.join(' '), riskSignals, visibleDomains }
 
-  // ─── Post-consultation summary (Finished) ───
+  // Post-consultation summary (Finished)
   buildPostConsultSummary(rxPadState):
     sentences = []
     sentences.push(formatChiefComplaint(rxPadState.symptoms))
     sentences.push(formatDiagnosis(rxPadState.diagnosis))
     sentences.push(formatPrescription(rxPadState.medications))
-    if (rxPadState.investigations) → append investigations
-    if (rxPadState.advice)         → append key advice
-    if (rxPadState.followUp)       → append follow-up plan
+    if (rxPadState.investigations) -> append investigations
+    if (rxPadState.advice)         -> append key advice
+    if (rxPadState.followUp)       -> append follow-up plan
     return { shortSummary: sentences.join(' ') }
 
-  // ─── Cancellation summary ───
+  // Cancellation summary
   buildCancellationSummary(appointmentCtx):
     sentences = []
     sentences.push(formatAppointmentPurpose(appointmentCtx))
     sentences.push(formatCancellationReason(appointmentCtx.cancelReason))
-    if (appointmentCtx.rescheduledTo) → append reschedule info
-    if (patientHasPendingFollowUp)    → append pending context
+    if (appointmentCtx.rescheduledTo) -> append reschedule info
+    if (patientHasPendingFollowUp)    -> append pending context
     return { shortSummary: sentences.join(' ') }
 
-  // ─── Draft summary ───
+  // Draft summary
   buildDraftSummary(rxPadState):
     filled = getSectionsWithData(rxPadState)
     pending = getSectionsWithoutData(rxPadState)
     sentences = ["Draft consultation."]
     sentences.push("Filled: " + summarizeFilledSections(filled))
     sentences.push("Pending: " + pending.join(', '))
-    if (patientChronicConditions) → append context reminder
+    if (patientChronicConditions) -> append context reminder
     return { shortSummary: sentences.join(' ') }`
 
 const ACCEPTANCE_CRITERIA = [
   { criterion: "Never fails on missing data", detail: "Summary generation must gracefully handle any combination of missing sources. No null reference errors, no empty outputs." },
   { criterion: "Specialty auto-filtering", detail: "Irrelevant specialty domains are suppressed automatically. Supported: GP, Ophthal, Gynec, Obstetric, Pediatrics." },
-  { criterion: "Strict sentence ordering", detail: "Critical alerts → Symptoms → Chronic/concerning → Allergies → Meds → Last visit. Order must never be shuffled." },
+  { criterion: "Strict sentence ordering", detail: "Critical alerts -> Symptoms -> Chronic/concerning -> Allergies -> Meds -> Last visit. Order must never be shuffled." },
   { criterion: "New patient fallback", detail: "When both history AND symptom collector are absent, output explicit 'New patient' message with next-action recommendations." },
   { criterion: "No empty sections in payload", detail: "If a data domain has no data, it is omitted entirely. No empty labels, no placeholder stubs, no 'N/A' values." },
-  { criterion: "Critical values surfaced first", detail: "Critical vitals (BP, SpO₂) and critical lab flags appear at the very beginning, before symptoms." },
+  { criterion: "Critical values surfaced first", detail: "Critical vitals (BP, SpO2) and critical lab flags appear at the very beginning, before symptoms." },
   { criterion: "Character limit respected", detail: "Short summary stays within 150-400 chars. Tooltip/hover contexts capped at ~220 characters." },
   { criterion: "Self-reported data labeled", detail: "Data from symptom collector is clearly distinguished from verified EMR data." },
   { criterion: "Follow-up overdue flagged", detail: "If appointment is a follow-up and overdue, flag 'Follow-up overdue Xd' prominently." },
   { criterion: "Max 3 medications listed", detail: "Active medications capped at 3. Excess indicated with '+ N others'." },
-  { criterion: "Status-aware summary routing", detail: "Queue → pre-consult summary. Finished → post-consult summary. Cancelled → cancellation summary. Draft → completeness snapshot. Pending Digitisation → no AI summary." },
+  { criterion: "Status-aware summary routing", detail: "Queue -> pre-consult summary. Finished -> post-consult summary. Cancelled -> cancellation summary. Draft -> completeness snapshot. Pending Digitisation -> no AI summary." },
   { criterion: "Hover summary consistency", detail: "Appointment list hover tooltip uses the same summary logic but respects ~220 char cap." },
+  { criterion: "SBAR section visibility", detail: "Each SBAR section (Situation, Background, Assessment, Recommendation) is hidden entirely when its data is empty. No placeholders, no 'N/A'." },
+  { criterion: "Situation composition order", detail: "Situation section follows the 5-step SUMMARY_COMPOSITION_ORDER strictly: symptoms -> chronic -> allergy -> meds -> last visit." },
+  { criterion: "No SBAR labels in UI", detail: "The card title shown to doctors is 'Patient Summary', not 'SBAR Patient Summary'. SBAR is an internal framework label only." },
+  { criterion: "Color hierarchy consistency", detail: "Clinical terms (condition names, dates, diagnoses, values) use tp-slate-700 (dark). Qualifiers, brackets, and labels use tp-slate-400 (lighter). Bullet markers use tp-slate-300." },
 ]
 
 // ── PDF Download Logic ────────────────────────────────────────
 
 function generatePdfContent(): string {
   const lines: string[] = []
-  const hr = "═".repeat(80)
-  const thinHr = "─".repeat(80)
+  const hr = "=".repeat(80)
+  const thinHr = "-".repeat(80)
 
   lines.push(hr)
-  lines.push("PATIENT SHORT SUMMARY GENERATION — COMPLETE SPECIFICATION")
-  lines.push("Dr. Agent — TatvaPractice EMR")
+  lines.push("SBAR PATIENT SUMMARY, COMPLETE GENERATION SPECIFICATION")
+  lines.push("Dr. Agent, TatvaPractice EMR")
   lines.push(`Generated: ${new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}`)
   lines.push(hr)
   lines.push("")
 
-  // 1. Overview
-  lines.push("1) CORE OUTCOME")
+  // 1. SBAR Overview
+  lines.push("1) SBAR OVERVIEW")
   lines.push(thinHr)
+  lines.push("Framework: SBAR (Situation, Background, Assessment, Recommendation)")
   lines.push("Primary output: 2-4 sentence short summary text for rapid clinical scan.")
   lines.push("Secondary output: Optional structured summary sections/cards for drill-down.")
   lines.push("UX target: Doctor understands risk + context in under ~5 seconds.")
   lines.push("Trigger: Generated automatically when a patient appointment is opened.")
+  lines.push("UI label: Card title is 'Patient Summary' (not 'SBAR Patient Summary').")
   lines.push("")
 
-  // 2. Data Sources
-  lines.push("2) INPUT DATA SOURCES — FETCH CHECKLIST")
+  // 2. Visual Flow
+  lines.push("2) VISUAL FLOW")
+  lines.push(thinHr)
+  lines.push("Trigger: Appointment Opened -> Check Status -> 5 Branches (Queue, Finished, Cancelled, Draft, Pending Dig.)")
+  lines.push("Queue path: Fetch Data -> Medical History -> Specialty Filter -> SBAR Assembly -> Summary Output")
+  lines.push("")
+
+  // 3. Data Sources
+  lines.push("3) INPUT DATA SOURCES, FETCH CHECKLIST")
   lines.push(thinHr)
   lines.push("")
   lines.push("A) Historical Clinical Data:")
-  SOURCE_CHECKLIST.historical.forEach(s => lines.push(`   • ${s.item} — ${s.detail}`))
+  SOURCE_CHECKLIST.historical.forEach(s => lines.push(`   . ${s.item}: ${s.detail}`))
   lines.push("")
   lines.push("B) Current Encounter Data:")
-  SOURCE_CHECKLIST.currentEncounter.forEach(s => lines.push(`   • ${s.item} — ${s.detail}`))
+  SOURCE_CHECKLIST.currentEncounter.forEach(s => lines.push(`   . ${s.item}: ${s.detail}`))
   lines.push("")
   lines.push("C) Identity & Meta:")
-  SOURCE_CHECKLIST.identity.forEach(s => lines.push(`   • ${s.item} — ${s.detail}`))
+  SOURCE_CHECKLIST.identity.forEach(s => lines.push(`   . ${s.item}: ${s.detail}`))
   lines.push("")
 
-  // 3. Medical History
-  lines.push("3) MEDICAL HISTORY — FIELD BREAKDOWN & PRIORITY")
+  // 4. Medical History
+  lines.push("4) MEDICAL HISTORY, FIELD BREAKDOWN & PRIORITY")
   lines.push(thinHr)
-  lines.push("Priority hierarchy: Chronic Conditions → Allergies → Surgical History → Family → Lifestyle → Additional")
+  lines.push("Priority hierarchy: Chronic Conditions -> Allergies -> Surgical History -> Family -> Lifestyle -> Additional")
   lines.push("")
   MEDICAL_HISTORY_BREAKDOWN.forEach(f => {
     lines.push(`   [${f.priority}] ${f.field}`)
@@ -569,8 +583,8 @@ function generatePdfContent(): string {
     lines.push("")
   })
 
-  // 4. Specialty Rules
-  lines.push("4) SPECIALTY RELEVANCE GUARDRAILS")
+  // 5. Specialty Rules
+  lines.push("5) SPECIALTY RELEVANCE GUARDRAILS")
   lines.push(thinHr)
   lines.push("Supported specialties: GP, Ophthalmology, Gynecology, Obstetrics, Pediatrics")
   lines.push("")
@@ -583,8 +597,8 @@ function generatePdfContent(): string {
     lines.push("")
   })
 
-  // 5. Composition Order
-  lines.push("5) SHORT SUMMARY COMPOSITION — STRICT ORDER")
+  // 6. S -- Situation (Composition Order)
+  lines.push("6) S -- SITUATION (COMPOSITION ORDER)")
   lines.push(thinHr)
   SUMMARY_COMPOSITION_ORDER.forEach(s => {
     lines.push(`   Step ${s.step}: ${s.label}`)
@@ -595,25 +609,77 @@ function generatePdfContent(): string {
     lines.push("")
   })
 
-  // 6. Sentence Formation Patterns
-  lines.push("6) SENTENCE FORMATION PATTERNS")
+  // 7. B -- Background (History)
+  lines.push("7) B -- BACKGROUND (HISTORY SECTION)")
   lines.push(thinHr)
-  lines.push('   Pattern A — Symptom opener: "Presents with [symptom] ([duration], [qualifier])."')
-  lines.push('   Pattern B — Chronic statement: "Known case of [Condition] ([duration])."')
-  lines.push('   Pattern C — Allergy mention: "Allergic to [Drug]."')
-  lines.push('   Pattern D — Med snapshot: "On [Med1 dose freq], [Med2 dose freq]." (max 3)')
-  lines.push('   Pattern E — Last visit: "Last seen [date] for [complaint] — Dx: [diagnosis], Rx: [treatment]."')
-  lines.push('   Pattern F — Critical alert: "BP 70/60 (critical low), SpO₂ 93% (declining)."')
-  lines.push('   Pattern G — New patient: "New patient." (prepended)')
-  lines.push('   Pattern H — Specialty openers:')
+  lines.push("   Sub-sections: Conditions | Allergies | Current Meds (max 6)")
+  lines.push("   Rendered with formatWithHierarchy() (NOT InlineDataRow, parenthetical splitting breaks)")
+  lines.push("   Color hierarchy: condition name in tp-slate-700 (dark), bracket content in tp-slate-400 (lighter)")
+  lines.push("   Separator: | between sub-sections")
+  lines.push("   expandAbbreviation() used: DM -> Diabetes, HTN -> Hypertension, etc.")
+  lines.push("   Family history + lifestyle are extendable fields (not shown by default)")
+  lines.push("")
+
+  // 8. A -- Assessment (Vitals + Labs)
+  lines.push("8) A -- ASSESSMENT (VITALS + LABS)")
+  lines.push(thinHr)
+  lines.push("   Today's Vitals display order: BP -> Pulse -> SpO2 -> Temp -> Weight -> RR")
+  lines.push("   parseVitalFlag(key, raw) thresholds:")
+  lines.push("     BP >= 140 or <= 90 = high/critical")
+  lines.push("     SpO2 < 95 = low, SpO2 < 92 = critical")
+  lines.push("     Temp >= 101 = high, Temp >= 104 = critical")
+  lines.push("   Key Labs: max 4 flagged labs shown, up/down indicators, shortened names")
+  lines.push("   Both rendered via InlineDataRow with flag colors")
+  lines.push("")
+
+  // 9. R -- Recommendation
+  lines.push("9) R -- RECOMMENDATION")
+  lines.push(thinHr)
+  lines.push("   buildRecommendations() filtering (ONLY these items shown):")
+  lines.push("     1. Follow-up overdue (if >0 days)")
+  lines.push("     2. Critical vitals (BP <= 90 or >= 160, SpO2 < 92, Temp >= 104)")
+  lines.push("     3. Top 2 due alerts from dueAlerts")
+  lines.push("     4. 1 critical cross-problem flag (severity 'high' only)")
+  lines.push("   Rendered as simple bullet list (bullet in tp-slate-300, text in tp-slate-600)")
+  lines.push("   NOT shown: individual lab values, missing fields, non-critical flags")
+  lines.push("")
+
+  // 10. Last Visit Section
+  lines.push("10) LAST VISIT SECTION")
+  lines.push(thinHr)
+  lines.push("   buildLastVisitLine() returns {date, diagnosis, symptoms}")
+  lines.push("   Color hierarchy: date and diagnosis in tp-slate-700 (dark), 'Dx:' and 'Sx:' labels in tp-slate-400")
+  lines.push("")
+
+  // 11. Color Hierarchy Rules
+  lines.push("11) COLOR HIERARCHY RULES")
+  lines.push(thinHr)
+  lines.push("   tp-slate-700: Primary clinical terms (condition names, dates, diagnoses, values)")
+  lines.push("   tp-slate-400: Bracket content, qualifiers, labels ('Dx:', 'Sx:')")
+  lines.push("   tp-slate-300: Bullet markers, separators")
+  lines.push("   tp-slate-600: Body text in recommendations")
+  lines.push("   Flag colors: tp-error-500 for critical high, tp-amber-500 for high, tp-blue-500 for low")
+  lines.push("")
+
+  // 12. Sentence Formation Patterns
+  lines.push("12) SENTENCE FORMATION PATTERNS")
+  lines.push(thinHr)
+  lines.push('   Pattern A, Symptom opener: "Presents with [symptom] ([duration], [qualifier])."')
+  lines.push('   Pattern B, Chronic statement: "Known case of [Condition] ([duration])."')
+  lines.push('   Pattern C, Allergy mention: "Allergic to [Drug]."')
+  lines.push('   Pattern D, Med snapshot: "On [Med1 dose freq], [Med2 dose freq]." (max 3)')
+  lines.push('   Pattern E, Last visit: "Last visited [date] for [complaint], treated with [treatment]."')
+  lines.push('   Pattern F, Critical alert: "BP 70/60 (critical low), SpO2 93% (declining)."')
+  lines.push('   Pattern G, New patient: "New patient." (prepended)')
+  lines.push('   Pattern H, Specialty openers:')
   lines.push('     Obstetric: "G2P1L1A0, LMP [date], EDD [date], currently [X]wk."')
   lines.push('     Ophthal: "Last VA: R 6/9, L 6/12. IOP: R 16, L 18 mmHg."')
   lines.push('     Pediatric: "Weight: 12kg (25th percentile). Vaccines up to date."')
   lines.push('     Gynec: "Cycle: irregular, 45d interval, moderate flow."')
   lines.push("")
 
-  // 7. Agent Examples
-  lines.push("7) AGENT RESPONSE EXAMPLES")
+  // 13. Agent Examples
+  lines.push("13) AGENT RESPONSE EXAMPLES")
   lines.push(thinHr)
   SENTENCE_FORMATION_EXAMPLES.forEach(ex => {
     lines.push(`   [${ex.specialty}] ${ex.scenario}`)
@@ -623,9 +689,17 @@ function generatePdfContent(): string {
     lines.push("")
   })
 
-  // 8. Data Scenarios
-  lines.push("8) DATA AVAILABILITY SCENARIOS — ALL PERMUTATIONS")
+  // 14. Empty State / Data Scenarios
+  lines.push("14) EMPTY STATE HANDLING, ALL PERMUTATIONS")
   lines.push(thinHr)
+  lines.push("   Per-section SBAR rules:")
+  lines.push("   - Each section hidden entirely if no data (no placeholders, no 'N/A')")
+  lines.push("   - Situation always renders (fallback: 'New patient, no prior clinical data available.')")
+  lines.push("   - Background hidden if no conditions, no allergies, no meds")
+  lines.push("   - Assessment hidden if no vitals AND no labs")
+  lines.push("   - Recommendation hidden if no actionable items OR show 'No urgent actions'")
+  lines.push("   - Last Visit hidden if no prior visits")
+  lines.push("")
   MISSING_DATA_SCENARIOS.forEach(sc => {
     lines.push(`   ${sc.case}: ${sc.title} [${sc.badge}]`)
     lines.push(`   ${sc.description}`)
@@ -634,11 +708,11 @@ function generatePdfContent(): string {
     lines.push("")
   })
 
-  // 9. Appointment Status Summaries
-  lines.push("9) APPOINTMENT STATUS-BASED SUMMARY LOGIC")
+  // 15. Appointment Status Summaries
+  lines.push("15) APPOINTMENT STATUS-BASED SUMMARY LOGIC")
   lines.push(thinHr)
   APPOINTMENT_STATUS_SUMMARIES.forEach(s => {
-    lines.push(`   [${s.status}] — ${s.summaryType}`)
+    lines.push(`   [${s.status}], ${s.summaryType}`)
     lines.push(`   ${s.description}`)
     lines.push(`   Behavior: ${s.behavior}`)
     lines.push(`   Data used: ${s.dataUsed}`)
@@ -651,22 +725,22 @@ function generatePdfContent(): string {
     lines.push("")
   })
 
-  // 10. Response Rules
-  lines.push("10) AGENT RESPONSE FORMATTING RULES")
+  // 16. Response Rules
+  lines.push("16) AGENT RESPONSE FORMATTING RULES")
   lines.push(thinHr)
   AGENT_RESPONSE_RULES.forEach((r, i) => {
     lines.push(`   ${i + 1}. ${r.rule}: ${r.detail}`)
   })
   lines.push("")
 
-  // 11. Algorithm
-  lines.push("11) BACKEND ALGORITHM (PSEUDOCODE)")
+  // 17. Algorithm
+  lines.push("17) BACKEND ALGORITHM (PSEUDOCODE)")
   lines.push(thinHr)
   lines.push(BACKEND_ALGORITHM)
   lines.push("")
 
-  // 12. Acceptance Criteria
-  lines.push("12) ACCEPTANCE CRITERIA")
+  // 18. Acceptance Criteria
+  lines.push("18) ACCEPTANCE CRITERIA")
   lines.push(thinHr)
   ACCEPTANCE_CRITERIA.forEach((c, i) => {
     lines.push(`   ${i + 1}. ${c.criterion}: ${c.detail}`)
@@ -681,7 +755,7 @@ function generatePdfContent(): string {
 
 // ── Sub-Components ────────────────────────────────────────────
 
-/** Renders text with **bold** markdown as <strong> tags — same color, only weight changes */
+/** Renders text with **bold** markdown as <strong> tags, same color, only weight changes */
 function RichText({ text, className }: { text: string; className?: string }) {
   const parts = text.split(/(\*\*[^*]+\*\*)/)
   return (
@@ -709,16 +783,16 @@ function RichBlock({ text, className }: { text: string; className?: string }) {
   )
 }
 
-/** Renders draft checklist — ✓ lines in green, ✗ lines in red, timestamp lines as tertiary */
+/** Renders draft checklist, check lines in green, cross lines in red, timestamp lines as tertiary */
 function DraftBlock({ text, className }: { text: string; className?: string }) {
   const lines = text.split("\n")
   return (
     <div className={className}>
       {lines.map((line, i) => {
-        if (line.startsWith("✗")) {
+        if (line.startsWith("\u2717")) {
           return <div key={i} className="text-red-600 font-medium"><RichText text={line} /></div>
         }
-        if (line.startsWith("✓")) {
+        if (line.startsWith("\u2713")) {
           return <div key={i} className="text-emerald-600 font-medium"><RichText text={line} /></div>
         }
         if (line.startsWith("Last modified") || line.startsWith("Cancelled at")) {
@@ -730,7 +804,7 @@ function DraftBlock({ text, className }: { text: string; className?: string }) {
   )
 }
 
-/** Renders cancelled summary — headings bold, timestamp as tertiary text at bottom */
+/** Renders cancelled summary, headings bold, timestamp as tertiary text at bottom */
 function CancelledBlock({ text, className }: { text: string; className?: string }) {
   const lines = text.split("\n")
   return (
@@ -813,7 +887,7 @@ export default function PatientSummaryLogicTab() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `patient-summary-generation-spec-${new Date().toISOString().slice(0, 10)}.txt`
+    a.download = `sbar-patient-summary-spec-${new Date().toISOString().slice(0, 10)}.txt`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -826,11 +900,13 @@ export default function PatientSummaryLogicTab() {
       <section className="rounded-xl border border-blue-200/60 bg-gradient-to-br from-blue-50/80 to-violet-50/40 p-5">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-[16px] font-bold text-slate-800">Patient Short Summary Generation — Complete Specification</h2>
+            <h2 className="text-[16px] font-bold text-slate-800">SBAR Patient Summary, Complete Generation Spec</h2>
             <p className="mt-1 text-[12px] leading-relaxed text-slate-600">
-              End-to-end documentation for backend developers on how the Dr. Agent summarizing agent generates short patient summaries.
-              Covers data fetching, medical history decomposition, sentence formation logic, specialty-aware filtering,
-              all permutation scenarios (including zero-data), appointment status-based summaries, and the exact rules the agent must follow.
+              End-to-end documentation for how the Dr. Agent summarizing agent generates patient summaries using the SBAR framework
+              (Situation, Background, Assessment, Recommendation).
+              Covers data fetching, SBAR section assembly, medical history decomposition, sentence formation logic, specialty-aware filtering,
+              all permutation scenarios (including zero-data), appointment status-based summaries, color hierarchy rules, and acceptance criteria.
+              The card shown to doctors is titled &quot;Patient Summary&quot; (SBAR is an internal framework label).
             </p>
           </div>
           <button
@@ -847,7 +923,7 @@ export default function PatientSummaryLogicTab() {
           </button>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          {["Backend-first spec", "Specialty-aware", "Missing-data safe", "Sentence formation rules", "Permutation coverage", "Status-aware summaries", "Hover tooltip logic"].map((tag) => (
+          {["SBAR framework", "Specialty-aware", "Missing-data safe", "Color hierarchy", "Sentence formation rules", "Permutation coverage", "Status-aware summaries", "Empty state handling"].map((tag) => (
             <span key={tag} className="rounded-full border border-blue-200/60 bg-white px-2 py-0.5 text-[10px] font-medium text-blue-700">
               {tag}
             </span>
@@ -859,19 +935,24 @@ export default function PatientSummaryLogicTab() {
       <div className="sticky top-[120px] z-10 -mx-1 rounded-lg bg-white/90 px-1 py-2 backdrop-blur-sm">
         <div className="flex flex-wrap gap-1">
           {[
-            { id: "sec-overview", label: "1. Overview" },
-            { id: "sec-flow-diagram", label: "Visual Flow" },
-            { id: "sec-sources", label: "2. Data Sources" },
-            { id: "sec-medical-history", label: "3. Medical History" },
-            { id: "sec-specialty", label: "4. Specialty Rules" },
-            { id: "sec-composition", label: "5. Composition Order" },
-            { id: "sec-formation", label: "6. Sentence Formation" },
-            { id: "sec-examples", label: "7. Agent Examples" },
-            { id: "sec-scenarios", label: "8. Data Scenarios" },
-            { id: "sec-status", label: "9. Status Summaries" },
-            { id: "sec-response-rules", label: "10. Response Rules" },
-            { id: "sec-algorithm", label: "11. Algorithm" },
-            { id: "sec-acceptance", label: "12. Acceptance" },
+            { id: "sec-overview", label: "1. SBAR Overview" },
+            { id: "sec-flow-diagram", label: "2. Visual Flow" },
+            { id: "sec-sources", label: "3. Data Sources" },
+            { id: "sec-medical-history", label: "4. Medical History" },
+            { id: "sec-specialty", label: "5. Specialty Rules" },
+            { id: "sec-situation", label: "6. S - Situation" },
+            { id: "sec-background", label: "7. B - Background" },
+            { id: "sec-assessment", label: "8. A - Assessment" },
+            { id: "sec-recommendation", label: "9. R - Recommendation" },
+            { id: "sec-last-visit", label: "10. Last Visit" },
+            { id: "sec-color-hierarchy", label: "11. Color Hierarchy" },
+            { id: "sec-formation", label: "12. Sentence Formation" },
+            { id: "sec-examples", label: "13. Agent Examples" },
+            { id: "sec-empty-state", label: "14. Empty State" },
+            { id: "sec-status", label: "15. Status Summaries" },
+            { id: "sec-response-rules", label: "16. Response Rules" },
+            { id: "sec-algorithm", label: "17. Algorithm" },
+            { id: "sec-acceptance", label: "18. Acceptance" },
           ].map((nav) => (
             <a
               key={nav.id}
@@ -884,33 +965,54 @@ export default function PatientSummaryLogicTab() {
         </div>
       </div>
 
-      {/* ── 1. Core Overview ── */}
-      <SectionCard id="sec-overview" title="1) Core Outcome">
+      {/* ── 1. SBAR Overview ── */}
+      <SectionCard id="sec-overview" title="1) SBAR Overview">
         <div className="space-y-2 text-[11px] text-slate-600">
+          <p><strong>Framework:</strong> SBAR (Situation, Background, Assessment, Recommendation). An internal structuring framework for how patient summary data is organized and rendered.</p>
           <p><strong>Primary output:</strong> A concise 2-4 sentence short summary text for rapid clinical scan by the doctor.</p>
           <p><strong>Secondary output:</strong> Optional structured summary sections/cards for drill-down (vitals card, lab card, etc.).</p>
           <p><strong>UX target:</strong> Doctor must understand patient risk + context in under ~5 seconds of reading.</p>
           <p><strong>Trigger:</strong> Generated automatically when a patient appointment is opened in TatvaPractice EMR.</p>
           <p><strong>Hover tooltip:</strong> Same summary logic used when hovering over patient row in appointment listing page (~220 char cap).</p>
           <p><strong>Status-aware:</strong> Summary content changes based on appointment status (Queue, Finished, Cancelled, Draft, Pending Digitisation).</p>
+          <p><strong>UI label:</strong> The card title shown to doctors is &quot;Patient Summary&quot;, not &quot;SBAR Patient Summary&quot;. SBAR is an internal framework label only.</p>
+        </div>
+        <div className="mt-3 rounded-lg border border-violet-200 bg-violet-50 p-3">
+          <p className="text-[11px] font-semibold text-violet-700">SBAR section mapping</p>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { letter: "S", name: "Situation", desc: "Current symptoms, chronic conditions, allergies, meds, last visit" },
+              { letter: "B", name: "Background", desc: "Conditions, allergies, current meds (history section)" },
+              { letter: "A", name: "Assessment", desc: "Today's vitals + flagged labs" },
+              { letter: "R", name: "Recommendation", desc: "Overdue follow-ups, critical vitals, due alerts" },
+            ].map((s) => (
+              <div key={s.letter} className="rounded-lg border border-violet-100 bg-white p-2.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-600 text-[9px] font-bold text-white">{s.letter}</span>
+                  <span className="text-[11px] font-bold text-violet-700">{s.name}</span>
+                </div>
+                <p className="mt-1 text-[10px] text-slate-500">{s.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="mt-3 rounded-lg border border-violet-200 bg-violet-50 p-3">
           <p className="text-[11px] font-semibold text-violet-700">Key principle</p>
           <p className="mt-1 text-[10px] text-violet-600">
             The summary is not a data dump. It is a clinically intelligent distillation that highlights what the doctor
-            needs to know RIGHT NOW — risk factors, current symptoms, and medication context. Everything else is available
+            needs to know RIGHT NOW: risk factors, current symptoms, and medication context. Everything else is available
             via drill-down cards.
           </p>
         </div>
       </SectionCard>
 
-      {/* ── Visual Flow Diagram ── */}
-      <SectionCard id="sec-flow-diagram" title="How It Works — Visual Flow">
+      {/* ── 2. Visual Flow Diagram ── */}
+      <SectionCard id="sec-flow-diagram" title="2) How It Works, Visual Flow">
         <p className="mb-4 text-[11px] text-slate-500">
-          End-to-end pipeline from appointment open to summary output. The path taken depends on the current appointment status.
+          End-to-end pipeline from appointment open to SBAR summary output. The path taken depends on the current appointment status.
         </p>
 
-        {/* ── Top Row: Trigger → Status Check ── */}
+        {/* ── Top Row: Trigger -> Status Check ── */}
         <div className="mb-5 flex items-center gap-2">
           {/* Trigger */}
           <div className="shrink-0 rounded-xl border border-violet-300 bg-violet-50 px-4 py-2.5 text-center">
@@ -956,8 +1058,8 @@ export default function PatientSummaryLogicTab() {
                 "Fetch Data Sources",
                 "Medical History Breakdown",
                 "Specialty Relevance Filter",
-                "Sentence Formation (2-4 lines)",
-                "Short Summary Output",
+                "SBAR Assembly (S+B+A+R)",
+                "Patient Summary Output",
               ].map((step, i, arr) => (
                 <React.Fragment key={step}>
                   <div className="rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-center">
@@ -1072,10 +1174,10 @@ export default function PatientSummaryLogicTab() {
         </div>
       </SectionCard>
 
-      {/* ── 2. Data Sources (Fetch Checklist) ── */}
-      <SectionCard id="sec-sources" title="2) Input Data Sources — Fetch Checklist">
+      {/* ── 3. Data Sources (Fetch Checklist) ── */}
+      <SectionCard id="sec-sources" title="3) Input Data Sources, Fetch Checklist">
         <p className="mb-3 text-[11px] text-slate-500">
-          When an appointment is opened, backend must attempt to fetch ALL applicable sources. Data may be partial — fetching must never fail if a source is unavailable.
+          When an appointment is opened, backend must attempt to fetch ALL applicable sources. Data may be partial. Fetching must never fail if a source is unavailable.
         </p>
         <div className="grid gap-4 sm:grid-cols-3">
           {Object.entries(SOURCE_CHECKLIST).map(([key, items]) => (
@@ -1087,7 +1189,7 @@ export default function PatientSummaryLogicTab() {
                 {items.map((s) => (
                   <li key={s.item} className="text-[10px]">
                     <span className="font-semibold text-slate-700">{s.item}</span>
-                    <span className="text-slate-500"> — {s.detail}</span>
+                    <span className="text-slate-500"> : {s.detail}</span>
                   </li>
                 ))}
               </ul>
@@ -1097,15 +1199,15 @@ export default function PatientSummaryLogicTab() {
         <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
           <p className="text-[10px] font-semibold text-amber-700">Important: You will rarely get all data</p>
           <p className="mt-0.5 text-[10px] text-amber-600">
-            Most patients will have partial data. The summary agent must handle every permutation gracefully — see Section 8 for all scenarios.
+            Most patients will have partial data. The summary agent must handle every permutation gracefully. See Section 14 for all scenarios and per-section SBAR empty state rules.
           </p>
         </div>
       </SectionCard>
 
-      {/* ── 3. Medical History Breakdown ── */}
-      <SectionCard id="sec-medical-history" title="3) Medical History — Field Breakdown & Priority">
+      {/* ── 4. Medical History Breakdown ── */}
+      <SectionCard id="sec-medical-history" title="4) Medical History, Field Breakdown & Priority">
         <p className="mb-3 text-[11px] text-slate-500">
-          Medical history consists of distinct sub-fields, each with a different priority level for the short summary.
+          Medical history consists of distinct sub-fields, each with a different priority level for the short summary. These feed into the Background (B) section of SBAR.
         </p>
         <div className="space-y-3">
           {MEDICAL_HISTORY_BREAKDOWN.map((field) => (
@@ -1129,22 +1231,22 @@ export default function PatientSummaryLogicTab() {
           <p className="text-[10px] font-bold text-red-700">Priority Hierarchy for Short Summary</p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px]">
             <span className="rounded-full bg-red-500 px-2 py-0.5 font-bold text-white">1. Chronic Conditions</span>
-            <span className="text-slate-400">→</span>
+            <span className="text-slate-400">&rarr;</span>
             <span className="rounded-full bg-amber-500 px-2 py-0.5 font-bold text-white">2. Allergies</span>
-            <span className="text-slate-400">→</span>
+            <span className="text-slate-400">&rarr;</span>
             <span className="rounded-full bg-amber-500 px-2 py-0.5 font-bold text-white">3. Surgical History</span>
-            <span className="text-slate-400">→</span>
+            <span className="text-slate-400">&rarr;</span>
             <span className="rounded-full bg-violet-500 px-2 py-0.5 font-bold text-white">4. Family</span>
-            <span className="text-slate-400">→</span>
+            <span className="text-slate-400">&rarr;</span>
             <span className="rounded-full bg-violet-500 px-2 py-0.5 font-bold text-white">5. Lifestyle</span>
-            <span className="text-slate-400">→</span>
+            <span className="text-slate-400">&rarr;</span>
             <span className="rounded-full bg-slate-400 px-2 py-0.5 font-bold text-white">6. Additional</span>
           </div>
         </div>
       </SectionCard>
 
-      {/* ── 4. Specialty Relevance Rules ── */}
-      <SectionCard id="sec-specialty" title="4) Specialty Relevance Guardrails">
+      {/* ── 5. Specialty Relevance Rules ── */}
+      <SectionCard id="sec-specialty" title="5) Specialty Relevance Guardrails">
         <p className="mb-3 text-[11px] text-slate-500">
           Not all data domains are relevant for all specialties. Supported specialties: <strong>GP, Ophthalmology, Gynecology, Obstetrics, Pediatrics</strong>.
         </p>
@@ -1156,13 +1258,13 @@ export default function PatientSummaryLogicTab() {
                 <div className="rounded border border-green-200 bg-green-50 px-2.5 py-2">
                   <p className="mb-1 text-[9px] font-bold uppercase tracking-wide text-green-700">Prioritize / Include</p>
                   <ul className="space-y-0.5 text-[10px] text-green-800">
-                    {rule.include.map((item) => <li key={item}>• {item}</li>)}
+                    {rule.include.map((item) => <li key={item}>* {item}</li>)}
                   </ul>
                 </div>
                 <div className="rounded border border-red-200 bg-red-50 px-2.5 py-2">
                   <p className="mb-1 text-[9px] font-bold uppercase tracking-wide text-red-700">Hide by Default</p>
                   <ul className="space-y-0.5 text-[10px] text-red-800">
-                    {rule.hide.map((item) => <li key={item}>• {item}</li>)}
+                    {rule.hide.map((item) => <li key={item}>* {item}</li>)}
                   </ul>
                 </div>
               </div>
@@ -1186,10 +1288,10 @@ export default function PatientSummaryLogicTab() {
         </div>
       </SectionCard>
 
-      {/* ── 5. Summary Composition Order ── */}
-      <SectionCard id="sec-composition" title="5) Short Summary Composition — Strict Ordering">
+      {/* ── 6. S - Situation (Composition Order) ── */}
+      <SectionCard id="sec-situation" title="6) S - Situation (Composition Order)">
         <p className="mb-3 text-[11px] text-slate-500">
-          The short summary must follow this exact sequence. Each step is conditional — include only if data exists.
+          The Situation section is the primary short summary. It must follow this exact sequence. Each step is conditional, include only if data exists.
         </p>
         <div className="space-y-3">
           {SUMMARY_COMPOSITION_ORDER.map((step) => (
@@ -1214,13 +1316,354 @@ export default function PatientSummaryLogicTab() {
         <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
           <p className="text-[10px] font-semibold text-slate-700">Critical alert exception</p>
           <p className="mt-0.5 text-[10px] text-slate-600">
-            If critical vitals or lab values are detected (e.g., BP 70/60, SpO₂ &lt; 94%), they are prepended BEFORE step 1.
+            If critical vitals or lab values are detected (e.g., BP 70/60, SpO2 &lt; 94%), they are prepended BEFORE step 1.
           </p>
         </div>
       </SectionCard>
 
-      {/* ── 6. Sentence Formation Logic ── */}
-      <SectionCard id="sec-formation" title="6) Sentence Formation — How the Agent Composes Text">
+      {/* ── 7. B - Background (History Section) ── */}
+      <SectionCard id="sec-background" title="7) B - Background (History Section)">
+        <p className="mb-3 text-[11px] text-slate-500">
+          The Background section renders the patient{"'"}s medical history in a compact, visually hierarchical format. This section is hidden entirely if no conditions, allergies, or medications exist.
+        </p>
+
+        <div className="space-y-3">
+          {/* Sub-sections */}
+          <div className="rounded-lg border border-slate-200 p-3">
+            <h4 className="text-[11px] font-bold text-slate-800">Three sub-sections</h4>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+              {[
+                { name: "Conditions", desc: "Active chronic diseases. expandAbbreviation() expands DM to Diabetes, HTN to Hypertension, etc." },
+                { name: "Allergies", desc: "Drug, food, and environmental allergies. Drug allergies are highest priority." },
+                { name: "Current Meds", desc: "Max 6 medications shown. If more, excess indicated with '+ N others'." },
+              ].map((sub) => (
+                <div key={sub.name} className="rounded border border-slate-100 bg-slate-50 p-2.5">
+                  <p className="text-[10px] font-bold text-slate-700">{sub.name}</p>
+                  <p className="mt-0.5 text-[10px] text-slate-500">{sub.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Rendering rules */}
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <h4 className="text-[11px] font-bold text-blue-700">Rendering rules</h4>
+            <ul className="mt-2 space-y-1 text-[10px] text-blue-800">
+              <li>* Rendered manually with <code className="rounded bg-blue-100 px-1 py-0.5 font-mono text-[9px]">formatWithHierarchy()</code> (NOT InlineDataRow, because parenthetical splitting breaks)</li>
+              <li>* <code className="rounded bg-blue-100 px-1 py-0.5 font-mono text-[9px]">|</code> separator between sub-sections</li>
+              <li>* <code className="rounded bg-blue-100 px-1 py-0.5 font-mono text-[9px]">expandAbbreviation()</code> used for DM to Diabetes, HTN to Hypertension, etc.</li>
+              <li>* Family history + lifestyle are extendable fields (not shown by default)</li>
+            </ul>
+          </div>
+
+          {/* Color hierarchy */}
+          <div className="rounded-lg border border-violet-200 bg-violet-50 p-3">
+            <h4 className="text-[11px] font-bold text-violet-700">Color hierarchy in Background</h4>
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-sm bg-slate-700" />
+                <span className="text-[10px] text-slate-600"><strong>tp-slate-700:</strong> Condition name (e.g., "Diabetes Mellitus")</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-sm bg-slate-400" />
+                <span className="text-[10px] text-slate-600"><strong>tp-slate-400:</strong> Bracket content (e.g., "(1yr)", "(drug)")</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Example */}
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">Example rendering</p>
+            <div className="mt-1.5 text-[11px]">
+              <span className="font-semibold text-slate-700">Diabetes Mellitus</span>
+              <span className="text-slate-400"> (1yr)</span>
+              <span className="text-slate-400">, </span>
+              <span className="font-semibold text-slate-700">Hypertension</span>
+              <span className="text-slate-400"> (6mo)</span>
+              <span className="mx-1.5 text-slate-300">|</span>
+              <span className="font-semibold text-slate-700">Sulfonamides</span>
+              <span className="text-slate-400"> (drug)</span>
+              <span className="mx-1.5 text-slate-300">|</span>
+              <span className="font-semibold text-slate-700">Metformin</span>
+              <span className="text-slate-400"> 500mg BD</span>
+              <span className="text-slate-400">, </span>
+              <span className="font-semibold text-slate-700">Amlodipine</span>
+              <span className="text-slate-400"> 5mg OD</span>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ── 8. A - Assessment (Vitals + Labs) ── */}
+      <SectionCard id="sec-assessment" title="8) A - Assessment (Vitals + Labs)">
+        <p className="mb-3 text-[11px] text-slate-500">
+          The Assessment section shows today{"'"}s vitals and key flagged labs. This section is hidden entirely if no vitals AND no labs exist for the current encounter.
+        </p>
+
+        <div className="space-y-3">
+          {/* Vitals display order */}
+          <div className="rounded-lg border border-slate-200 p-3">
+            <h4 className="text-[11px] font-bold text-slate-800">Today{"'"}s Vitals display order</h4>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {["BP", "Pulse", "SpO2", "Temp", "Weight", "RR"].map((v, i, arr) => (
+                <React.Fragment key={v}>
+                  <span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">{v}</span>
+                  {i < arr.length - 1 && <span className="text-[10px] text-slate-300">&rarr;</span>}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+
+          {/* parseVitalFlag thresholds */}
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+            <h4 className="text-[11px] font-bold text-amber-700">parseVitalFlag(key, raw) thresholds</h4>
+            <div className="mt-2 overflow-x-auto">
+              <table className="w-full text-[10px]">
+                <thead>
+                  <tr className="border-b border-amber-200">
+                    <th className="py-1 pr-3 text-left font-semibold text-amber-800">Vital</th>
+                    <th className="py-1 pr-3 text-left font-semibold text-amber-800">High</th>
+                    <th className="py-1 text-left font-semibold text-amber-800">Critical</th>
+                  </tr>
+                </thead>
+                <tbody className="text-amber-700">
+                  <tr><td className="py-0.5 pr-3">BP (systolic)</td><td className="py-0.5 pr-3">&gt;= 140</td><td className="py-0.5">&lt;= 90 or &gt;= 160</td></tr>
+                  <tr><td className="py-0.5 pr-3">SpO2</td><td className="py-0.5 pr-3">&lt; 95 (low)</td><td className="py-0.5">&lt; 92 (critical)</td></tr>
+                  <tr><td className="py-0.5 pr-3">Temp (&deg;F)</td><td className="py-0.5 pr-3">&gt;= 101</td><td className="py-0.5">&gt;= 104</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Key Labs */}
+          <div className="rounded-lg border border-slate-200 p-3">
+            <h4 className="text-[11px] font-bold text-slate-800">Key Labs</h4>
+            <ul className="mt-2 space-y-1 text-[10px] text-slate-600">
+              <li>* Max 4 flagged labs shown</li>
+              <li>* Up/down indicators for high/low values</li>
+              <li>* Shortened names used (e.g., HbA1c, TSH, Hb, SGPT)</li>
+              <li>* Normal labs are NOT shown, only flagged results</li>
+            </ul>
+          </div>
+
+          {/* Rendering */}
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <h4 className="text-[11px] font-bold text-blue-700">Rendering</h4>
+            <p className="mt-1 text-[10px] text-blue-800">
+              Both vitals and labs are rendered via <code className="rounded bg-blue-100 px-1 py-0.5 font-mono text-[9px]">InlineDataRow</code> with flag colors.
+              Flag color mapping: tp-error-500 for critical, tp-amber-500 for high, tp-blue-500 for low, tp-slate-600 for normal.
+            </p>
+          </div>
+
+          {/* Example */}
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">Example rendering</p>
+            <div className="mt-1.5 space-y-0.5 text-[11px]">
+              <div>
+                <span className="text-slate-700">BP: </span>
+                <span className="font-semibold text-red-500">142/92</span>
+                <span className="ml-1 text-slate-400">mmHg</span>
+                <span className="mx-1.5 text-slate-300">|</span>
+                <span className="text-slate-700">SpO2: </span>
+                <span className="font-semibold text-slate-700">98%</span>
+                <span className="mx-1.5 text-slate-300">|</span>
+                <span className="text-slate-700">Temp: </span>
+                <span className="font-semibold text-amber-500">101.2</span>
+                <span className="ml-1 text-slate-400">&deg;F</span>
+              </div>
+              <div>
+                <span className="text-slate-700">HbA1c: </span>
+                <span className="font-semibold text-amber-500">8.1%</span>
+                <span className="ml-0.5 text-amber-500">&uarr;</span>
+                <span className="mx-1.5 text-slate-300">|</span>
+                <span className="text-slate-700">Hb: </span>
+                <span className="font-semibold text-blue-500">10.2</span>
+                <span className="ml-0.5 text-blue-500">&darr;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ── 9. R - Recommendation ── */}
+      <SectionCard id="sec-recommendation" title="9) R - Recommendation">
+        <p className="mb-3 text-[11px] text-slate-500">
+          The Recommendation section shows only actionable, high-priority items. It is hidden entirely if there are no actionable items, or shows &quot;No urgent actions&quot; as a minimal fallback.
+        </p>
+
+        <div className="space-y-3">
+          {/* buildRecommendations() filtering */}
+          <div className="rounded-lg border border-slate-200 p-3">
+            <h4 className="text-[11px] font-bold text-slate-800">buildRecommendations() filtering</h4>
+            <p className="mt-1 text-[10px] text-slate-500">ONLY these items are shown:</p>
+            <div className="mt-2 space-y-1.5">
+              {[
+                { num: "1", text: "Follow-up overdue (if >0 days)" },
+                { num: "2", text: "Critical vitals (BP <= 90 or >= 160, SpO2 < 92, Temp >= 104)" },
+                { num: "3", text: "Top 2 due alerts from dueAlerts" },
+                { num: "4", text: "1 critical cross-problem flag (severity 'high' only)" },
+              ].map((item) => (
+                <div key={item.num} className="flex items-start gap-2">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-600 text-[9px] font-bold text-white">{item.num}</span>
+                  <p className="text-[10px] text-slate-600">{item.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* NOT shown */}
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+            <h4 className="text-[11px] font-bold text-red-700">NOT shown in Recommendation</h4>
+            <ul className="mt-1 space-y-0.5 text-[10px] text-red-600">
+              <li>* Individual lab values (those belong in Assessment)</li>
+              <li>* Missing fields or empty data indicators</li>
+              <li>* Non-critical flags (only severity "high" surfaces here)</li>
+            </ul>
+          </div>
+
+          {/* Rendering */}
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <h4 className="text-[11px] font-bold text-blue-700">Rendering</h4>
+            <p className="mt-1 text-[10px] text-blue-800">
+              Simple bullet list. Bullet marker in <code className="rounded bg-blue-100 px-1 py-0.5 font-mono text-[9px]">tp-slate-300</code>,
+              text in <code className="rounded bg-blue-100 px-1 py-0.5 font-mono text-[9px]">tp-slate-600</code>.
+            </p>
+          </div>
+
+          {/* Example */}
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">Example rendering</p>
+            <div className="mt-1.5 space-y-0.5 text-[11px]">
+              <div><span className="text-slate-300">&#9679; </span><span className="text-slate-600">Follow-up overdue by 5 days</span></div>
+              <div><span className="text-slate-300">&#9679; </span><span className="text-slate-600">BP 142/92, elevated (flag for review)</span></div>
+              <div><span className="text-slate-300">&#9679; </span><span className="text-slate-600">HbA1c due (last tested 3 months ago)</span></div>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ── 10. Last Visit Section ── */}
+      <SectionCard id="sec-last-visit" title="10) Last Visit Section">
+        <p className="mb-3 text-[11px] text-slate-500">
+          The Last Visit section provides a one-line summary of the most recent prior encounter. Hidden entirely if no prior visits exist.
+        </p>
+
+        <div className="space-y-3">
+          {/* buildLastVisitLine */}
+          <div className="rounded-lg border border-slate-200 p-3">
+            <h4 className="text-[11px] font-bold text-slate-800">buildLastVisitLine()</h4>
+            <p className="mt-1 text-[10px] text-slate-600">
+              Returns <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[9px]">{`{date, diagnosis, symptoms}`}</code>.
+              All three fields are optional. If only date exists, show date alone.
+            </p>
+          </div>
+
+          {/* Color hierarchy */}
+          <div className="rounded-lg border border-violet-200 bg-violet-50 p-3">
+            <h4 className="text-[11px] font-bold text-violet-700">Color hierarchy in Last Visit</h4>
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-sm bg-slate-700" />
+                <span className="text-[10px] text-slate-600"><strong>tp-slate-700:</strong> Date and diagnosis values (e.g., "27 Jan", "Viral Fever")</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-sm bg-slate-400" />
+                <span className="text-[10px] text-slate-600"><strong>tp-slate-400:</strong> Labels ("Dx:", "Sx:")</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Example */}
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500">Example rendering</p>
+            <div className="mt-1.5 text-[11px]">
+              <span className="font-semibold text-slate-700">27 Jan</span>
+              <span className="mx-1 text-slate-300">|</span>
+              <span className="text-slate-400">Dx: </span>
+              <span className="font-semibold text-slate-700">Viral Fever</span>
+              <span className="mx-1 text-slate-300">|</span>
+              <span className="text-slate-400">Sx: </span>
+              <span className="font-semibold text-slate-700">fever, cough, body ache</span>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ── 11. Color Hierarchy Rules ── */}
+      <SectionCard id="sec-color-hierarchy" title="11) Color Hierarchy Rules">
+        <p className="mb-3 text-[11px] text-slate-500">
+          Consolidated color hierarchy used across all SBAR sections for visual consistency. These are design tokens from the TatvaPractice design system.
+        </p>
+
+        <div className="space-y-3">
+          {/* Primary colors */}
+          <div className="rounded-lg border border-slate-200 p-3">
+            <h4 className="text-[11px] font-bold text-slate-800">Text colors</h4>
+            <div className="mt-2 space-y-2">
+              {[
+                { color: "bg-slate-700", token: "tp-slate-700", usage: "Primary clinical terms: condition names, dates, diagnoses, values" },
+                { color: "bg-slate-400", token: "tp-slate-400", usage: "Bracket content, qualifiers, labels ('Dx:', 'Sx:')" },
+                { color: "bg-slate-300", token: "tp-slate-300", usage: "Bullet markers, separators (|)" },
+                { color: "bg-slate-600", token: "tp-slate-600", usage: "Body text in recommendations" },
+              ].map((c) => (
+                <div key={c.token} className="flex items-start gap-3">
+                  <span className={`mt-0.5 inline-block h-4 w-4 shrink-0 rounded-sm ${c.color}`} />
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-700">{c.token}</p>
+                    <p className="text-[10px] text-slate-500">{c.usage}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Flag colors */}
+          <div className="rounded-lg border border-red-200 bg-red-50/50 p-3">
+            <h4 className="text-[11px] font-bold text-slate-800">Flag colors (vitals + labs)</h4>
+            <div className="mt-2 space-y-2">
+              {[
+                { color: "bg-red-500", token: "tp-error-500", usage: "Critical high: BP >= 160, SpO2 < 92, Temp >= 104" },
+                { color: "bg-amber-500", token: "tp-amber-500", usage: "High: BP >= 140, SpO2 < 95, Temp >= 101, elevated labs" },
+                { color: "bg-blue-500", token: "tp-blue-500", usage: "Low: BP <= 90 (diastolic), low Hb, low platelets" },
+              ].map((c) => (
+                <div key={c.token} className="flex items-start gap-3">
+                  <span className={`mt-0.5 inline-block h-4 w-4 shrink-0 rounded-sm ${c.color}`} />
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-700">{c.token}</p>
+                    <p className="text-[10px] text-slate-500">{c.usage}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Application matrix */}
+          <div className="rounded-lg border border-violet-200 bg-violet-50 p-3">
+            <h4 className="text-[11px] font-bold text-violet-700">Where each color applies</h4>
+            <div className="mt-2 overflow-x-auto">
+              <table className="w-full text-[10px]">
+                <thead>
+                  <tr className="border-b border-violet-200">
+                    <th className="py-1 pr-3 text-left font-semibold text-violet-800">Section</th>
+                    <th className="py-1 pr-3 text-left font-semibold text-violet-800">Dark (700)</th>
+                    <th className="py-1 pr-3 text-left font-semibold text-violet-800">Light (400)</th>
+                    <th className="py-1 text-left font-semibold text-violet-800">Separator (300)</th>
+                  </tr>
+                </thead>
+                <tbody className="text-violet-700">
+                  <tr><td className="py-0.5 pr-3">Background</td><td className="py-0.5 pr-3">Condition names</td><td className="py-0.5 pr-3">Brackets, durations</td><td className="py-0.5">| separator</td></tr>
+                  <tr><td className="py-0.5 pr-3">Assessment</td><td className="py-0.5 pr-3">Vital values, lab values</td><td className="py-0.5 pr-3">Units (mmHg, &deg;F)</td><td className="py-0.5">| separator</td></tr>
+                  <tr><td className="py-0.5 pr-3">Recommendation</td><td className="py-0.5 pr-3">n/a</td><td className="py-0.5 pr-3">n/a</td><td className="py-0.5">Bullet markers</td></tr>
+                  <tr><td className="py-0.5 pr-3">Last Visit</td><td className="py-0.5 pr-3">Date, diagnosis</td><td className="py-0.5 pr-3">Dx:, Sx: labels</td><td className="py-0.5">| separator</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </SectionCard>
+
+      {/* ── 12. Sentence Formation Logic ── */}
+      <SectionCard id="sec-formation" title="12) Sentence Formation, How the Agent Composes Text">
         <p className="mb-3 text-[11px] text-slate-500">
           The agent constructs natural clinical sentences following these patterns.
         </p>
@@ -1231,17 +1674,17 @@ export default function PatientSummaryLogicTab() {
             { id: "C", title: "Allergy mention", template: '"**Allergic to [Drug].** / Known **allergies: [Drug1]**, [Food/Env]."', examples: ['"**Allergic to Sulfonamides.**"', '"Known **allergies: Penicillin**, Dust, Egg."'] },
             { id: "D", title: "Medication snapshot", template: '"On **[Med1]** dose freq, **[Med2]** dose freq." / "On **[Med1]**, **[Med2]** + 3 others."', examples: ['"On **Metformin** 500mg BD, **Amlodipine** 5mg OD."'] },
             { id: "E", title: "Last visit one-liner", template: '"Last visited **[date]** for **[diagnosis/complaint]**, treated with **[key meds]**."', examples: ['"Last visited **27 Jan** for **viral fever**, treated with **Paracetamol**, **Cetirizine**."', '"Last visited **10 Jan**, **USG** normal, **TSH** slightly elevated."'] },
-            { id: "F", title: "Critical alert prefix", template: '"**BP 70/60 (critical low)**, **SpO₂ 93% (declining)**."', examples: ['Prepended before all other content. Critical values always bolded.'] },
+            { id: "F", title: "Critical alert prefix", template: '"**BP 70/60 (critical low)**, **SpO2 93% (declining)**."', examples: ['Prepended before all other content. Critical values always bolded.'] },
             { id: "G", title: "New patient identifier", template: '"New patient." (prepended when isNewPatient = true)', examples: ['Always start with this if no prior visit records.'] },
             { id: "H", title: "Specialty-specific openers", template: "Varies by specialty", examples: ['Obstetric: "G2P1L1A0, LMP 15 Sep, EDD 22 Jun, currently 26wk."', 'Ophthal: "Last VA: R 6/9, L 6/12. IOP: R 16, L 18 mmHg."', 'Pediatric: "Weight: 12kg (25th percentile). **Vaccines up to date.**"', 'Gynec: "Cycle: irregular, 45d interval, moderate flow (3 pads/day)."'] },
           ].map((pattern) => (
             <div key={pattern.id} className="rounded-lg border border-slate-200 p-3">
-              <h4 className="text-[11px] font-bold text-slate-800">Pattern {pattern.id} — {pattern.title}</h4>
+              <h4 className="text-[11px] font-bold text-slate-800">Pattern {pattern.id}, {pattern.title}</h4>
               <div className="mt-2 rounded bg-slate-50 px-2.5 py-1.5 text-[10px] text-slate-700">
                 <RichText text={pattern.template} />
               </div>
               <ul className="mt-1.5 space-y-0.5 text-[10px] text-slate-600">
-                {pattern.examples.map((ex) => <li key={ex}>• <RichText text={ex} /></li>)}
+                {pattern.examples.map((ex) => <li key={ex}>* <RichText text={ex} /></li>)}
               </ul>
             </div>
           ))}
@@ -1254,13 +1697,13 @@ export default function PatientSummaryLogicTab() {
         </div>
       </SectionCard>
 
-      {/* ── 7. Agent Response Examples ── */}
-      <SectionCard id="sec-examples" title="7) Agent Response Examples — All Specialty & Data Combinations">
+      {/* ── 13. Agent Response Examples ── */}
+      <SectionCard id="sec-examples" title="13) Agent Response Examples, All Specialty & Data Combinations">
         <p className="mb-3 text-[11px] text-slate-500">
           Interactive examples showing exactly how the agent composes summary text for different scenarios.
         </p>
         <MiniNav
-          items={SENTENCE_FORMATION_EXAMPLES.map((ex, i) => ({ id: String(i), label: ex.scenario.split(" — ")[0] }))}
+          items={SENTENCE_FORMATION_EXAMPLES.map((ex, i) => ({ id: String(i), label: ex.scenario.split(",")[0].split(" - ")[0] }))}
           activeId={String(activeExample)}
           onSelect={(id) => setActiveExample(Number(id))}
         />
@@ -1296,11 +1739,29 @@ export default function PatientSummaryLogicTab() {
         </div>
       </SectionCard>
 
-      {/* ── 8. Data Availability Scenarios ── */}
-      <SectionCard id="sec-scenarios" title="8) Data Availability Scenarios — All Permutations">
+      {/* ── 14. Empty State Handling ── */}
+      <SectionCard id="sec-empty-state" title="14) Empty State Handling, Per-Section SBAR Rules">
         <p className="mb-3 text-[11px] text-slate-500">
-          Every possible combination of data availability and the exact behavior the agent must follow.
+          Every SBAR section has specific rules for when data is missing. The fundamental principle: hide empty sections entirely. No placeholders, no &quot;N/A&quot;.
         </p>
+
+        {/* Per-section rules */}
+        <div className="mb-4 space-y-2">
+          {[
+            { section: "S - Situation", rule: "Always renders. Fallback: 'New patient, no prior clinical data available.'", color: "border-blue-200 bg-blue-50", textColor: "text-blue-700" },
+            { section: "B - Background", rule: "Hidden if no conditions, no allergies, and no meds. All three must be absent to hide.", color: "border-violet-200 bg-violet-50", textColor: "text-violet-700" },
+            { section: "A - Assessment", rule: "Hidden if no vitals AND no labs for the current encounter.", color: "border-amber-200 bg-amber-50", textColor: "text-amber-700" },
+            { section: "R - Recommendation", rule: "Hidden if no actionable items. Alternatively, show 'No urgent actions' as minimal fallback.", color: "border-green-200 bg-green-50", textColor: "text-green-700" },
+            { section: "Last Visit", rule: "Hidden if no prior visits exist in the system.", color: "border-slate-200 bg-slate-50", textColor: "text-slate-700" },
+          ].map((s) => (
+            <div key={s.section} className={`rounded-lg border p-3 ${s.color}`}>
+              <p className={`text-[11px] font-bold ${s.textColor}`}>{s.section}</p>
+              <p className={`mt-0.5 text-[10px] ${s.textColor}`}>{s.rule}</p>
+            </div>
+          ))}
+        </div>
+
+        <h4 className="mb-2 text-[12px] font-bold text-slate-700">Data availability scenarios</h4>
         <MiniNav
           items={MISSING_DATA_SCENARIOS.map((s, i) => ({ id: String(i), label: `${s.case}` }))}
           activeId={String(activeScenario)}
@@ -1344,8 +1805,8 @@ export default function PatientSummaryLogicTab() {
         </div>
       </SectionCard>
 
-      {/* ── 9. Appointment Status-Based Summaries ── */}
-      <SectionCard id="sec-status" title="9) Appointment Status-Based Summary Logic">
+      {/* ── 15. Appointment Status-Based Summaries ── */}
+      <SectionCard id="sec-status" title="15) Appointment Status-Based Summary Logic">
         <p className="mb-3 text-[11px] text-slate-500">
           The summary content and format changes based on the appointment{"'"}s current status. This determines what the doctor sees both inside the appointment AND on the appointment list hover tooltip.
         </p>
@@ -1431,8 +1892,8 @@ export default function PatientSummaryLogicTab() {
         </div>
       </SectionCard>
 
-      {/* ── 10. Agent Response Rules ── */}
-      <SectionCard id="sec-response-rules" title="10) Agent Response Formatting Rules">
+      {/* ── 16. Agent Response Rules ── */}
+      <SectionCard id="sec-response-rules" title="16) Agent Response Formatting Rules">
         <div className="grid gap-2 sm:grid-cols-2">
           {AGENT_RESPONSE_RULES.map((rule) => (
             <div key={rule.rule} className="rounded-lg border border-slate-200 p-3">
@@ -1443,18 +1904,18 @@ export default function PatientSummaryLogicTab() {
         </div>
       </SectionCard>
 
-      {/* ── 11. Backend Algorithm ── */}
-      <SectionCard id="sec-algorithm" title="11) Backend Algorithm (Pseudocode)">
+      {/* ── 17. Backend Algorithm ── */}
+      <SectionCard id="sec-algorithm" title="17) Backend Algorithm (Pseudocode)">
         <p className="mb-3 text-[11px] text-slate-500">
-          Complete pseudocode including appointment status routing — from appointment open to final payload.
+          Complete pseudocode including appointment status routing, from appointment open to final payload.
         </p>
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
           <pre className="overflow-x-auto whitespace-pre text-[10px] leading-[1.7] text-slate-700">{BACKEND_ALGORITHM}</pre>
         </div>
       </SectionCard>
 
-      {/* ── 12. Acceptance Criteria ── */}
-      <SectionCard id="sec-acceptance" title="12) Acceptance Criteria">
+      {/* ── 18. Acceptance Criteria ── */}
+      <SectionCard id="sec-acceptance" title="18) Acceptance Criteria">
         <div className="space-y-2">
           {ACCEPTANCE_CRITERIA.map((item, i) => (
             <div key={item.criterion} className="flex gap-3 rounded-lg border border-slate-200 p-3">
@@ -1473,12 +1934,12 @@ export default function PatientSummaryLogicTab() {
       {/* ── Canonical Summary Model ── */}
       <SectionCard title="Appendix: Canonical Summary Object Schema">
         <p className="mb-2 text-[11px] text-slate-500">
-          All fetched inputs are normalized into this single object before the agent generates narrative text.
+          All fetched inputs are normalized into this single object before the agent generates narrative text via the SBAR framework.
         </p>
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
           <pre className="overflow-x-auto text-[10px] leading-[1.7] text-slate-700">
 {`interface PatientSummaryCanonical {
-  // ─── Identity ───
+  // Identity
   patient: { name: string; age: number; gender: 'M' | 'F'; uhid: string }
   specialty: string
   appointmentType: 'new' | 'follow-up' | 'walk-in'
@@ -1487,7 +1948,7 @@ export default function PatientSummaryLogicTab() {
   isFollowUp: boolean
   followUpOverdueDays?: number
 
-  // ─── Current Encounter ───
+  // Current Encounter
   symptomCollector?: {
     symptoms: { name: string; duration: string; severity?: string; qualifiers?: string[] }[]
     questionsToDoctor?: string[]
@@ -1496,7 +1957,7 @@ export default function PatientSummaryLogicTab() {
   }
   currentVitals?: { bp?: string; spo2?: number; temp?: number; hr?: number; weight?: number; bmi?: number; isCritical?: boolean }
 
-  // ─── Medical History ───
+  // Medical History
   chronicConditions?: { name: string; duration: string; status: 'active' | 'resolved' }[]
   concerningConditions?: { name: string; detail: string }[]
   allergies?: { drugs: string[]; food: string[]; environmental: string[] }
@@ -1504,20 +1965,20 @@ export default function PatientSummaryLogicTab() {
   familyHistory?: { relation: string; conditions: string[] }[]
   lifestyle?: { habit: string; detail: string }[]
 
-  // ─── Medications & Labs ───
+  // Medications & Labs
   activeMeds?: { name: string; dose: string; frequency: string }[]
   keyLabs?: { name: string; value: string; unit: string; flag: 'normal'|'high'|'low'|'critical'; previousValue?: string }[]
 
-  // ─── Past Visits ───
+  // Past Visits
   lastVisit?: { date: string; chiefComplaint: string; diagnosis: string; keyTreatment: string; followUpAdvised?: string }
 
-  // ─── Specialty Data ───
+  // Specialty Data
   ophthalData?: { vaRight: string; vaLeft: string; nearVaRight?: string; nearVaLeft?: string; iop: string; slitLamp?: string; fundus: string; glassPrescription?: string; anteriorSegment?: { right: string; left: string }; posteriorSegment?: { right: string; left: string } }
   gynecData?: { menarche?: string; cycleType: string; cycleInterval: number; flowVolume: string; padsPerDay?: number; painLevel: string; lmp?: string; lifecycleHormonal?: string }
   obstetricData?: { gravida: number; para: number; living: number; abortion: number; ectopic: number; lmp: string; edd: string; gestationalWeeks: number; pregnancyHistory?: { mod: string; babyWeight: string; remarks: string }[]; examination?: { oedema: string; bmi: string; bp: string } }
   pediatricsData?: { ageDisplay: string; heightCm: number; heightPercentile?: string; weightKg: number; weightPercentile?: string; ofcCm?: number; vaccinesPending: number; vaccinesOverdue: number; overdueVaccineNames?: string[]; milestoneNotes?: string }
 
-  // ─── RxPad State (for finished/draft) ───
+  // RxPad State (for finished/draft)
   rxPadState?: { symptoms?: string[]; diagnosis?: string; medications?: { name: string; dose: string; frequency: string; duration: string }[]; investigations?: string[]; advice?: string[]; followUp?: string }
   cancellationReason?: string
   rescheduledTo?: string
@@ -1530,9 +1991,9 @@ export default function PatientSummaryLogicTab() {
       <section className="rounded-xl border border-slate-100 bg-slate-50 p-4">
         <p className="text-[10px] font-semibold text-slate-500">Reference documents</p>
         <ul className="mt-1 space-y-0.5 text-[10px] text-slate-600">
-          <li>• <code className="text-violet-600">patient-summary-generation-spec.md</code> — Original spec document</li>
-          <li>• <code className="text-violet-600">intent-classifier-and-canned-messages.md</code> — Intent classification and pill behavior</li>
-          <li>• <code className="text-violet-600">card-data-structuring.md</code> — Card-level data contracts</li>
+          <li>* <code className="text-violet-600">patient-summary-generation-spec.md</code> : Original spec document</li>
+          <li>* <code className="text-violet-600">intent-classifier-and-canned-messages.md</code> : Intent classification and pill behavior</li>
+          <li>* <code className="text-violet-600">card-data-structuring.md</code> : Card-level data contracts</li>
         </ul>
       </section>
     </div>

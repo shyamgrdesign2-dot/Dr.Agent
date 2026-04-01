@@ -1208,9 +1208,8 @@ export function FollowUpsPage() {
                                           type="button"
                                           aria-label="AI action"
                                           className="shrink-0 inline-flex size-[42px] items-center justify-center rounded-[10px] transition-all hover:opacity-80 hover:scale-105"
-                                          style={{ background: AI_GRADIENT_SOFT }}
                                         >
-                                          <AiBrandSparkIcon size={20} />
+                                          <AiBrandSparkIcon size={42} withBackground />
                                         </button>
 
                                         <button

@@ -14,7 +14,7 @@ interface CheckboxRowProps {
 export function CheckboxRow({ label, rationale, checked = false, accentColor = "var(--tp-blue-500)", onChange, isLast }: CheckboxRowProps) {
   return (
     <label className={cn(
-      "flex cursor-pointer items-center gap-[8px] py-[6px] text-[12px]",
+      "flex cursor-pointer items-center gap-[8px] py-[6px] text-[14px]",
     )}
     style={!isLast ? { borderBottom: "0.5px solid var(--tp-slate-50, #F8FAFC)" } : undefined}
     >
@@ -35,7 +35,7 @@ export function CheckboxRow({ label, rationale, checked = false, accentColor = "
       </button>
       <span className="font-medium text-tp-slate-800">{label}</span>
       {rationale && (
-        <span className="ml-auto text-[10px] text-tp-slate-400">{rationale}</span>
+        <span className="ml-auto text-[12px] text-tp-slate-400">{rationale}</span>
       )}
     </label>
   )

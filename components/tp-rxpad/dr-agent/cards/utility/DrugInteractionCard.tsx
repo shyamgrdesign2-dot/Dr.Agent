@@ -1,14 +1,10 @@
 "use client"
 
-import { useState } from "react"
 import { CardShell } from "../CardShell"
-import { TickCircle } from "iconsax-reactjs"
 import type { DrugInteractionData, SeverityLevel } from "../../types"
-import { FooterCTA } from "../FooterCTA"
 
 interface DrugInteractionCardProps {
   data: DrugInteractionData
-  onAcknowledge?: () => void
 }
 
 const SEVERITY_LABEL: Record<SeverityLevel, string> = {
@@ -25,17 +21,7 @@ const SEVERITY_BADGE: Record<SeverityLevel, { color: string; bg: string }> = {
   low: { color: "#64748B", bg: "#F1F5F9" },
 }
 
-export function DrugInteractionCard({
-  data,
-  onAcknowledge,
-}: DrugInteractionCardProps) {
-  const [acknowledged, setAcknowledged] = useState(false)
-
-  const handleAck = () => {
-    setAcknowledged(true)
-    onAcknowledge?.()
-  }
-
+export function DrugInteractionCard({ data }: DrugInteractionCardProps) {
   const badge = SEVERITY_BADGE[data.severity]
 
   return (
@@ -44,17 +30,7 @@ export function DrugInteractionCard({
       tpIconName="first-aid"
       title="Drug Interaction"
       badge={{ label: "DANGER", color: "#DC2626", bg: "#FEE2E2" }}
-      sidebarLink={
-        <FooterCTA
-          label={acknowledged ? "Acknowledged" : "Acknowledge"}
-          onClick={handleAck}
-          disabled={acknowledged}
-          tone={acknowledged ? "neutral" : "success"}
-          iconLeft={<TickCircle size={14} variant={acknowledged ? "Bold" : "Linear"} />}
-        />
-      }
     >
-      {/* Redesigned: white bg with left accent border */}
       <div
         className="space-y-[8px] rounded-[8px] bg-white px-3 py-[10px]"
         style={{
@@ -63,7 +39,7 @@ export function DrugInteractionCard({
         }}
       >
         {/* Drug pair */}
-        <div className="flex items-center gap-[6px] text-[12px] font-semibold text-tp-slate-800">
+        <div className="flex items-center gap-[6px] text-[16px] font-semibold text-tp-slate-800">
           <span>{data.drug1}</span>
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="flex-shrink-0 text-tp-warning-500">
             <path d="M8 2L9.5 6H14L10.5 9L12 13L8 10.5L4 13L5.5 9L2 6H6.5L8 2Z" fill="currentColor" />
@@ -73,9 +49,9 @@ export function DrugInteractionCard({
 
         {/* Severity */}
         <div className="flex items-center gap-[6px]">
-          <span className="text-[10px] font-medium uppercase tracking-wider text-tp-slate-400">Severity</span>
+          <span className="text-[14px] font-medium uppercase tracking-wider text-tp-slate-400">Severity</span>
           <span
-            className="rounded-[4px] px-1.5 py-[1px] text-[10px] font-semibold"
+            className="rounded-[4px] px-1.5 py-[1px] text-[14px] font-semibold"
             style={{ color: badge.color, backgroundColor: badge.bg }}
           >
             {SEVERITY_LABEL[data.severity]}
@@ -84,14 +60,14 @@ export function DrugInteractionCard({
 
         {/* Risk */}
         <div>
-          <p className="mb-[2px] text-[10px] font-medium uppercase tracking-wider text-tp-slate-400">Risk</p>
-          <p className="text-[12px] leading-[1.5] text-tp-slate-700">{data.risk}</p>
+          <p className="mb-[2px] text-[14px] font-medium uppercase tracking-wider text-tp-slate-400">Risk</p>
+          <p className="text-[16px] leading-[1.6] text-tp-slate-700">{data.risk}</p>
         </div>
 
         {/* Action */}
         <div>
-          <p className="mb-[2px] text-[10px] font-medium uppercase tracking-wider text-tp-slate-400">Recommended Action</p>
-          <p className="text-[12px] leading-[1.5] text-tp-slate-700">{data.action}</p>
+          <p className="mb-[2px] text-[14px] font-medium uppercase tracking-wider text-tp-slate-400">Recommended Action</p>
+          <p className="text-[16px] leading-[1.6] text-tp-slate-700">{data.action}</p>
         </div>
       </div>
     </CardShell>

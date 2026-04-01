@@ -30,11 +30,11 @@ export function DocumentAttachmentBubble({ attachment }: DocumentAttachmentBubbl
 
       {/* File info */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-[12px] font-medium leading-[1.3] text-tp-slate-700">
+        <span className="truncate text-[14px] font-medium leading-[1.3] text-tp-slate-700">
           {attachment.fileName}
         </span>
         {attachment.pageCount && (
-          <span className="text-[10px] leading-[1.3] text-tp-slate-400">
+          <span className="text-[12px] leading-[1.3] text-tp-slate-400">
             {attachment.pageCount} {attachment.pageCount === 1 ? "page" : "pages"}
           </span>
         )}

@@ -5,12 +5,13 @@
 import type { RxContextOption, SpecialtyTabId } from "./types"
 
 // ═══════════════ FONT SIZE CONTRACT ═══════════════
-// Body text:     12px (text-[12px])
-// Card headings: 12px (max 14px)
-// Chips/pills:   10px (text-[10px])
-// Tooltips:      10px (text-[10px])
-// Badges:        10px (text-[10px])
-// Chart labels:  8-9px
+// Body text:     14px (text-[14px])   — was 12px
+// Card headings: 16px (text-[16px])   — was 14px
+// Chips/pills:   12px (text-[12px])   — was 10px
+// Tooltips:      12px (text-[12px])   — was 10px
+// Badges:        12px (text-[12px])   — was 10px
+// Chart labels:  10-11px              — was 8-9px
+// Minimum:       10px                 — nothing below 10px
 // NO responsive font sizing — all fixed px values
 
 // ═══════════════ PATIENT CONTEXT OPTIONS ═══════════════
@@ -187,20 +188,20 @@ export const CARD = {
   radius: 12,
   headerIconSize: 26,
   headerIconRadius: 8,
-  titleSize: 14,
-  bodySize: 12,
-  secondarySize: 10,
-  tagSize: 11,
+  titleSize: 16,
+  bodySize: 14,
+  secondarySize: 12,
+  tagSize: 13,
   ctaHeight: 30,
   ctaRadius: 10,
-  ctaFontSize: 12,
+  ctaFontSize: 14,
   padding: { x: 12, y: 8 },
 } as const
 
 // ═══════════════ PHASE PROMPTS (for prompt chips) ═══════════════
 
 export const PHASE_PROMPTS: Record<string, string[]> = {
-  empty: ["Patient's detailed summary", "Last visit", "Abnormal labs", "Current intake"],
+  empty: ["Patient's detailed summary", "Last visit", "Abnormal labs", "Pre-visit intake"],
   symptoms_entered: ["Generate DDX", "Last visit compare", "Vitals review", "Lab focus"],
   dx_accepted: ["Medication plan", "Investigations", "Advice draft", "Follow-up plan"],
   meds_written: ["Refine advice", "Translate advice", "Follow-up plan", "Completeness check"],

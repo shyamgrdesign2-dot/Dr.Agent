@@ -33,17 +33,17 @@ export function FollowUpRateCard({ data }: Props) {
     >
       <div className="grid grid-cols-2 gap-[6px]">
         <div className="rounded-[8px] bg-tp-blue-50/60 px-[8px] py-[7px]">
-          <p className="text-[10px] text-tp-blue-500">Current follow-up rate</p>
-          <p className="text-[14px] font-semibold text-tp-blue-700">{data.currentRate}%</p>
+          <p className="text-[12px] text-tp-blue-500">Current follow-up rate</p>
+          <p className="text-[16px] font-semibold text-tp-blue-700">{data.currentRate}%</p>
         </div>
         <div className="rounded-[8px] bg-tp-slate-50 px-[8px] py-[7px]">
-          <p className="text-[10px] text-tp-slate-500">Change vs last week</p>
-          <p className={`text-[14px] font-semibold ${deltaTone}`}>{delta >= 0 ? "+" : ""}{delta}%</p>
+          <p className="text-[12px] text-tp-slate-500">Change vs last week</p>
+          <p className={`text-[16px] font-semibold ${deltaTone}`}>{delta >= 0 ? "+" : ""}{delta}%</p>
         </div>
       </div>
 
       <div className="mt-[8px] rounded-[8px] border border-tp-slate-100 bg-white px-[8px] py-[7px]">
-        <div className="grid grid-cols-2 gap-y-[4px] text-[10px] text-tp-slate-600">
+        <div className="grid grid-cols-2 gap-y-[4px] text-[12px] text-tp-slate-600">
           <p>Due today: <span className="font-semibold text-tp-slate-800">{data.dueToday}</span></p>
           <p>Overdue today: <span className="font-semibold text-tp-warning-700">{data.overdueToday}</span></p>
           <p>Completed this week: <span className="font-semibold text-tp-success-700">{data.completedThisWeek}</span></p>
@@ -53,8 +53,8 @@ export function FollowUpRateCard({ data }: Props) {
 
       <div className="mt-[8px] rounded-[8px] border border-tp-slate-100 bg-white px-[8px] py-[7px]">
         <div className="flex items-center justify-between">
-          <p className="text-[10px] text-tp-slate-500">4-week trend</p>
-          <span className="text-[10px] text-tp-slate-500">
+          <p className="text-[12px] text-tp-slate-500">4-week trend</p>
+          <span className="text-[12px] text-tp-slate-500">
             Avg: <span className="font-semibold text-tp-slate-700">{Math.round(data.trend.reduce((a, p) => a + p.rate, 0) / Math.max(1, data.trend.length))}%</span>
           </span>
         </div>
@@ -75,7 +75,7 @@ export function FollowUpRateCard({ data }: Props) {
           </svg>
           <div className="mt-[4px] flex items-center justify-between px-[2px]">
             {data.trend.map((p) => (
-              <span key={p.label} className="text-[8px] text-tp-slate-500">{p.label}</span>
+              <span key={p.label} className="text-[12px] text-tp-slate-500">{p.label}</span>
             ))}
           </div>
         </div>

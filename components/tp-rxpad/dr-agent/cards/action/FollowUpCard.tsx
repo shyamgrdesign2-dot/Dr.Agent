@@ -32,7 +32,7 @@ export function FollowUpCard({ data, onSelect, onCopyToFollowUp }: FollowUpCardP
       dataSources={["AI-Generated"]}
     >
       {/* Context line */}
-      <p className="mb-2 text-[10px] leading-[1.4] text-tp-slate-400">
+      <p className="mb-2 text-[14px] leading-[1.5] text-tp-slate-400">
         {data.context}
       </p>
 
@@ -47,13 +47,7 @@ export function FollowUpCard({ data, onSelect, onCopyToFollowUp }: FollowUpCardP
         ))}
       </div>
 
-      {/* Insight for recommended option */}
-      {recommended?.reason && (
-        <InsightBox variant="amber">
-          <strong>Why {recommended.label}:</strong>{" "}
-          {recommended.reason}
-        </InsightBox>
-      )}
+      {/* Insight removed — follow-up reasoning to be defined by backend logic */}
     </CardShell>
   )
 }

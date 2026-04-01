@@ -30,7 +30,7 @@ export function ViewToggle({ viewMode, onChange }: ViewToggleProps) {
           type="button"
           onClick={() => onChange("graph")}
           className={cn(
-            "relative z-10 flex items-center gap-[4px] px-[12px] text-[10px] font-medium rounded-[5px] transition-colors",
+            "relative z-10 flex items-center gap-[4px] px-[12px] text-[12px] font-medium rounded-[5px] transition-colors",
             viewMode === "graph" ? "text-tp-slate-800" : "text-tp-slate-400",
           )}
         >
@@ -51,7 +51,7 @@ export function ViewToggle({ viewMode, onChange }: ViewToggleProps) {
           type="button"
           onClick={() => onChange("text")}
           className={cn(
-            "relative z-10 flex items-center gap-[4px] px-[12px] text-[10px] font-medium rounded-[5px] transition-colors",
+            "relative z-10 flex items-center gap-[4px] px-[12px] text-[12px] font-medium rounded-[5px] transition-colors",
             viewMode === "text" ? "text-tp-slate-800" : "text-tp-slate-400",
           )}
         >

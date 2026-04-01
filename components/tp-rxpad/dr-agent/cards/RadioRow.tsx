@@ -14,7 +14,7 @@ interface RadioRowProps {
 export function RadioRow({ name, label, detail, checked = false, onChange, isLast }: RadioRowProps) {
   return (
     <label className={cn(
-      "flex cursor-pointer items-center gap-[5px] py-[3px] text-[12px]",
+      "flex cursor-pointer items-center gap-[5px] py-[3px] text-[14px]",
     )}
     style={!isLast ? { borderBottom: "0.5px solid var(--tp-slate-50, #F8FAFC)" } : undefined}
     >
@@ -28,7 +28,7 @@ export function RadioRow({ name, label, detail, checked = false, onChange, isLas
       />
       <span className="font-medium text-tp-slate-800">{label}</span>
       {detail && (
-        <span className="ml-auto text-[10px] text-tp-slate-400">{detail}</span>
+        <span className="ml-auto text-[12px] text-tp-slate-400">{detail}</span>
       )}
     </label>
   )

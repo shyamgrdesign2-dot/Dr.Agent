@@ -142,7 +142,7 @@ export function DDXCard({ data, onAccept, onCopyToDiagnosis, onCopyToRxPad, onSe
             />
           </>
         ) : (
-          <span className="text-[10px] text-tp-slate-400 italic px-1">
+          <span className="text-[14px] text-tp-slate-400 italic px-1">
             Select a diagnosis to see suggestions
           </span>
         )
@@ -163,9 +163,14 @@ export function DDXCard({ data, onAccept, onCopyToDiagnosis, onCopyToRxPad, onSe
     >
       {/* Reasoning basis */}
       <div className="mb-[10px] rounded-[8px] bg-tp-slate-50 px-3 py-[6px]">
-        <span className="text-[10px] leading-[1.5] text-tp-slate-500">
+        <span className="text-[14px] leading-[1.6] text-tp-slate-500">
           <span className="font-medium text-tp-slate-600">Reasoning basis:</span>{" "}
-          {contextParts.join(" | ")}
+          {contextParts.map((part, i) => (
+            <span key={i}>
+              {i > 0 && <span className="mx-[6px] text-tp-slate-200">|</span>}
+              <span>{part}</span>
+            </span>
+          ))}
         </span>
       </div>
 
@@ -187,7 +192,7 @@ export function DDXCard({ data, onAccept, onCopyToDiagnosis, onCopyToRxPad, onSe
               {/* Tier label */}
               <div className="px-3 pt-[8px] pb-[2px]">
                 <span
-                  className="text-[10px] font-semibold uppercase tracking-wider"
+                  className="text-[14px] font-semibold uppercase tracking-wider"
                   style={{ color: cfg.labelColor }}
                 >
                   {cfg.label}
@@ -211,7 +216,7 @@ export function DDXCard({ data, onAccept, onCopyToDiagnosis, onCopyToRxPad, onSe
                       color={cfg.checkColor}
                       onChange={(checked) => handleToggle(opt.name, checked)}
                     />
-                    <span className="text-[12px] text-tp-slate-800">{opt.name}</span>
+                    <span className="text-[16px] text-tp-slate-800">{opt.name}</span>
                   </label>
                 ))}
               </div>

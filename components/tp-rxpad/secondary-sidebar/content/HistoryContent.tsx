@@ -13,42 +13,42 @@ const SECTIONS: Section[] = [
     id: "medical",
     title: "Medical Conditions",
     items: [
-      { name: "Type 2 Diabetes", detail: "Since: 2 years | Status: Active | HbA1c (27 Jan'26): 7.4%" },
-      { name: "Hypertension", detail: "Since: 1 year | Status: Controlled | Home BP log reviewed" },
-      { name: "Hypothyroidism", detail: "Since: 8 months | Status: Stable | TSH recheck advised in 6 weeks" },
+      { name: "Type 2 Diabetes", detail: "2 years | Active" },
+      { name: "Hypertension", detail: "5 years | Active" },
+      { name: "Dyslipidemia", detail: "1 year | Active" },
     ],
   },
   {
     id: "allergies",
     title: "Allergies",
     items: [
-      { name: "Dust Mite Allergy", detail: "Since: 1 year | Status: Active | Trigger: sweeping/closed spaces" },
-      { name: "NSAID Sensitivity", detail: "Status: Suspected | Reaction: gastric discomfort" },
+      { name: "Dust", detail: "3 years | Active" },
+      { name: "Ibuprofen", detail: "5 years | Active | Gastric intolerance" },
     ],
   },
   {
     id: "family",
     title: "Family History",
     items: [
-      { name: "Diabetes Mellitus", detail: "Relatives: Father, Paternal Uncle | Early-onset pattern in family" },
-      { name: "Cardiovascular Disease", detail: "Relative: Maternal Grandfather | MI at 62 years" },
+      { name: "Diabetes Mellitus", detail: "Father, Paternal Uncle" },
+      { name: "Hypertension", detail: "Mother" },
+      { name: "Thyroid disorder", detail: "Mother, Maternal Grandmother" },
     ],
   },
   {
-    id: "mental",
-    title: "Mental Health",
+    id: "surgical",
+    title: "Surgical History",
     items: [
-      { name: "Stress", detail: "Work-related stress reported | Sleep hygiene counselling provided" },
-      { name: "Mood", detail: "No depressive red flags on current screening" },
+      { name: "Appendectomy", detail: "2018 | Uncomplicated, laparoscopic" },
+      { name: "Right knee arthroscopy", detail: "2022 | Meniscus tear repair, full recovery" },
     ],
   },
   {
     id: "lifestyle",
     title: "Lifestyle",
     items: [
-      { name: "Smoking", detail: "6 cigarettes/day | Counselling started | Quit target: 3 months" },
-      { name: "Exercise", detail: "Walks 25 minutes/day | 5 days/week" },
-      { name: "Sleep", detail: "Average 6 hours/night | Irregular bedtime on weekdays" },
+      { name: "Smoking", detail: "10 years | Active | 6 cigarettes/day, quit target 3 months" },
+      { name: "Alcohol", detail: "8 years | Active | Occasional, social drinking" },
     ],
   },
 ];
