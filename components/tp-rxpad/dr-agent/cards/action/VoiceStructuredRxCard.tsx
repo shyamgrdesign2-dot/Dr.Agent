@@ -41,7 +41,7 @@ export function VoiceStructuredRxCard({ data, onCopy }: VoiceStructuredRxCardPro
 
   return (
     <CardShell
-      icon={<Microphone2 size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
+      icon={<Microphone2 size={14} variant="Bulk" color="var(--tp-blue-500, #4B4AD5)" />}
       title="Structured Transcript"
       badge={{ label: "Just now", color: "#64748B", bg: "#F1F5F9" }}
       copyAll={() => onCopy?.(data.copyAllPayload)}

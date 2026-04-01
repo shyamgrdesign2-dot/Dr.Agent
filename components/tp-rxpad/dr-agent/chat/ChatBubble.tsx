@@ -389,7 +389,7 @@ function PortalTooltip({
 function getDotColor(label: string): string {
   switch (label) {
     case "EMR": return "#7C3AED"            // violet — primary clinical data
-    case "Lab Results": return "#2563EB"     // blue — lab/diagnostic
+    case "Lab Results": return "#3C3BB5"     // blue — lab/diagnostic
     case "Records": return "#D97706"        // amber — uploaded documents
     case "Past Visits": return "#059669"     // green — visit history
     case "Symptom Collector":
@@ -646,6 +646,8 @@ interface ChatBubbleProps {
   patientDocuments?: PatientDocument[]
   /** Callback when a patient is selected from search card */
   onPatientSelect?: (patientId: string) => void
+  /** Callback when user edits a message — receives messageId and new text, parent re-sends */
+  onEditMessage?: (messageId: string, newText: string) => void
 }
 
 function formatTime(iso: string): string {
@@ -689,11 +691,38 @@ export function ChatBubble({
   activeSpecialty,
   patientDocuments,
   onPatientSelect,
+  onEditMessage,
 }: ChatBubbleProps) {
   const isTouch = useTouchDevice()
   const isUser = message.role === "user"
   const timestamp = useMemo(() => formatTime(message.createdAt), [message.createdAt])
   const [sourceOpen, setSourceOpen] = useState(false)
+
+  // ── Edit state — must be before any conditionals (hooks rule) ──
+  const [isEditing, setIsEditing] = useState(false)
+  const [editText, setEditText] = useState(message.text)
+  const editRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    if (isEditing && editRef.current) {
+      editRef.current.focus()
+      editRef.current.style.height = "auto"
+      editRef.current.style.height = editRef.current.scrollHeight + "px"
+    }
+  }, [isEditing])
+
+  const handleSaveEdit = useCallback(() => {
+    const trimmed = editText.trim()
+    if (trimmed && trimmed !== message.text && onEditMessage) {
+      onEditMessage(message.id, trimmed)
+    }
+    setIsEditing(false)
+  }, [editText, message.text, message.id, onEditMessage])
+
+  const handleCancelEdit = useCallback(() => {
+    setEditText(message.text)
+    setIsEditing(false)
+  }, [message.text])
 
   // ── Track whether this is a "new" message (just appeared) for streaming ──
   const isNewRef = useRef(true)
@@ -730,28 +759,70 @@ export function ChatBubble({
               <DocumentAttachmentBubble attachment={message.attachment} />
             </div>
           )}
-          {message.text && (
-          <div className="rounded-[12px] rounded-br-[0px] bg-tp-slate-100 px-3 py-2 text-[14px] leading-[18px] text-tp-slate-700">
-              <p className="whitespace-pre-wrap">{message.text}</p>
-          </div>
+
+          {isEditing ? (
+            /* ── Edit mode — inline textarea with Save/Cancel ── */
+            <div className="w-full min-w-[200px] rounded-[12px] border border-tp-blue-200 bg-white px-3 py-2" style={{ boxShadow: "0 0 0 2px rgba(75,74,213,0.06)" }}>
+              <textarea
+                ref={editRef}
+                value={editText}
+                onChange={(e) => { setEditText(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px" }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSaveEdit() }
+                  if (e.key === "Escape") handleCancelEdit()
+                }}
+                className="w-full resize-none bg-transparent text-[14px] leading-[18px] text-tp-slate-700 outline-none"
+                rows={1}
+              />
+              <div className="mt-[6px] flex justify-end gap-[6px]">
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="rounded-[6px] px-[10px] py-[4px] text-[12px] font-medium text-tp-slate-500 transition-colors hover:bg-tp-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveEdit}
+                  disabled={!editText.trim() || editText.trim() === message.text}
+                  className="rounded-[6px] px-[10px] py-[4px] text-[12px] font-medium text-white transition-colors disabled:opacity-40"
+                  style={{ background: "var(--tp-blue-500, #4B4AD5)" }}
+                >
+                  Save &amp; Submit
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* ── Normal display mode ── */
+            message.text ? (
+              <div className="rounded-[12px] rounded-br-[0px] bg-tp-slate-100 px-3 py-2 text-[14px] leading-[18px] text-tp-slate-700">
+                <p className="whitespace-pre-wrap">{message.text}</p>
+              </div>
+            ) : null
           )}
-          {/* Hover action icons */}
-          <div className={cn("flex items-center gap-[2px] transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/msg:opacity-100")}>
-            <ActionableTooltip
-              label="Fill to RxPad"
-              onAction={() => navigator.clipboard?.writeText(message.text)}
-            >
-              <CopyIcon onClick={() => navigator.clipboard?.writeText(message.text)} />
-            </ActionableTooltip>
-            <button
-              type="button"
-              onClick={() => {}}
-              className="flex h-[16px] w-[16px] items-center justify-center text-tp-slate-300 transition-colors hover:text-tp-slate-500"
-              title="Edit"
-            >
-              <Edit2 size={14} variant="Linear" />
-            </button>
-          </div>
+
+          {/* Hover action icons — hidden when editing */}
+          {!isEditing && message.text && (
+            <div className={cn("flex items-center gap-[2px] transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/msg:opacity-100")}>
+              <ActionableTooltip
+                label="Copy to clipboard"
+                onAction={() => navigator.clipboard?.writeText(message.text)}
+              >
+                <CopyIcon onClick={() => navigator.clipboard?.writeText(message.text)} className="!text-tp-slate-400 hover:!text-tp-slate-600" />
+              </ActionableTooltip>
+              {onEditMessage && (
+                <button
+                  type="button"
+                  onClick={() => { setEditText(message.text); setIsEditing(true) }}
+                  className="flex h-[16px] w-[16px] items-center justify-center text-tp-slate-400 transition-colors hover:text-tp-slate-600"
+                  title="Edit message"
+                >
+                  <Edit2 size={14} variant="Linear" />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     )

@@ -217,6 +217,25 @@ export function buildReply(
 ): ReplyResult {
   const normalized = input.toLowerCase().replace(/[\u2080-\u2089]/g, (ch) => String(ch.charCodeAt(0) - 0x2080))
 
+  // === OUT-OF-SCOPE GUARDRAIL ===
+  if (intent.category === "out_of_scope") {
+    return {
+      text: "",
+      rxOutput: {
+        kind: "guardrail",
+        data: {
+          message: "I'm Dr. Agent — I specialize in clinical insights, patient data, and practice management. I can't help with that topic, but I'm here for anything medical!",
+          suggestions: [
+            { label: "Patient summary", message: "Patient summary" },
+            { label: "Today's vitals", message: "Today's vitals" },
+            { label: "Lab results", message: "Show recent lab results" },
+            { label: "Last visit", message: "Last visit details" },
+          ],
+        },
+      },
+    }
+  }
+
   // === EXTERNAL EXPORT CTA (Excel / Word) ===
   if (
     normalized.includes("excel")
@@ -682,6 +701,60 @@ export function buildReply(
         kind: "med_history",
         data: {
           entries,
+          insight: entries.length > 3 ? "Multiple active medications — consider polypharmacy review." : `${entries.length} active medication${entries.length > 1 ? "s" : ""} on record.`,
+        },
+      },
+    }
+  }
+
+  // === TODAY'S VITALS (VITALS SUMMARY) ===
+  if (normalized.includes("today's vitals") || normalized.includes("todays vitals") || normalized.includes("vitals today") || normalized.includes("vital summary") || normalized.includes("vitals summary") || normalized.includes("current vitals") || normalized.includes("recorded vitals")) {
+    const v = summary.todayVitals
+    const rows: Array<{ label: string; value: string; unit: string; flag?: "normal" | "high" | "low" | "critical" }> = []
+    if (v) {
+      if (v.bp) {
+        const parts = v.bp.split("/").map(Number)
+        const sys = parts[0] || 0
+        const dia = parts[1] || 0
+        rows.push({ label: "Blood Pressure", value: v.bp, unit: "mmHg", flag: sys > 140 || dia > 90 ? "high" : sys < 90 ? "low" : "normal" })
+      }
+      if (v.pulse) {
+        const p = parseFloat(v.pulse)
+        rows.push({ label: "Pulse", value: v.pulse, unit: "bpm", flag: p > 100 ? "high" : p < 60 ? "low" : "normal" })
+      }
+      if (v.spo2) {
+        const s = parseFloat(v.spo2)
+        rows.push({ label: "SpO₂", value: v.spo2, unit: "%", flag: s < 95 ? "low" : "normal" })
+      }
+      if (v.temp) {
+        const t = parseFloat(v.temp)
+        rows.push({ label: "Temperature", value: v.temp, unit: "°F", flag: t > 99.5 ? "high" : "normal" })
+      }
+      if (v.weight) rows.push({ label: "Weight", value: v.weight, unit: "kg", flag: "normal" })
+      if (v.height) rows.push({ label: "Height", value: v.height, unit: "cm", flag: "normal" })
+      if (v.bmi) {
+        const b = parseFloat(v.bmi)
+        rows.push({ label: "BMI", value: v.bmi, unit: "kg/m²", flag: b > 30 ? "high" : b < 18.5 ? "low" : "normal" })
+      }
+      if (v.rr) {
+        const r = parseFloat(v.rr)
+        rows.push({ label: "Respiratory Rate", value: v.rr, unit: "/min", flag: r > 20 ? "high" : "normal" })
+      }
+      if (v.bloodSugar) rows.push({ label: "Blood Sugar", value: v.bloodSugar, unit: "mg/dL", flag: parseFloat(v.bloodSugar) > 200 ? "high" : "normal" })
+    }
+    if (rows.length === 0) {
+      return { text: "No vitals have been recorded for this patient today." }
+    }
+    const flaggedCount = rows.filter(r => r.flag && r.flag !== "normal").length
+    return {
+      text: flaggedCount > 0 ? `Today's vitals — ${flaggedCount} parameter${flaggedCount > 1 ? "s" : ""} flagged.` : "Today's vitals — all within normal range.",
+      rxOutput: {
+        kind: "vitals_summary",
+        data: {
+          title: "Today's Vitals",
+          recordedAt: "Today",
+          rows,
+          insight: flaggedCount > 0 ? `${flaggedCount} value${flaggedCount > 1 ? "s" : ""} outside normal range — review recommended.` : "All parameters within normal limits.",
         },
       },
     }
@@ -1484,9 +1557,21 @@ export function buildReply(
     }
   }
 
-  // === DEFAULT TEXT RESPONSE ===
+  // === DEFAULT — GUARDRAIL CARD FOR LOW-CONFIDENCE QUERIES ===
   return {
-    text: buildDefaultResponse(input, summary),
+    text: "",
+    rxOutput: {
+      kind: "guardrail",
+      data: {
+        message: buildDefaultResponse(input, summary),
+        suggestions: [
+          { label: "Patient summary", message: "Patient summary" },
+          { label: "Today's vitals", message: "Today's vitals" },
+          { label: "Medical history", message: "Medical history" },
+          { label: "Last visit", message: "Last visit details" },
+        ],
+      },
+    },
   }
 }
 

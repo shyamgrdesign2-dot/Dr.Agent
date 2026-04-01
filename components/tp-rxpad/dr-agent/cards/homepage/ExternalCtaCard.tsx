@@ -15,7 +15,7 @@ export function ExternalCtaCard({ data }: Props) {
 
   return (
     <CardShell
-      icon={<Link1 size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
+      icon={<Link1 size={14} variant="Bulk" color="var(--tp-blue-500, #4B4AD5)" />}
       title={data.title}
       sidebarLink={
         <FooterCTA

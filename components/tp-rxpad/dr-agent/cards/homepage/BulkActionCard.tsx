@@ -14,7 +14,7 @@ export function BulkActionCard({ data, onPillTap }: Props) {
 
   return (
     <CardShell
-      icon={<Flash size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
+      icon={<Flash size={14} variant="Bulk" color="var(--tp-blue-500, #4B4AD5)" />}
       title={data.action}
       badge={{ label: "Action", color: "#92400E", bg: "#FEF3C7" }}
       sidebarLink={

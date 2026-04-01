@@ -15,6 +15,8 @@ interface PatientSelectorProps {
   className?: string
   isOpen?: boolean
   onClose?: () => void
+  /** Override heading text (default: "Select Chat Context") */
+  title?: string
 }
 
 function CloseIcon({ size = 24, color = "currentColor" }: { size?: number; color?: string }) {
@@ -26,7 +28,7 @@ function CloseIcon({ size = 24, color = "currentColor" }: { size?: number; color
 }
 
 export function PatientSelector({
-  selectedId, onSelect, externalPatients, showUniversalOption, universalOptionId, className, isOpen, onClose,
+  selectedId, onSelect, externalPatients, showUniversalOption, universalOptionId, className, isOpen, onClose, title = "Select Chat Context",
 }: PatientSelectorProps) {
   const [search, setSearch] = useState("")
   const [showInfoTip, setShowInfoTip] = useState(false)
@@ -44,13 +46,15 @@ export function PatientSelector({
 
   const isUniversalSelected = universalOptionId ? selectedId === universalOptionId : false
 
+  const isSearching = search.trim().length > 0
+
   const filteredPatients = useMemo(() => {
-    const base = search.trim()
+    const base = isSearching
       ? patients.filter((p) => {
           const q = search.toLowerCase()
           return p.label.toLowerCase().includes(q) || p.meta.toLowerCase().includes(q)
         })
-      : patients
+      : patients.filter((p) => p.isToday) // Default: today's appointments only
 
     // Selected patient always appears first
     if (!isUniversalSelected && selectedId) {
@@ -63,7 +67,7 @@ export function PatientSelector({
       }
     }
     return base
-  }, [patients, search, selectedId, isUniversalSelected])
+  }, [patients, search, selectedId, isUniversalSelected, isSearching])
   if (!isOpen) return null
 
   return (
@@ -71,20 +75,20 @@ export function PatientSelector({
       {/* Backdrop — dark overlay like document sheet */}
       <div className="absolute inset-0" onClick={onClose} style={{ background: "rgba(0,0,0,0.45)", animation: "psFadeIn 150ms ease-out" }} />
 
-      {/* Bottom sheet — tall */}
-      <div className="relative z-10 flex flex-col rounded-t-[16px] overflow-hidden" style={{ height: "60%", animation: "psSlideUp 200ms ease-out" }}>
+      {/* Bottom sheet — tall. Rounded top corners use clip-path to avoid overflow-hidden clipping tooltips */}
+      <div className="relative z-10 flex flex-col overflow-hidden rounded-t-[16px] bg-[#F8F9FA]" style={{ height: "60%", animation: "psSlideUp 200ms ease-out" }}>
 
         {/* Sticky header — gray bg matching content */}
         <div className="sticky top-0 z-10" style={{ background: "#F8F9FA" }}>
           <div className="flex items-center justify-between px-[16px] pt-[14px] pb-[10px]">
             <div className="flex items-center gap-[6px]">
-              <h3 className="text-[16px] font-semibold text-tp-slate-800">Select Chat Context</h3>
+              <h3 className="text-[14px] font-semibold text-tp-slate-800">{title}</h3>
               <div className="relative flex items-center" onMouseEnter={() => setShowInfoTip(true)} onMouseLeave={() => setShowInfoTip(false)} onClick={() => setShowInfoTip(!showInfoTip)}>
                 <button type="button" className="flex items-center justify-center text-tp-slate-400 hover:text-tp-slate-600 transition-colors"><InfoCircle size={14} variant="Linear" /></button>
                 {showInfoTip && (
-                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-[6px] z-50 pointer-events-none">
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-[6px] z-[9999] pointer-events-none">
                     <div className="rounded-[6px] bg-tp-slate-800 px-[8px] py-[5px] text-[12px] leading-[1.4] text-white shadow-lg" style={{ width: 210, whiteSpace: "normal" }}>
-                      Select which context Dr. Agent focuses on — a patient for clinical insights, or Clinic Overview for operational queries.
+                      Choose which patient Dr. Agent focuses on. Selecting a patient lets you ask clinical questions, view summaries, and get insights specific to that patient.
                       <div className="absolute left-1/2 -translate-x-1/2 top-full border-[4px] border-transparent border-t-tp-slate-800" />
                     </div>
                   </div>
@@ -102,14 +106,16 @@ export function PatientSelector({
             <div className="px-[8px] py-[6px]">
               <button type="button" onClick={() => handleSelect(universalOptionId)}
                 className={cn("flex w-full items-center gap-[10px] rounded-[8px] px-[10px] py-[9px] text-left transition-colors", isUniversalSelected ? "bg-tp-blue-50" : "hover:bg-tp-slate-50")}>
-                <div className={cn("flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-[8px]", isUniversalSelected ? "bg-tp-blue-100 text-tp-blue-600" : "bg-tp-slate-100 text-tp-slate-500")}>
+                <span className={cn("flex h-[16px] w-[16px] flex-shrink-0 items-center justify-center rounded-full border-[1.5px] transition-colors", isUniversalSelected ? "border-tp-blue-500" : "border-tp-slate-300")}>
+                  {isUniversalSelected && <span className="h-[8px] w-[8px] rounded-full bg-tp-blue-500" />}
+                </span>
+                <div className={cn("flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-[10px]", isUniversalSelected ? "bg-tp-blue-100 text-tp-blue-600" : "bg-tp-slate-100 text-tp-slate-500")}>
                   <Hospital size={15} variant="Bulk" />
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col">
-                  <span className={cn("text-[14px] font-semibold leading-[1.3]", isUniversalSelected ? "text-tp-blue-700" : "text-tp-slate-800")}>Clinic Overview</span>
-                  <span className="text-[12px] leading-[1.3] text-tp-slate-400">Schedule, billing, analytics</span>
+                  <span className={cn("text-[13px] font-semibold leading-[1.3]", isUniversalSelected ? "text-tp-blue-700" : "text-tp-slate-800")}>Clinic Overview</span>
+                  <span className="text-[11px] leading-[1.3] text-tp-slate-400">Schedule, billing, analytics</span>
                 </div>
-                {isUniversalSelected && <svg width={14} height={14} viewBox="0 0 14 14" fill="none" className="flex-shrink-0 text-tp-blue-500"><path d="M3 7.5L6 10.5L11 4" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" /></svg>}
               </button>
             </div>
           )}
@@ -123,10 +129,10 @@ export function PatientSelector({
           )}
 
           {/* Search */}
-          <div className="px-[12px] pb-[8px]">
+          <div className="px-[12px] pt-[8px] pb-[8px]">
             <div className="ps-search-box flex items-center gap-[8px] rounded-[8px] border border-tp-slate-200 bg-white px-[10px] py-[7px] transition-all">
               <SearchNormal1 size={14} variant="Linear" className="flex-shrink-0 text-tp-slate-400" />
-              <input ref={searchRef} type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search patient by name or ID..." className="w-full bg-transparent text-[14px] text-tp-slate-700 placeholder:text-tp-slate-300 outline-none" />
+              <input ref={searchRef} type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search patient by name or ID..." className="w-full bg-transparent text-[13px] text-tp-slate-700 placeholder:text-tp-slate-300 outline-none" />
               {search && <button type="button" onClick={() => setSearch("")} className="text-tp-slate-300 hover:text-tp-slate-500"><CloseIcon size={12} /></button>}
             </div>
           </div>
@@ -140,24 +146,34 @@ export function PatientSelector({
             <div className="flex flex-col gap-[1px] pt-[4px]">
               {filteredPatients.map((option) => {
                 const isSelected = option.id === selectedId && !isUniversalSelected
-                const genderAge = [option.gender === "M" ? "M" : option.gender === "F" ? "F" : "", option.age ? `${option.age}y` : ""].filter(Boolean).join("/")
+                // Extract phone number from meta (last segment)
                 const metaParts = option.meta.split("·").map((s) => s.trim())
-                const metaWithoutGenderAge = metaParts.length > 1 ? metaParts.slice(1).join(" · ") : option.meta
+                const phoneNumber = metaParts.length >= 3 ? metaParts[metaParts.length - 1] : metaParts.length > 1 ? metaParts.slice(1).join(" · ") : ""
+                // Secondary line: gender / age / phone
+                const secondaryParts = [option.gender || "", option.age ? `${option.age}y` : "", phoneNumber].filter(Boolean)
                 return (
                   <button key={option.id} type="button" onClick={() => handleSelect(option.id)}
                     className={cn("flex w-full items-center gap-[10px] rounded-[8px] px-[10px] py-[8px] text-left transition-colors", isSelected ? "bg-tp-blue-50" : "hover:bg-tp-slate-100/80")}>
-                    <div className={cn("flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-[8px]", isSelected ? "bg-tp-blue-100 text-tp-blue-600" : "bg-tp-slate-200/60 text-tp-slate-500")}>
+                    {/* Radio button */}
+                    <span className={cn("flex h-[16px] w-[16px] flex-shrink-0 items-center justify-center rounded-full border-[1.5px] transition-colors", isSelected ? "border-tp-blue-500" : "border-tp-slate-300")}>
+                      {isSelected && <span className="h-[8px] w-[8px] rounded-full bg-tp-blue-500" />}
+                    </span>
+                    {/* Circular avatar */}
+                    <div className={cn("flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-[10px]", isSelected ? "bg-tp-blue-100 text-tp-blue-600" : "bg-tp-slate-200/60 text-tp-slate-500")}>
                       <User size={15} variant="Bulk" />
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col">
-                      <span className="flex items-center gap-[4px] text-[14px] leading-[1.3]">
-                        <span className={cn("font-semibold truncate", isSelected ? "text-tp-blue-700" : "text-tp-slate-800")}>{option.label}</span>
-                        {genderAge && <span className="flex-shrink-0 text-[12px] font-normal text-tp-slate-400">({genderAge})</span>}
+                      <span className={cn("text-[13px] font-semibold leading-[1.3] truncate", isSelected ? "text-tp-blue-700" : "text-tp-slate-800")}>{option.label}</span>
+                      <span className="text-[11px] leading-[1.3] text-tp-slate-400">
+                        {secondaryParts.map((part, i) => (
+                          <React.Fragment key={i}>
+                            {i > 0 && <span style={{ color: "#D0D5DD", margin: "0 3px" }}>|</span>}
+                            <span>{part}</span>
+                          </React.Fragment>
+                        ))}
                       </span>
-                      <span className="truncate text-[12px] leading-[1.3] text-tp-slate-400">{metaWithoutGenderAge}</span>
                     </div>
-                    {option.isToday && <span className="flex-shrink-0 rounded-[4px] bg-tp-success-50 px-[5px] py-[1px] text-[11px] font-medium text-tp-success-600">Today</span>}
-                    {isSelected && <svg width={14} height={14} viewBox="0 0 14 14" fill="none" className="flex-shrink-0 text-tp-blue-500"><path d="M3 7.5L6 10.5L11 4" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" /></svg>}
+                    {option.isToday && <span className="flex-shrink-0 rounded-[4px] bg-tp-success-50 px-[5px] py-[1px] text-[10px] font-medium text-tp-success-600">Today</span>}
                   </button>
                 )
               })}
@@ -172,7 +188,7 @@ export function PatientSelector({
         .ps-scroll::-webkit-scrollbar-track{background:transparent}
         .ps-scroll::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.12);border-radius:3px}
         .ps-search-box:hover{border-color:var(--tp-slate-300,#CBD5E1);background:var(--tp-slate-50,#F8FAFC)}
-        .ps-search-box:focus-within{border-color:var(--tp-blue-400,#60A5FA);box-shadow:0 0 0 2px rgba(59,130,246,0.08);background:#fff}
+        .ps-search-box:focus-within{border-color:var(--tp-blue-400,#6C6BDE);box-shadow:0 0 0 2px rgba(75,74,213,0.08);background:#fff}
       `}</style>
     </div>
   )

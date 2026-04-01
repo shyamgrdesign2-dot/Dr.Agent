@@ -6,6 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { DrAgentFab } from "@/components/tp-rxpad/dr-agent/shell/DrAgentFab"
 import { RxPad } from "@/components/rx/rxpad/RxPad"
 import { DrAgentPanel } from "@/components/tp-rxpad/dr-agent/DrAgentPanel"
+import { DrAgentPanelV0 } from "@/components/tp-rxpad/dr-agent/DrAgentPanelV0"
+import { useV0Mode } from "@/components/tp-rxpad/dr-agent/hooks/useV0Mode"
 import { RxPadSyncProvider, useRxPadSync } from "@/components/tp-rxpad/rxpad-sync-context"
 import { RX_CONTEXT_OPTIONS } from "@/components/tp-rxpad/dr-agent/constants"
 import {
@@ -23,6 +25,7 @@ function RxPadPageInner() {
     [patientId],
   )
   const { lastSignal } = useRxPadSync()
+  const { isV0Mode } = useV0Mode()
   const [isAgentOpen, setIsAgentOpen] = useState(true)
   const [hasNudge, setHasNudge] = useState(false)
 
@@ -71,13 +74,21 @@ function RxPadPageInner() {
       }
     >
       <div className="relative flex h-full min-w-0">
-        <div className={`min-w-0 flex-1 ${isAgentOpen ? "md:pr-[320px] lg:pr-[392px]" : ""}`}>
+        <div className={`min-w-0 flex-1 ${isAgentOpen ? "md:pr-[350px] lg:pr-[400px]" : ""}`}>
           <RxPad patientId={patientId} />
         </div>
         {isAgentOpen ? (
-          <div className="pointer-events-none fixed right-0 top-[62px] z-30 hidden h-[calc(100vh-62px)] w-[320px] md:block lg:w-[392px]">
+          <div className="pointer-events-none fixed right-0 top-[62px] z-30 hidden h-[calc(100vh-62px)] w-[350px] md:block lg:w-[400px]">
             <div className="pointer-events-auto h-full w-full">
-              <DrAgentPanel onClose={() => setIsAgentOpen(false)} initialPatientId={patientId} />
+              {isV0Mode ? (
+                <DrAgentPanelV0
+                  onClose={() => setIsAgentOpen(false)}
+                  initialPatientId={patientId}
+                  isPatientDetailPage
+                />
+              ) : (
+                <DrAgentPanel onClose={() => setIsAgentOpen(false)} initialPatientId={patientId} />
+              )}
             </div>
           </div>
         ) : null}

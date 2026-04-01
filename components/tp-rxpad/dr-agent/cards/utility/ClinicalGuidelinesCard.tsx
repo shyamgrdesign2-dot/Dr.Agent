@@ -11,7 +11,7 @@ interface Props {
 
 const EVIDENCE_BADGE: Record<string, { color: string; bg: string }> = {
   A: { color: "#22C55E", bg: "#F0FDF4" },
-  B: { color: "#3B82F6", bg: "#EFF6FF" },
+  B: { color: "#4B4AD5", bg: "#EEEEFF" },
   C: { color: "#F59E0B", bg: "#FFFBEB" },
 }
 

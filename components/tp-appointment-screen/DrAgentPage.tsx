@@ -38,6 +38,8 @@ import { AiBrandSparkIcon, AI_GRADIENT_SOFT } from "@/components/doctor-agent/ai
 import { AiPatientTooltip } from "./AiPatientTooltip"
 import { PATIENT_TOOLTIP_SUMMARIES, SMART_SUMMARY_BY_CONTEXT } from "@/components/tp-rxpad/dr-agent/mock-data"
 import { DrAgentPanel } from "@/components/tp-rxpad/dr-agent/DrAgentPanel"
+import { DrAgentPanelV0 } from "@/components/tp-rxpad/dr-agent/DrAgentPanelV0"
+import { useV0Mode } from "@/components/tp-rxpad/dr-agent/hooks/useV0Mode"
 import { DrAgentFab } from "@/components/tp-rxpad/dr-agent/shell/DrAgentFab"
 import type { RxContextOption } from "@/components/tp-rxpad/dr-agent/types"
 import { RX_CONTEXT_OPTIONS } from "@/components/tp-rxpad/dr-agent/constants"
@@ -746,7 +748,8 @@ export function DrAgentPage() {
   }, [])
 
   const [isAgentWindowOpen, setIsAgentWindowOpen] = useState(false)
-  const [isV0Open, setIsV0Open] = useState(false)
+  const { isV0Mode, setIsV0Mode } = useV0Mode()
+  const [isV0PanelOpen, setIsV0PanelOpen] = useState(false)
   const [selectedChatPatientId, setSelectedChatPatientId] = useState(CONTEXT_COMMON_ID)
   const [chatInput, setChatInput] = useState("")
   const [agentThreads, setAgentThreads] = useState<Record<string, AgentChatMessage[]>>(() =>
@@ -904,10 +907,20 @@ export function DrAgentPage() {
 
   function openAgentForPatient(row: AppointmentRow, autoMessage?: string) {
     setSelectedChatPatientId(row.id)
-    setIsAgentWindowOpen(true)
-    if (autoMessage) {
-      setPanelAutoMessage(autoMessage)
-      setPanelAutoTrigger((c) => c + 1)
+    if (isV0Mode) {
+      // V0 mode: route through V0 panel with patient pre-selected + auto-message
+      setIsV0PanelOpen(true)
+      setIsAgentWindowOpen(false)
+      if (autoMessage) {
+        setPanelAutoMessage(autoMessage)
+        setPanelAutoTrigger((c) => c + 1)
+      }
+    } else {
+      setIsAgentWindowOpen(true)
+      if (autoMessage) {
+        setPanelAutoMessage(autoMessage)
+        setPanelAutoTrigger((c) => c + 1)
+      }
     }
   }
 
@@ -956,7 +969,7 @@ export function DrAgentPage() {
 
   return (
     <div className="min-h-screen bg-tp-slate-100 font-sans text-tp-slate-900">
-      <TopHeader isV0Open={isV0Open} setIsV0Open={setIsV0Open} setIsAgentWindowOpen={setIsAgentWindowOpen} />
+      <TopHeader isV0Mode={isV0Mode} setIsV0Mode={setIsV0Mode} setIsV0PanelOpen={setIsV0PanelOpen} setIsAgentWindowOpen={setIsAgentWindowOpen} />
 
       <div className="flex h-[calc(100vh-62px)]">
         <aside className="hidden h-full shrink-0 md:block">
@@ -1467,7 +1480,7 @@ export function DrAgentPage() {
           </section>
             {/* Full Dr. Agent panel */}
             {isAgentWindowOpen && (
-              <aside className="hidden h-full w-[392px] shrink-0 md:block">
+              <aside className="hidden h-full shrink-0 md:block" style={{ width: "clamp(350px, 25vw, 400px)" }}>
                 <DrAgentPanel
                   initialPatientId={selectedChatPatientId !== CONTEXT_COMMON_ID && selectedChatPatientId !== CONTEXT_NONE_ID ? selectedChatPatientId : undefined}
                   mode="homepage"
@@ -1481,22 +1494,28 @@ export function DrAgentPage() {
               </aside>
             )}
 
-            {/* V0 Dr. Agent panel — summary only */}
-            {isV0Open && (
-              <aside className="hidden h-full w-[392px] shrink-0 md:block">
-                <DrAgentPanel
+            {/* V0 Dr. Agent panel — completely separate component, summary only */}
+            {isV0PanelOpen && (
+              <aside className="hidden h-full shrink-0 md:block" style={{ width: "clamp(350px, 25vw, 400px)" }}>
+                <DrAgentPanelV0
                   initialPatientId={selectedChatPatientId !== CONTEXT_COMMON_ID && selectedChatPatientId !== CONTEXT_NONE_ID ? selectedChatPatientId : undefined}
-                  mode="rxpad"
-                  onClose={() => setIsV0Open(false)}
-                  variant="v0"
+                  onClose={() => setIsV0PanelOpen(false)}
+                  autoMessage={panelAutoMessage}
+                  autoMessageTrigger={panelAutoTrigger}
                 />
               </aside>
             )}
           </div>
 
-          {/* Floating Dr. Agent FAB — visible when neither panel is open */}
-          {!isAgentWindowOpen && !isV0Open && (
-            <DrAgentFab onClick={() => setIsAgentWindowOpen(true)} />
+          {/* Floating Dr. Agent FAB — hidden when any panel is open */}
+          {!isAgentWindowOpen && !isV0PanelOpen && (
+            <DrAgentFab onClick={() => {
+              if (isV0Mode) {
+                setIsV0PanelOpen(true)
+              } else {
+                setIsAgentWindowOpen(true)
+              }
+            }} />
           )}
         </main>
       </div>
@@ -2325,7 +2344,7 @@ const DUMMY_CLINICS = [
 
 // ─── TopHeader ────────────────────────────────────────────────────────────────
 
-function TopHeader({ isV0Open, setIsV0Open, setIsAgentWindowOpen }: { isV0Open: boolean; setIsV0Open: (v: boolean) => void; setIsAgentWindowOpen: (v: boolean) => void }) {
+function TopHeader({ isV0Mode, setIsV0Mode, setIsV0PanelOpen, setIsAgentWindowOpen }: { isV0Mode: boolean; setIsV0Mode: (v: boolean) => void; setIsV0PanelOpen: (v: boolean) => void; setIsAgentWindowOpen: (v: boolean) => void }) {
   const router = useRouter()
   const [isClinicMenuOpen, setClinicMenuOpen] = useState(false)
   const [activeClinic, setActiveClinic] = useState(DUMMY_CLINICS[0].id)
@@ -2390,30 +2409,35 @@ function TopHeader({ isV0Open, setIsV0Open, setIsAgentWindowOpen }: { isV0Open: 
         <button
           type="button"
           onClick={() => {
-            const next = !isV0Open
-            setIsV0Open(next)
-            if (next) setIsAgentWindowOpen(false)
+            const next = !isV0Mode
+            setIsV0Mode(next)
+            if (next) {
+              setIsV0PanelOpen(true)
+              setIsAgentWindowOpen(false)
+            } else {
+              setIsV0PanelOpen(false)
+            }
           }}
           className={cn(
             "flex items-center gap-[6px] rounded-full px-[10px] py-[5px] text-[12px] font-semibold transition-all duration-200",
-            isV0Open
+            isV0Mode
               ? "text-white shadow-[0_2px_8px_rgba(140,51,160,0.3)]"
               : "bg-tp-slate-100 text-tp-slate-500 hover:bg-tp-slate-200",
           )}
-          style={isV0Open ? { background: "linear-gradient(135deg, #8C33A0 0%, #4B4AD5 100%)" } : undefined}
+          style={isV0Mode ? { background: "linear-gradient(135deg, #8C33A0 0%, #4B4AD5 100%)" } : undefined}
         >
           <AiBrandSparkIcon size={14} />
           <span>Dr. Agent V0</span>
           <span
             className={cn(
               "relative inline-flex h-[16px] w-[28px] shrink-0 rounded-full transition-colors duration-200",
-              isV0Open ? "bg-white/30" : "bg-tp-slate-300",
+              isV0Mode ? "bg-white/30" : "bg-tp-slate-300",
             )}
           >
             <span
               className={cn(
                 "absolute top-[2px] h-[12px] w-[12px] rounded-full bg-white shadow-sm transition-transform duration-200",
-                isV0Open ? "translate-x-[14px]" : "translate-x-[2px]",
+                isV0Mode ? "translate-x-[14px]" : "translate-x-[2px]",
               )}
             />
           </span>

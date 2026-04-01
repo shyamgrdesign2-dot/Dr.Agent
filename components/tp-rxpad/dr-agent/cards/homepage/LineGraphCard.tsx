@@ -34,7 +34,7 @@ export function LineGraphCard({ data, onPillTap }: Props) {
 
   return (
     <CardShell
-      icon={<TrendUp size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
+      icon={<TrendUp size={14} variant="Bulk" color="var(--tp-blue-500, #4B4AD5)" />}
       title={data.title}
       badge={{ label: `${dirArrow} ${data.changePercent}`, color: dirColor, bg: data.changeDirection === "up" ? "#DCFCE7" : data.changeDirection === "down" ? "#FEE2E2" : "#EDE9FE" }}
       sidebarLink={<FooterCTA label="Download as Excel" onClick={handleDownload} tone="secondary" iconLeft={<DocumentDownload size={14} variant="Linear" />} />}

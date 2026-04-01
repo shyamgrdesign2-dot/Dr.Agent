@@ -24,7 +24,7 @@ export function VaccinationDueListCard({ data, onPillTap }: Props) {
 
   return (
     <CardShell
-      icon={<Hospital size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
+      icon={<Hospital size={14} variant="Bulk" color="var(--tp-blue-500, #4B4AD5)" />}
       title={data.title}
       badge={data.overdueCount > 0 ? { label: `${data.overdueCount} overdue`, color: "#DC2626", bg: "#FEE2E2" } : undefined}
       sidebarLink={

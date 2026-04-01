@@ -242,6 +242,11 @@
 
 }
 
+/* ── Touch device: make hover-dependent copy icons always visible ── */
+@media (hover: none) and (pointer: coarse) {
+  .touch-show { opacity: 0.6 !important; }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

@@ -35,10 +35,10 @@ const BUCKET_CONFIG: Record<Bucket, {
   },
   most_likely: {
     label: "MOST LIKELY",
-    borderColor: "#3B82F6",
-    bgColor: "rgba(59, 130, 246, 0.04)",
-    labelColor: "#2563EB",
-    checkColor: "#3B82F6",
+    borderColor: "#4B4AD5",
+    bgColor: "rgba(75, 74, 213, 0.04)",
+    labelColor: "#3C3BB5",
+    checkColor: "#4B4AD5",
   },
   consider: {
     label: "EXTENDED",

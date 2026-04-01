@@ -196,7 +196,7 @@ export function DocumentBottomSheet({
                         "flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border transition-all",
                         isSelected ? "border-transparent" : "border-tp-slate-300 bg-white",
                       )}
-                      style={isSelected ? { background: "var(--tp-blue-500, #3B82F6)" } : undefined}
+                      style={isSelected ? { background: "var(--tp-blue-500, #4B4AD5)" } : undefined}
                     >
                       {isSelected && (
                         <svg width={11} height={11} viewBox="0 0 12 12" fill="none">
@@ -231,7 +231,7 @@ export function DocumentBottomSheet({
               "flex w-full items-center justify-center gap-[6px] rounded-[10px] px-4 py-[9px] text-[14px] font-semibold text-white transition-all",
               selectedCount === 0 ? "cursor-not-allowed bg-tp-slate-200 text-tp-slate-400" : "hover:opacity-90 active:scale-[0.98]",
             )}
-            style={selectedCount > 0 ? { background: "var(--tp-blue-500, #3B82F6)" } : undefined}
+            style={selectedCount > 0 ? { background: "var(--tp-blue-500, #4B4AD5)" } : undefined}
           >
             {selectedCount === 0 ? "Select documents to analyze" : `Add ${selectedCount} document${selectedCount > 1 ? "s" : ""} to chat`}
           </button>

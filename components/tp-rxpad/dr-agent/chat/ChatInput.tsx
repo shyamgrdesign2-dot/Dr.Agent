@@ -37,6 +37,10 @@ interface ChatInputProps {
   patientLocked?: boolean
   /** Tooltip message shown when clicking locked patient chip */
   patientLockedMessage?: string
+  /** Called when the locked patient chip is clicked — parent can use this to shake the floating chip */
+  onLockedChipClick?: () => void
+  /** Whether the chip should show a clinic/hospital icon instead of user icon */
+  isClinicContext?: boolean
 }
 
 /* ── Inline SVG Icons (14-16px) ── */
@@ -226,8 +230,8 @@ function RecordingTimer({ isPaused }: { isPaused: boolean }) {
 }
 
 /** Patient chip — shows name + (meta) inside input box. Locked mode for RxPad. */
-function PatientChip({ name, meta, locked, lockedMessage, onClick }: {
-  name: string; meta?: string; locked?: boolean; lockedMessage?: string; onClick?: () => void
+function PatientChip({ name, meta, locked, lockedMessage, onClick, onLockedClick, isClinic }: {
+  name: string; meta?: string; locked?: boolean; lockedMessage?: string; onClick?: () => void; onLockedClick?: () => void; isClinic?: boolean
 }) {
   const [showLockedTip, setShowLockedTip] = useState(false)
 
@@ -235,15 +239,16 @@ function PatientChip({ name, meta, locked, lockedMessage, onClick }: {
     if (locked) {
       setShowLockedTip(true)
       setTimeout(() => setShowLockedTip(false), 2500)
+      onLockedClick?.()
     } else {
       onClick?.()
     }
   }
 
-  // Split meta "M/76y" into gender and age with divider
-  const metaParts = meta ? meta.split("/") : []
-  const gender = metaParts[0] || ""
-  const age = metaParts[1] || ""
+  // Split meta "M|76y" or "M/76y" into gender and age with divider
+  const metaParts = meta ? meta.split(/[|\/]/) : []
+  const gender = metaParts[0]?.trim() || ""
+  const age = metaParts[1]?.trim() || ""
 
   return (
     <div className="relative">
@@ -257,12 +262,22 @@ function PatientChip({ name, meta, locked, lockedMessage, onClick }: {
         style={{ background: "var(--tp-slate-100, #F1F5F9)", borderRadius: 6, padding: "3px 5px 3px 6px", height: 24, maxWidth: 175, minWidth: 0 }}
         aria-label={`Patient context: ${name}`}
       >
-        {/* Bulk user icon */}
+        {/* Context icon — clinic or patient */}
         <span className="flex-shrink-0 text-tp-slate-600">
-          <svg width={12} height={12} viewBox="0 0 24 24" fill="none">
-            <path opacity="0.4" d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" fill="currentColor" />
-            <path d="M12 14.5c-5.01 0-9.09 3.36-9.09 7.5 0 .28.22.5.5.5h17.18c.28 0 .5-.22.5-.5 0-4.14-4.08-7.5-9.09-7.5Z" fill="currentColor" />
-          </svg>
+          {isClinic ? (
+            <svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+              <path opacity="0.4" d="M2 22H22" stroke="currentColor" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M17 2H7C4 2 3 3.79 3 6V22H21V6C21 3.79 20 2 17 2Z" fill="currentColor" opacity="0.4"/>
+              <path d="M14.06 15H9.93996C9.47996 15 9.09998 15.38 9.09998 15.84V22H14.9V15.84C14.9 15.38 14.52 15 14.06 15Z" fill="currentColor"/>
+              <path d="M10 11H8C7.45 11 7 10.55 7 10V8.5C7 7.95 7.45 7.5 8 7.5H10C10.55 7.5 11 7.95 11 8.5V10C11 10.55 10.55 11 10 11Z" fill="currentColor"/>
+              <path d="M16 11H14C13.45 11 13 10.55 13 10V8.5C13 7.95 13.45 7.5 14 7.5H16C16.55 7.5 17 7.95 17 8.5V10C17 10.55 16.55 11 16 11Z" fill="currentColor"/>
+            </svg>
+          ) : (
+            <svg width={12} height={12} viewBox="0 0 24 24" fill="none">
+              <path opacity="0.4" d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" fill="currentColor" />
+              <path d="M12 14.5c-5.01 0-9.09 3.36-9.09 7.5 0 .28.22.5.5.5h17.18c.28 0 .5-.22.5-.5 0-4.14-4.08-7.5-9.09-7.5Z" fill="currentColor" />
+            </svg>
+          )}
         </span>
         {/* Name — darker, truncatable */}
         <span className="truncate" style={{ fontSize: 10, fontWeight: 600, color: "#3D3D4E", lineHeight: "12px" }}>{name}</span>
@@ -315,6 +330,8 @@ export function ChatInput({
   onPatientClick,
   patientLocked = false,
   patientLockedMessage,
+  onLockedChipClick,
+  isClinicContext = false,
 }: ChatInputProps) {
   const hasText = value.trim().length > 0
   const [isRecording, setIsRecording] = useState(false)
@@ -507,6 +524,8 @@ export function ChatInput({
                 locked={patientLocked}
                 lockedMessage={patientLockedMessage}
                 onClick={onPatientClick}
+                onLockedClick={onLockedChipClick}
+                isClinic={isClinicContext}
               />
             ) : <div />}
 

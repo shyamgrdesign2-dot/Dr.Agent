@@ -28,7 +28,7 @@ export function FollowUpRateCard({ data }: Props) {
 
   return (
     <CardShell
-      icon={<Chart2 size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
+      icon={<Chart2 size={14} variant="Bulk" color="var(--tp-blue-500, #4B4AD5)" />}
       title={data.title}
     >
       <div className="grid grid-cols-2 gap-[6px]">
@@ -62,15 +62,15 @@ export function FollowUpRateCard({ data }: Props) {
           <svg width="100%" viewBox={`0 0 ${chartW} ${chartH}`} className="block">
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(59,130,246,0.30)" />
-                <stop offset="100%" stopColor="rgba(59,130,246,0.04)" />
+                <stop offset="0%" stopColor="rgba(75,74,213,0.30)" />
+                <stop offset="100%" stopColor="rgba(75,74,213,0.04)" />
               </linearGradient>
             </defs>
             <line x1={padX} y1={chartH - padY} x2={chartW - padX} y2={chartH - padY} stroke="var(--tp-slate-200, #E2E8F0)" strokeWidth="1" />
             <polygon points={areaPoints} fill={`url(#${gradientId})`} />
-            <polyline points={points} fill="none" stroke="var(--tp-blue-500, #3B82F6)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+            <polyline points={points} fill="none" stroke="var(--tp-blue-500, #4B4AD5)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
             {data.trend.map((p, i) => (
-              <circle key={p.label} cx={padX + i * xStep} cy={yScale(p.rate)} r="2.5" fill="var(--tp-blue-500, #3B82F6)" />
+              <circle key={p.label} cx={padX + i * xStep} cy={yScale(p.rate)} r="2.5" fill="var(--tp-blue-500, #4B4AD5)" />
             ))}
           </svg>
           <div className="mt-[4px] flex items-center justify-between px-[2px]">

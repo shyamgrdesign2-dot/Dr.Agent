@@ -120,6 +120,7 @@ export function AiTriggerIcon({
       className="relative inline-flex"
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
+      onTouchStart={() => setShowTooltip((v) => !v)}
     >
       <Tag
         type={Tag === "button" ? "button" : undefined}

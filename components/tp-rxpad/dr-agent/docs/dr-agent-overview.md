@@ -16,6 +16,38 @@ Dr. Agent is accessible from **three entry points** across the product:
 
 All three entry points render the **same `DrAgentPanel` component** — ensuring a consistent experience regardless of where the doctor accesses it.
 
+#### V0 mode (summary-only)
+
+A lightweight toggle ("Agent V0") in the appointment screen header activates a streamlined variant (`DrAgentPanelV0`). When V0 mode is ON:
+
+- **All entry points route through V0**: FAB click, AI patient icon click, and the V0 toggle itself all open the V0 panel exclusively. The full agent panel is never shown while V0 mode is active.
+- **Cross-page persistence**: V0 mode state is stored in localStorage via a shared `useV0Mode` hook. When V0 is toggled ON from the appointment page, the RxPad page and Patient Details page also render `DrAgentPanelV0` instead of the full panel.
+- **State split**: `isV0Mode` (toggle persists across pages until turned off) vs `isV0PanelOpen` (panel visibility, page-specific). Closing the V0 panel keeps the mode ON — the FAB reappears and clicking it reopens V0.
+- **Pre-selection screen**: When no patient is selected, a vertically centered greeting + search screen appears. Doctors search and select a patient before seeing any content.
+- **Post-selection screen**: After selecting a patient, a floating glass chip at the top shows the patient context (with chevron to open the patient selector bottom sheet). Four canned quick-action cards appear, chosen by the smart priority system (see below). Content appears with a smooth fade-in + slide-up reveal animation.
+- **Allowed card types**: Only 11 card kinds are shown in V0: `sbar_overview`, `patient_summary`, `symptom_collector`, `last_visit`, `obstetric_summary`, `gynec_summary`, `pediatric_summary`, `ophthal_summary`, `med_history`, `vitals_summary`, `guardrail`.
+- **Guardrail card**: When a user asks an out-of-scope question (sports, weather, entertainment, etc.) or an unrecognizable query, a guardrail card appears with a warm explanation and clickable suggestion chips to redirect back to supported clinical topics. This applies to both V0 and non-V0 modes.
+
+#### Canned card smart priority system
+
+Both V0 and non-V0 panels use the same smart priority logic to pick the best 4 canned action cards from 5 candidates. The system considers what patient data is available:
+
+| Candidate | Title | When available |
+|-----------|-------|---------------|
+| **Intake** | "Details from patient" | Only when symptom collector data exists (patient filled pre-visit form) |
+| **Summary** | "Patient summary" | Always available |
+| **History** | "Medical history" | Always available (past visits, prescriptions, treatment history) |
+| **Specialty** | Varies by specialty | Only when specialty data exists (obstetric / gynec / pediatric / ophthal) |
+| **Vitals** | "Today's vitals" | Always available as fallback |
+
+Selection rules (pick 4):
+- **With intake + with specialty**: Details from patient → Patient summary → Medical history → [Specialty] history
+- **With intake + no specialty**: Details from patient → Patient summary → Medical history → Today's vitals
+- **Without intake + with specialty**: Patient summary → Medical history → [Specialty] history → Today's vitals
+- **Without intake + no specialty**: Patient summary → Medical history → Today's vitals → Past visit details
+
+This logic lives in `buildV0Actions()` (V0 panel) and `buildPatientActions()` (non-V0 WelcomeScreen), both following identical rules.
+
 ### How It Interfaces with the Product
 
 ```
@@ -91,7 +123,7 @@ POMR cards are the only cards that show the completeness donut, because they hav
 
 ### 3. Smart Card System (45+ card types)
 - **Summary cards**: Patient summary, patient-reported intake, last visit, specialty summaries
-- **Data cards**: Vital trends, lab panels, lab comparisons, medication history, timelines
+- **Data cards**: Today's vitals, lab panels, lab comparisons, medication history, timelines
 - **Action cards**: DDX generation, protocol meds, investigation suggestions, advice drafts
 - **Clinical cards**: POMR problem cards with completeness donut and cross-problem flags
 - **Utility cards**: Completeness checker, clinical guidelines, translation, referral
@@ -129,6 +161,11 @@ POMR cards are the only cards that show the completeness donut, because they hav
 6. **Trust indicators**: AI outputs are labeled with verification reminders
 7. **SBAR-ordered content**: Patient data follows Situation → Background → Assessment → Recommendation flow
 8. **Provenance transparency**: Doctors can see whether data came from EMR or AI extraction
+9. **No uppercase headings**: All labels and headings use sentence case — never uppercase or all-caps
+10. **Consistent patient context**: Patient chip in the input box is always a non-clickable reference tag; patient switching happens via the floating chip at the top of the chat area, which opens the "Select Chat Context" bottom sheet
+11. **TP design system compliance**: All fonts follow the TP scale — 14px for normal text, 12-13px for secondary, 18px max for greetings. Dividers between gender and age use a lighter color (`#D0D5DD`) separator. Patient metadata shows gender / age / phone number.
+12. **Radio selection pattern**: The patient selector bottom sheet uses radio buttons (not checkmarks) to indicate the selected patient, placed beside a square avatar icon (rounded-[10px])
+13. **Breathing space**: All cards, lists, and interactive elements have generous padding and spacing to feel tappable and readable
 
 ---
 
@@ -141,6 +178,9 @@ POMR cards are the only cards that show the completeness donut, because they hav
 - **Pill engine**: 4-layer priority pipeline generating context-aware prompt suggestions
 - **Reply engine**: Maps intents + patient data to structured responses
 - **RxPad sync**: Bidirectional context via React context (`useRxPadSync`)
+- **V0 mode sync**: Shared `useV0Mode` hook persists toggle state in localStorage, syncs across pages via custom events
+- **V0 panel**: Standalone `DrAgentPanelV0` component with its own patient search, canned actions, scroll-aware floating chip, and PatientSelector bottom sheet
+- **Patient selector**: Shared `PatientSelector` bottom sheet component used by both V0 and full agent — supports custom title prop, radio-button selection, circular avatars, gender/age/phone metadata
 
 ---
 

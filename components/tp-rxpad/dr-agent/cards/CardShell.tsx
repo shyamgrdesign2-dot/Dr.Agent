@@ -16,6 +16,7 @@ export function SourceInfoIcon({ sources }: { sources: string[] }) {
       className="relative ml-[4px] flex-shrink-0"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={() => setIsHovered((v) => !v)}
     >
       <button
         type="button"
@@ -87,7 +88,7 @@ export function CardShell({
       className="w-full overflow-hidden rounded-[14px] bg-white"
       style={{
         border: "1px solid transparent",
-        backgroundImage: "linear-gradient(white, white), linear-gradient(180deg, rgba(59,130,246,0.18) 0%, rgba(59,130,246,0.04) 25%, rgba(23,23,37,0.02) 50%, rgba(59,130,246,0.04) 75%, rgba(59,130,246,0.18) 100%)",
+        backgroundImage: "linear-gradient(white, white), linear-gradient(180deg, rgba(75,74,213,0.18) 0%, rgba(75,74,213,0.04) 25%, rgba(23,23,37,0.02) 50%, rgba(75,74,213,0.04) 75%, rgba(75,74,213,0.18) 100%)",
         backgroundOrigin: "border-box",
         backgroundClip: "padding-box, border-box",
       }}
@@ -96,19 +97,19 @@ export function CardShell({
       <div
         className={cn("flex gap-[7px] px-3 py-[11px]", date ? "items-start" : "items-center")}
         style={{
-          background: "linear-gradient(180deg, rgba(59,130,246,0.05) 0%, #FFFFFF 100%)",
+          background: "linear-gradient(180deg, rgba(75,74,213,0.05) 0%, #FFFFFF 100%)",
           borderBottom: "1px solid var(--tp-slate-50, #F8FAFC)",
         }}
       >
         {/* Icon — always TP blue */}
         <div
           className="flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center rounded-[8px]"
-          style={{ background: "var(--tp-blue-50, rgba(59, 130, 246, 0.08))" }}
+          style={{ background: "var(--tp-blue-50, rgba(75, 74, 213, 0.08))" }}
         >
           {tpIconName ? (
-            <TPMedicalIcon name={tpIconName} variant="bulk" size={15} color="var(--tp-blue-500, #3B82F6)" />
+            <TPMedicalIcon name={tpIconName} variant="bulk" size={15} color="var(--tp-blue-500, #4B4AD5)" />
           ) : (
-            <span style={{ color: "var(--tp-blue-500, #3B82F6)", display: "flex", alignItems: "center", justifyContent: "center" }}>{icon}</span>
+            <span style={{ color: "var(--tp-blue-500, #4B4AD5)", display: "flex", alignItems: "center", justifyContent: "center" }}>{icon}</span>
           )}
         </div>
 
@@ -196,7 +197,7 @@ export function CardShell({
               className="px-3 py-[8px]"
               style={{
                 borderTop: "0.5px solid var(--tp-slate-50, #F8FAFC)",
-                background: "linear-gradient(180deg, #FFFFFF 0%, rgba(59,130,246,0.04) 100%)",
+                background: "linear-gradient(180deg, #FFFFFF 0%, rgba(75,74,213,0.04) 100%)",
               }}
             >
               {sidebarLink}

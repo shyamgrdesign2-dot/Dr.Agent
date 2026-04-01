@@ -5,8 +5,9 @@ import {
   Calendar2, MedalStar, DocumentText, Receipt1,
   Heart, StatusUp, MessageQuestion, Translate,
   ClipboardText, ShieldTick, Activity, Hospital,
-  Health, SearchStatus, LanguageCircle, Firstline,
+  Health, SearchStatus, LanguageCircle, Clock,
 } from "iconsax-reactjs"
+import type { SmartSummaryData } from "../types"
 
 /**
  * WelcomeScreen — ChatGPT-style intro screen for Dr. Agent.
@@ -143,70 +144,115 @@ const CONTEXT_ACTIONS: Record<PageContext, QuickAction[]> = {
 
 /**
  * ═══════════════════════════════════════════════════════════════
- * RXPAD CANNED ACTIONS — Dynamic based on patient context
+ * PATIENT CANNED ACTIONS — Smart Priority System
  * ═══════════════════════════════════════════════════════════════
  *
- * Logic for which 4 actions to show (RxPad / patient context):
+ * 5 candidate cards, pick best 4 based on available patient data:
  *
- * IF patient has pre-visit intake (symptom collector data):
- *   1. Pre-visit Intake — show what the patient reported before the visit
- *   2. Patient Summary — clinical overview
- *   3. Suggest Diagnosis — DDX based on symptoms
- *   4. Investigations — recommended labs/imaging
+ *   1. INTAKE    — "Details from patient"       (only if symptom collector data exists)
+ *   2. SUMMARY   — "Patient summary"            (always available)
+ *   3. HISTORY   — "Medical history"            (past visits, prescriptions)
+ *   4. SPECIALTY — Specialty-specific history    (obstetric / gynec / pediatric / ophthal)
+ *   5. VITALS    — "Vital trends"               (fallback when a slot is empty)
  *
- * IF patient has NO intake but has history (returning patient):
- *   1. Patient Summary — clinical overview
- *   2. Suggest Diagnosis — DDX based on history
- *   3. Drug Interactions — check current meds
- *   4. Investigations — recommended labs
+ * Priority rules:
+ *   WITH intake + WITH specialty → intake, summary, history, specialty
+ *   WITH intake + NO specialty  → intake, summary, history, vitals
+ *   NO intake + WITH specialty  → summary, history, specialty, vitals
+ *   NO intake + NO specialty    → summary, history, vitals, past visit details
  *
- * IF new patient (no history, no intake):
- *   1. Patient Summary — will show empty state
- *   2. Suggest Diagnosis — start clinical reasoning
- *   3. Investigations — suggest baseline tests
- *   4. Drug Interactions — check interactions
- *
- * The first action is always the most relevant starting point.
+ * This logic is shared between V0 and non-V0 panels.
  * ═══════════════════════════════════════════════════════════════
  */
 
 // Individual action definitions for dynamic composition
-const RXPAD_ACTION_INTAKE: QuickAction = {
+const PATIENT_ACTION_INTAKE: QuickAction = {
   icon: <ClipboardText size={ICON_SIZE} variant="Bulk" />,
-  title: "Pre-visit Intake",
-  subtitle: "View patient-reported symptoms, history, and questions before the visit",
+  title: "Details from patient",
+  subtitle: "Symptoms and history reported before the visit",
   message: "Show pre-visit intake",
 }
-const RXPAD_ACTION_SUMMARY: QuickAction = {
+const PATIENT_ACTION_SUMMARY: QuickAction = {
   icon: <DocumentText size={ICON_SIZE} variant="Bulk" />,
-  title: "Patient Summary",
-  subtitle: "Get a complete clinical overview with vitals, labs, and history",
+  title: "Patient summary",
+  subtitle: "Clinical overview with vitals, labs, and history",
   message: "Patient summary",
 }
-const RXPAD_ACTION_DDX: QuickAction = {
-  icon: <Health size={ICON_SIZE} variant="Bulk" />,
-  title: "Suggest Diagnosis",
-  subtitle: "Get AI-assisted differential diagnosis based on current symptoms",
-  message: "Suggest DDX based on current symptoms",
+const PATIENT_ACTION_HISTORY: QuickAction = {
+  icon: <Clock size={ICON_SIZE} variant="Bulk" />,
+  title: "Medical history",
+  subtitle: "Past visits, prescriptions, and treatment history",
+  message: "Medical history",
 }
-const RXPAD_ACTION_INVESTIGATIONS: QuickAction = {
-  icon: <SearchStatus size={ICON_SIZE} variant="Bulk" />,
-  title: "Investigations",
-  subtitle: "Get recommended lab tests and imaging for this patient's condition",
-  message: "Suggest investigations for this patient",
+const PATIENT_ACTION_VITALS: QuickAction = {
+  icon: <Activity size={ICON_SIZE} variant="Bulk" />,
+  title: "Today's vitals",
+  subtitle: "View today's recorded vital parameters at a glance",
+  message: "Today's vitals",
 }
-const RXPAD_ACTION_INTERACTIONS: QuickAction = {
-  icon: <ShieldTick size={ICON_SIZE} variant="Bulk" />,
-  title: "Drug Interactions",
-  subtitle: "Check for potential drug-drug interactions in current medications",
-  message: "Check drug interactions for current medications",
+const PATIENT_ACTION_PAST_VISITS: QuickAction = {
+  icon: <Calendar2 size={ICON_SIZE} variant="Bulk" />,
+  title: "Past visit details",
+  subtitle: "Previous visit prescriptions, follow-ups, and notes",
+  message: "Last visit details",
 }
 
-function buildRxPadActions(hasIntake: boolean): QuickAction[] {
-  if (hasIntake) {
-    return [RXPAD_ACTION_INTAKE, RXPAD_ACTION_SUMMARY, RXPAD_ACTION_DDX, RXPAD_ACTION_INVESTIGATIONS]
+function getSpecialtyAction(summary: SmartSummaryData): QuickAction | null {
+  if (summary.obstetricData) {
+    return {
+      icon: <Health size={ICON_SIZE} variant="Bulk" />,
+      title: "Obstetric history",
+      subtitle: "ANC schedule, pregnancy parameters, and alerts",
+      message: "Obstetric summary",
+    }
   }
-  return [RXPAD_ACTION_SUMMARY, RXPAD_ACTION_DDX, RXPAD_ACTION_INTERACTIONS, RXPAD_ACTION_INVESTIGATIONS]
+  if (summary.gynecData) {
+    return {
+      icon: <Health size={ICON_SIZE} variant="Bulk" />,
+      title: "Gynec history",
+      subtitle: "Menstrual cycle, screening, and gynec parameters",
+      message: "Gynec summary",
+    }
+  }
+  if (summary.pediatricsData) {
+    return {
+      icon: <Health size={ICON_SIZE} variant="Bulk" />,
+      title: "Vaccination & growth",
+      subtitle: "Growth chart, milestones, and vaccination schedule",
+      message: "Growth & vaccines",
+    }
+  }
+  if (summary.ophthalData) {
+    return {
+      icon: <Health size={ICON_SIZE} variant="Bulk" />,
+      title: "Vision history",
+      subtitle: "Visual acuity, IOP, and ophthalmic examination",
+      message: "Vision summary",
+    }
+  }
+  return null
+}
+
+function buildPatientActions(summary?: SmartSummaryData): QuickAction[] {
+  if (!summary) {
+    // No summary data — show generic actions
+    return [PATIENT_ACTION_SUMMARY, PATIENT_ACTION_HISTORY, PATIENT_ACTION_VITALS, PATIENT_ACTION_PAST_VISITS]
+  }
+
+  const hasIntake = !!summary.symptomCollectorData
+  const specialtyAction = getSpecialtyAction(summary)
+
+  if (hasIntake && specialtyAction) {
+    return [PATIENT_ACTION_INTAKE, PATIENT_ACTION_SUMMARY, PATIENT_ACTION_HISTORY, specialtyAction]
+  }
+  if (hasIntake && !specialtyAction) {
+    return [PATIENT_ACTION_INTAKE, PATIENT_ACTION_SUMMARY, PATIENT_ACTION_HISTORY, PATIENT_ACTION_VITALS]
+  }
+  if (!hasIntake && specialtyAction) {
+    return [PATIENT_ACTION_SUMMARY, PATIENT_ACTION_HISTORY, specialtyAction, PATIENT_ACTION_VITALS]
+  }
+  // No intake, no specialty
+  return [PATIENT_ACTION_SUMMARY, PATIENT_ACTION_HISTORY, PATIENT_ACTION_VITALS, PATIENT_ACTION_PAST_VISITS]
 }
 
 interface WelcomeScreenProps {
@@ -216,6 +262,8 @@ interface WelcomeScreenProps {
   patientName?: string
   /** Whether this patient has pre-visit intake data — affects canned action order */
   hasIntake?: boolean
+  /** Patient summary data — used by the smart priority system to pick the best 4 canned actions */
+  summary?: SmartSummaryData
   onActionClick: (message: string) => void
 }
 
@@ -224,12 +272,14 @@ export function WelcomeScreen({
   doctorName,
   patientName,
   hasIntake = false,
+  summary,
   onActionClick,
 }: WelcomeScreenProps) {
-  // RxPad + patient_detail: dynamic actions based on patient context; others: static
+  // Patient context (RxPad / patient detail): smart priority system picks best 4 from 5 candidates
+  // Other contexts (homepage, billing, default): static preset actions
   const actions = (context === "rxpad" || context === "patient_detail")
-    ? buildRxPadActions(hasIntake)
-    : (CONTEXT_ACTIONS[context] || CONTEXT_ACTIONS.default)
+    ? buildPatientActions(summary)
+    : (CONTEXT_ACTIONS[context] ?? CONTEXT_ACTIONS.default)
   const greeting = getGreeting()
   const displayName = doctorName ? `Dr. ${doctorName.split(" ")[0]}` : "Doctor"
   const isPatientContext = context === "rxpad" || context === "patient_detail"
@@ -245,28 +295,28 @@ export function WelcomeScreen({
         opacity: 0.04,
       }} />
 
-      {/* Spark icon — 44px, animated gradient bg + rotating spark */}
-      <div className="relative z-[1] mb-[12px]">
+      {/* Spark icon — 36px, animated gradient bg + rotating spark */}
+      <div className="relative z-[1] mb-[10px]">
         <span
           className="pointer-events-none select-none relative inline-flex items-center justify-center overflow-hidden"
-          style={{ width: 44, height: 44, borderRadius: 44 * 0.24 }}
+          style={{ width: 36, height: 36, borderRadius: 36 * 0.24 }}
           aria-hidden="true"
         >
           {/* White base + animated gradient GIF at 30% opacity on top */}
-          <div className="absolute inset-0 bg-white" style={{ borderRadius: 44 * 0.24 }} />
+          <div className="absolute inset-0 bg-white" style={{ borderRadius: 36 * 0.24 }} />
           <div className="absolute inset-0" style={{
             backgroundImage: "url(/icons/dr-agent/chat-bg.gif)",
             backgroundSize: "cover",
             backgroundPosition: "center",
-            borderRadius: 44 * 0.24,
+            borderRadius: 36 * 0.24,
             opacity: 0.3,
           }} />
           {/* Rotating white spark overlay */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/icons/dr-agent/agent-spark.svg"
-            width={44 * 0.75}
-            height={44 * 0.75}
+            width={36 * 0.75}
+            height={36 * 0.75}
             alt=""
             className="relative z-10 welcome-spark-rotate"
             draggable={false}
@@ -287,52 +337,73 @@ export function WelcomeScreen({
       </p>
 
       {/* Quick action cards — 2x2 grid, full width */}
-      <div className="relative z-[1] mt-[16px] grid grid-cols-2 gap-[8px] w-full">
+      <div className="relative z-[1] mt-[16px] grid grid-cols-2 gap-[10px] w-full">
         {actions.map((action, i) => (
           <button
             key={i}
             type="button"
             onClick={() => onActionClick(action.message)}
-            className="group relative flex flex-col items-start p-[10px] pb-[12px] text-left transition-all overflow-hidden hover:scale-[1.02]"
+            className="welcome-canned-card group relative flex flex-col items-start text-left transition-all overflow-hidden"
             style={{
               borderRadius: 14,
-              background: "rgba(255,255,255,0.5)",
-              border: "1px solid rgba(255,255,255,0.5)",
+              padding: "14px 12px 16px",
+              background: "rgba(255,255,255,0.55)",
+              border: "1px solid rgba(226,226,234,0.5)",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
             }}
           >
-            {/* Gradient background overlay — GIF at 8% opacity */}
+            {/* Gradient background overlay — GIF at 6% opacity */}
             <div className="absolute inset-0 pointer-events-none" style={{
               backgroundImage: "url(/icons/dr-agent/chat-bg.gif)",
               backgroundSize: "cover",
-              opacity: 0.08,
+              opacity: 0.06,
               borderRadius: 14,
             }} />
 
-            {/* Icon — gradient colored */}
-            <span className="relative z-[1] mb-[4px] welcome-icon-grad" style={{ opacity: 0.8 }}>
-              {React.cloneElement(action.icon as React.ReactElement, { size: 20 })}
+            {/* Icon — gradient colored, bare (no background) */}
+            <span className="relative z-[1] mb-[8px] welcome-icon-grad" style={{ opacity: 0.85 }}>
+              {action.icon}
             </span>
 
-            {/* Title — 13px semibold */}
-            <span className="relative z-[1] text-[14px] font-semibold leading-[17px]" style={{ color: "#454551" }}>
+            {/* Title — 12px semibold */}
+            <span className="relative z-[1] text-[12px] font-semibold leading-[15px] w-full" style={{ color: "#3D3D4E" }}>
               {action.title}
             </span>
 
-            {/* Subtitle — 12px with generous line height */}
-            <span className="relative z-[1] mt-[2px] text-[12px] font-normal leading-[17px]" style={{ color: "#9E9EA8" }}>
+            {/* Subtitle — 11px with 2-line clamp */}
+            <span className="relative z-[1] mt-[4px] text-[11px] font-normal leading-[15px] w-full welcome-card-subtitle" style={{ color: "#9E9EA8" }}>
               {action.subtitle}
             </span>
           </button>
         ))}
       </div>
 
-      {/* Gradient color for welcome card icons + spark rotation */}
+      {/* Gradient color for welcome card icons + spark rotation + hover/active card effects */}
       <style>{`
         .welcome-icon-grad svg { color: #8B5CF6; }
         .welcome-icon-grad svg path,
         .welcome-icon-grad svg circle,
         .welcome-icon-grad svg rect {
           fill: url(#welcomeIconGrad);
+        }
+        .welcome-card-subtitle {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .welcome-canned-card {
+          cursor: pointer;
+          transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+        .welcome-canned-card:hover {
+          transform: translateY(-1px) scale(1.01);
+          box-shadow: 0 3px 12px rgba(0,0,0,0.06) !important;
+          border-color: rgba(139,92,246,0.25) !important;
+        }
+        .welcome-canned-card:active {
+          transform: translateY(0) scale(0.99);
+          box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
         }
         @keyframes welcomeSparkRotate {
           0% { transform: rotate(0deg); }

@@ -12,7 +12,7 @@ interface Props {
 export function DuePatientsCard({ data }: Props) {
   return (
     <CardShell
-      icon={<WalletMinus size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
+      icon={<WalletMinus size={14} variant="Bulk" color="var(--tp-blue-500, #4B4AD5)" />}
       title={data.title}
       sidebarLink={<SidebarLink text={data.ctaLabel} />}
     >

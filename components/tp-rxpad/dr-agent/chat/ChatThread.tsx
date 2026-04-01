@@ -22,6 +22,8 @@ interface ChatThreadProps {
   onPatientSelect?: (patientId: string) => void
   /** Context-aware hint for the typing indicator (e.g. "Looking up patient records") */
   typingHint?: string
+  /** Callback when user edits a message — parent truncates and re-sends */
+  onEditMessage?: (messageId: string, newText: string) => void
 }
 
 export function ChatThread({
@@ -36,6 +38,7 @@ export function ChatThread({
   patientDocuments,
   onPatientSelect,
   typingHint,
+  onEditMessage,
 }: ChatThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -52,22 +55,10 @@ export function ChatThread({
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Scroll to show the START of new messages (not snap to bottom).
-  // For typing indicator, scroll to bottom so user sees the dots.
+  // Only scroll to bottom when typing indicator appears — no auto-scroll on new messages
   useEffect(() => {
     if (isTyping) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-      return
-    }
-
-    // New message(s) added — scroll to show the first new message's top
-    if (messages.length > prevMessageCountRef.current && containerRef.current) {
-      const newIndex = prevMessageCountRef.current
-      const messageElements = containerRef.current.children
-      const targetEl = messageElements[newIndex] as HTMLElement | undefined
-      if (targetEl) {
-        targetEl.scrollIntoView({ behavior: "smooth", block: "start" })
-      }
     }
     prevMessageCountRef.current = messages.length
   }, [messages.length, isTyping])
@@ -110,6 +101,7 @@ export function ChatThread({
               activeSpecialty={activeSpecialty}
               patientDocuments={patientDocuments}
               onPatientSelect={onPatientSelect}
+              onEditMessage={onEditMessage}
             />
           </div>
         )

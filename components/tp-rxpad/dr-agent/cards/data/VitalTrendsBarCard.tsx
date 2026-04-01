@@ -16,7 +16,7 @@ interface VitalTrendsBarCardProps {
   onPillTap?: (label: string) => void
 }
 
-const SERIES_COLORS = ["#14B8A6", "#8B5CF6", "#EF4444", "#F59E0B", "#3B82F6"]
+const SERIES_COLORS = ["#14B8A6", "#8B5CF6", "#EF4444", "#F59E0B", "#4B4AD5"]
 
 function getTrendSummary(series: VitalTrendSeries): string {
   if (series.values.length < 2) return ""

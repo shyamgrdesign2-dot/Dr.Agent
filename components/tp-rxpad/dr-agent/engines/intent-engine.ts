@@ -82,6 +82,17 @@ const RULES: KeywordRule[] = [
 
   // Follow-up questions
   { keywords: ["which", "select", "choose", "pick one"], intent: "follow_up", format: "card" },
+
+  // Out-of-scope — non-medical topics
+  { keywords: ["cricket", "football", "soccer", "tennis", "basketball", "baseball", "hockey", "ipl", "world cup score", "match score"], intent: "out_of_scope", format: "card" },
+  { keywords: ["weather", "forecast", "temperature outside", "rain today", "sunny today"], intent: "out_of_scope", format: "card" },
+  { keywords: ["movie", "netflix", "series", "tv show", "web series", "bollywood", "hollywood"], intent: "out_of_scope", format: "card" },
+  { keywords: ["stock market", "share price", "nifty", "sensex", "crypto", "bitcoin", "trading"], intent: "out_of_scope", format: "card" },
+  { keywords: ["recipe", "cooking", "how to cook", "food recipe", "restaurant"], intent: "out_of_scope", format: "card" },
+  { keywords: ["politics", "election", "prime minister", "president", "government"], intent: "out_of_scope", format: "card" },
+  { keywords: ["joke", "tell me a joke", "funny", "riddle", "poem", "story", "song"], intent: "out_of_scope", format: "card" },
+  { keywords: ["book a flight", "hotel", "travel", "vacation", "holiday plan"], intent: "out_of_scope", format: "card" },
+  { keywords: ["news today", "headline", "latest news", "trending"], intent: "out_of_scope", format: "card" },
 ]
 
 export function classifyIntent(input: string): IntentResult {
@@ -237,6 +248,8 @@ export const PILL_INTENT_MAP: Record<string, IntentCategory> = {
   "Growth & vaccines": "data_retrieval",
   "Growth check": "data_retrieval",
   "Vision check": "data_retrieval",
+  "Today's vitals": "data_retrieval",
+  "Medical history": "data_retrieval",
   // Doctor-type-aware pills (treating physician + emergency)
   "eGFR trend": "comparison",
   "Medication timeline": "data_retrieval",

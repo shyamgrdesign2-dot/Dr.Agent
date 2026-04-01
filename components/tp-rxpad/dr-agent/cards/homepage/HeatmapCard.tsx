@@ -29,7 +29,7 @@ export function HeatmapCard({ data, onPillTap }: Props) {
 
   return (
     <CardShell
-      icon={<Calendar2 size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
+      icon={<Calendar2 size={14} variant="Bulk" color="var(--tp-blue-500, #4B4AD5)" />}
       title={data.title}
       sidebarLink={<FooterCTA label="Download as Excel" onClick={handleDownload} tone="secondary" iconLeft={<DocumentDownload size={14} variant="Linear" />} />}
     >

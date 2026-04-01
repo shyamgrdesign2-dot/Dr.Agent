@@ -18,7 +18,7 @@ export function PieChartCard({ data, onPillTap }: Props) {
 
   return (
     <CardShell
-      icon={<Chart size={14} variant="Bulk" color="var(--tp-blue-500, #3B82F6)" />}
+      icon={<Chart size={14} variant="Bulk" color="var(--tp-blue-500, #4B4AD5)" />}
       title={data.title}
 
     >

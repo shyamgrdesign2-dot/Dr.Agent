@@ -69,6 +69,10 @@ import { CompletenessCard } from "./utility/CompletenessCard"
 import { DrugInteractionCard } from "./utility/DrugInteractionCard"
 import { AllergyConflictCard } from "./utility/AllergyConflictCard"
 import { FollowUpQuestionCard } from "./utility/FollowUpQuestionCard"
+import { GuardrailCard } from "./utility/GuardrailCard"
+
+// Vitals Summary Card
+import { VitalsSummaryCard } from "./data/VitalsSummaryCard"
 
 // Clinical Cards
 import { PomrProblemCard } from "./clinical/PomrProblemCard"
@@ -286,6 +290,12 @@ function renderCard(
 
     case "patient_search":
       return <PatientSearchCard data={output.data} onPatientSelect={onPatientSelect} />
+
+    case "guardrail":
+      return <GuardrailCard data={output.data} onPillTap={onPillTap} />
+
+    case "vitals_summary":
+      return <VitalsSummaryCard data={output.data} />
 
     // -- Text-Only Kinds -----------------------------------------------------
     case "text_fact":

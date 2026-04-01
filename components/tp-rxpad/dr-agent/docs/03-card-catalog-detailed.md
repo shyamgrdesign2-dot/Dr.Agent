@@ -608,6 +608,36 @@
 
 ---
 
+### F6. `guardrail` — Out-of-Scope Guardrail
+**What it does:** Shown when the user asks a question outside Dr. Agent's scope (sports, weather, entertainment, politics, recipes, etc.) or when the query is ambiguous with low confidence. Displays a warm explanation message with clickable suggestion chips that redirect to supported clinical topics.
+
+**When triggered:** `out_of_scope` intent category (keyword detection), or as fallback for truly ambiguous/unrecognized queries.
+
+**Key params:** `message` (AI explanation text), `suggestions[]` (label + message pairs for clickable chips)
+
+**Visual:** Amber/warning border gradient (not error-red). InfoCircle icon + explanation. "Try asking about" section with pill-style chips.
+
+**Source tag:** None (no header icon/title)
+
+**V0 supported:** Yes
+
+---
+
+### F7. `vitals_summary` — Today's Vitals Table
+**What it does:** Displays today's recorded vital parameters in a clean table format with flag indicators (normal/high/low/critical).
+
+**When triggered:** "Today's vitals" canned action or free-text query
+
+**Key params:** `title`, `recordedAt`, `rows[]` (label, value, unit, flag), `insight`
+
+**Visual:** Activity icon header. Table rows with color-coded flag badges. Optional AI insight footer.
+
+**Source tag:** EMR
+
+**V0 supported:** Yes
+
+---
+
 ## G. Safety Family (2 cards)
 
 ### G1. `drug_interaction` — Drug Interaction Alert

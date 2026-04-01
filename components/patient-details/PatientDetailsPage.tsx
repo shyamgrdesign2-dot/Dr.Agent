@@ -18,6 +18,8 @@ import {
 
 import { AppointmentBanner } from "@/components/tp-ui/appointment-banner"
 import { DrAgentPanel } from "@/components/tp-rxpad/dr-agent/DrAgentPanel"
+import { DrAgentPanelV0 } from "@/components/tp-rxpad/dr-agent/DrAgentPanelV0"
+import { useV0Mode } from "@/components/tp-rxpad/dr-agent/hooks/useV0Mode"
 import { DrAgentFab } from "@/components/tp-rxpad/dr-agent/shell/DrAgentFab"
 import { findContextIdByPatientId } from "@/components/tp-rxpad/dr-agent/constants"
 import { TPButton as Button, TPSplitButton } from "@/components/tp-ui/button-system"
@@ -55,6 +57,7 @@ export function PatientDetailsPage({
   from,
 }: PatientDetailsPageProps) {
   const router = useRouter()
+  const { isV0Mode } = useV0Mode()
   const [isAgentOpen, setIsAgentOpen] = useState(false)
 
   const patient = {
@@ -318,12 +321,20 @@ export function PatientDetailsPage({
             </section>
 
             {isAgentOpen && (
-              <aside className="hidden h-full w-[392px] shrink-0 md:block">
-                <DrAgentPanel
-                  initialPatientId={findContextIdByPatientId(patient.id, patient.name)}
-                  mode="rxpad"
-                  onClose={() => setIsAgentOpen(false)}
-                />
+              <aside className="hidden h-full shrink-0 md:block" style={{ width: "clamp(350px, 25vw, 400px)" }}>
+                {isV0Mode ? (
+                  <DrAgentPanelV0
+                    initialPatientId={findContextIdByPatientId(patient.id, patient.name)}
+                    isPatientDetailPage
+                    onClose={() => setIsAgentOpen(false)}
+                  />
+                ) : (
+                  <DrAgentPanel
+                    initialPatientId={findContextIdByPatientId(patient.id, patient.name)}
+                    mode="rxpad"
+                    onClose={() => setIsAgentOpen(false)}
+                  />
+                )}
               </aside>
             )}
           </div>

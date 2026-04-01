@@ -210,10 +210,18 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
               <div className="h-[2.5px]" style={{ background: "linear-gradient(90deg, #D565EA 0%, #8B5CF6 40%, #4F46E5 100%)" }} />
 
               <div className="px-[14px] py-[12px]">
-                {/* Heading with Dr. Agent icon */}
+                {/* Heading with Dr. Agent icon — tab-aware */}
                 <div className="flex items-center gap-[6px] mb-[8px]">
                   <AiBrandSparkIcon size={18} withBackground />
-                  <p className="text-[12px] font-semibold text-tp-slate-700">Patient Summary:</p>
+                  {tabVariant === "finished" ? (
+                    <p className="text-[12px] font-semibold text-tp-slate-700">Consultation Summary:</p>
+                  ) : tabVariant === "cancelled" ? (
+                    <p className="text-[12px] font-semibold text-tp-slate-700">Cancellation Details:</p>
+                  ) : tabVariant === "draft" || tabVariant === "pending-digitisation" ? (
+                    <p className="text-[12px] font-semibold text-tp-slate-700">Dr. Agent</p>
+                  ) : (
+                    <p className="text-[12px] font-semibold text-tp-slate-700">Patient Summary:</p>
+                  )}
                 </div>
 
                 {/* Summary text — tab-aware content */}

@@ -137,16 +137,11 @@ export function AgentHeader({
         {/* Left: spark icon + title + unified dropdown */}
         <div className="relative z-10 flex items-center gap-[6px]">
           <span className="text-[16px] font-semibold text-white" style={{ letterSpacing: "0.1px", lineHeight: "17px" }}>
-            {isV0 ? "Dr. Agent V0" : "Dr. Agent"}
+            Dr. Agent
           </span>
 
-          {/* Unified Dropdown — Specialty + Doctor Type + Intake (hidden in V0) */}
-          {isV0 ? (
-            <span className="rounded-full bg-white/15 px-[7px] py-[2px] text-[11px] text-white/70 font-medium">
-              Summary only
-            </span>
-          ) : null}
-          {!isV0 && <div className="relative" ref={dropdownRef}>
+          {/* Unified Dropdown — Specialty + Doctor Type + Intake (removed — demo only) */}
+          {false && <div className="relative" ref={dropdownRef}>
             <button
               type="button"
               onClick={() => setDropdownOpen((v) => !v)}

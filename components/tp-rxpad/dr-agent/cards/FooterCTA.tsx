@@ -56,7 +56,7 @@ const tertiaryTones: Record<string, string> = {
 
 // Secondary/bordered tones (border + white bg)
 const borderedTones: Record<string, string> = {
-  secondary: "border-blue-200 text-tp-blue-500 hover:border-blue-300 hover:bg-tp-blue-50/60",
+  secondary: "border-tp-blue-200 text-tp-blue-500 hover:border-tp-blue-300 hover:bg-tp-blue-50/60",
   danger: "border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50/70",
   success: "border-emerald-200 text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50/70",
 }

@@ -42,6 +42,7 @@ export type IntentCategory =
   | "operational"
   | "ambiguous"
   | "follow_up"
+  | "out_of_scope"
 
 export type ResponseFormat = "text" | "hybrid" | "card"
 
@@ -615,6 +616,33 @@ export interface SbarCriticalCardData {
   recentER?: string[]
 }
 
+// ═══════════════ GUARDRAIL CARD ═══════════════
+
+export interface GuardrailCardData {
+  /** AI-generated message explaining why this can't be answered */
+  message: string
+  /** Suggested actions the user CAN take */
+  suggestions: { label: string; message: string }[]
+}
+
+// ═══════════════ VITALS SUMMARY CARD ═══════════════
+
+export interface VitalsSummaryCardData {
+  /** Title (e.g. "Today's Vitals") */
+  title: string
+  /** Recorded timestamp */
+  recordedAt: string
+  /** Vital parameter rows */
+  rows: Array<{
+    label: string
+    value: string
+    unit: string
+    flag?: "normal" | "high" | "low" | "critical"
+  }>
+  /** Optional AI insight */
+  insight?: string
+}
+
 // ═══════════════ RX AGENT OUTPUT (DISCRIMINATED UNION) ═══════════════
 
 export type RxAgentOutput =
@@ -683,6 +711,10 @@ export type RxAgentOutput =
   | { kind: "pomr_problem_card"; data: PomrProblemCardData }
   // Patient Search
   | { kind: "patient_search"; data: PatientSearchCardData }
+  // Guardrail (out-of-scope)
+  | { kind: "guardrail"; data: GuardrailCardData }
+  // Vitals Summary (today's vitals table)
+  | { kind: "vitals_summary"; data: VitalsSummaryCardData }
 
 // ═══════════════ PATIENT SEARCH CARD ═══════════════
 

@@ -189,6 +189,7 @@ export function DataCompletenessDonut({ emr, ai, missing, size = "md" }: DataCom
       className="flex-shrink-0 cursor-default"
       onMouseEnter={show}
       onMouseLeave={hide}
+      onClick={() => setIsVisible((v) => !v)}
     >
       <svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
         {/* Background track */}
