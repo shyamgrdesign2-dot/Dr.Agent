@@ -79,7 +79,7 @@ function UserBulkIcon({ size = 12, className }: { size?: number; className?: str
 const V0_ALLOWED_KINDS = new Set([
   "sbar_overview", "patient_summary", "symptom_collector", "last_visit",
   "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary",
-  "med_history", "vitals_summary", "guardrail",
+  "med_history", "vitals_summary",
 ])
 
 // ═══════════════ V0 PILL-TO-CARD MAP ═══════════════
@@ -733,22 +733,17 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
 
       let reply = buildReply(msg, summary, newPhase, intent)
 
-      // V0 guard: only allow summary card kinds + guardrail, strip unsupported cards
+      // V0 guard: only allow summary card kinds, strip unsupported cards → text + suggestions
       if (reply.rxOutput && !V0_ALLOWED_KINDS.has(reply.rxOutput.kind)) {
         reply = {
-          text: "",
-          rxOutput: {
-            kind: "guardrail",
-            data: {
-              message: "I can provide patient summaries, vitals, and clinical history in this mode. Try one of the options below!",
-              suggestions: [
-                { label: "Patient summary", message: "Patient summary" },
-                { label: "Today's vitals", message: "Today's vitals" },
-                { label: "Medical history", message: "Medical history" },
-                { label: "Last visit", message: "Last visit details" },
-              ],
-            },
-          },
+          text: "I can help with patient summaries, vitals, and clinical history in this mode. Try one of these:",
+          rxOutput: undefined,
+          suggestions: [
+            { label: "Patient summary", message: "Patient summary" },
+            { label: "Today's vitals", message: "Today's vitals" },
+            { label: "Medical history", message: "Medical history" },
+            { label: "Last visit", message: "Last visit details" },
+          ],
         }
       }
       delete reply.followUpPills
@@ -760,6 +755,7 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
         createdAt: new Date().toISOString(),
         rxOutput: reply.rxOutput,
         feedbackGiven: null,
+        suggestions: reply.suggestions,
       }
 
       setMessagesByPatient((prev) => ({

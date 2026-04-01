@@ -25,8 +25,8 @@ A lightweight toggle ("Agent V0") in the appointment screen header activates a s
 - **State split**: `isV0Mode` (toggle persists across pages until turned off) vs `isV0PanelOpen` (panel visibility, page-specific). Closing the V0 panel keeps the mode ON — the FAB reappears and clicking it reopens V0.
 - **Pre-selection screen**: When no patient is selected, a vertically centered greeting + search screen appears. Doctors search and select a patient before seeing any content.
 - **Post-selection screen**: After selecting a patient, a floating glass chip at the top shows the patient context (with chevron to open the patient selector bottom sheet). Four canned quick-action cards appear, chosen by the smart priority system (see below). Content appears with a smooth fade-in + slide-up reveal animation.
-- **Allowed card types**: Only 11 card kinds are shown in V0: `sbar_overview`, `patient_summary`, `symptom_collector`, `last_visit`, `obstetric_summary`, `gynec_summary`, `pediatric_summary`, `ophthal_summary`, `med_history`, `vitals_summary`, `guardrail`.
-- **Guardrail card**: When a user asks an out-of-scope question (sports, weather, entertainment, etc.) or an unrecognizable query, a guardrail card appears with a warm explanation and clickable suggestion chips to redirect back to supported clinical topics. This applies to both V0 and non-V0 modes.
+- **Allowed card types**: 10 card kinds are shown in V0: `sbar_overview`, `patient_summary`, `symptom_collector`, `last_visit`, `obstetric_summary`, `gynec_summary`, `pediatric_summary`, `ophthal_summary`, `med_history`, `vitals_summary`.
+- **Guardrail (text + pills)**: When a user asks an out-of-scope question (sports, weather, entertainment, etc.) or an unrecognizable query, Dr. Agent replies with a short text message and horizontal scrollable suggestion pills below the bubble — not a card. This applies to both V0 and non-V0 modes.
 
 #### Canned card smart priority system
 

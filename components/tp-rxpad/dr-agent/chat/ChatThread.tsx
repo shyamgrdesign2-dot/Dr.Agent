@@ -139,6 +139,8 @@ export function ChatThread({
         .chat-stream-in {
           animation: chatStreamIn 550ms cubic-bezier(0.16, 1, 0.3, 1) both;
         }
+        .da-suggestion-scroll::-webkit-scrollbar { height: 0; display: none; }
+        .da-suggestion-scroll { scrollbar-width: none; -ms-overflow-style: none; }
       `}</style>
     </div>
   )

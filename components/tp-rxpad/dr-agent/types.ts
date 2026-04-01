@@ -775,6 +775,8 @@ export interface RxAgentChatMessage {
   rxOutput?: RxAgentOutput
   attachment?: ChatAttachment
   feedbackGiven?: "up" | "down" | null
+  /** Inline suggestion chips shown below the message text (e.g. guardrail redirects) */
+  suggestions?: Array<{ label: string; message: string }>
 }
 
 // ═══════════════ INTENT CLASSIFICATION RESULT ═══════════════
@@ -791,4 +793,6 @@ export interface ReplyResult {
   text: string
   rxOutput?: RxAgentOutput
   followUpPills?: CannedPill[]
+  /** Inline suggestion chips — rendered below message text as horizontal scrollable pills */
+  suggestions?: Array<{ label: string; message: string }>
 }

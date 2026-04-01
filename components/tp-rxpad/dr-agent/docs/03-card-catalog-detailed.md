@@ -608,18 +608,16 @@
 
 ---
 
-### F6. `guardrail` — Out-of-Scope Guardrail
-**What it does:** Shown when the user asks a question outside Dr. Agent's scope (sports, weather, entertainment, politics, recipes, etc.) or when the query is ambiguous with low confidence. Displays a warm explanation message with clickable suggestion chips that redirect to supported clinical topics.
+### F6. Guardrail (Text + Suggestion Pills)
+**What it does:** When the user asks an out-of-scope question (sports, weather, entertainment, etc.) or an ambiguous query, Dr. Agent replies with a short text message and horizontal scrollable suggestion pills below the bubble. This is NOT a card — it's a text reply with inline `suggestions[]` on the `RxAgentChatMessage`.
 
-**When triggered:** `out_of_scope` intent category (keyword detection), or as fallback for truly ambiguous/unrecognized queries.
+**When triggered:** `out_of_scope` intent category (keyword detection), or as default fallback for low-confidence queries.
 
-**Key params:** `message` (AI explanation text), `suggestions[]` (label + message pairs for clickable chips)
+**Key params:** `ReplyResult.text` (2-line guardrail message), `ReplyResult.suggestions[]` (label + message pairs rendered as horizontal scrollable pills)
 
-**Visual:** Amber/warning border gradient (not error-red). InfoCircle icon + explanation. "Try asking about" section with pill-style chips.
+**Visual:** Standard assistant text bubble + horizontal pill row below. Pills styled like canned action chips with border, hover → tp-blue.
 
-**Source tag:** None (no header icon/title)
-
-**V0 supported:** Yes
+**V0 supported:** Yes (V0 guard also uses text + suggestions instead of cards for unsupported queries)
 
 ---
 

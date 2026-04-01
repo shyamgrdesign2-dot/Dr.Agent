@@ -220,19 +220,13 @@ export function buildReply(
   // === OUT-OF-SCOPE GUARDRAIL ===
   if (intent.category === "out_of_scope") {
     return {
-      text: "",
-      rxOutput: {
-        kind: "guardrail",
-        data: {
-          message: "I'm Dr. Agent — I specialize in clinical insights, patient data, and practice management. I can't help with that topic, but I'm here for anything medical!",
-          suggestions: [
-            { label: "Patient summary", message: "Patient summary" },
-            { label: "Today's vitals", message: "Today's vitals" },
-            { label: "Lab results", message: "Show recent lab results" },
-            { label: "Last visit", message: "Last visit details" },
-          ],
-        },
-      },
+      text: "Sorry, that's outside my area of expertise. I'm here to help with clinical insights, patient data, and practice management — try one of these instead:",
+      suggestions: [
+        { label: "Patient summary", message: "Patient summary" },
+        { label: "Today's vitals", message: "Today's vitals" },
+        { label: "Medical history", message: "Medical history" },
+        { label: "Last visit", message: "Last visit details" },
+      ],
     }
   }
 
@@ -661,11 +655,13 @@ export function buildReply(
             }) },
             { tag: "Diagnosis", icon: "Diagnosis", items: splitRespectingParens(summary.lastVisit.diagnosis).map((d) => ({ label: d })) },
             { tag: "Medication", icon: "pill", items: splitRespectingParens(summary.lastVisit.medication).map((m) => {
-              const parts = m.trim().split(/\s+/)
-              const name = parts[0] + (parts.length > 1 && /^\d+/.test(parts[1]) && !/^\d+-\d+/.test(parts[1]) ? ` ${parts[1]}` : "")
-              // Strip drug name prefix from detail to avoid redundancy like "Telma20: Telma20 1-0-0-1 BF"
-              const rest = m.trim().slice(name.length).trim()
-              return { label: name, detail: rest || undefined }
+              // "Telma 20mg (Twice daily | Before food)" → label: "Telma 20mg", detail: "Twice daily | Before food"
+              const parenMatch = m.trim().match(/^(.+?)\s*\((.+)\)\s*$/)
+              if (parenMatch) {
+                return { label: parenMatch[1].trim(), detail: parenMatch[2].trim() }
+              }
+              // "Paracetamol 650mg" — no parenthetical detail
+              return { label: m.trim() }
             }) },
             { tag: "Investigation", icon: "Lab", items: splitRespectingParens(summary.lastVisit.labTestsSuggested).map((l) => ({ label: l })) },
             ...(summary.lastVisit.advice ? [{ tag: "Advice", icon: "clipboard-activity", items: splitRespectingParens(summary.lastVisit.advice).map((a) => ({ label: a })) }] : []),
@@ -1557,21 +1553,15 @@ export function buildReply(
     }
   }
 
-  // === DEFAULT — GUARDRAIL CARD FOR LOW-CONFIDENCE QUERIES ===
+  // === DEFAULT — TEXT + SUGGESTION PILLS FOR LOW-CONFIDENCE QUERIES ===
   return {
-    text: "",
-    rxOutput: {
-      kind: "guardrail",
-      data: {
-        message: buildDefaultResponse(input, summary),
-        suggestions: [
-          { label: "Patient summary", message: "Patient summary" },
-          { label: "Today's vitals", message: "Today's vitals" },
-          { label: "Medical history", message: "Medical history" },
-          { label: "Last visit", message: "Last visit details" },
-        ],
-      },
-    },
+    text: buildDefaultResponse(input, summary),
+    suggestions: [
+      { label: "Patient summary", message: "Patient summary" },
+      { label: "Today's vitals", message: "Today's vitals" },
+      { label: "Medical history", message: "Medical history" },
+      { label: "Last visit", message: "Last visit details" },
+    ],
   }
 }
 
