@@ -276,9 +276,7 @@ export function InlineDataRow({
         icon={tagIcon}
         variant={tagVariant}
         onClick={onTagClick}
-        onCopy={showCopy ? onTagCopy : undefined}
         tooltip={tooltips?.tooltip}
-        copyTooltip={showCopy ? tooltips?.copyTooltip : undefined}
       />{" "}
 
       {/* Values — inline wrapping */}

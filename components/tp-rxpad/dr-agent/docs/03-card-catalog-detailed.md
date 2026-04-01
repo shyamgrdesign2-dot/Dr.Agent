@@ -621,7 +621,22 @@
 
 ---
 
-### F7. `vitals_summary` — Today's Vitals Table
+### F7. `medical_history` — Medical History (Expanded)
+**What it does:** Shows the patient's clinical background using SectionTag-based sections: chronic conditions, allergies, family history, lifestyle, active meds, surgical/past history.
+
+**When triggered:** "Medical history" canned action or free-text query
+
+**Key params:** `sections[]` (tag, icon, items[]), `insight`
+
+**Visual:** Uses CardShell with "medical-record" TP icon. Each section rendered via InlineDataRow with SectionTag. Collapsible.
+
+**Source tag:** EMR Records
+
+**V0 supported:** Yes
+
+---
+
+### F8. `vitals_summary` — Today's Vitals Table
 **What it does:** Displays today's recorded vital parameters in a clean table format with flag indicators (normal/high/low/critical).
 
 **When triggered:** "Today's vitals" canned action or free-text query

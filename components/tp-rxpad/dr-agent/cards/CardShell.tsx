@@ -115,11 +115,11 @@ export function CardShell({
 
         {/* Title + Date */}
         <div className="flex min-w-0 flex-col text-tp-slate-800">
-          <span className="max-w-[200px] text-[16px] font-semibold leading-[1.4] truncate" title={title}>
+          <span className="max-w-[200px] text-[13px] font-semibold leading-[1.4] truncate" title={title}>
             {title}
           </span>
           {date && (
-            <span className="mt-[1px] max-w-[200px] text-[14px] font-normal text-tp-slate-400 leading-[1.4] truncate">
+            <span className="mt-[1px] max-w-[200px] text-[11px] font-normal text-tp-slate-400 leading-[1.4] truncate">
               {date}
             </span>
           )}

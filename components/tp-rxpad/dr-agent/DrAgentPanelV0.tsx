@@ -79,7 +79,7 @@ function UserBulkIcon({ size = 12, className }: { size?: number; className?: str
 const V0_ALLOWED_KINDS = new Set([
   "sbar_overview", "patient_summary", "symptom_collector", "last_visit",
   "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary",
-  "med_history", "vitals_summary",
+  "med_history", "vitals_summary", "medical_history",
 ])
 
 // ═══════════════ V0 PILL-TO-CARD MAP ═══════════════
@@ -89,8 +89,8 @@ const PILL_TO_CARD_KINDS: Record<string, string[]> = {
   "Patient reported details": ["symptom_collector"],
   "Patient summary": ["sbar_overview", "patient_summary"],
   "Patient's detailed summary": ["patient_summary", "sbar_overview"],
-  "Medical history": ["med_history"],
-  "Medical history summary": ["med_history"],
+  "Medical history": ["medical_history"],
+  "Medical history summary": ["medical_history"],
   "Last visit": ["last_visit"],
   "Last visit details": ["last_visit"],
   "Past visit details": ["last_visit"],

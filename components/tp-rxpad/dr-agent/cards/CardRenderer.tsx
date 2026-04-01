@@ -74,6 +74,9 @@ import { GuardrailCard } from "./utility/GuardrailCard"
 // Vitals Summary Card
 import { VitalsSummaryCard } from "./data/VitalsSummaryCard"
 
+// Medical History Card
+import { MedicalHistoryCard } from "./summary/MedicalHistoryCard"
+
 // Clinical Cards
 import { PomrProblemCard } from "./clinical/PomrProblemCard"
 import { SbarCriticalCard } from "./clinical/SbarCriticalCard"
@@ -296,6 +299,9 @@ function renderCard(
 
     case "vitals_summary":
       return <VitalsSummaryCard data={output.data} />
+
+    case "medical_history":
+      return <MedicalHistoryCard data={output.data} onSidebarNav={onSidebarNav} />
 
     // -- Text-Only Kinds -----------------------------------------------------
     case "text_fact":

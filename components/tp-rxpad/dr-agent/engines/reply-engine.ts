@@ -679,8 +679,51 @@ export function buildReply(
     }
   }
 
-  // === MEDICAL HISTORY / MEDICATION HISTORY ===
-  if (normalized.includes("medical history") || normalized.includes("medication history") || normalized.includes("med history") || normalized.includes("drug history") || normalized.includes("past medication")) {
+  // === MEDICAL HISTORY (patient's clinical background) ===
+  if (normalized.includes("medical history") || normalized.includes("med history") || normalized.includes("clinical history") || normalized.includes("past history") || normalized.includes("patient history")) {
+    const sections: Array<{ tag: string; icon?: string; items: string[] }> = []
+
+    if (summary.chronicConditions?.length) {
+      sections.push({ tag: "Chronic Conditions", items: summary.chronicConditions })
+    }
+    if (summary.allergies?.length) {
+      sections.push({ tag: "Allergies", items: summary.allergies })
+    }
+    if (summary.familyHistory?.length) {
+      sections.push({ tag: "Family History", items: summary.familyHistory })
+    }
+    if (summary.lifestyleNotes?.length) {
+      sections.push({ tag: "Lifestyle", items: summary.lifestyleNotes })
+    }
+    if (summary.activeMeds?.length) {
+      sections.push({ tag: "Active Meds", items: summary.activeMeds })
+    }
+    // Surgical history from symptom collector
+    if (summary.symptomCollectorData?.medicalHistory?.length) {
+      sections.push({ tag: "History", items: summary.symptomCollectorData.medicalHistory })
+    }
+
+    if (sections.length === 0) {
+      return { text: "No medical history on record for this patient yet." }
+    }
+
+    const totalItems = sections.reduce((sum, s) => sum + s.items.length, 0)
+    return {
+      text: `Here's the medical history — ${sections.length} sections, ${totalItems} entries on record.`,
+      rxOutput: {
+        kind: "medical_history",
+        data: {
+          sections,
+          insight: summary.chronicConditions && summary.chronicConditions.length > 2
+            ? `${summary.chronicConditions.length} chronic conditions — multimorbidity consideration.`
+            : undefined,
+        },
+      },
+    }
+  }
+
+  // === MEDICATION HISTORY ===
+  if (normalized.includes("medication history") || normalized.includes("drug history") || normalized.includes("past medication")) {
     const entries = (summary.activeMeds || []).map((m, i) => ({
       drug: m.split(/\s+\d/)[0] || m,
       dosage: m,

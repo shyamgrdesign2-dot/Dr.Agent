@@ -625,6 +625,19 @@ export interface GuardrailCardData {
   suggestions: { label: string; message: string }[]
 }
 
+// ═══════════════ MEDICAL HISTORY CARD ═══════════════
+
+export interface MedicalHistoryCardData {
+  /** Section-based medical history */
+  sections: Array<{
+    tag: string
+    icon?: string
+    items: string[]
+  }>
+  /** Optional AI insight */
+  insight?: string
+}
+
 // ═══════════════ VITALS SUMMARY CARD ═══════════════
 
 export interface VitalsSummaryCardData {
@@ -715,6 +728,8 @@ export type RxAgentOutput =
   | { kind: "guardrail"; data: GuardrailCardData }
   // Vitals Summary (today's vitals table)
   | { kind: "vitals_summary"; data: VitalsSummaryCardData }
+  // Medical History (chronic conditions, allergies, family history, etc.)
+  | { kind: "medical_history"; data: MedicalHistoryCardData }
 
 // ═══════════════ PATIENT SEARCH CARD ═══════════════
 
