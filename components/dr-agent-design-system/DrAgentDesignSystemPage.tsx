@@ -12,6 +12,7 @@ import { CardCatalogSection } from "./sections/CardCatalogSection"
 import { ChatShellSection } from "./sections/ChatShellSection"
 import { CardRulesSection } from "./sections/CardRulesSection"
 import { IntentClassificationSection } from "./sections/IntentClassificationSection"
+import { V0SpecSection } from "./sections/V0SpecSection"
 import { ExportButton } from "./ExportButton"
 import { CATALOG_ENTRIES } from "./catalog-data"
 
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { id: "chat-shell", label: "Chat Shell" },
   { id: "intent-classification", label: "Intent Classification" },
   { id: "card-rules", label: "Card Rules" },
+  { id: "v0-spec", label: "V0 Mode" },
 ]
 
 export function DrAgentDesignSystemPage() {
@@ -117,6 +119,7 @@ export function DrAgentDesignSystemPage() {
         <ChatShellSection />
         <IntentClassificationSection />
         <CardRulesSection />
+        <V0SpecSection />
 
         {/* Footer */}
         <footer className="mt-12 border-t border-tp-slate-100 pt-6 pb-8 text-center">
