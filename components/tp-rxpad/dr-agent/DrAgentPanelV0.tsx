@@ -757,7 +757,7 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
       // V0 guard: only allow summary card kinds, strip unsupported cards
       if (reply.rxOutput && !V0_ALLOWED_KINDS.has(reply.rxOutput.kind)) {
         reply = {
-          text: "Sorry, I'm not able to help with that in this mode. You can ask me to summarize patient details, vitals, or medical history — or use the quick-action pills below to guide you.",
+          text: "Sorry, I couldn't help you with that at the moment. You can ask me about patient summaries, vitals, or medical history — or try the quick-action pills below to get started.",
           rxOutput: undefined,
         }
       }
