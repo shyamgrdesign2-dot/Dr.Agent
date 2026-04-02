@@ -1645,17 +1645,42 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
 
         {/* ═══ 13. CONTENT ZONE TYPES ═══ */}
         <DocSection number="13" title="Content Zone Types" subtitle="18 content zone types that power the content layer of every card. Each zone maps to a data shape — this is the bridge between intent classification and visual output.">
-          <div className="mb-3 rounded-lg border border-violet-100 bg-violet-50/50 px-4 py-2.5">
+          <div className="mb-4 rounded-lg border border-violet-100 bg-violet-50/50 px-4 py-2.5">
             <p className="text-[11px] leading-relaxed text-violet-700">
               <strong>Link to Intent Classification:</strong> When the intent engine selects a card type, the{" "}
               <strong>content zone type</strong> is chosen based on the data shape. Time-series data → <strong>Line/Bar Chart</strong>.
               Key-value pairs → <strong>Inline Data Rows</strong>. Multi-select options → <strong>Checkbox List</strong>.
-              See the <strong>Intent-to-Card Reference Chart</strong> for the full mapping.
+              See the <strong>Intent-to-Card Reference Chart</strong> in the Intent Classification tab for the full mapping.
             </p>
           </div>
+
+          {/* Summary overview by category */}
+          <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { label: "Data Display", color: "#3B82F6", zones: ["═ Inline Data Rows", "⇔ Comparison Table", "👤 Patient List", "▤ KPI Table"] },
+              { label: "Charts & Visualization", color: "#059669", zones: ["📈 Line Chart", "📊 Bar Chart", "◔ Donut / Pie Chart", "▦ Heatmap Grid"] },
+              { label: "Lists & Selection", color: "#D97706", zones: ["☑ Checkbox List", "◉ Radio List", "• Bullet List"] },
+              { label: "Specialized Formats", color: "#8B5CF6", zones: ["💊 Medication Display", "S SBAR Sections", "¶ Clinical Narrative", "🌐 Translation Pair", "⚠ Drug Interaction", "💉 Vaccination Schedule", "⏱ Timeline"] },
+            ].map(cat => (
+              <div key={cat.label} className="rounded-xl border border-slate-200 bg-white p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
+                  <span className="text-[11px] font-bold" style={{ color: cat.color }}>{cat.label}</span>
+                  <span className="ml-auto text-[10px] text-slate-400">{cat.zones.length}</span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {cat.zones.map(z => (
+                    <span key={z} className="rounded-md bg-slate-50 px-1.5 py-0.5 text-[9px] text-slate-600">{z}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Detailed zone grid */}
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {CONTENT_ZONE_TYPES_FOR_ANATOMY.map((cz) => (
-              <div key={cz.zone} className="rounded-lg border border-slate-100 bg-white px-3 py-2.5">
+              <div key={cz.zone} className="rounded-lg border border-slate-100 bg-white px-3 py-2.5 hover:shadow-sm transition-shadow">
                 <div className="mb-1 flex items-center gap-2">
                   <span className="text-[14px]">{cz.icon}</span>
                   <span className="text-[11px] font-bold text-slate-800">{cz.zone}</span>
