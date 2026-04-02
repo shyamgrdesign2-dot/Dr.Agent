@@ -52,8 +52,8 @@ export default function ClinicalResearchTab() {
             <p className="text-[12px] leading-relaxed text-slate-600">
               Reads all available patient and clinic data, then responds with{" "}
               <strong className="text-slate-800">structured UI cards</strong> the doctor can scan, verify, and act on.
-              60 card types covering clinical summaries, safety checks, treatment plans, lab analysis,
-              billing, analytics, and more.
+              63+ card types with 120+ variants covering clinical summaries, safety checks, treatment plans,
+              lab analysis, billing, analytics, and more.
             </p>
           </div>
 
@@ -201,12 +201,12 @@ export default function ClinicalResearchTab() {
         <p className="mb-4 max-w-3xl text-[13px] leading-relaxed text-slate-600">
           Cards give us a repeatable way to package one response at a time. Each card is a self-contained
           unit — context, data, trust signals, and actions in one place. A shared design system lets us
-          maintain <strong className="text-slate-800">60 card types</strong> with consistent interaction patterns.
+          maintain <strong className="text-slate-800">63+ card types with 120+ variants</strong> while keeping interaction patterns consistent.
         </p>
 
         <div className="space-y-1.5">
           {[
-            "60 card types spanning clinical, analytical, and operational workflows",
+            "63+ card types with 120+ variants spanning clinical, analytical, and operational workflows",
             "Each card is contextual — sections appear or hide based on available patient data",
             "Progressive disclosure: collapsed view for scanning, expanded for detail",
             "Copy action row on every card for moving data into RxPad or documentation",
@@ -285,9 +285,9 @@ export default function ClinicalResearchTab() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             {
-              title: "60 Response Cards",
+              title: "63+ Card Types",
               color: "#3B82F6",
-              description: "Structured card types spanning clinical summaries, safety checks, DDX, prescriptions, lab analysis, billing, analytics, and operational flows.",
+              description: "120+ card variants spanning clinical summaries, safety checks, DDX, prescriptions, lab analysis, billing, analytics, and operational flows.",
             },
             {
               title: "Guided Navigation",
@@ -321,7 +321,7 @@ export default function ClinicalResearchTab() {
         <h4 className="mb-3 text-[13px] font-bold text-slate-700">System at a Glance</h4>
         <div className="grid gap-x-6 gap-y-2 sm:grid-cols-3">
           {[
-            { label: "Card types", value: "60" },
+            { label: "Card types", value: "63+ kinds, 120+ variants" },
             { label: "Intent categories", value: "10" },
             { label: "Specialty modes", value: "5 (GP, Gynec, Ophthal, Obstetric, Pediatrics)" },
             { label: "Consult phases", value: "5 (empty → symptoms → dx → meds → near-complete)" },
@@ -343,7 +343,7 @@ export default function ClinicalResearchTab() {
         <p className="text-[12px] leading-relaxed text-slate-500">
           For the complete response pipeline, card rules, and clinical frameworks (SBAR / POMR / Timeline),
           see the <strong className="text-violet-600">Response System</strong> tab.
-          For the full card catalog with live previews of all 60 card types,
+          For the full card catalog with live previews of all 63+ card types,
           see <strong className="text-violet-600">Card System & Spec</strong>.
         </p>
       </section>
