@@ -749,37 +749,37 @@ export function buildReply(
   // === TODAY'S VITALS (VITALS SUMMARY) ===
   if (normalized.includes("today's vitals") || normalized.includes("todays vitals") || normalized.includes("vitals today") || normalized.includes("vital summary") || normalized.includes("vitals summary") || normalized.includes("current vitals") || normalized.includes("recorded vitals")) {
     const v = summary.todayVitals
-    const rows: Array<{ label: string; value: string; unit: string; flag?: "normal" | "high" | "low" | "critical" }> = []
+    const rows: Array<{ shortLabel: string; label: string; value: string; unit: string; flag?: "normal" | "high" | "low" | "critical" }> = []
     if (v) {
       if (v.bp) {
         const parts = v.bp.split("/").map(Number)
         const sys = parts[0] || 0
         const dia = parts[1] || 0
-        rows.push({ label: "Blood Pressure", value: v.bp, unit: "mmHg", flag: sys > 140 || dia > 90 ? "high" : sys < 90 ? "low" : "normal" })
+        rows.push({ shortLabel: "BP", label: "Blood Pressure", value: v.bp, unit: "mmHg", flag: sys > 140 || dia > 90 ? "high" : sys < 90 ? "low" : "normal" })
       }
       if (v.pulse) {
         const p = parseFloat(v.pulse)
-        rows.push({ label: "Pulse", value: v.pulse, unit: "bpm", flag: p > 100 ? "high" : p < 60 ? "low" : "normal" })
+        rows.push({ shortLabel: "HR", label: "Heart Rate", value: v.pulse, unit: "bpm", flag: p > 100 ? "high" : p < 60 ? "low" : "normal" })
       }
       if (v.spo2) {
         const s = parseFloat(v.spo2)
-        rows.push({ label: "SpO₂", value: v.spo2, unit: "%", flag: s < 95 ? "low" : "normal" })
+        rows.push({ shortLabel: "SpO₂", label: "Oxygen Saturation", value: v.spo2, unit: "%", flag: s < 95 ? "low" : "normal" })
       }
       if (v.temp) {
         const t = parseFloat(v.temp)
-        rows.push({ label: "Temperature", value: v.temp, unit: "°F", flag: t > 99.5 ? "high" : "normal" })
+        rows.push({ shortLabel: "Temp", label: "Temperature", value: v.temp, unit: "°F", flag: t > 99.5 ? "high" : "normal" })
       }
-      if (v.weight) rows.push({ label: "Weight", value: v.weight, unit: "kg", flag: "normal" })
-      if (v.height) rows.push({ label: "Height", value: v.height, unit: "cm", flag: "normal" })
+      if (v.weight) rows.push({ shortLabel: "Wt", label: "Weight", value: v.weight, unit: "kg", flag: "normal" })
+      if (v.height) rows.push({ shortLabel: "Ht", label: "Height", value: v.height, unit: "cm", flag: "normal" })
       if (v.bmi) {
         const b = parseFloat(v.bmi)
-        rows.push({ label: "BMI", value: v.bmi, unit: "kg/m²", flag: b > 30 ? "high" : b < 18.5 ? "low" : "normal" })
+        rows.push({ shortLabel: "BMI", label: "Body Mass Index", value: v.bmi, unit: "kg/m²", flag: b > 30 ? "high" : b < 18.5 ? "low" : "normal" })
       }
       if (v.rr) {
         const r = parseFloat(v.rr)
-        rows.push({ label: "Respiratory Rate", value: v.rr, unit: "/min", flag: r > 20 ? "high" : "normal" })
+        rows.push({ shortLabel: "RR", label: "Respiratory Rate", value: v.rr, unit: "/min", flag: r > 20 ? "high" : "normal" })
       }
-      if (v.bloodSugar) rows.push({ label: "Blood Sugar", value: v.bloodSugar, unit: "mg/dL", flag: parseFloat(v.bloodSugar) > 200 ? "high" : "normal" })
+      if (v.bloodSugar) rows.push({ shortLabel: "BS", label: "Blood Sugar", value: v.bloodSugar, unit: "mg/dL", flag: parseFloat(v.bloodSugar) > 200 ? "high" : "normal" })
     }
     if (rows.length === 0) {
       return { text: "No vitals have been recorded for this patient today." }

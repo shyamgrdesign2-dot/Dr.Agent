@@ -9,14 +9,14 @@ interface VitalsSummaryCardProps {
   data: VitalsSummaryCardData
 }
 
-/** Arrow icon for flagged values — rendered to the right of value */
+/** Compact arrow icon for flagged vitals — ▲ for high/critical, ▼ for low */
 function FlagArrow({ flag }: { flag: "high" | "low" | "critical" }) {
   const isUp = flag === "high" || flag === "critical"
   return (
-    <span className="ml-[3px] inline-flex items-center text-tp-error-500">
-      <svg width={10} height={10} viewBox="0 0 10 10" fill="none">
+    <span className="ml-[4px] inline-flex items-center text-tp-error-500">
+      <svg width={8} height={8} viewBox="0 0 8 8" fill="none">
         <path
-          d={isUp ? "M5 2L8 7H2L5 2Z" : "M5 8L2 3H8L5 8Z"}
+          d={isUp ? "M4 1L7 6H1L4 1Z" : "M4 7L1 2H7L4 7Z"}
           fill="currentColor"
         />
       </svg>
@@ -24,9 +24,12 @@ function FlagArrow({ flag }: { flag: "high" | "low" | "critical" }) {
   )
 }
 
+/**
+ * Today's Vitals card — compact clinical format:
+ *   ShortLabel (unit)           value  ↑/↓
+ *   e.g.  BP (mmHg)             70/60  ▼
+ */
 export function VitalsSummaryCard({ data }: VitalsSummaryCardProps) {
-  const flaggedCount = data.rows.filter(r => r.flag && r.flag !== "normal").length
-
   return (
     <CardShell
       icon={<span />}
@@ -40,7 +43,7 @@ export function VitalsSummaryCard({ data }: VitalsSummaryCardProps) {
       collapsible
       dataSources={["EMR Records"]}
     >
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-0">
         {data.rows.map((row, i) => {
           const isFlagged = row.flag && row.flag !== "normal"
           return (
@@ -51,18 +54,25 @@ export function VitalsSummaryCard({ data }: VitalsSummaryCardProps) {
                 i > 0 && "border-t border-tp-slate-50",
               )}
             >
-              <span className="text-[13px] text-tp-slate-500">{row.label}</span>
-              <div className="flex items-center gap-[2px]">
+              {/* Left: ShortLabel (unit) */}
+              <span className="text-[12px] text-tp-slate-500">
+                <span className="font-medium text-tp-slate-600">{row.shortLabel}</span>
+                <span className="ml-[3px] text-tp-slate-400">({row.unit})</span>
+              </span>
+
+              {/* Right: value + arrow */}
+              <div className="flex items-center">
                 <span
                   className={cn(
-                    "text-[13px]",
-                    isFlagged ? "text-tp-error-600 font-medium" : "text-tp-slate-700",
+                    "text-[13px] font-medium tabular-nums",
+                    isFlagged ? "text-tp-error-600" : "text-tp-slate-700",
                   )}
                 >
                   {row.value}
                 </span>
-                <span className="text-[11px] text-tp-slate-400">{row.unit}</span>
-                {isFlagged && row.flag && row.flag !== "normal" && <FlagArrow flag={row.flag} />}
+                {isFlagged && row.flag && row.flag !== "normal" && (
+                  <FlagArrow flag={row.flag} />
+                )}
               </div>
             </div>
           )

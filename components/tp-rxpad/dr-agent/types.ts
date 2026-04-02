@@ -647,6 +647,9 @@ export interface VitalsSummaryCardData {
   recordedAt: string
   /** Vital parameter rows */
   rows: Array<{
+    /** Short abbreviated label, e.g. "BP", "HR", "SpO₂" */
+    shortLabel: string
+    /** Full label for accessibility, e.g. "Blood Pressure" */
     label: string
     value: string
     unit: string
