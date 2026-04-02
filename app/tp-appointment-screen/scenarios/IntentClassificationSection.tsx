@@ -339,10 +339,19 @@ export default function IntentClassificationSection({ onNavigateTab }: { onNavig
   return (
     <div className="space-y-10">
 
-      {/* ── Page Header ── */}
+      {/* ── Page Header / Intro ── */}
       <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-50/80 px-6 py-5">
         <h3 className="mb-1 text-[18px] font-bold text-slate-800">How Dr. Agent Decides What to Show</h3>
         <p className="max-w-2xl text-[12px] leading-[1.6] text-slate-500">
+          Dr. Agent is an <strong className="text-slate-700">AI co-pilot</strong> built for{" "}
+          <strong className="text-slate-700">doctors, nurses, admins, and clinical operators</strong> — anyone
+          involved in the patient care workflow. It does two things:{" "}
+          <strong className="text-slate-700">surfaces the right information</strong> at the right time (summaries,
+          vitals, history, trends) and <strong className="text-slate-700">takes action</strong> on behalf of the
+          user — cancelling appointments, saving uploaded documents against a patient, generating bills,
+          sending reminders, and more.
+        </p>
+        <p className="mt-2 max-w-2xl text-[12px] leading-[1.6] text-slate-500">
           Every response starts with a decision: <strong className="text-slate-700">UI card</strong> or{" "}
           <strong className="text-slate-700">plain text</strong>? This section covers the{" "}
           <strong className="text-slate-700">7-step pipeline</strong>,{" "}
