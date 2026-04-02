@@ -877,249 +877,274 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
   // ── CARD ANATOMY TAB ──
   function renderCardAnatomy() {
     return (
-      <div className="space-y-10">
+      <div className="space-y-8">
         {/* ── Story bridge from Intent Classification ── */}
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5">
-          <p className="text-[10px] leading-relaxed text-slate-400">
-            <strong className="text-slate-500">From Intent Classification:</strong>{" "}
-            Once the intent engine decides the response is a <strong className="text-slate-600">UI card</strong>, this is how it&apos;s built.
-            Every card follows a <strong className="text-slate-600">5-zone anatomy</strong> with one of 18 content zone types.
+        <div className="rounded-lg border border-violet-100 bg-violet-50/40 px-3 py-2">
+          <p className="text-[10px] leading-relaxed text-slate-500">
+            <strong className="text-violet-600">From Intent Classification:</strong>{" "}
+            Once the intent engine decides the response is a <strong className="text-slate-700">UI card</strong>, this is how it&apos;s built.
+            Every card follows a <strong className="text-slate-700">5-zone anatomy</strong> with one of <strong className="text-slate-700">18 content zone types</strong>.
           </p>
         </div>
 
         {/* ── Page header ── */}
-        <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-50/80 px-6 py-5">
-          <h3 className="text-[18px] font-bold text-slate-800 mb-1">Card Anatomy Blueprint</h3>
-          <p className="text-[12px] leading-[1.6] text-slate-500 max-w-2xl">
+        <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-violet-50/60 via-white to-slate-50/80 px-5 py-4">
+          <h3 className="text-[17px] font-bold text-slate-800 mb-0.5">Card Anatomy Blueprint</h3>
+          <p className="text-[11px] leading-[1.6] text-slate-500 max-w-2xl">
             Every Dr. Agent card follows a consistent <strong className="text-slate-700">5-zone structure</strong>:{" "}
             <strong className="text-slate-700">header</strong>,{" "}
             <strong className="text-slate-700">content</strong>,{" "}
             <strong className="text-slate-700">insight</strong>,{" "}
             <strong className="text-slate-700">canned messages</strong>, and{" "}
             <strong className="text-slate-700">footer</strong>.
-            This reference defines each zone, its rules, and its variants.
+            The content zone itself uses one of <strong className="text-slate-700">18 zone types</strong> based on the data shape.
           </p>
         </div>
 
         {/* ═══ 1. CARD STRUCTURE ═══ */}
-        <DocSection number="1" title="Card Structure" subtitle="The base structure every Dr. Agent card follows. Five zones stacked top-to-bottom inside a CardShell.">
+        <section>
+          <div className="mb-1 flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">1</span>
+            <h4 className="text-[15px] font-bold text-slate-800">Card Structure</h4>
+          </div>
+          <p className="mb-4 ml-9 text-[11px] text-slate-400">Five zones stacked top-to-bottom inside a CardShell.</p>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="space-y-3">
-              <div className="overflow-x-auto rounded-[12px] bg-slate-900 px-4 py-4 font-mono text-[10px] leading-[1.6] text-emerald-300">
-                <pre>{`┌─ CardShell (rounded, gradient stroke) ───────────────────────┐
-│ HEADER                                                      │
-│ [Blue icon] [Primary title / subtitle] [copy] [tag] [^]    │
-├──────────────────────────────────────────────────────────────┤
-│ CONTENT                                                     │
-│ Inline rows / tags / tables / charts / lists / summaries    │
-├──────────────────────────────────────────────────────────────┤
-│ INSIGHT                                                     │
-│ Optional clinical interpretation / severity callout         │
-├──────────────────────────────────────────────────────────────┤
-│ CANNED MESSAGES                                             │
-│ [Compare prev] [Show trend] [Suggest next steps]            │
-├──────────────────────────────────────────────────────────────┤
-│ FOOTER                                                      │
-│ 0 CTA / 1 CTA / 2 CTAs                                      │
-└──────────────────────────────────────────────────────────────┘`}</pre>
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-2">
+              <div className="overflow-x-auto rounded-[10px] bg-slate-900 px-3 py-3 font-mono text-[9px] leading-[1.5] text-emerald-300">
+                <pre>{`┌─ CardShell ──────────────────────────────┐
+│ HEADER                                  │
+│ [icon] [title/subtitle] [copy] [tag] [^]│
+├─────────────────────────────────────────┤
+│ CONTENT                                 │
+│ rows / tags / tables / charts / lists   │
+├─────────────────────────────────────────┤
+│ INSIGHT                                 │
+│ optional severity callout               │
+├─────────────────────────────────────────┤
+│ CANNED MESSAGES                         │
+│ [Compare prev] [Show trend] [Next]      │
+├─────────────────────────────────────────┤
+│ FOOTER                                  │
+│ 0 / 1 / 2 CTAs                         │
+└─────────────────────────────────────────┘`}</pre>
               </div>
-
-              <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
-                <p className="text-[11px] font-semibold text-slate-700 mb-2">Basic card structure</p>
-                <ul className="space-y-1">
-                  <li className="flex items-start gap-1.5 text-[10px] text-slate-600">
-                    <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />
-                    Header is the identity layer: icon, title, optional metadata, and shared controls.
-                  </li>
-                  <li className="flex items-start gap-1.5 text-[10px] text-slate-600">
-                    <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />
-                    Content is the main payload layer: structured rows, tags, charts, tables, or sectioned text.
-                  </li>
-                  <li className="flex items-start gap-1.5 text-[10px] text-slate-600">
-                    <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />
-                    Insight is optional and only appears when AI interpretation adds value beyond raw data.
-                  </li>
-                  <li className="flex items-start gap-1.5 text-[10px] text-slate-600">
-                    <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />
-                    Canned messages always come before the footer. Footer is always the last zone.
-                  </li>
+              <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                <ul className="space-y-0.5">
+                  {[
+                    "Header is the identity layer: icon, title, optional metadata, and shared controls.",
+                    "Content is the main payload: structured rows, tags, charts, tables, or sectioned text.",
+                    "Insight is optional — only when AI interpretation adds value beyond raw data.",
+                    "Canned messages always come before the footer. Footer is always the last zone.",
+                  ].map((t, i) => (
+                    <li key={i} className="flex items-start gap-1.5 text-[10px] text-slate-600">
+                      <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />{t}
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <LiveCardPreview kind="lab_panel" label="Full Card Example — all zones in one card" />
-            </div>
+            <LiveCardPreview kind="lab_panel" label="Full Card Example — all 5 zones" />
           </div>
-        </DocSection>
+        </section>
 
         {/* ═══ 2. HEADER ZONE ═══ */}
-        <DocSection number="2" title="Header Zone" subtitle="The identity layer. Icon, title, optional metadata, and shared controls. Header parts are mix-and-match but the mandatory trio stays constant.">
+        <section>
+          <div className="mb-1 flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">2</span>
+            <h4 className="text-[15px] font-bold text-slate-800">Header Zone</h4>
+          </div>
+          <p className="mb-4 ml-9 text-[11px] text-slate-400">Identity layer. Icon, title, optional metadata, and shared controls.</p>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Left: Spec table */}
-            <div className="space-y-3">
-              <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-                <table className="min-w-full text-[11px]">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-2">
+              <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+                <table className="min-w-full text-[10px]">
                   <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
-                    <th className="px-3 py-2 font-semibold w-32">Element</th>
-                    <th className="px-3 py-2 font-semibold">Specification</th>
-                    <th className="px-3 py-2 font-semibold w-14">Always?</th>
+                    <th className="px-2.5 py-1.5 font-semibold w-28">Element</th>
+                    <th className="px-2.5 py-1.5 font-semibold">Specification</th>
+                    <th className="px-2.5 py-1.5 font-semibold w-12 text-center">Always?</th>
                   </tr></thead>
                   <tbody>{HEADER_ELEMENTS.map(h => (
                     <tr key={h.element} className="border-b border-slate-50">
-                      <td className="px-3 py-1.5 font-medium text-slate-700">{h.element}</td>
-                      <td className="px-3 py-1.5 text-slate-600">{h.spec}</td>
-                      <td className="px-3 py-1.5 text-center">{h.always ? <span className="text-emerald-600 font-bold">Yes</span> : <span className="text-slate-300">—</span>}</td>
+                      <td className="px-2.5 py-1 font-medium text-slate-700">{h.element}</td>
+                      <td className="px-2.5 py-1 text-slate-600">{h.spec}</td>
+                      <td className="px-2.5 py-1 text-center">{h.always ? <span className="text-emerald-600 font-bold">Yes</span> : <span className="text-slate-300">--</span>}</td>
                     </tr>
                   ))}</tbody>
                 </table>
               </div>
 
-              <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
-                <p className="text-[11px] font-semibold text-blue-800 mb-2">Mandatory vs optional</p>
-                <ul className="space-y-1">
-                  {HEADER_MANDATORY_RULES.map((rule, index) => (
-                    <li key={index} className="flex items-start gap-1.5 text-[10px] leading-[1.45] text-blue-700">
-                      <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-blue-400" />
-                      {rule}
+              <div className="rounded-lg border border-blue-100 bg-blue-50/60 px-2.5 py-2">
+                <p className="text-[10px] font-semibold text-blue-800 mb-1">Mandatory vs optional</p>
+                <ul className="space-y-0.5">
+                  {HEADER_MANDATORY_RULES.map((rule, i) => (
+                    <li key={i} className="flex items-start gap-1.5 text-[9px] leading-[1.45] text-blue-700">
+                      <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-blue-400" />{rule}
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-                <p className="text-[11px] font-semibold text-amber-800 mb-2">Header copy icon logic</p>
-                <ul className="space-y-1">
-                  {HEADER_COPY_RULES.map((rule, index) => (
-                    <li key={index} className="flex items-start gap-1.5 text-[10px] leading-[1.45] text-amber-700">
-                      <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-amber-500" />
-                      {rule}
+              <div className="rounded-lg border border-amber-200 bg-amber-50/60 px-2.5 py-2">
+                <p className="text-[10px] font-semibold text-amber-800 mb-1">Copy icon logic</p>
+                <ul className="space-y-0.5">
+                  {HEADER_COPY_RULES.map((rule, i) => (
+                    <li key={i} className="flex items-start gap-1.5 text-[9px] leading-[1.45] text-amber-700">
+                      <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-amber-500" />{rule}
                     </li>
                   ))}
                 </ul>
               </div>
             </div>
 
-            {/* Right: Header-only variants */}
-            <div className="space-y-3">
-              <HeaderPreview
-                label="Variant A — mandatory pieces only"
-                title="Lab Panel"
-                iconName="lab"
-                alignCenter
-              />
-              <HeaderPreview
-                label="Variant B — full mixed header"
-                title="Last Visit Summary"
-                subtitle="22 Feb'26"
-                tag="Past Visit"
-                iconName="medical-record"
-                showCopy
-                alignCenter
-              />
+            <div className="space-y-2">
+              <HeaderPreview label="Variant A — mandatory pieces only" title="Lab Panel" iconName="lab" alignCenter />
+              <HeaderPreview label="Variant B — full mixed header" title="Last Visit Summary" subtitle="22 Feb'26" tag="Past Visit" iconName="medical-record" showCopy alignCenter />
             </div>
           </div>
-        </DocSection>
+        </section>
 
-        {/* ═══ 3. CONTENT ZONE ═══ */}
-        <DocSection number="3" title="Content Zone" subtitle={`${CONTENT_PRIMITIVES.length} content primitives power all cards. Click any primitive below to see its live preview and full specification.`}>
+        {/* ═══ 3. CONTENT ZONE & TYPES ═══ */}
+        <section>
+          <div className="mb-1 flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">3</span>
+            <h4 className="text-[15px] font-bold text-slate-800">Content Zone &amp; Types</h4>
+          </div>
+          <p className="mb-4 ml-9 text-[11px] text-slate-400">18 content zone types power the content layer. Each maps to a data shape — the bridge between intent classification and visual output.</p>
 
-          <div className="mb-4 overflow-x-auto rounded-xl border border-slate-200 bg-white">
-            <table className="min-w-full table-fixed text-[11px]">
+          {/* Zone type categories overview */}
+          <div className="mb-3 rounded-lg border border-violet-100 bg-violet-50/40 px-2.5 py-2">
+            <p className="text-[10px] leading-relaxed text-violet-700">
+              <strong>Link to Intent Classification:</strong> When the intent engine selects a card type, the{" "}
+              <strong>content zone type</strong> is chosen based on the data shape. Time-series data uses <strong>Line/Bar Chart</strong>.
+              Key-value pairs use <strong>Inline Data Rows</strong>. Multi-select options use <strong>Checkbox List</strong>.
+            </p>
+          </div>
+
+          <div className="mb-3 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { label: "Data Display", color: "#3B82F6", zones: ["Inline Data Rows", "Flagged Data Rows", "Comparison Table", "Patient List", "KPI Table"] },
+              { label: "Charts & Viz", color: "#059669", zones: ["Line Chart", "Bar Chart", "Donut / Pie Chart", "Heatmap Grid"] },
+              { label: "Lists & Selection", color: "#D97706", zones: ["Checkbox List", "Radio List", "Bullet List"] },
+              { label: "Specialized", color: "#8B5CF6", zones: ["Medication Display", "Clinical Narrative", "Translation Pair", "Drug Interaction", "Vaccination Schedule", "Timeline"] },
+            ].map(cat => (
+              <div key={cat.label} className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                  <span className="text-[9px] font-bold" style={{ color: cat.color }}>{cat.label}</span>
+                  <span className="ml-auto text-[8px] text-slate-400">{cat.zones.length}</span>
+                </div>
+                <div className="flex flex-wrap gap-0.5">
+                  {cat.zones.map(z => (
+                    <span key={z} className="rounded bg-slate-50 px-1 py-[1px] text-[8px] text-slate-600 leading-tight">{z}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Detailed zone grid */}
+          <div className="mb-4 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
+            {CONTENT_ZONE_TYPES_FOR_ANATOMY.map((cz) => (
+              <div key={cz.zone} className="rounded-lg border border-slate-100 bg-white px-2.5 py-2 hover:shadow-sm transition-shadow">
+                <div className="mb-0.5 flex items-center gap-1.5">
+                  <span className="text-[11px]">{cz.icon}</span>
+                  <span className="text-[9px] font-bold text-slate-800">{cz.zone}</span>
+                </div>
+                <p className="mb-0.5 text-[8px] leading-snug text-slate-500">{cz.description}</p>
+                <p className="text-[8px] text-slate-400 leading-snug"><strong className="text-slate-500">Used in:</strong> {cz.usedIn}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Content element spec table */}
+          <div className="mb-3 overflow-x-auto rounded-lg border border-slate-200 bg-white">
+            <table className="min-w-full table-fixed text-[10px]">
               <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
-                <th className="w-40 px-3 py-2 font-semibold">Element</th>
-                <th className="w-[42%] px-3 py-2 font-semibold">Specification</th>
-                <th className="w-[34%] px-3 py-2 font-semibold">Logic</th>
+                <th className="w-36 px-2.5 py-1.5 font-semibold">Element</th>
+                <th className="w-[42%] px-2.5 py-1.5 font-semibold">Specification</th>
+                <th className="w-[34%] px-2.5 py-1.5 font-semibold">Logic</th>
               </tr></thead>
               <tbody>{CONTENT_ELEMENT_SPECS.map(spec => (
                 <tr key={spec.element} className="border-b border-slate-50">
-                  <td className="px-3 py-2 align-top font-medium text-slate-700">{spec.element}</td>
-                  <td className="px-3 py-2 align-top text-slate-600 leading-[1.5]">{spec.spec}</td>
-                  <td className="px-3 py-2 align-top text-[10px] text-slate-500 leading-[1.5]">{spec.logic}</td>
+                  <td className="px-2.5 py-1.5 align-top font-medium text-slate-700">{spec.element}</td>
+                  <td className="px-2.5 py-1.5 align-top text-slate-600 leading-[1.5]">{spec.spec}</td>
+                  <td className="px-2.5 py-1.5 align-top text-[9px] text-slate-500 leading-[1.5]">{spec.logic}</td>
                 </tr>
               ))}</tbody>
             </table>
           </div>
 
-          <div className="space-y-2">
+          {/* Content primitives accordion */}
+          <p className="mb-1.5 text-[10px] font-semibold text-slate-600">{CONTENT_PRIMITIVES.length} content primitives — click to expand</p>
+          <div className="space-y-1.5">
             {CONTENT_PRIMITIVES.map(cp => {
               const isExpanded = expandedPrimitive === cp.name
               const catalogEntry = findCatalogCard(cp.exampleCard)
               return (
-                <div key={cp.name} className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-                  {/* Primitive header — click to expand */}
+                <div key={cp.name} className="rounded-lg border border-slate-200 bg-white overflow-hidden">
                   <button
                     type="button"
                     onClick={() => setExpandedPrimitive(isExpanded ? null : cp.name)}
-                    className="flex w-full items-start gap-3 px-4 py-2.5 text-left hover:bg-slate-50/50 transition-colors"
+                    className="flex w-full items-start gap-2 px-2.5 py-2 text-left hover:bg-slate-50/50 transition-colors"
                   >
-                    <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-violet-100 text-[10px] font-bold text-violet-600">
-                      {isExpanded ? "−" : "+"}
+                    <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded bg-violet-100 text-[9px] font-bold text-violet-600">
+                      {isExpanded ? "\u2212" : "+"}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[12px] font-semibold text-slate-800">{cp.name}</p>
-                      <p className="mt-0.5 text-[10px] text-slate-500 leading-[1.5]">{cp.description}</p>
+                      <p className="text-[11px] font-semibold text-slate-800">{cp.name}</p>
+                      <p className="mt-0.5 text-[9px] text-slate-500 leading-[1.4]">{cp.description}</p>
                     </div>
-                    <div className="flex flex-shrink-0 flex-wrap gap-1 max-w-[200px] justify-end">
+                    <div className="flex flex-shrink-0 flex-wrap gap-0.5 max-w-[180px] justify-end">
                       {cp.usedIn.slice(0, 3).map(u => (
-                        <span key={u} className="rounded bg-violet-50 border border-violet-100 px-1.5 py-0.5 text-[9px] text-violet-600 whitespace-nowrap">{u}</span>
+                        <span key={u} className="rounded bg-violet-50 border border-violet-100 px-1 py-[1px] text-[8px] text-violet-600 whitespace-nowrap">{u}</span>
                       ))}
                       {cp.usedIn.length > 3 && (
-                        <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-500">+{cp.usedIn.length - 3}</span>
+                        <span className="rounded bg-slate-100 px-1 py-[1px] text-[8px] text-slate-500">+{cp.usedIn.length - 3}</span>
                       )}
                     </div>
                   </button>
 
-                  {/* Expanded: Live preview + full details */}
                   {isExpanded && (
                     <div className="border-t border-slate-100">
-                      <div className="grid gap-4 p-4 lg:grid-cols-2">
-                        {/* Left: Details */}
-                        <div className="space-y-3">
+                      <div className="grid gap-3 p-3 lg:grid-cols-2">
+                        <div className="space-y-2">
                           <div>
-                            <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Used in cards</p>
-                            <div className="flex flex-wrap gap-1">
-                              {cp.usedIn.map(u => <span key={u} className="rounded bg-violet-50 border border-violet-100 px-1.5 py-0.5 text-[9px] text-violet-600">{u}</span>)}
+                            <p className="text-[8px] font-semibold uppercase tracking-wide text-slate-400 mb-0.5">Used in cards</p>
+                            <div className="flex flex-wrap gap-0.5">
+                              {cp.usedIn.map(u => <span key={u} className="rounded bg-violet-50 border border-violet-100 px-1 py-[1px] text-[8px] text-violet-600">{u}</span>)}
                             </div>
                           </div>
                           {cp.variations && (
                             <div>
-                              <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Variations</p>
-                              <div className="flex flex-wrap gap-1">
-                                {cp.variations.map(v => <span key={v} className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] text-slate-600">{v}</span>)}
+                              <p className="text-[8px] font-semibold uppercase tracking-wide text-slate-400 mb-0.5">Variations</p>
+                              <div className="flex flex-wrap gap-0.5">
+                                {cp.variations.map(v => <span key={v} className="rounded bg-slate-100 px-1 py-[1px] text-[8px] text-slate-600">{v}</span>)}
                               </div>
                             </div>
                           )}
                           {cp.fetchFrom && (
-                            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                              <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400">Fetch from</p>
-                              <p className="text-[10px] leading-[1.5] text-slate-600">{cp.fetchFrom}</p>
+                            <div className="rounded border border-slate-200 bg-slate-50 px-2.5 py-1.5">
+                              <p className="mb-0.5 text-[8px] font-semibold uppercase tracking-wide text-slate-400">Fetch from</p>
+                              <p className="text-[9px] leading-[1.4] text-slate-600">{cp.fetchFrom}</p>
                             </div>
                           )}
                           {cp.uiRule && (
-                            <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2">
-                              <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-emerald-600">UI structuring rule</p>
-                              <p className="text-[10px] leading-[1.5] text-emerald-700">{cp.uiRule}</p>
+                            <div className="rounded border border-emerald-100 bg-emerald-50 px-2.5 py-1.5">
+                              <p className="mb-0.5 text-[8px] font-semibold uppercase tracking-wide text-emerald-600">UI rule</p>
+                              <p className="text-[9px] leading-[1.4] text-emerald-700">{cp.uiRule}</p>
                             </div>
                           )}
                         </div>
-
-                        {/* Right: Live card preview */}
                         {catalogEntry && (
                           <div>
-                            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                            <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400">
                               Live Preview — {catalogEntry.label}
                             </p>
-                            <div className="rounded-xl overflow-hidden">
+                            <div className="rounded-lg overflow-hidden">
                               <div className="w-full max-w-[380px]">
-                                <CardRenderer
-                                  output={catalogEntry.output}
-                                  onPillTap={noop}
-                                  onCopy={noop}
-                                  onSidebarNav={noop}
-                                />
+                                <CardRenderer output={catalogEntry.output} onPillTap={noop} onCopy={noop} onSidebarNav={noop} />
                               </div>
                             </div>
                           </div>
@@ -1131,564 +1156,448 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               )
             })}
           </div>
-        </DocSection>
+        </section>
 
         {/* ═══ 4. SECTION TAGS ═══ */}
-        <DocSection number="4" title="All Section Tags" subtitle={`${ALL_SECTION_TAGS.length} currently documented section tags across all cards. Tags are always paired with icons — never shown as text-only labels.`}>
+        <section>
+          <div className="mb-1 flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">4</span>
+            <h4 className="text-[15px] font-bold text-slate-800">Section Tags</h4>
+          </div>
+          <p className="mb-4 ml-9 text-[11px] text-slate-400">{ALL_SECTION_TAGS.length} documented tags across all cards. Always paired with icons — never text-only.</p>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="space-y-3">
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                <table className="min-w-full text-[11px]">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-2">
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                <table className="min-w-full text-[10px]">
                   <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
-                    <th className="px-3 py-2 font-semibold w-14">Icon</th>
-                    <th className="px-3 py-2 font-semibold w-36">Tag Label</th>
-                    <th className="px-3 py-2 font-semibold">Used In</th>
-                    <th className="px-3 py-2 font-semibold w-16">Variant</th>
+                    <th className="px-2.5 py-1.5 font-semibold w-12">Icon</th>
+                    <th className="px-2.5 py-1.5 font-semibold w-32">Tag</th>
+                    <th className="px-2.5 py-1.5 font-semibold">Used In</th>
+                    <th className="px-2.5 py-1.5 font-semibold w-14">Variant</th>
                   </tr></thead>
                   <tbody>{ALL_SECTION_TAGS.map(t => (
                     <tr key={t.tag + t.usedIn} className="border-b border-slate-50">
-                      <td className="px-3 py-1.5">
-                        <span className={`inline-flex h-6 w-6 items-center justify-center rounded-md ${t.variant === "specialty" ? "bg-tp-violet-50 text-tp-violet-600" : "bg-tp-slate-100 text-tp-slate-500"}`}>
-                          <TagIconPreview iconName={t.iconName} variant={t.variant} size={14} />
+                      <td className="px-2.5 py-1">
+                        <span className={`inline-flex h-5 w-5 items-center justify-center rounded ${t.variant === "specialty" ? "bg-tp-violet-50 text-tp-violet-600" : "bg-tp-slate-100 text-tp-slate-500"}`}>
+                          <TagIconPreview iconName={t.iconName} variant={t.variant} size={12} />
                         </span>
                       </td>
-                      <td className="px-3 py-1.5">
-                        <SectionTag
-                          label={t.tag}
-                          icon={t.iconName}
-                          variant={t.variant}
-                          className="pointer-events-none"
-                        />
+                      <td className="px-2.5 py-1">
+                        <SectionTag label={t.tag} icon={t.iconName} variant={t.variant} className="pointer-events-none" />
                       </td>
-                      <td className="px-3 py-1.5 text-slate-600">{t.usedIn}</td>
-                      <td className="px-3 py-1.5 text-slate-400">{t.variant}</td>
+                      <td className="px-2.5 py-1 text-slate-600">{t.usedIn}</td>
+                      <td className="px-2.5 py-1 text-slate-400">{t.variant}</td>
                     </tr>
                   ))}</tbody>
                 </table>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
-                <p className="text-[11px] font-semibold text-slate-700 mb-1.5">Tag Heading Rules</p>
-                <p className="text-[10px] leading-[1.55] text-slate-600">
-                  Tags are the default visual language for internal section headings inside Dr. Agent cards. Whenever a card needs to separate one clinical section from another, that section heading should appear as a tag with its relevant icon instead of a plain text label.
+              <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
+                <p className="text-[10px] font-semibold text-slate-700 mb-1">Tag Heading Rules</p>
+                <p className="text-[9px] leading-[1.5] text-slate-600 mb-2">
+                  Tags are the default visual language for section headings inside cards. Use a tag with its icon instead of plain text labels.
                 </p>
-
-                <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-                    <p className="text-[10px] font-semibold text-slate-700 mb-1">Inline Pattern</p>
-                    <p className="text-[10px] leading-[1.5] text-slate-500 mb-2">
-                      Use this when the content reads like one continuous line, summary line, or paragraph fragment.
-                    </p>
-                    <div className="text-[11px] leading-[1.7] text-slate-700">
+                <div className="grid gap-1.5 sm:grid-cols-2">
+                  <div className="rounded border border-slate-200 bg-white px-2.5 py-1.5">
+                    <p className="text-[9px] font-semibold text-slate-700 mb-0.5">Inline Pattern</p>
+                    <p className="text-[9px] leading-[1.4] text-slate-500 mb-1">Content reads as one continuous line or paragraph.</p>
+                    <div className="text-[10px] leading-[1.6] text-slate-700">
                       <SectionTag label="Last Visit" icon={SECTION_TAG_ICON_MAP["Last Visit"]} className="pointer-events-none" />{" "}
-                      Presented with fever, cough, and body ache. Antibiotics started for 5 days.
+                      Presented with fever, cough. Antibiotics for 5 days.
                     </div>
                   </div>
-
-                  <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-                    <p className="text-[10px] font-semibold text-slate-700 mb-1">Stacked Pattern</p>
-                    <p className="text-[10px] leading-[1.5] text-slate-500 mb-2">
-                      Use this when the section contains bullets, pointers, grouped items, or multiple rows.
-                    </p>
+                  <div className="rounded border border-slate-200 bg-white px-2.5 py-1.5">
+                    <p className="text-[9px] font-semibold text-slate-700 mb-0.5">Stacked Pattern</p>
+                    <p className="text-[9px] leading-[1.4] text-slate-500 mb-1">Bullets, grouped items, or multiple rows below.</p>
                     <div>
-                      <SectionTag label="Diagnosis" icon={SECTION_TAG_ICON_MAP["Diagnosis"]} className="pointer-events-none mb-1" />
-                      <div className="space-y-[2px] pl-[2px] text-[10px] text-slate-600">
-                        <p>• Viral upper respiratory infection</p>
-                        <p>• Rule out secondary bacterial sinusitis</p>
+                      <SectionTag label="Diagnosis" icon={SECTION_TAG_ICON_MAP["Diagnosis"]} className="pointer-events-none mb-0.5" />
+                      <div className="space-y-[1px] pl-[2px] text-[9px] text-slate-600">
+                        <p>&#8226; Viral upper respiratory infection</p>
+                        <p>&#8226; Rule out secondary bacterial sinusitis</p>
                       </div>
                     </div>
                   </div>
                 </div>
-
-                <div className="mt-3 rounded-lg border border-slate-200 bg-white px-3 py-2">
-                  <p className="text-[10px] font-semibold text-slate-700 mb-1">Practical Rules</p>
-                  <ul className="space-y-1">
-                    <li className="flex items-start gap-1.5 text-[10px] text-slate-600">
-                      <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />
-                      If a card has multiple internal sections like diagnosis, medication, investigations, advice, or follow-up, each section heading should use the tag pattern for consistency.
+                <ul className="mt-2 space-y-0.5">
+                  {[
+                    "Multi-section cards should use tag headings for consistency across diagnosis, medication, investigations, etc.",
+                    "Line/paragraph content: text starts on the same line as the tag. Bullet content: tag on its own line.",
+                    "Icon and label colors must always match within a tag.",
+                    "Catalog is open-ended — add new tags as needed, then reuse consistently.",
+                  ].map((r, i) => (
+                    <li key={i} className="flex items-start gap-1.5 text-[9px] text-slate-600">
+                      <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />{r}
                     </li>
-                    <li className="flex items-start gap-1.5 text-[10px] text-slate-600">
-                      <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />
-                      If the content is line-based or paragraph-based, the text should start immediately next to the tag on the same line.
-                    </li>
-                    <li className="flex items-start gap-1.5 text-[10px] text-slate-600">
-                      <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />
-                      If the content is bullet-based, row-based, or pointer-based, keep the tag on its own line and start the list on the next line.
-                    </li>
-                    <li className="flex items-start gap-1.5 text-[10px] text-slate-600">
-                      <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />
-                      The icon color and the label color inside a tag should always match. If the tag text uses slate, violet, or any other semantic color, the icon must use that same token.
-                    </li>
-                    <li className="flex items-start gap-1.5 text-[10px] text-slate-600">
-                      <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />
-                      The catalog is not fixed to a final count. Add a new tag whenever a real new section heading appears, then reuse that same label-icon pair consistently across cards.
-                    </li>
-                  </ul>
-                </div>
+                  ))}
+                </ul>
               </div>
-
             </div>
 
-            {/* Live preview showing section tags in action */}
-            <div className="space-y-3">
-              <LiveCardPreview kind="last_visit" label="Last Visit with icon-led tags + common header copy" highlightZone="content" />
-              <LiveCardPreview kind="rx_preview" label="Rx Preview with icon-led tags + common header copy" highlightZone="content" />
+            <div className="space-y-2">
+              <LiveCardPreview kind="last_visit" label="Last Visit with icon-led tags" highlightZone="content" />
+              <LiveCardPreview kind="rx_preview" label="Rx Preview with icon-led tags" highlightZone="content" />
             </div>
           </div>
-        </DocSection>
+        </section>
 
         {/* ═══ 5. INSIGHT ZONE ═══ */}
-        <DocSection number="5" title="Insight Zone" subtitle="AI-generated interpretation that sits below content and above the footer. Uses 4 color variants based on clinical severity.">
+        <section>
+          <div className="mb-1 flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">5</span>
+            <h4 className="text-[15px] font-bold text-slate-800">Insight Zone</h4>
+          </div>
+          <p className="mb-4 ml-9 text-[11px] text-slate-400">AI-generated interpretation below content. 4 color variants based on clinical severity.</p>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-1.5 sm:grid-cols-2">
               {INSIGHT_VARIANTS.map(iv => (
-                <div key={iv.variant} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                      iv.variant === "red" ? "bg-red-100 text-red-700" :
-                      iv.variant === "amber" ? "bg-amber-100 text-amber-700" :
-                      iv.variant === "purple" ? "bg-violet-100 text-violet-700" :
-                      "bg-teal-100 text-teal-700"
-                    }`}>{iv.variant}</span>
-                  </div>
-                  <p className="text-[10px] text-slate-600"><strong>When:</strong> {iv.when}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5 italic">&quot;{iv.example}&quot;</p>
+                <div key={iv.variant} className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                  <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-bold mb-1 ${
+                    iv.variant === "red" ? "bg-red-100 text-red-700" :
+                    iv.variant === "amber" ? "bg-amber-100 text-amber-700" :
+                    iv.variant === "purple" ? "bg-violet-100 text-violet-700" :
+                    "bg-teal-100 text-teal-700"
+                  }`}>{iv.variant}</span>
+                  <p className="text-[9px] text-slate-600"><strong>When:</strong> {iv.when}</p>
+                  <p className="text-[9px] text-slate-400 mt-0.5 italic">&quot;{iv.example}&quot;</p>
                 </div>
               ))}
             </div>
-
-            {/* Live preview showing insight in a card */}
-            <div className="space-y-3">
-              <LiveCardPreview kind="lab_panel" label="Card with insight (Lab Panel)" highlightZone="insight" />
-              <LiveCardPreview kind="med_history" label="Card with insight (Med History)" highlightZone="insight" />
+            <div className="space-y-2">
+              <LiveCardPreview kind="lab_panel" label="Insight in Lab Panel" highlightZone="insight" />
+              <LiveCardPreview kind="med_history" label="Insight in Med History" highlightZone="insight" />
             </div>
           </div>
-        </DocSection>
+        </section>
 
         {/* ═══ 6. PILLS / CANNED MESSAGES ═══ */}
-        <DocSection number="6" title="Pills / Canned Messages" subtitle="Guided next-step suggestions after the card payload. Sit above the footer and help the doctor continue the workflow without typing.">
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="space-y-3">
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                <table className="min-w-full text-[11px]">
+        <section>
+          <div className="mb-1 flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">6</span>
+            <h4 className="text-[15px] font-bold text-slate-800">Pills / Canned Messages</h4>
+          </div>
+          <p className="mb-4 ml-9 text-[11px] text-slate-400">Next-step suggestions above the footer. Help the doctor continue without typing.</p>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-2">
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                <table className="min-w-full text-[10px]">
                   <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
-                    <th className="px-3 py-2 font-semibold w-32">Aspect</th>
-                    <th className="px-3 py-2 font-semibold">Rule</th>
+                    <th className="px-2.5 py-1.5 font-semibold w-24">Aspect</th>
+                    <th className="px-2.5 py-1.5 font-semibold">Rule</th>
                   </tr></thead>
                   <tbody>
                     {[
-                      ["Placement", "Always above the footer zone and below the main content or insight area."],
-                      ["Count", "Show a maximum of 4 pills at one time. Prefer the strongest next steps instead of showing every possible action."],
-                      ["Length", "Keep each pill short, ideally 2-4 words, so it remains glanceable and tappable."],
-                      ["Type", "Use pills for next actions like compare, explain, trend, translate, continue, or refine."],
+                      ["Placement", "Always above footer, below content or insight."],
+                      ["Count", "Max 4 pills. Prefer strongest next steps."],
+                      ["Length", "2-4 words each, glanceable and tappable."],
+                      ["Type", "Next actions: compare, explain, trend, translate, continue, refine."],
                     ].map(([aspect, rule]) => (
                       <tr key={aspect} className="border-b border-slate-50">
-                        <td className="px-3 py-1.5 font-medium text-slate-700">{aspect}</td>
-                        <td className="px-3 py-1.5 text-slate-600">{rule}</td>
+                        <td className="px-2.5 py-1 font-medium text-slate-700">{aspect}</td>
+                        <td className="px-2.5 py-1 text-slate-600">{rule}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
 
-              <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
-                <p className="text-[11px] font-semibold text-blue-800 mb-2">How to generate canned messages</p>
-                <ul className="space-y-1">
+              <div className="rounded-lg border border-blue-100 bg-blue-50/60 px-2.5 py-2">
+                <p className="text-[10px] font-semibold text-blue-800 mb-1">How to generate canned messages</p>
+                <ul className="space-y-0.5">
                   {PILL_LOGIC.generation.map((r, i) => (
-                    <li key={i} className="flex items-start gap-1.5 text-[10px] text-blue-700">
-                      <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-blue-400" />{r}
+                    <li key={i} className="flex items-start gap-1.5 text-[9px] text-blue-700">
+                      <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-blue-400" />{r}
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-                  <p className="text-[11px] font-semibold text-emerald-700 mb-2">When pills ARE shown</p>
-                  <ul className="space-y-1">{PILL_LOGIC.when_shown.map((r, i) => (
-                    <li key={i} className="flex items-start gap-1.5 text-[10px] text-emerald-600">
-                      <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-emerald-400" />{r}
+              <div className="grid gap-1.5 sm:grid-cols-2">
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 px-2.5 py-2">
+                  <p className="text-[10px] font-semibold text-emerald-700 mb-1">When shown</p>
+                  <ul className="space-y-0.5">{PILL_LOGIC.when_shown.map((r, i) => (
+                    <li key={i} className="flex items-start gap-1.5 text-[9px] text-emerald-600">
+                      <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-emerald-400" />{r}
                     </li>
                   ))}</ul>
                 </div>
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-                  <p className="text-[11px] font-semibold text-red-700 mb-2">When pills are NOT shown</p>
-                  <ul className="space-y-1">{PILL_LOGIC.when_not_shown.map((r, i) => (
-                    <li key={i} className="flex items-start gap-1.5 text-[10px] text-red-600">
-                      <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-red-400" />{r}
+                <div className="rounded-lg border border-red-200 bg-red-50/60 px-2.5 py-2">
+                  <p className="text-[10px] font-semibold text-red-700 mb-1">When NOT shown</p>
+                  <ul className="space-y-0.5">{PILL_LOGIC.when_not_shown.map((r, i) => (
+                    <li key={i} className="flex items-start gap-1.5 text-[9px] text-red-600">
+                      <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-red-400" />{r}
                     </li>
                   ))}</ul>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-2">Visual example</p>
+            <div className="space-y-2">
+              <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">Visual example</p>
                 <div className="flex flex-wrap gap-1">
                   {["Compare prev", "Show trend", "Suggest next steps", "Translate advice"].map((pill) => (
-                    <span key={pill} className="inline-flex items-center rounded-full border border-violet-200 bg-gradient-to-r from-violet-50 to-blue-50 px-3 py-1 text-[11px] font-medium text-violet-700">
+                    <span key={pill} className="inline-flex items-center rounded-full border border-violet-200 bg-gradient-to-r from-violet-50 to-blue-50 px-2.5 py-0.5 text-[10px] font-medium text-violet-700">
                       {pill}
                     </span>
                   ))}
                 </div>
               </div>
-
-              <LiveCardPreview kind="lab_panel" label="Card with canned messages above footer" />
+              <LiveCardPreview kind="lab_panel" label="Canned messages above footer" />
             </div>
           </div>
-        </DocSection>
+        </section>
 
-        {/* ═══ 7. FOOTER ZONE ═══ */}
-        <DocSection number="7" title="Footer Zone" subtitle="CTA zone supports 0, 1, or 2 CTAs only. Copy belongs in the header, not the footer. Always the final zone in the card.">
+        {/* ═══ 7. FOOTER & CTAs ═══ */}
+        <section>
+          <div className="mb-1 flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">7</span>
+            <h4 className="text-[15px] font-bold text-slate-800">Footer &amp; CTAs</h4>
+          </div>
+          <p className="mb-4 ml-9 text-[11px] text-slate-400">0, 1, or 2 CTAs. Secondary for actions, tertiary for navigation. Always the final zone.</p>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div>
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-                <table className="min-w-full text-[11px]">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-2">
+              {/* Footer type table */}
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                <table className="min-w-full text-[10px]">
                   <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
-                    <th className="px-3 py-2 font-semibold w-28">Footer Type</th>
-                    <th className="px-3 py-2 font-semibold">When</th>
-                    <th className="px-3 py-2 font-semibold w-44">Example</th>
+                    <th className="px-2.5 py-1.5 font-semibold w-24">Type</th>
+                    <th className="px-2.5 py-1.5 font-semibold">When</th>
+                    <th className="px-2.5 py-1.5 font-semibold w-36">Example</th>
                   </tr></thead>
                   <tbody>{FOOTER_CONFIG.scenarios.map(s => (
                     <tr key={s.type} className="border-b border-slate-50">
-                      <td className="px-3 py-1.5 font-medium text-slate-700">{s.type}</td>
-                      <td className="px-3 py-1.5 text-slate-600">{s.when}</td>
-                      <td className="px-3 py-1.5 text-slate-400 text-[10px]">{s.example}</td>
+                      <td className="px-2.5 py-1 font-medium text-slate-700">{s.type}</td>
+                      <td className="px-2.5 py-1 text-slate-600">{s.when}</td>
+                      <td className="px-2.5 py-1 text-slate-400 text-[9px]">{s.example}</td>
                     </tr>
                   ))}</tbody>
                 </table>
               </div>
-              <div className="mt-2 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
-                <p className="text-[10px] font-semibold text-slate-600 mb-1">Footer Rules</p>
+
+              <div className="rounded border border-slate-200 bg-slate-50 px-2.5 py-1.5">
+                <p className="text-[9px] font-semibold text-slate-600 mb-0.5">Footer Rules</p>
                 <ul className="space-y-0.5">{FOOTER_CONFIG.rules.map((r, i) => (
-                  <li key={i} className="flex items-start gap-1.5 text-[10px] text-slate-500">
-                    <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />{r}
+                  <li key={i} className="flex items-start gap-1.5 text-[9px] text-slate-500">
+                    <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />{r}
                   </li>
                 ))}</ul>
               </div>
-            </div>
 
-            <div className="space-y-3">
-              <FooterVariantPreview
-                label="Single CTA - Tertiary"
-                variant="tertiary"
-                align="left"
-                ctas={[{ text: "Open Excel", icon: "right", iconKind: "arrow", tone: "blue", hug: true }]}
-              />
-              <FooterVariantPreview
-                label="Single CTA - Secondary"
-                variant="secondary"
-                align="left"
-                ctas={[{ text: "Acknowledge", icon: "left", iconKind: "check", tone: "green" }]}
-              />
-              <FooterVariantPreview
-                label="Two CTAs - Tertiary"
-                variant="tertiary"
-                ctas={[
-                  { text: "View full report", tone: "blue" },
-                  { text: "Explore details", tone: "blue" },
-                ]}
-              />
-              <FooterVariantPreview
-                label="Two CTAs - Secondary"
-                variant="secondary"
-                ctas={[
-                  { text: "Confirm & Send", icon: "left", iconKind: "check", tone: "blue" },
-                  { text: "Cancel", tone: "red" },
-                ]}
-              />
-            </div>
-          </div>
-        </DocSection>
-
-        {/* ═══ 8. THUMBS UP / DOWN ═══ */}
-        <DocSection number="8" title="Thumbs Up / Thumbs Down" subtitle="Lightweight feedback control in chat. Not a card action — a response-quality signal to learn whether the output satisfied the doctor.">
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-              <table className="min-w-full text-[11px]">
-                <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
-                  <th className="px-3 py-2 font-semibold w-28">Aspect</th>
-                  <th className="px-3 py-2 font-semibold">Guideline</th>
-                </tr></thead>
-                <tbody>
-                  <tr className="border-b border-slate-50">
-                    <td className="px-3 py-2 font-medium text-slate-700">Why</td>
-                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Collect quick CSAT / DSAT feedback on whether the response was useful, relevant, and satisfactory for the doctor.</td>
-                  </tr>
-                  <tr className="border-b border-slate-50">
-                    <td className="px-3 py-2 font-medium text-slate-700">Where</td>
-                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">In the chat response support row, outside the card body and outside the footer CTA zone.</td>
-                  </tr>
-                  <tr className="border-b border-slate-50">
-                    <td className="px-3 py-2 font-medium text-slate-700">When</td>
-                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Show on AI-generated responses where we want to learn whether the output quality is helping or not.</td>
-                  </tr>
-                  <tr>
-                    <td className="px-3 py-2 font-medium text-slate-700">How</td>
-                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Keep it one-time, binary, and low-friction. It should never compete with primary response actions like copy, fill, or footer CTAs.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Live pattern</p>
-              <div className="flex items-center gap-3">
-                <FeedbackRow messageId="doc-ref-feedback-preview" />
-                <p className="text-[10px] text-slate-500">Quick response feedback to learn what is satisfying the user and what needs to improve.</p>
-              </div>
-            </div>
-          </div>
-        </DocSection>
-
-        {/* ═══ 9. DATA COMPLETENESS ═══ */}
-        <DocSection number="9" title="Data Completeness Donut" subtitle="A selective trust signal shown only on cards with a known expected data set. Helps doctors judge how complete the structured view is.">
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-              <table className="min-w-full text-[11px]">
-                <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
-                  <th className="px-3 py-2 font-semibold w-28">Aspect</th>
-                  <th className="px-3 py-2 font-semibold">Guideline</th>
-                </tr></thead>
-                <tbody>
-                  <tr className="border-b border-slate-50">
-                    <td className="px-3 py-2 font-medium text-slate-700">Where</td>
-                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Show in the card header metadata area using the headerExtra slot.</td>
-                  </tr>
-                  <tr className="border-b border-slate-50">
-                    <td className="px-3 py-2 font-medium text-slate-700">When</td>
-                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Use only on particular cards such as problem-oriented cards and similar structured views where completeness against an expected schema matters.</td>
-                  </tr>
-                  <tr className="border-b border-slate-50">
-                    <td className="px-3 py-2 font-medium text-slate-700">Why</td>
-                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Help the doctor quickly judge whether the card is largely EMR-backed, partially extracted, or missing meaningful expected inputs.</td>
-                  </tr>
-                  <tr>
-                    <td className="px-3 py-2 font-medium text-slate-700">Do not show</td>
-                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Avoid it on free-form or flexible cards that simply display whatever data is available, because there is no fixed completeness expectation there.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div className="space-y-3">
-              <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
-                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Live pattern</p>
-                <div className="flex items-center gap-3">
-                  <DataCompletenessDonut emr={60} ai={25} missing={15} />
-                  <p className="text-[10px] text-slate-500">Best suited for POMR / fixed-structure cards where missingness itself is clinically informative.</p>
+              {/* CTA type split */}
+              <div className="grid gap-1.5 sm:grid-cols-2">
+                <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-blue-600 px-2.5 py-1.5">
+                    <p className="text-[9px] font-bold text-white uppercase tracking-wider">Secondary (Actions)</p>
+                    <p className="text-[8px] text-blue-200 mt-0.5">Bordered, no arrow</p>
+                  </div>
+                  <div className="divide-y divide-slate-50 text-[9px]">
+                    {["Send reminder", "Acknowledge", "Confirm and Send", "Submit", "Fill to RxPad", "Send via WhatsApp", "Print prescription", "Extend trial"].map(a => (
+                      <p key={a} className="px-2.5 py-1 text-slate-600">{a}</p>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+                  <div className="bg-slate-500 px-2.5 py-1.5">
+                    <p className="text-[9px] font-bold text-white uppercase tracking-wider">Tertiary (Navigation)</p>
+                    <p className="text-[8px] text-slate-300 mt-0.5">Text link + arrow</p>
+                  </div>
+                  <div className="divide-y divide-slate-50 text-[9px]">
+                    {["View full lab report", "See all past visits", "View detailed history", "Open sidebar tab", "Know more", "View all patients"].map(n => (
+                      <p key={n} className="px-2.5 py-1 text-slate-600">{n}</p>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
-                <p className="text-[11px] font-semibold text-blue-800 mb-2">Implementation note</p>
-                <p className="text-[10px] leading-[1.55] text-blue-700">
-                  In the current system, this pattern should be treated as an exception-based trust signal, not a default badge for all cards.
-                </p>
-              </div>
-            </div>
-          </div>
-        </DocSection>
 
-        {/* ═══ 10. SOURCE ICON ═══ */}
-        <DocSection number="10" title="Source Icon" subtitle="A trust and provenance cue. Tells the doctor which source data backs the response and where it was derived from.">
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-              <table className="min-w-full text-[11px]">
-                <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
-                  <th className="px-3 py-2 font-semibold w-28">Aspect</th>
-                  <th className="px-3 py-2 font-semibold">Guideline</th>
-                </tr></thead>
-                <tbody>
-                  <tr className="border-b border-slate-50">
-                    <td className="px-3 py-2 font-medium text-slate-700">Why</td>
-                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Build trust and show the doctor which source contributed to the generated response.</td>
-                  </tr>
-                  <tr className="border-b border-slate-50">
-                    <td className="px-3 py-2 font-medium text-slate-700">When</td>
-                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Show on AI-generated responses where provenance matters and where the user may want to understand the backing source.</td>
-                  </tr>
-                  <tr className="border-b border-slate-50">
-                    <td className="px-3 py-2 font-medium text-slate-700">Where</td>
-                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Keep it in the response support/meta area, not inside the footer CTA row.</td>
-                  </tr>
-                  <tr>
-                    <td className="px-3 py-2 font-medium text-slate-700">How</td>
-                    <td className="px-3 py-2 text-[10px] leading-[1.55] text-slate-600">Use a compact icon with a tooltip, popover, or source detail rather than a heavy inline explanation.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Live pattern</p>
-              <div className="flex items-center gap-3">
-                <SourceInfoIcon sources={["EMR Records", "Lab Reports", "Uploaded Documents"]} />
-                <p className="text-[10px] text-slate-500">A compact provenance cue to explain where the AI-generated response is coming from.</p>
-              </div>
-            </div>
-          </div>
-        </DocSection>
-
-        {/* ═══ 11. iPad / TABLET CONSIDERATIONS ═══ */}
-        <DocSection number="11" title="iPad / Tablet Considerations" subtitle="Desktop interactions that may not work on iPad or tablet devices. These need alternative UX patterns for touch-first usage.">
-          <div className="space-y-4">
-            {/* Overview callout */}
-            <Callout tone="amber" label="Why this matters">
-              <ul className="space-y-1.5">
-                <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />Many doctors use iPads in clinic. Hover-dependent interactions become invisible on touch.</li>
-                <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />Tooltips triggered by hover never appear — critical information can be lost.</li>
-                <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />Copy actions that rely on hover-reveal icons become undiscoverable.</li>
-              </ul>
-            </Callout>
-
-            {/* Issues table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-              <table className="min-w-full text-[11px]">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/60 text-left text-[10px]">
-                    <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-slate-400 w-8">#</th>
-                    <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-slate-400 w-36">Interaction</th>
-                    <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-slate-400">Desktop behavior</th>
-                    <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-slate-400">iPad issue</th>
-                    <th className="px-4 py-2.5 font-semibold uppercase tracking-wider text-slate-400">Recommended fix</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <div className="rounded-lg border border-blue-100 bg-blue-50/60 px-2.5 py-2">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-blue-600 opacity-70 mb-1">CTA Rules</p>
+                <ul className="space-y-0.5">
                   {[
-                    { n: 1, interaction: "Header copy icon", desktop: "Appears on hover over the card header area", issue: "Never appears — doctor cannot discover the copy action", fix: "Always show copy icon on touch devices, or show on first tap then persist" },
-                    { n: 2, interaction: "Tooltip on copy", desktop: "Hover shows 'Copy to RxPad' tooltip before clicking", issue: "No tooltip — doctor taps copy without knowing what it does", fix: "Use a brief toast or inline label ('Copied!') on tap instead of pre-action tooltip" },
-                    { n: 3, interaction: "Source icon tooltip", desktop: "Hover reveals source provenance (EMR, Lab, Records)", issue: "Source info is completely hidden", fix: "Tap to toggle a small popover/sheet showing source details" },
-                    { n: 4, interaction: "Completeness donut tooltip", desktop: "Hover shows EMR%, AI%, Missing% breakdown", issue: "Breakdown percentages never visible", fix: "Tap donut to expand inline or show a small bottom sheet with details" },
-                    { n: 5, interaction: "Pill hover states", desktop: "Pills show subtle background change and cursor pointer on hover", issue: "No visual affordance that pills are tappable", fix: "Add a subtle border or shadow to pills by default on touch to hint interactivity" },
-                    { n: 6, interaction: "Table row hover", desktop: "Rows in lab panels, med history highlight on hover for readability", issue: "No row highlighting — dense tables harder to read", fix: "Use alternating row colors (zebra stripes) on touch devices for readability" },
-                    { n: 7, interaction: "Accordion expand target", desktop: "Full header row is clickable to expand/collapse", issue: "Touch target may be too small if only the chevron is tappable", fix: "Ensure full header row is the tap target (min 44px height per Apple HIG)" },
-                    { n: 8, interaction: "Scrollable card content", desktop: "Scroll wheel works inside cards with overflow", issue: "Touch scroll can conflict with page scroll", fix: "Ensure cards use proper touch-scroll momentum and do not trap scroll" },
-                    { n: 9, interaction: "Footer CTA spacing", desktop: "CTAs are comfortable at current spacing", issue: "Touch targets may be too close together for fat fingers", fix: "Increase CTA button padding to min 44x44px touch targets on tablet" },
-                    { n: 10, interaction: "Drug interaction severity badge", desktop: "Hover on severity badge shows detailed explanation", issue: "Explanation never appears", fix: "Tap badge to expand explanation inline below the badge" },
-                    { n: 11, interaction: "Chat input", desktop: "Keyboard shortcuts (Cmd+Enter to send)", issue: "No keyboard shortcuts on iPad virtual keyboard", fix: "Ensure send button is always visible and tappable" },
-                    { n: 12, interaction: "Context menu / right-click", desktop: "Right-click for additional options on cards", issue: "No right-click on touch devices", fix: "Use long-press gesture for context menu, or provide explicit action buttons" },
-                  ].map(item => (
-                    <tr key={item.n} className="border-b border-slate-50 align-top">
-                      <td className="px-4 py-2.5 text-slate-400 font-mono text-[10px]">{item.n}</td>
-                      <td className="px-4 py-2.5 font-semibold text-slate-700">{item.interaction}</td>
-                      <td className="px-4 py-2.5 text-slate-600">{item.desktop}</td>
-                      <td className="px-4 py-2.5 text-red-600">{item.issue}</td>
-                      <td className="px-4 py-2.5 text-emerald-700">{item.fix}</td>
-                    </tr>
+                    "Instant action (send, fill, acknowledge, print) = secondary CTA (bordered).",
+                    "Navigation (open page, sidebar) = tertiary CTA (text link + arrow).",
+                    "Action CTAs: no arrow. Navigation CTAs: always right arrow.",
+                    "Max 2 CTAs per footer. One can be action + one navigation.",
+                  ].map((r, i) => (
+                    <li key={i} className="flex items-start gap-1.5 text-[9px] text-blue-700">
+                      <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-blue-400" />{r}
+                    </li>
                   ))}
-                </tbody>
-              </table>
+                </ul>
+              </div>
             </div>
 
-            {/* Design principles for touch */}
-            <div className="grid gap-3 sm:grid-cols-3">
+            {/* CTA variant previews */}
+            <div className="space-y-2">
+              <FooterVariantPreview label="Single CTA - Tertiary" variant="tertiary" align="left" ctas={[{ text: "Open Excel", icon: "right", iconKind: "arrow", tone: "blue", hug: true }]} />
+              <FooterVariantPreview label="Single CTA - Secondary" variant="secondary" align="left" ctas={[{ text: "Acknowledge", icon: "left", iconKind: "check", tone: "green" }]} />
+              <FooterVariantPreview label="Two CTAs - Tertiary" variant="tertiary" ctas={[{ text: "View full report", tone: "blue" }, { text: "Explore details", tone: "blue" }]} />
+              <FooterVariantPreview label="Two CTAs - Secondary" variant="secondary" ctas={[{ text: "Confirm & Send", icon: "left", iconKind: "check", tone: "blue" }, { text: "Cancel", tone: "red" }]} />
+            </div>
+          </div>
+        </section>
+
+        {/* ═══ 8. SUPPORT ELEMENTS ═══ */}
+        <section>
+          <div className="mb-1 flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">8</span>
+            <h4 className="text-[15px] font-bold text-slate-800">Support Elements</h4>
+          </div>
+          <p className="mb-4 ml-9 text-[11px] text-slate-400">Feedback, data completeness, and source provenance signals that live outside the card body.</p>
+
+          <div className="grid gap-3 lg:grid-cols-3">
+            {/* Thumbs Up/Down */}
+            <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+              <div className="border-b border-slate-100 bg-slate-50 px-2.5 py-1.5">
+                <p className="text-[10px] font-bold text-slate-700">Thumbs Up / Down</p>
+                <p className="text-[8px] text-slate-400">Response-quality feedback signal</p>
+              </div>
+              <div className="px-2.5 py-2 space-y-1.5">
+                <div className="space-y-0.5 text-[9px] text-slate-600">
+                  {[
+                    ["Why", "Quick CSAT/DSAT feedback on response usefulness."],
+                    ["Where", "Chat response support row, outside card body."],
+                    ["When", "AI-generated responses where output quality matters."],
+                    ["How", "One-time, binary, low-friction. Never compete with primary actions."],
+                  ].map(([k, v]) => (
+                    <p key={k}><strong className="text-slate-700">{k}:</strong> {v}</p>
+                  ))}
+                </div>
+                <div className="rounded border border-slate-100 bg-slate-50 px-2 py-1.5">
+                  <p className="text-[8px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Live</p>
+                  <FeedbackRow messageId="doc-ref-feedback-preview" />
+                </div>
+              </div>
+            </div>
+
+            {/* Data Completeness Donut */}
+            <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+              <div className="border-b border-slate-100 bg-slate-50 px-2.5 py-1.5">
+                <p className="text-[10px] font-bold text-slate-700">Data Completeness Donut</p>
+                <p className="text-[8px] text-slate-400">Trust signal for structured cards</p>
+              </div>
+              <div className="px-2.5 py-2 space-y-1.5">
+                <div className="space-y-0.5 text-[9px] text-slate-600">
+                  {[
+                    ["Where", "Card header metadata area (headerExtra slot)."],
+                    ["When", "Problem-oriented cards where completeness matters."],
+                    ["Why", "Judge if card is EMR-backed, partially extracted, or missing data."],
+                    ["Skip", "Free-form cards with no fixed completeness expectation."],
+                  ].map(([k, v]) => (
+                    <p key={k}><strong className="text-slate-700">{k}:</strong> {v}</p>
+                  ))}
+                </div>
+                <div className="rounded border border-slate-100 bg-slate-50 px-2 py-1.5">
+                  <p className="text-[8px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Live</p>
+                  <DataCompletenessDonut emr={60} ai={25} missing={15} />
+                </div>
+                <p className="text-[8px] text-blue-600 leading-snug">Exception-based trust signal, not a default badge for all cards.</p>
+              </div>
+            </div>
+
+            {/* Source Icon */}
+            <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+              <div className="border-b border-slate-100 bg-slate-50 px-2.5 py-1.5">
+                <p className="text-[10px] font-bold text-slate-700">Source Icon</p>
+                <p className="text-[8px] text-slate-400">Provenance cue for trust</p>
+              </div>
+              <div className="px-2.5 py-2 space-y-1.5">
+                <div className="space-y-0.5 text-[9px] text-slate-600">
+                  {[
+                    ["Why", "Show which source contributed to the response."],
+                    ["When", "AI responses where provenance matters."],
+                    ["Where", "Response support/meta area, not inside footer."],
+                    ["How", "Compact icon + tooltip/popover for details."],
+                  ].map(([k, v]) => (
+                    <p key={k}><strong className="text-slate-700">{k}:</strong> {v}</p>
+                  ))}
+                </div>
+                <div className="rounded border border-slate-100 bg-slate-50 px-2 py-1.5">
+                  <p className="text-[8px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Live</p>
+                  <SourceInfoIcon sources={["EMR Records", "Lab Reports", "Uploaded Documents"]} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══ 9. iPad / TABLET ═══ */}
+        <section>
+          <div className="mb-1 flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">9</span>
+            <h4 className="text-[15px] font-bold text-slate-800">iPad / Tablet</h4>
+          </div>
+          <p className="mb-4 ml-9 text-[11px] text-slate-400">Touch-first considerations for hover-dependent interactions.</p>
+
+          <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50/60 px-2.5 py-2">
+            <p className="text-[9px] font-bold uppercase tracking-wider text-amber-600 opacity-70 mb-1">Why this matters</p>
+            <ul className="space-y-0.5">
               {[
-                { title: "Always visible actions", desc: "On touch devices, never hide primary actions behind hover. Copy, expand, and source should be discoverable without hovering." },
-                { title: "44px minimum targets", desc: "Apple HIG mandates 44x44pt minimum touch targets. All buttons, pills, accordion headers, and CTAs must meet this." },
-                { title: "Tap replaces hover", desc: "Every hover interaction needs a tap equivalent: tooltips become popovers, hover-reveals become always-visible or tap-to-toggle." },
-              ].map(item => (
-                <div key={item.title} className="rounded-xl border border-slate-200 bg-white px-4 py-4">
-                  <p className="text-[12px] font-semibold text-slate-800 mb-1.5">{item.title}</p>
-                  <p className="text-[11px] leading-[1.55] text-slate-500">{item.desc}</p>
-                </div>
+                "Many doctors use iPads in clinic. Hover-dependent interactions become invisible on touch.",
+                "Tooltips triggered by hover never appear — critical information can be lost.",
+                "Copy actions that rely on hover-reveal icons become undiscoverable.",
+              ].map((r, i) => (
+                <li key={i} className="flex items-start gap-1.5 text-[9px] text-amber-700">
+                  <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-amber-400" />{r}
+                </li>
               ))}
-            </div>
-          </div>
-        </DocSection>
-
-        {/* ═══ 12. FOOTER CTA RULES ═══ */}
-        <DocSection number="12" title="Footer CTA Rules" subtitle="Secondary CTAs for actions, tertiary CTAs for navigation. This rule applies across all cards.">
-          <div className="space-y-4">
-            <div className="grid gap-4 lg:grid-cols-2">
-              <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-                <div className="bg-blue-600 px-4 py-2.5">
-                  <p className="text-[11px] font-bold text-white uppercase tracking-wider">Secondary CTA (Actions)</p>
-                  <p className="text-[10px] text-blue-200 mt-0.5">Bordered button, blue text, no arrow icon</p>
-                </div>
-                <div className="divide-y divide-slate-50 text-[11px]">
-                  {["Send reminder", "Acknowledge", "Confirm and Send", "Submit", "Fill to RxPad", "Send via WhatsApp", "Print prescription", "Extend trial"].map(a => (
-                    <p key={a} className="px-4 py-2 text-slate-600">{a}</p>
-                  ))}
-                </div>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-                <div className="bg-slate-500 px-4 py-2.5">
-                  <p className="text-[11px] font-bold text-white uppercase tracking-wider">Tertiary CTA (Navigation)</p>
-                  <p className="text-[10px] text-slate-300 mt-0.5">Text link, with arrow icon, no border</p>
-                </div>
-                <div className="divide-y divide-slate-50 text-[11px]">
-                  {["View full lab report", "See all past visits", "View detailed history", "Open sidebar tab", "Know more", "View all patients"].map(n => (
-                    <p key={n} className="px-4 py-2 text-slate-600">{n}</p>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <Callout tone="blue" label="Rule">
-              <ul className="space-y-1.5">
-                <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />If the CTA triggers an instant action (sending, filling, acknowledging, printing), use secondary CTA (bordered).</li>
-                <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />If the CTA navigates to another page or opens a sidebar, use tertiary CTA (text link with arrow).</li>
-                <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Action CTAs: no arrow icon. Navigation CTAs: always have a right arrow.</li>
-                <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Max 2 CTAs per card footer. If 2 CTAs, one can be action and one navigation.</li>
-              </ul>
-            </Callout>
-          </div>
-        </DocSection>
-
-        {/* ═══ 13. CONTENT ZONE TYPES ═══ */}
-        <DocSection number="13" title="Content Zone Types" subtitle="18 content zone types that power the content layer of every card. Each zone maps to a data shape — this is the bridge between intent classification and visual output.">
-          <div className="mb-4 rounded-lg border border-violet-100 bg-violet-50/50 px-4 py-2.5">
-            <p className="text-[11px] leading-relaxed text-violet-700">
-              <strong>Link to Intent Classification:</strong> When the intent engine selects a card type, the{" "}
-              <strong>content zone type</strong> is chosen based on the data shape. Time-series data → <strong>Line/Bar Chart</strong>.
-              Key-value pairs → <strong>Inline Data Rows</strong>. Multi-select options → <strong>Checkbox List</strong>.
-              See the <strong>Intent-to-Card Reference Chart</strong> in the Intent Classification tab for the full mapping.
-            </p>
+            </ul>
           </div>
 
-          {/* Summary overview by category — compact */}
-          <div className="mb-4 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-3 overflow-x-auto rounded-lg border border-slate-200 bg-white">
+            <table className="min-w-full text-[9px]">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50/60 text-left text-[8px]">
+                  <th className="px-2 py-1.5 font-semibold uppercase tracking-wider text-slate-400 w-6">#</th>
+                  <th className="px-2 py-1.5 font-semibold uppercase tracking-wider text-slate-400 w-28">Interaction</th>
+                  <th className="px-2 py-1.5 font-semibold uppercase tracking-wider text-slate-400">Desktop</th>
+                  <th className="px-2 py-1.5 font-semibold uppercase tracking-wider text-slate-400">iPad issue</th>
+                  <th className="px-2 py-1.5 font-semibold uppercase tracking-wider text-slate-400">Fix</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { n: 1, interaction: "Header copy icon", desktop: "Appears on hover", issue: "Never appears", fix: "Always show on touch devices" },
+                  { n: 2, interaction: "Tooltip on copy", desktop: "Hover shows tooltip", issue: "No tooltip on tap", fix: "Toast or inline label on tap" },
+                  { n: 3, interaction: "Source icon tooltip", desktop: "Hover reveals sources", issue: "Info hidden", fix: "Tap to toggle popover" },
+                  { n: 4, interaction: "Donut tooltip", desktop: "Hover shows breakdown", issue: "Percentages hidden", fix: "Tap to expand inline" },
+                  { n: 5, interaction: "Pill hover states", desktop: "Background change on hover", issue: "No tap affordance", fix: "Default border/shadow on touch" },
+                  { n: 6, interaction: "Table row hover", desktop: "Row highlight on hover", issue: "Dense tables harder to read", fix: "Zebra stripes on touch" },
+                  { n: 7, interaction: "Accordion target", desktop: "Full row clickable", issue: "Target too small", fix: "Min 44px tap target (Apple HIG)" },
+                  { n: 8, interaction: "Scrollable content", desktop: "Scroll wheel works", issue: "Touch scroll conflicts", fix: "Proper touch-scroll momentum" },
+                  { n: 9, interaction: "Footer CTA spacing", desktop: "Comfortable spacing", issue: "Targets too close", fix: "Min 44x44px touch targets" },
+                  { n: 10, interaction: "Severity badge", desktop: "Hover for explanation", issue: "Explanation hidden", fix: "Tap to expand inline" },
+                  { n: 11, interaction: "Chat input", desktop: "Cmd+Enter to send", issue: "No keyboard shortcuts", fix: "Always-visible send button" },
+                  { n: 12, interaction: "Context menu", desktop: "Right-click for options", issue: "No right-click", fix: "Long-press or explicit buttons" },
+                ].map(item => (
+                  <tr key={item.n} className="border-b border-slate-50 align-top">
+                    <td className="px-2 py-1 text-slate-400 font-mono text-[8px]">{item.n}</td>
+                    <td className="px-2 py-1 font-semibold text-slate-700">{item.interaction}</td>
+                    <td className="px-2 py-1 text-slate-600">{item.desktop}</td>
+                    <td className="px-2 py-1 text-red-600">{item.issue}</td>
+                    <td className="px-2 py-1 text-emerald-700">{item.fix}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="grid gap-1.5 sm:grid-cols-3">
             {[
-              { label: "Data Display", color: "#3B82F6", zones: ["═ Inline Data Rows", "⚑ Flagged Data Rows", "⇔ Comparison Table", "👤 Patient List", "▤ KPI Table"] },
-              { label: "Charts & Visualization", color: "#059669", zones: ["📈 Line Chart", "📊 Bar Chart", "◔ Donut / Pie Chart", "▦ Heatmap Grid"] },
-              { label: "Lists & Selection", color: "#D97706", zones: ["☑ Checkbox List", "◉ Radio List", "• Bullet List"] },
-              { label: "Specialized Formats", color: "#8B5CF6", zones: ["💊 Medication Display", "¶ Clinical Narrative", "🌐 Translation Pair", "⚠ Drug Interaction", "💉 Vaccination Schedule", "⏱ Timeline"] },
-            ].map(cat => (
-              <div key={cat.label} className="rounded-xl border border-slate-200 bg-white px-2.5 py-2">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: cat.color }} />
-                  <span className="text-[10px] font-bold" style={{ color: cat.color }}>{cat.label}</span>
-                  <span className="ml-auto text-[9px] text-slate-400">{cat.zones.length}</span>
-                </div>
-                <div className="flex flex-wrap gap-0.5">
-                  {cat.zones.map(z => (
-                    <span key={z} className="rounded bg-slate-50 px-1 py-[1px] text-[8px] text-slate-600 leading-tight">{z}</span>
-                  ))}
-                </div>
+              { title: "Always visible actions", desc: "Never hide primary actions behind hover. Copy, expand, source must be discoverable." },
+              { title: "44px minimum targets", desc: "Apple HIG: 44x44pt min. All buttons, pills, headers, and CTAs must comply." },
+              { title: "Tap replaces hover", desc: "Tooltips become popovers. Hover-reveals become always-visible or tap-to-toggle." },
+            ].map(item => (
+              <div key={item.title} className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                <p className="text-[10px] font-semibold text-slate-800 mb-0.5">{item.title}</p>
+                <p className="text-[9px] leading-[1.45] text-slate-500">{item.desc}</p>
               </div>
             ))}
           </div>
-
-          {/* Detailed zone grid — compact */}
-          <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
-            {CONTENT_ZONE_TYPES_FOR_ANATOMY.map((cz) => (
-              <div key={cz.zone} className="rounded-lg border border-slate-100 bg-white px-2.5 py-2 hover:shadow-sm transition-shadow">
-                <div className="mb-0.5 flex items-center gap-1.5">
-                  <span className="text-[12px]">{cz.icon}</span>
-                  <span className="text-[10px] font-bold text-slate-800">{cz.zone}</span>
-                </div>
-                <p className="mb-0.5 text-[9px] leading-snug text-slate-500">{cz.description}</p>
-                <p className="text-[8px] text-slate-400 leading-snug"><strong className="text-slate-500">Used in:</strong> {cz.usedIn}</p>
-              </div>
-            ))}
-          </div>
-        </DocSection>
+        </section>
 
       </div>
     )
