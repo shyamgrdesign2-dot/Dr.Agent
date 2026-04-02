@@ -12,6 +12,7 @@ import { DataCompletenessDonut } from "@/components/tp-rxpad/dr-agent/cards/Data
 import { SourceInfoIcon } from "@/components/tp-rxpad/dr-agent/cards/CardShell"
 import { TPMedicalIcon } from "@/components/tp-ui"
 import ClinicalFrameworkSection from "@/app/tp-appointment-screen/scenarios/ClinicalFrameworkSection"
+import IntentClassificationSection from "@/app/tp-appointment-screen/scenarios/IntentClassificationSection"
 
 // ═══════════════════════════════════════════════════════════════
 // DR. AGENT — COMPREHENSIVE SYSTEM REFERENCE
@@ -823,7 +824,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
   const [catalogFilter, setCatalogFilter] = useState("all")
   const [activePhase, setActivePhase] = useState("empty")
   const [expandedPrimitive, setExpandedPrimitive] = useState<string | null>(null)
-  const [rmTab, setRmTab] = useState<"pipeline" | "card-rules" | "copy-rules" | "clinical-framework">("pipeline")
+  const [rmTab, setRmTab] = useState<"intent-classification" | "pipeline" | "card-rules" | "copy-rules" | "clinical-framework">("intent-classification")
   const [isDocHeaderVisible, setIsDocHeaderVisible] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 
@@ -1787,6 +1788,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
   // ── RESPONSE MANAGEMENT TAB ──
   function renderResponseMgmt() {
     const RM_TABS = [
+      { id: "intent-classification" as const, label: "Intent Classification" },
       { id: "pipeline" as const, label: "Pipeline & Phases" },
       { id: "card-rules" as const, label: "Card Rules" },
       { id: "copy-rules" as const, label: "Copy & Provenance" },
@@ -1836,6 +1838,11 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
             </button>
           ))}
         </div>
+
+        {/* ═══ TAB 0: Intent Classification ═══ */}
+        {rmTab === "intent-classification" && (
+          <IntentClassificationSection />
+        )}
 
         {/* ═══ TAB 1: Pipeline & Phases ═══ */}
         {rmTab === "pipeline" && (
