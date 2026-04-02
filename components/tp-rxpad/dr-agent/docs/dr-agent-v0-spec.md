@@ -110,7 +110,7 @@ When a doctor types a free-text query that maps to a non-V0 card type:
 1. The reply engine processes normally and returns cards
 2. V0 guard strips any cards not in `V0_ALLOWED_KINDS`
 3. If no cards remain, a **helpful text fallback** is shown:
-   > "I can help with patient summaries, vitals, and clinical history. Try asking about a patient's summary, medical history, or today's vitals."
+   > "Sorry, I'm not able to help with that in this mode. You can ask me to summarize patient details, vitals, or medical history — or use the quick-action pills below to guide you."
 4. No inline suggestion chips are shown (V0 doesn't render them)
 
 ---
