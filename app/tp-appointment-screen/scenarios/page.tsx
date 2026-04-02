@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState } from "react"
 import Link from "next/link"
-import { ArrowLeft2, Hospital, User, Activity, Microscope, Heart, Eye, Woman, DocumentText, Cpu, Brush2, SearchNormal1, MagicStar } from "iconsax-reactjs"
+import { ArrowLeft2, Hospital, User, Activity, Microscope, Heart, Eye, Woman, DocumentText, Cpu, Brush2, SearchNormal1, MagicStar, Layer } from "iconsax-reactjs"
 import DesignSystemTab from "./DesignSystemTab"
 import PatientSummaryLogicTab from "./PatientSummaryLogicTab"
 import ClinicalResearchTab from "./ClinicalResearchTab"
 import { IntentClassificationContent } from "@/app/intent-classification/page"
 import FtuxDiscoveryTab from "./FtuxDiscoveryTab"
+import AgentV0ScopeTab from "./AgentV0ScopeTab"
 
 // ─────────────────────────────────────────────────────────────
 // Scenarios Documentation Page
@@ -521,7 +522,7 @@ const PHASES = [
 
 // ─── Page Component ──────────────────────────────────────────
 
-type PageTab = "clinical-research" | "summary-logic" | "intent-classification" | "design-system" | "scenarios" | "ftux-discovery"
+type PageTab = "clinical-research" | "summary-logic" | "intent-classification" | "design-system" | "scenarios" | "ftux-discovery" | "agent-v0-scope"
 
 export default function ScenariosPage() {
   const [expandedPatient, setExpandedPatient] = useState<string | null>("apt-zerodata")
@@ -583,6 +584,7 @@ export default function ScenariosPage() {
                 { id: "summary-logic" as PageTab, label: "Patient Summary", icon: <DocumentText size={14} variant="Bold" /> },
                 { id: "design-system" as PageTab, label: "Card System & Spec", icon: <Brush2 size={14} variant="Bold" /> },
                 { id: "ftux-discovery" as PageTab, label: "Discovery & FTUX", icon: <MagicStar size={14} variant="Bold" /> },
+                { id: "agent-v0-scope" as PageTab, label: "Agent V0 Scope", icon: <Layer size={14} variant="Bold" /> },
               ]).map(tab => (
                 <button
                   key={tab.id}
@@ -637,6 +639,10 @@ export default function ScenariosPage() {
       ) : activeTab === "ftux-discovery" ? (
         <div className="mx-auto max-w-5xl px-6 py-8">
           <FtuxDiscoveryTab />
+        </div>
+      ) : activeTab === "agent-v0-scope" ? (
+        <div className="mx-auto max-w-5xl px-6 py-8">
+          <AgentV0ScopeTab />
         </div>
       ) : (
       <div className="mx-auto max-w-5xl px-6 py-8">
