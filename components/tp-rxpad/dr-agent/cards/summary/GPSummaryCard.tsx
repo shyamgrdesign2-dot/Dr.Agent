@@ -12,6 +12,7 @@ import { VITAL_META } from "../../constants"
 import type { SmartSummaryData, SpecialtyTabId, DoctorViewType } from "../../types"
 import { highlightClinicalText } from "../../shared/highlightClinicalText"
 import { formatWithHierarchy } from "../../shared/formatWithHierarchy"
+import { buildCoreNarrative } from "../../shared/buildCoreNarrative"
 
 
 const LAB_SHORT_NAMES: Record<string, string> = {
@@ -167,58 +168,49 @@ export function buildSummaryNarrative(
     return [highlightClinicalText(data.patientNarrative)]
   }
 
-  // Auto-generate from available structured data
+  // Use shared core narrative builder for consistent content
+  const core = buildCoreNarrative(data, specialty, {
+    maxConditions: 3,
+    maxAllergies: 2,
+    maxMeds: 3,
+  })
+
   const parts: React.ReactNode[] = []
 
   // ── Step 0: Specialty lead-in ──
-  // Each specialty gets a relevant clinical opener that surfaces the most
-  // important context for that doctor in the first line.
-  const specialtyLead = buildSpecialtyLeadIn(data, specialty)
-  if (specialtyLead) {
-    parts.push(specialtyLead)
-  }
-
-  // ── Step 1: Removed — Critical alert prefix was removed as per design review.
-  // Abnormal vitals are shown in the vitals InlineDataRow with flag colors instead.
-  if (false) {
+  if (core.specialtyLead) {
     parts.push(
+      <span key="spec-lead">
+        <NarrBold>{core.specialtyLead}</NarrBold>
+        {". "}
+      </span>,
     )
   }
 
   // ── Step 2: Chronic conditions with bold names ──
-  // For non-GP specialties, filter to conditions relevant to that specialty
-  if (data.chronicConditions && data.chronicConditions.length > 0) {
-    const filteredConditions = filterConditionsForSpecialty(data.chronicConditions, specialty)
-    if (filteredConditions.length > 0) {
-      const conditions = filteredConditions.slice(0, 3)
-      const condNodes = conditions.map((c, i) => {
-        const match = c.match(/^(.+?)\s*(?:\(([^)]+)\)\s*)?$/)
-        const name = match?.[1]?.replace(/\s*—\s*$/, "").trim() || c
-        const duration = match?.[2]
-        return (
-          <React.Fragment key={`cond-${i}`}>
-            {i > 0 && i === conditions.length - 1 ? " and " : i > 0 ? ", " : ""}
-            <NarrBold>{name}</NarrBold>
-            {duration ? <span className="text-tp-slate-400"> ({duration})</span> : ""}
-          </React.Fragment>
-        )
-      })
-      parts.push(
-        <span key="conditions">
-          {parts.length > 0 ? "Known case of " : "Patient with "}
-          {condNodes}
-          {filteredConditions.length > 3 ? ` + ${filteredConditions.length - 3} more` : ""}
-        </span>,
-      )
-    }
+  if (core.conditions) {
+    const condNodes = core.conditions.items.map((c, i, arr) => (
+      <React.Fragment key={`cond-${i}`}>
+        {i > 0 && i === arr.length - 1 ? " and " : i > 0 ? ", " : ""}
+        <NarrBold>{c.name}</NarrBold>
+        {c.duration ? <span className="text-tp-slate-400"> ({c.duration})</span> : ""}
+      </React.Fragment>
+    ))
+    parts.push(
+      <span key="conditions">
+        {parts.length > 0 ? "Known case of " : "Patient with "}
+        {condNodes}
+        {core.conditions.hasMore > 0 ? ` + ${core.conditions.hasMore} more` : ""}
+      </span>,
+    )
   }
 
-  // ── Step 3: Allergies — shown in normal text (not highlighted) ──
-  if (data.allergies && data.allergies.length > 0) {
+  // ── Step 3: Allergies ──
+  if (core.allergies && core.allergies.length > 0) {
     parts.push(
       <span key="allergies">
         {parts.length > 0 ? ". Allergic to " : "Allergic to "}
-        {data.allergies.slice(0, 2).map((a, i, arr) => (
+        {core.allergies.map((a, i, arr) => (
           <React.Fragment key={i}>
             {formatWithHierarchy(a.trim(), "text-tp-slate-700", "text-tp-slate-400")}
             {i < arr.length - 1 && <span className="text-tp-slate-400">, </span>}
@@ -228,48 +220,38 @@ export function buildSummaryNarrative(
     )
   }
 
-  // ── Step 4: Active medications — show 2-3 ──
-  if (data.activeMeds && data.activeMeds.length > 0) {
-    const meds = data.activeMeds.slice(0, 3).map(shortenMedication)
+  // ── Step 4: Active medications ──
+  if (core.meds) {
     parts.push(
       <span key="meds">
         {parts.length > 0 ? ". On " : "On "}
-        <NarrBold>{meds.join(", ")}</NarrBold>
-        {data.activeMeds.length > 3 ? ` + ${data.activeMeds.length - 3} more` : ""}
+        <NarrBold>{core.meds.names.join(", ")}</NarrBold>
+        {core.meds.hasMore > 0 ? ` + ${core.meds.hasMore} more` : ""}
       </span>,
     )
   }
 
   // ── Step 5: Last visit one-liner ──
-  if (data.lastVisit) {
-    const lastDate = data.lastVisit.date || ""
-    const dx = data.lastVisit.diagnosis || ""
-    if (lastDate && dx) {
-      parts.push(
-        <span key="lastVisit">
-          {parts.length > 0 ? ". " : ""}
-          Last seen <NarrBold>{lastDate}</NarrBold> — Dx: {formatWithHierarchy(dx, "font-semibold not-italic text-tp-slate-700", "font-normal not-italic text-tp-slate-400")}
-        </span>,
-      )
-    }
+  if (core.lastVisit) {
+    parts.push(
+      <span key="lastVisit">
+        {parts.length > 0 ? ". " : ""}
+        Last seen <NarrBold>{core.lastVisit.date}</NarrBold> — Dx: {formatWithHierarchy(core.lastVisit.dx, "font-semibold not-italic text-tp-slate-700", "font-normal not-italic text-tp-slate-400")}
+      </span>,
+    )
   }
 
   // ── Step 6: Follow-up overdue flag ──
-  if (data.followUpOverdueDays && data.followUpOverdueDays > 0) {
+  if (core.followUpOverdue) {
     parts.push(
       <span key="overdue">
         {parts.length > 0 ? ". " : ""}
-        <span className="text-tp-slate-400">Follow-up overdue by {data.followUpOverdueDays} days</span>
+        <span className="text-tp-slate-400">Follow-up overdue by {core.followUpOverdue} days</span>
       </span>,
     )
   }
 
   // ── SBAR completeness overlay ──
-  // Lightweight check: flag if any SBAR category is entirely missing from the narrative.
-  // S = situation (symptoms/chief complaint) → covered by specialty lead-in or conditions
-  // B = background (history/conditions) → covered by step 2
-  // A = assessment (labs/vitals) → covered by step 1 (critical alerts)
-  // R = recommendation (meds/plan) → covered by step 4
   const sbarGaps = checkSbarCompleteness(data, parts)
   if (sbarGaps.length > 0) {
     parts.push(
@@ -283,125 +265,6 @@ export function buildSummaryNarrative(
   if (parts.length === 0) return null
   parts.push(<span key="period">.</span>)
   return parts
-}
-
-/* -- Specialty lead-in builders -------------------------------- */
-
-/**
- * Build a specialty-specific opening line for the narrative.
- * Same data, different lens — surfaces the most critical context first.
- */
-function buildSpecialtyLeadIn(
-  data: SmartSummaryData,
-  specialty?: SpecialtyTabId,
-): React.ReactNode | null {
-  if (!specialty || specialty === "gp") return null
-
-  if (specialty === "obstetric" && data.obstetricData) {
-    const ob = data.obstetricData
-    const gp = [
-      ob.gravida != null ? `G${ob.gravida}` : null,
-      ob.para != null ? `P${ob.para}` : null,
-      ob.living != null ? `L${ob.living}` : null,
-      ob.abortion != null && ob.abortion > 0 ? `A${ob.abortion}` : null,
-    ]
-      .filter(Boolean)
-      .join("")
-    const details: string[] = []
-    if (ob.gestationalWeeks) details.push(`${ob.gestationalWeeks} wks`)
-    if (ob.edd) details.push(`EDD ${ob.edd}`)
-    if (ob.lmp) details.push(`LMP ${ob.lmp}`)
-    return (
-      <span key="spec-lead">
-        <NarrBold>{gp || "Obstetric patient"}</NarrBold>
-        {details.length > 0 ? ` — ${details.join(", ")}` : ""}
-        {". "}
-      </span>
-    )
-  }
-
-  if (specialty === "ophthal" && data.ophthalData) {
-    const oph = data.ophthalData
-    const vaDetails: string[] = []
-    if (oph.vaRight) vaDetails.push(`OD: ${oph.vaRight}`)
-    if (oph.vaLeft) vaDetails.push(`OS: ${oph.vaLeft}`)
-    if (oph.iop) vaDetails.push(`IOP: ${oph.iop}`)
-    if (vaDetails.length > 0) {
-      return (
-        <span key="spec-lead">
-          <NarrBold>{vaDetails.join(", ")}</NarrBold>
-          {". "}
-        </span>
-      )
-    }
-  }
-
-  if (specialty === "gynec" && data.gynecData) {
-    const gyn = data.gynecData
-    const details: string[] = []
-    if (gyn.lmp) details.push(`LMP ${gyn.lmp}`)
-    if (gyn.cycleRegularity) details.push(`cycles ${gyn.cycleRegularity.toLowerCase()}`)
-    if (gyn.painScore && parseInt(gyn.painScore, 10) > 5) details.push(`pain ${gyn.painScore}/10`)
-    if (details.length > 0) {
-      return (
-        <span key="spec-lead">
-          <NarrBold>{details.join(", ")}</NarrBold>
-          {". "}
-        </span>
-      )
-    }
-  }
-
-  if (specialty === "pediatrics" && data.pediatricsData) {
-    const ped = data.pediatricsData
-    const details: string[] = []
-    if (ped.ageDisplay) details.push(ped.ageDisplay)
-    if (ped.weightKg != null) {
-      details.push(`Wt ${ped.weightKg}kg${ped.weightPercentile ? ` (${ped.weightPercentile})` : ""}`)
-    }
-    if (ped.vaccinesOverdue && ped.vaccinesOverdue > 0) {
-      details.push(`${ped.vaccinesOverdue} vaccines overdue`)
-    } else if (ped.vaccinesPending && ped.vaccinesPending > 0) {
-      details.push(`${ped.vaccinesPending} vaccines pending`)
-    }
-    if (details.length > 0) {
-      return (
-        <span key="spec-lead">
-          <NarrBold>{details.join(", ")}</NarrBold>
-          {". "}
-        </span>
-      )
-    }
-  }
-
-  return null
-}
-
-/* -- Condition filtering per specialty ------------------------- */
-
-/** Specialty-relevant condition keywords — show these first, deprioritize others */
-const SPECIALTY_CONDITION_RELEVANCE: Record<string, RegExp> = {
-  obstetric: /pre-?eclampsia|gestational|GDM|HTN|hypertension|anemia|thyroid|diabetes/i,
-  ophthal: /diabet|HTN|hypertension|glaucoma|cataract|retino|macula/i,
-  gynec: /PCOS|endometri|fibroid|thyroid|anemia|hormonal/i,
-  pediatrics: /asthma|allergy|anemia|epilepsy|growth|nutrition|congenital/i,
-}
-
-function filterConditionsForSpecialty(
-  conditions: string[],
-  specialty?: SpecialtyTabId,
-): string[] {
-  if (!specialty || specialty === "gp") return conditions
-
-  const pattern = SPECIALTY_CONDITION_RELEVANCE[specialty]
-  if (!pattern) return conditions
-
-  // Split into relevant (matching) and other conditions
-  const relevant = conditions.filter((c) => pattern.test(c))
-  const other = conditions.filter((c) => !pattern.test(c))
-
-  // Prioritize relevant conditions first, then fill remaining slots with others
-  return [...relevant, ...other]
 }
 
 /* -- SBAR completeness overlay --------------------------------- */

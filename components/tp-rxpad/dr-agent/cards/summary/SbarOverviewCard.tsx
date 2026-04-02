@@ -8,6 +8,7 @@ import { VITAL_META } from "../../constants"
 import type { SmartSummaryData, SpecialtyTabId } from "../../types"
 import { highlightClinicalText } from "../../shared/highlightClinicalText"
 import { formatWithHierarchy } from "../../shared/formatWithHierarchy"
+import { buildCoreNarrative, narrativeToPlainText, expandAbbreviation as expandAbbr } from "../../shared/buildCoreNarrative"
 
 // ── Shared helpers ──
 
@@ -57,21 +58,6 @@ function shortenMedication(raw: string): string {
   return drugName
 }
 
-/** Expand common medical abbreviations to full form */
-const ABBREV_MAP: Record<string, string> = {
-  "DM": "Diabetes", "HTN": "Hypertension", "CKD": "Chronic Kidney Disease",
-  "COPD": "Chronic Obstructive Pulmonary Disease", "CAD": "Coronary Artery Disease",
-  "CHF": "Congestive Heart Failure", "RA": "Rheumatoid Arthritis",
-  "SLE": "Systemic Lupus Erythematosus", "TB": "Tuberculosis",
-  "GERD": "Gastroesophageal Reflux Disease",
-}
-
-function expandAbbreviation(text: string): string {
-  return text.replace(/\b(DM|HTN|CKD|COPD|CAD|CHF|RA|SLE|TB|GERD)\b/g, (match) => {
-    return ABBREV_MAP[match] || match
-  })
-}
-
 /** Split by commas but respect parenthetical groups */
 function splitRespectingParens(str: string): string[] {
   const parts: string[] = []
@@ -118,67 +104,18 @@ function shortenSymptom(raw: string): string {
 
 function buildSituationLine(data: SmartSummaryData): string {
   // Priority 0: patientNarrative (matches tooltip on appointment queue)
-  if (data.patientNarrative) return expandAbbreviation(data.patientNarrative)
+  if (data.patientNarrative) return expandAbbr(data.patientNarrative)
   // Priority 1: Pre-written SBAR situation (expand abbreviations)
-  if (data.sbarSituation) return expandAbbreviation(data.sbarSituation)
+  if (data.sbarSituation) return expandAbbr(data.sbarSituation)
 
-  const parts: string[] = []
+  // Use shared core narrative builder for consistent content with GPSummaryCard
+  const core = buildCoreNarrative(data, undefined, {
+    maxConditions: 3,
+    maxAllergies: 2,
+    maxMeds: 3,
+  })
 
-  // Step 1: Current symptoms
-  if (data.symptomCollectorData?.symptoms?.length) {
-    const top = data.symptomCollectorData.symptoms.slice(0, 3)
-    const symptomStr = top.map(s => {
-      let str = s.name
-      if (s.duration) str += ` (${s.duration})`
-      return str
-    }).join(", ")
-    parts.push(`Presenting with ${symptomStr}.`)
-  }
-
-  // Step 2: Chronic conditions (top 2, expanded abbreviations)
-  if (data.chronicConditions?.length) {
-    const top = data.chronicConditions.slice(0, 2).map(c => {
-      const name = expandAbbreviation(c.split("(")[0].trim())
-      const match = c.match(/\(([^)]+)\)/)
-      return match ? `${name} (${match[1]})` : name
-    })
-    parts.push(`Known ${top.join(", ")}.`)
-  }
-
-  // Step 3: Drug allergies (only if present, keep concise)
-  if (data.allergies?.length) {
-    const drugAllergies = data.allergies.filter(a => {
-      const lower = a.toLowerCase()
-      return lower.includes("aspirin") || lower.includes("penicillin") || lower.includes("sulfa")
-        || lower.includes("nsaid") || lower.includes("ibuprofen") || lower.includes("amoxicillin")
-        || lower.includes("cephalosporin") || lower.includes("erythromycin")
-    })
-    if (drugAllergies.length > 0) {
-      parts.push(`Allergic to ${drugAllergies.slice(0, 2).map(a => a.split("(")[0].trim()).join(", ")}.`)
-    }
-  }
-
-  // Step 4: Current medications (top 2, shortened)
-  if (data.activeMeds?.length && parts.length < 3) {
-    const topMeds = data.activeMeds.slice(0, 2).map(shortenMedication)
-    parts.push(`On ${topMeds.join(", ")}.`)
-  }
-
-  // Step 5: Last visit one-liner (only if no symptoms and space remains)
-  if (parts.length === 0 && data.lastVisit) {
-    parts.push(`Last visited ${data.lastVisit.date} for ${data.lastVisit.diagnosis || data.lastVisit.symptoms}.`)
-  } else if (data.lastVisit && parts.length < 2) {
-    parts.push(`Last seen ${data.lastVisit.date}.`)
-  }
-
-  if (parts.length === 0) return "New patient, no prior clinical data available."
-
-  // Cap at ~200 chars
-  let result = parts.join(" ")
-  if (result.length > 220) {
-    result = parts.slice(0, 2).join(" ")
-  }
-  return result
+  return narrativeToPlainText(core, 220)
 }
 
 // ── Recommendation logic ──

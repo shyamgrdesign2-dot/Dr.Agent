@@ -26,6 +26,35 @@ The doctor must understand risk + context in under ~5 seconds.
 
 ---
 
+## SBAR Framework — Clinical Communication Foundation
+
+The patient summary follows the **SBAR framework**, a structured clinical communication protocol widely used in healthcare for handoffs, escalations, and rapid patient context transfer.
+
+### What is SBAR?
+
+SBAR originated in the US Navy for submarine communication and was adopted by healthcare as a standardized method for conveying critical patient information between clinicians. It ensures no vital context is missed during handoffs.
+
+| Letter | Stands For | Purpose | Maps To |
+|--------|-----------|---------|---------|
+| **S** | Situation | Why the patient is here — chief complaint, presenting symptoms | Symptom collector data, specialty lead-in |
+| **B** | Background | Relevant clinical history — chronic conditions, allergies, surgical history, medications | Medical history, chronic conditions, drug allergies, active medications |
+| **A** | Assessment | Current clinical state — vitals, labs, flags | Today's vitals, key lab results, abnormal flags |
+| **R** | Recommendation | What needs to happen — follow-up, treatment plan, alerts | Due alerts, follow-up overdue, cross-problem flags, medication review |
+
+### How We Apply SBAR
+
+The SBAR framework is used as a **conceptual ordering principle** — not literal section labels. The patient summary narrative, card section ordering, and data flow all follow SBAR sequencing:
+
+1. **Short summary narrative** (`buildCoreNarrative` in `shared/buildCoreNarrative.ts`): Composes text in S→B→A→R order — specialty lead-in/symptoms first, then conditions/allergies, then meds, then last visit/follow-up.
+2. **Card section layout** (`GPSummaryCard`): InlineDataRow sections arranged as Situation → Background → Assessment → Context → Recommendation → Specialty → Flags.
+3. **SBAR Overview Card** (`SbarOverviewCard`): Explicit S/B/A/R sections with labeled headers, each showing relevant data from the same source.
+4. **Completeness check**: The narrative builder verifies all four SBAR categories are covered. Missing categories are flagged as `[Missing: chief complaint]`, `[Missing: history]`, etc.
+5. **Narrative alignment**: Both `GPSummaryCard` and `SbarOverviewCard` use the same shared `buildCoreNarrative()` utility to ensure consistent clinical content across the patient summary and SBAR situation line.
+
+> For the full SBAR Overview card specification, see `docs/sbar-overview-card-spec.md`.
+
+---
+
 ## Input Data Sources (Fetch Checklist)
 
 When an appointment is opened, backend should attempt to fetch all applicable sources. Data may be partial — fetching must never fail if a source is unavailable.

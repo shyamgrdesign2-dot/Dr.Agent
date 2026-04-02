@@ -16,21 +16,9 @@ Dr. Agent is accessible from **three entry points** across the product:
 
 All three entry points render the **same `DrAgentPanel` component** — ensuring a consistent experience regardless of where the doctor accesses it.
 
-#### V0 mode (summary-only)
+#### Canned action smart priority system
 
-A lightweight toggle ("Agent V0") in the appointment screen header activates a streamlined variant (`DrAgentPanelV0`). When V0 mode is ON:
-
-- **All entry points route through V0**: FAB click, AI patient icon click, and the V0 toggle itself all open the V0 panel exclusively. The full agent panel is never shown while V0 mode is active.
-- **Cross-page persistence**: V0 mode state is stored in localStorage via a shared `useV0Mode` hook. When V0 is toggled ON from the appointment page, the RxPad page and Patient Details page also render `DrAgentPanelV0` instead of the full panel.
-- **State split**: `isV0Mode` (toggle persists across pages until turned off) vs `isV0PanelOpen` (panel visibility, page-specific). Closing the V0 panel keeps the mode ON — the FAB reappears and clicking it reopens V0.
-- **Pre-selection screen**: When no patient is selected, a vertically centered greeting + search screen appears. Doctors search and select a patient before seeing any content.
-- **Post-selection screen**: After selecting a patient, a floating glass chip at the top shows the patient context (with chevron to open the patient selector bottom sheet). Four canned quick-action cards appear, chosen by the smart priority system (see below). Content appears with a smooth fade-in + slide-up reveal animation.
-- **Allowed card types**: 11 card kinds are shown in V0: `sbar_overview`, `patient_summary`, `symptom_collector`, `last_visit`, `obstetric_summary`, `gynec_summary`, `pediatric_summary`, `ophthal_summary`, `med_history`, `vitals_summary`, `medical_history`.
-- **Guardrail (text + pills)**: When a user asks an out-of-scope question (sports, weather, entertainment, etc.) or an unrecognizable query, Dr. Agent replies with a short text message and horizontal scrollable suggestion pills below the bubble — not a card. This applies to both V0 and non-V0 modes.
-
-#### Canned card smart priority system
-
-Both V0 and non-V0 panels use the same smart priority logic to pick the best 4 canned action cards from 5 candidates. The system considers what patient data is available:
+The WelcomeScreen uses a smart priority system to pick the best 4 canned action cards from 5 candidates based on available patient data:
 
 | Candidate | Title | When available |
 |-----------|-------|---------------|
@@ -46,7 +34,7 @@ Selection rules (pick 4):
 - **Without intake + with specialty**: Patient summary → Medical history → [Specialty] history → Today's vitals
 - **Without intake + no specialty**: Patient summary → Medical history → Today's vitals → Past visit details
 
-This logic lives in `buildV0Actions()` (V0 panel) and `buildPatientActions()` (non-V0 WelcomeScreen), both following identical rules.
+This logic lives in `buildPatientActions()` (WelcomeScreen component).
 
 ### How It Interfaces with the Product
 
@@ -178,9 +166,7 @@ POMR cards are the only cards that show the completeness donut, because they hav
 - **Pill engine**: 4-layer priority pipeline generating context-aware prompt suggestions
 - **Reply engine**: Maps intents + patient data to structured responses
 - **RxPad sync**: Bidirectional context via React context (`useRxPadSync`)
-- **V0 mode sync**: Shared `useV0Mode` hook persists toggle state in localStorage, syncs across pages via custom events
-- **V0 panel**: Standalone `DrAgentPanelV0` component with its own patient search, canned actions, scroll-aware floating chip, and PatientSelector bottom sheet
-- **Patient selector**: Shared `PatientSelector` bottom sheet component used by both V0 and full agent — supports custom title prop, radio-button selection, circular avatars, gender/age/phone metadata
+- **Patient selector**: Shared `PatientSelector` bottom sheet component — supports custom title prop, radio-button selection, circular avatars, gender/age/phone metadata
 - **Shared arrow indicators**: `shared/FlagArrow.tsx` (8×8 SVG triangle for abnormal values, always red) and `shared/DirectionArrow.tsx` (10×10 SVG for trend direction — red/green/gray). All cards use these shared components for consistent flag display.
 
 ---

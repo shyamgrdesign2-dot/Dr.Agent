@@ -9,12 +9,13 @@ const V0_KEY = "dr-agent-v0-mode"
  * and syncs across pages/components via storage + custom events.
  */
 export function useV0Mode() {
-  const [isV0Mode, setIsV0ModeState] = useState(false)
+  // Default to V0 enabled — only disable when user explicitly toggles off
+  const [isV0Mode, setIsV0ModeState] = useState(true)
 
-  // Read from localStorage on mount
+  // Read from localStorage on mount (overrides default if user has a stored preference)
   useEffect(() => {
     const stored = localStorage.getItem(V0_KEY)
-    if (stored === "true") setIsV0ModeState(true)
+    if (stored === "false") setIsV0ModeState(false)
   }, [])
 
   // Listen for storage changes from other tabs/components

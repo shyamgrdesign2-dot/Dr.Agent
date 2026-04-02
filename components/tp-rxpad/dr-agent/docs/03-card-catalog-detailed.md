@@ -626,8 +626,6 @@
 
 **Visual:** Standard assistant text bubble + horizontal pill row below. Pills styled like canned action chips with border, hover → tp-blue.
 
-**V0 supported:** Yes (V0 guard also uses text + suggestions instead of cards for unsupported queries)
-
 ---
 
 ### F7. `medical_history` — Medical History (Expanded)
@@ -641,8 +639,6 @@
 
 **Source tag:** EMR Records
 
-**V0 supported:** Yes
-
 ---
 
 ### F8. `vitals_summary` — Today's Vitals Table
@@ -655,8 +651,6 @@
 **Visual:** Activity icon header. Table rows with color-coded flag badges. Optional AI insight footer.
 
 **Source tag:** EMR
-
-**V0 supported:** Yes
 
 ---
 

@@ -9,6 +9,7 @@ import type { RxPadCopyPayload } from "@/components/tp-rxpad/rxpad-sync-context"
 import type {
   CannedPill,
   ConsultPhase,
+  PillTone,
   RxAgentChatMessage,
   RxTabLens,
   SmartSummaryData,
@@ -16,7 +17,7 @@ import type {
 } from "./types"
 import { CONTEXT_PATIENT_ID, RX_CONTEXT_OPTIONS } from "./constants"
 import { SMART_SUMMARY_BY_CONTEXT } from "./mock-data"
-import { generatePills } from "./engines/pill-engine"
+
 import { inferPhase } from "./engines/phase-engine"
 import { classifyIntent, PILL_INTENT_MAP } from "./engines/intent-engine"
 import { buildReply } from "./engines/reply-engine"
@@ -660,18 +661,37 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
     return kinds
   }, [messages])
 
-  // ── V0 pills: summary-only, filtered by shown cards ──
+  // ── V0 pills: dedicated summary-only pill list ──
+  // Uses labels that are known to exist in PILL_TO_CARD_KINDS and map to V0_ALLOWED_KINDS.
+  // Unlike the generic pill-engine (which generates labels like "Vital trends", "Flagged lab results"
+  // that don't survive V0 filtering), this directly builds V0-appropriate pills.
   const pills = useMemo(() => {
     if (!selectedPatientId) return []
-    const rawPills = generatePills(summary, phase, "dr-agent" as RxTabLens, undefined)
 
-    return rawPills.filter(pill => {
+    const hasIntake = !!summary.symptomCollectorData?.symptoms?.length
+    const hasVitals = !!(summary.todayVitals && Object.keys(summary.todayVitals).length > 0)
+    const hasLastVisit = !!summary.lastVisit
+
+    const tone: PillTone = "primary"
+    const candidates: CannedPill[] = [
+      { id: "v0-summary", label: "Patient summary", priority: 10, layer: 3, tone },
+      ...(hasIntake ? [{ id: "v0-intake", label: "Pre-visit intake", priority: 15, layer: 3, tone } as CannedPill] : []),
+      { id: "v0-history", label: "Medical history", priority: 20, layer: 3, tone },
+      ...(hasVitals ? [{ id: "v0-vitals", label: "Today's vitals", priority: 25, layer: 3, tone } as CannedPill] : []),
+      ...(hasLastVisit ? [{ id: "v0-last-visit", label: "Last visit", priority: 30, layer: 3, tone } as CannedPill] : []),
+      ...(summary.obstetricData ? [{ id: "v0-obstetric", label: "Obstetric summary", priority: 35, layer: 3, tone } as CannedPill] : []),
+      ...(summary.gynecData ? [{ id: "v0-gynec", label: "Gynec summary", priority: 35, layer: 3, tone } as CannedPill] : []),
+      ...(summary.pediatricsData ? [{ id: "v0-pediatric", label: "Growth & vaccines", priority: 35, layer: 3, tone } as CannedPill] : []),
+      ...(summary.ophthalData ? [{ id: "v0-ophthal", label: "Vision summary", priority: 35, layer: 3, tone } as CannedPill] : []),
+    ]
+
+    // Filter out pills whose card has already been shown in conversation
+    return candidates.filter(pill => {
       const cardKinds = PILL_TO_CARD_KINDS[pill.label]
       if (!cardKinds) return false
-      if (cardKinds.some(kind => shownCardKinds.has(kind))) return false
-      return cardKinds.some(kind => V0_ALLOWED_KINDS.has(kind))
+      return !cardKinds.some(kind => shownCardKinds.has(kind))
     })
-  }, [selectedPatientId, summary, phase, shownCardKinds])
+  }, [selectedPatientId, summary, shownCardKinds])
 
   // ── Sync allergies ──
   useEffect(() => {
@@ -969,12 +989,12 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
               background: "linear-gradient(to top, rgba(255,255,255,0.98), rgba(255,255,255,0.4) 40%, transparent)",
             }}
           />
-          {pills.length > 0 && messages.filter(m => m.role === "user").length > 0 && (
+          {pills.length > 0 && messages.filter(m => m.role === "user").length > 0 && !isTyping && (
             <div className="px-[4px] pt-[8px] pb-[6px]">
               <PillBar
                 pills={pills}
                 onTap={handlePillTap}
-                disabled={isTyping}
+                disabled={false}
               />
             </div>
           )}

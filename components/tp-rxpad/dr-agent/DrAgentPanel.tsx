@@ -957,12 +957,12 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
           }}
         />
         {/* Hide canned pills when welcome screen is showing (no user messages yet) */}
-        {pills.length > 0 && messages.filter(m => m.role === "user").length > 0 && (
+        {pills.length > 0 && messages.filter(m => m.role === "user").length > 0 && !isTyping && (
           <div className="px-[4px] pt-[8px] pb-[6px]">
             <PillBar
               pills={pills}
               onTap={handlePillTap}
-              disabled={isTyping}
+              disabled={false}
             />
           </div>
         )}
