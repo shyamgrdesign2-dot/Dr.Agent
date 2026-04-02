@@ -2,7 +2,7 @@
 
 import { type SidebarPill, SIDEBAR_TAB_PILLS } from "./sidebar-pills"
 import { useRxPadSync } from "@/components/tp-rxpad/rxpad-sync-context"
-import { AiGradientBg } from "@/components/tp-rxpad/dr-agent/shared/AiGradientBg"
+// AiGradientBg icon removed from pill bar
 
 /**
  * Pill bar rendered at the bottom of each sidebar content panel.
@@ -38,9 +38,6 @@ export function SidebarPillBar({ sectionId }: { sectionId: string }) {
       <div className="sticky bottom-0 z-10 shrink-0 bg-white/95 px-2 pb-[14px] pt-1 backdrop-blur-sm">
         <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <div className="inline-flex min-w-max items-center gap-1.5">
-            <AiGradientBg size={20} borderRadius={5} className="mr-0.5">
-              <span className="text-[10px] leading-none">✦</span>
-            </AiGradientBg>
             {pills.map((pill) =>
               pill.danger ? (
                 <button
