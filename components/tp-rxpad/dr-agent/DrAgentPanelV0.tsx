@@ -80,7 +80,7 @@ function UserBulkIcon({ size = 12, className }: { size?: number; className?: str
 const V0_ALLOWED_KINDS = new Set([
   "sbar_overview", "patient_summary", "symptom_collector", "last_visit",
   "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary",
-  "med_history", "vitals_summary", "medical_history",
+  "vitals_summary", "medical_history",
 ])
 
 // ═══════════════ V0 PILL-TO-CARD MAP ═══════════════

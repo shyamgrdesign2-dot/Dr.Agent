@@ -74,7 +74,7 @@ const V0_ALLOWED_CARDS: { kind: string; label: string; category: string }[] = [
   { kind: "symptom_collector", label: "Pre-visit Intake", category: "Intake" },
   { kind: "last_visit", label: "Last Visit Summary", category: "History" },
   { kind: "medical_history", label: "Medical History (Expanded)", category: "History" },
-  { kind: "med_history", label: "Medication History", category: "History" },
+
   { kind: "vitals_summary", label: "Today's Vitals Table", category: "Assessment" },
   { kind: "obstetric_summary", label: "Obstetric Summary", category: "Specialty" },
   { kind: "gynec_summary", label: "Gynecology Summary", category: "Specialty" },
@@ -130,7 +130,7 @@ export default function AgentV0ScopeTab() {
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <span className="rounded-full bg-violet-100 px-2.5 py-1 text-[10px] font-semibold text-violet-700">Default: ON</span>
-          <span className="rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-semibold text-blue-700">11 Card Types</span>
+          <span className="rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-semibold text-blue-700">10 Card Types</span>
           <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">Summary-Only Pills</span>
           <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold text-amber-700">No Clinical Actions</span>
         </div>
@@ -179,7 +179,6 @@ function OverviewSection() {
               <li>• Last visit summary</li>
               <li>• Pre-visit intake from patient app</li>
               <li>• Specialty summaries (OB/GYN/Peds/Ophthal)</li>
-              <li>• Medication history</li>
             </ul>
           </div>
           <div className="rounded-lg border border-rose-200 bg-rose-50/50 p-3">
@@ -281,7 +280,7 @@ function ScopeSection() {
             ["SidebarPillBar (secondary sidebar)", <span key="f2" className="font-medium text-emerald-600">Visible</span>, <span key="v2" className="font-medium text-rose-500">Hidden</span>],
             ["RxPad AiTriggerChips", <span key="f3" className="font-medium text-emerald-600">Visible</span>, <span key="v3" className="font-medium text-rose-500">Hidden</span>],
             ["Inline suggestion chips (below messages)", <span key="f4" className="font-medium text-emerald-600">Below messages</span>, <span key="v4" className="font-medium text-rose-500">Hidden</span>],
-            ["Clinical action cards", <span key="f5" className="font-medium text-emerald-600">45+ card types</span>, <span key="v5" className="font-medium text-rose-500">11 summary types only</span>],
+            ["Clinical action cards", <span key="f5" className="font-medium text-emerald-600">45+ card types</span>, <span key="v5" className="font-medium text-rose-500">10 summary types only</span>],
           ]}
         />
       </DocSection>

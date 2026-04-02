@@ -9,7 +9,7 @@ const V0_ALLOWED_CARDS = [
   { kind: "gynec_summary", label: "Gynecology Summary" },
   { kind: "pediatric_summary", label: "Pediatric Summary" },
   { kind: "ophthal_summary", label: "Ophthalmology Summary" },
-  { kind: "med_history", label: "Medication History" },
+
   { kind: "vitals_summary", label: "Today's Vitals Table" },
   { kind: "medical_history", label: "Medical History (Expanded)" },
 ]
@@ -201,7 +201,7 @@ export function V0SpecSection() {
               <tr>
                 <td className="px-4 py-2 font-medium text-tp-slate-700">Clinical action cards</td>
                 <td className="px-4 py-2 text-green-600 font-medium">45+ card types</td>
-                <td className="px-4 py-2 text-red-500 font-medium">11 summary types only</td>
+                <td className="px-4 py-2 text-red-500 font-medium">10 summary types only</td>
               </tr>
             </tbody>
           </table>

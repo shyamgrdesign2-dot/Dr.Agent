@@ -33,7 +33,7 @@ V0 is accessible from the same entry points as the full variant, with one except
 
 ## Allowed Card Types
 
-V0 renders only these 11 card kinds (defined in `V0_ALLOWED_KINDS`):
+V0 renders only these 10 card kinds (defined in `V0_ALLOWED_KINDS`):
 
 | Card Kind | Description |
 |-----------|-------------|
@@ -45,7 +45,7 @@ V0 renders only these 11 card kinds (defined in `V0_ALLOWED_KINDS`):
 | `gynec_summary` | Gynecology specialty summary |
 | `pediatric_summary` | Pediatric specialty summary |
 | `ophthal_summary` | Ophthalmology specialty summary |
-| `med_history` | Medication history |
+
 | `vitals_summary` | Today's vitals table |
 | `medical_history` | Medical history (expanded) |
 
