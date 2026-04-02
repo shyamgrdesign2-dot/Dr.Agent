@@ -95,27 +95,36 @@
 ---
 
 ### A3. `symptom_collector` — Patient-Reported Intake
-**What it does:** Shows what the patient reported via the Visit app's symptom collector before arriving.
+**What it does:** Shows what the patient reported via the Visit app's symptom collector before arriving. Starts directly with patient-reported sections — no chart summary or snapshot block.
 
 **When triggered:**
 - Consultation opens (auto-generated if intake data exists)
 - Shown alongside patient_summary
 
-**Scenario:** Patient filled the pre-visit intake form. Doctor sees reported symptoms, current medications, conditions, and questions — all before examining the patient.
+**Scenario:** Patient filled the pre-visit intake form. Doctor sees reported symptoms, chronic conditions, current medications, and questions to doctor — all before examining the patient.
+
+**Sections (in order):**
+1. **Symptoms Reported** — name + detail (duration, severity, notes)
+2. **Chronic Conditions** — parsed from medicalHistory with name + duration detail in lighter brackets
+3. **Current Medications** — drug name in dark, frequency/timing in lighter brackets (e.g. "Telma 20mg" dark + "(Twice daily)" lighter)
+4. **Questions to Doctor** — free-text questions from patient
 
 **Key params:**
-- `reportedAt` (required), `symptoms[]` (required), `medicalHistory[]`, `familyHistory[]`, `allergies[]`, `lifestyle[]`, `questionsToDoctor[]`, `currentMedications[]`, `isNewPatient`
+- `reportedAt` (required), `symptoms[]` (required), `medicalHistory[]`, `questionsToDoctor[]`, `currentMedications[]`
+
+**Color hierarchy for medications:**
+- Drug name + dosage → `text-tp-slate-700` (dark)
+- Frequency/timing in brackets → `text-tp-slate-400` (lighter)
+- Example: **Telma 20mg** (Twice daily)
 
 **Permutations:**
 | Permutation | Data present | What changes |
 |-------------|-------------|--------------|
 | Minimal intake | symptoms only | Only symptoms section shown |
-| Full intake | symptoms + meds + conditions + questions | All expandable sections visible |
-| New patient | isNewPatient: true | Self-reported data labeled "(self-reported)" |
-| Returning patient | isNewPatient: false | Data cross-referenced with EMR |
+| Full intake | symptoms + meds + conditions + questions | All 4 sections visible |
 
 **Completeness donut:** No — patient-reported, no EMR expectation
-**Source tag:** Symptom Collector (date)
+**Source tag:** Patient Intake (date)
 
 ---
 

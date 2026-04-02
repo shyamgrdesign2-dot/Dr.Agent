@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { useTouchDevice } from "@/hooks/use-touch-device"
 import { CardShell } from "../CardShell"
@@ -10,15 +10,12 @@ import { ActionableTooltip } from "../ActionableTooltip"
 import { TPMedicalIcon } from "@/components/tp-ui"
 import { MessageQuestion } from "iconsax-reactjs"
 import type { SymptomCollectorData } from "../../types"
-import { highlightClinicalText } from "../../shared/highlightClinicalText"
 
 interface PatientReportedCardProps {
   data: SymptomCollectorData
   onCopy?: (section: string, items: string[]) => void
   onPillTap?: (label: string) => void
   defaultCollapsed?: boolean
-  /** Pre-written patient narrative from SmartSummaryData — used instead of buildQuickSnapshot for consistency */
-  patientNarrative?: string
 }
 
 /* ── section config ─────────────────────────────────── */
@@ -40,12 +37,17 @@ interface SectionDef {
  *  "Paracetamol SOS" → { name: "Paracetamol", detail: "SOS" }
  */
 function parseMedication(med: string): { name: string; detail?: string } {
-  // Match frequency pattern (1-0-0-1) optionally followed by timing (BF, AF, etc.)
+  // Pattern 1: Parenthesized detail — "Telma 20mg (Twice daily)" or "Telma 20mg (Twice daily | Before food)"
+  const parenMatch = med.trim().match(/^(.+?)\s*\((.+)\)\s*$/)
+  if (parenMatch) {
+    return { name: parenMatch[1].trim(), detail: parenMatch[2].trim() }
+  }
+  // Pattern 2: Frequency pattern (1-0-0-1) optionally followed by timing (BF, AF, etc.)
   const freqMatch = med.match(/\s+(\d+-\d+-\d+-\d+(?:\s+(?:BF|AF|BD|TDS|OD|SOS|HS))?)\s*$/i)
   if (freqMatch) {
     return { name: med.slice(0, freqMatch.index).trim(), detail: freqMatch[1].trim() }
   }
-  // Match standalone timing code at end
+  // Pattern 3: Standalone timing code at end
   const timingMatch = med.match(/\s+(BF|AF|BD|TDS|OD|SOS|HS)\s*$/i)
   if (timingMatch) {
     return { name: med.slice(0, timingMatch.index).trim(), detail: timingMatch[1].trim() }
@@ -182,151 +184,9 @@ function formatItem(item: { name: string; detail?: string }): string {
   return item.detail ? `${item.name} (${item.detail})` : item.name
 }
 
-/**
- * Build a concise quick snapshot — fits in ~2 lines at 392px width.
- *
- * Uses full condition names (Hypertension, Diabetes Mellitus — NOT abbreviations).
- * Highlights medicine names, dates, diagnosis, and symptoms in bold.
- * Shows only 1 current medication to save space.
- * "Suggested" medicines differ from "on" medicines.
- *
- * Example:
- *   "Patient with Hypertension 3yr and Diabetes Mellitus 2yr, on Telma 20mg,
- *    last visited on 27-01-2026 with fever, diagnosed Viral fever and
- *    Conjunctivitis, suggested Paracetamol 650mg and Azithromycin 500mg."
- */
-
-/** Full condition name mapping (no abbreviations) */
-const CONDITION_FULL: Record<string, string> = {
-  hypertension: "Hypertension",
-  diabetes: "Diabetes Mellitus",
-  dyslipidemia: "Dyslipidemia",
-  hypothyroid: "Hypothyroid",
-  "pre-diabetes": "Pre-Diabetes",
-  pcos: "PCOS",
-  migraine: "Migraine",
-}
-
-function formatCondition(condition: string): { name: string; duration?: string } {
-  const nameMatch = condition.match(/^([^(]+)/)
-  const rawName = nameMatch ? nameMatch[1].trim().toLowerCase() : condition.toLowerCase()
-  const full = CONDITION_FULL[rawName] ?? condition.replace(/\s*\(.*\)/, "").trim()
-  const durationMatch = condition.match(/\(([^)]+)\)/)
-  return { name: full, duration: durationMatch?.[1] }
-}
-
-/** Strip medication frequency patterns like "1-0-0-1", "1-0-0-0 BF" etc. */
-function cleanMedName(med: string): string {
-  return med
-    .replace(/\s+\d+-\d+-\d+-\d+\s*/g, " ")  // remove 1-0-0-1
-    .replace(/\s+(BF|AF|BD|TDS|OD|SOS|HS)\b/gi, "")  // remove timing
-    .trim()
-}
-
-/** Inline bold helper — semibold + non-italic for clear contrast in italic snapshot */
-function B({ children }: { children: React.ReactNode }) {
-  return <span className="font-semibold not-italic text-tp-slate-700">{children}</span>
-}
-
-function buildQuickSnapshot(data: SymptomCollectorData): React.ReactNode[] {
-  const parts: React.ReactNode[] = []
-
-  if (data.isNewPatient) {
-    // ── New patient: symptom-first compact snapshot ──
-    if (data.symptoms && data.symptoms.length > 0) {
-      const symptomNames = data.symptoms.map((s) => s.name).slice(0, 2)
-      parts.push(
-        <span key="newSymptoms">
-          New patient with <B>{symptomNames.join(" and ")}</B>
-          {data.symptoms[0]?.duration ? ` ${data.symptoms[0].duration}` : ""}
-        </span>,
-      )
-    }
-    // Allergy inline
-    if (data.allergies && data.allergies.length > 0) {
-      parts.push(
-        <span key="newAllergy">
-          {parts.length > 0 ? ". " : ""}
-          Allergy: <B>{data.allergies.join(", ")}</B>
-        </span>,
-      )
-    }
-    // Current meds — show 1
-    if (data.currentMedications && data.currentMedications.length > 0) {
-      const firstMed = cleanMedName(data.currentMedications[0])
-      parts.push(
-        <span key="newMeds">
-          {parts.length > 0 ? ", on " : "On "}
-          <B>{firstMed}</B>
-        </span>,
-      )
-    }
-  } else {
-    // ── Existing patient: condition-first snapshot ──
-    // Chronic conditions — full names with bold condition name
-    if (data.medicalHistory && data.medicalHistory.length > 0) {
-      const conditions = data.medicalHistory.map(formatCondition)
-      const conditionNodes = conditions.map((c, i) => (
-        <React.Fragment key={`cond-${i}`}>
-          {i > 0 && i === conditions.length - 1 ? " and " : i > 0 ? ", " : ""}
-          <B>{c.name}</B>{c.duration ? <span className="text-tp-slate-400"> {c.duration}</span> : ""}
-        </React.Fragment>
-      ))
-      parts.push(<span key="conditions">Patient with {conditionNodes}</span>)
-    }
-
-    // Current medications — show only 1, bold the name
-    if (data.currentMedications && data.currentMedications.length > 0) {
-      const firstMed = cleanMedName(data.currentMedications[0])
-      parts.push(
-        <span key="meds">
-          {parts.length > 0 ? ", on " : "On "}
-          <B>{firstMed}</B>
-        </span>,
-      )
-    }
-
-    // Last visit — inline with bold date, symptoms, diagnosis, suggested meds
-    if (data.lastVisitSummary) {
-      parts.push(
-        <span key="lastVisit">
-          {parts.length > 0 ? ", " : ""}
-          {highlightSummary(data.lastVisitSummary)}
-        </span>,
-      )
-    }
-  }
-
-  return parts
-}
-
-/** Highlight dates, diagnoses, symptoms, and med names in the lastVisitSummary */
-function highlightSummary(text: string): React.ReactNode {
-  // Pattern: "last visited on 27 Jan'26 with fever, diagnosed Viral fever ..., suggested Paracetamol 650mg ..."
-  const parts: React.ReactNode[] = []
-  const regex = /\b(last visited on)\s+(.+?)\s+(with)\s+([^,]+),\s*(diagnosed)\s+([^,]+),\s*(suggested)\s+(.+)/i
-  const match = text.match(regex)
-
-  if (match) {
-    parts.push("last visited on ")
-    parts.push(<B key="date">{match[2]}</B>)
-    parts.push(" with ")
-    parts.push(<B key="symptoms">{match[4].trim()}</B>)
-    parts.push(", diagnosed ")
-    parts.push(<B key="diagnosis">{match[6].trim()}</B>)
-    parts.push(", suggested ")
-    parts.push(<B key="suggested">{match[8].trim()}</B>)
-  } else {
-    // Fallback: show as-is
-    parts.push(text)
-  }
-
-  return <>{parts}</>
-}
-
 /* ── component ──────────────────────────────────────── */
 
-export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed, patientNarrative }: PatientReportedCardProps) {
+export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed }: PatientReportedCardProps) {
   const isTouch = useTouchDevice()
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
 
@@ -343,12 +203,6 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed,
 
   /* Collect all items for copy-all */
   const allItems = activeSections.flatMap((s) => s.items.map(formatItem))
-
-  /* Quick snapshot — flowing paragraph.
-     If a patientNarrative is passed (from SmartSummaryData), use it for consistency
-     across all views (GPSummaryCard, patient_narrative, intake card). */
-  const snapshotParts = patientNarrative ? [highlightClinicalText(patientNarrative)] : buildQuickSnapshot(data)
-  const showSnapshot = snapshotParts.length > 0
 
   /* Copy handler with flash feedback */
   const handleCopyItem = (text: string, key: string) => {
@@ -380,15 +234,6 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed,
       defaultCollapsed={defaultCollapsed ?? false}
     >
       <div className="flex flex-col gap-[8px]">
-        {/* Quick snapshot — quotation-style block */}
-        {showSnapshot && (
-          <div className="rounded-[8px] bg-tp-slate-50 border-l-[3px] border-tp-violet-300 px-3 py-2">
-            <p className="text-[14px] italic leading-[1.7] text-tp-slate-500">
-              &ldquo;{snapshotParts}&rdquo;
-            </p>
-          </div>
-        )}
-
         {/* Sections */}
         {activeSections.map((section) => (
           <div key={section.id}>

@@ -171,7 +171,7 @@ function renderCard(
 
     case "symptom_collector":
       // PatientReportedCard expects { data: SymptomCollectorData; onCopy?; onPillTap? }
-      return <PatientReportedCard data={output.data} defaultCollapsed={false} onPillTap={onPillTap} patientNarrative={output.data.patientNarrative} />
+      return <PatientReportedCard data={output.data} defaultCollapsed={false} onPillTap={onPillTap} />
 
     case "last_visit":
       // LastVisitCard expects { data: LastVisitCardData; onPillTap?; onSidebarNav?; onCopy?: () => void }

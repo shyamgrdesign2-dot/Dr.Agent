@@ -12,8 +12,8 @@ interface VitalsSummaryCardProps {
 
 /**
  * Today's Vitals card — compact clinical format:
- *   ShortLabel (unit)           value  ↑/↓
- *   e.g.  BP (mmHg)             70/60  ▼
+ *   ShortLabel (unit)           ↑/↓ value
+ *   e.g.  BP (mmHg)             ▼ 70/60
  */
 export function VitalsSummaryCard({ data }: VitalsSummaryCardProps) {
   return (
@@ -46,8 +46,11 @@ export function VitalsSummaryCard({ data }: VitalsSummaryCardProps) {
                 <span className="ml-[3px] text-tp-slate-400">({row.unit})</span>
               </span>
 
-              {/* Right: value + arrow */}
-              <div className="flex items-center">
+              {/* Right: arrow + value */}
+              <div className="flex items-center gap-[3px]">
+                {isFlagged && row.flag && row.flag !== "normal" && (
+                  <FlagArrow flag={row.flag} />
+                )}
                 <span
                   className={cn(
                     "text-[13px] font-medium tabular-nums",
@@ -56,9 +59,6 @@ export function VitalsSummaryCard({ data }: VitalsSummaryCardProps) {
                 >
                   {row.value}
                 </span>
-                {isFlagged && row.flag && row.flag !== "normal" && (
-                  <FlagArrow flag={row.flag} className="ml-[4px]" />
-                )}
               </div>
             </div>
           )
