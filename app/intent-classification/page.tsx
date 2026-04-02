@@ -1652,39 +1652,39 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
             </p>
           </div>
 
-          {/* Summary overview by category */}
-          <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Summary overview by category — compact */}
+          <div className="mb-4 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { label: "Data Display", color: "#3B82F6", zones: ["═ Inline Data Rows", "⚑ Flagged Data Rows", "⇔ Comparison Table", "👤 Patient List", "▤ KPI Table"] },
               { label: "Charts & Visualization", color: "#059669", zones: ["📈 Line Chart", "📊 Bar Chart", "◔ Donut / Pie Chart", "▦ Heatmap Grid"] },
               { label: "Lists & Selection", color: "#D97706", zones: ["☑ Checkbox List", "◉ Radio List", "• Bullet List"] },
               { label: "Specialized Formats", color: "#8B5CF6", zones: ["💊 Medication Display", "¶ Clinical Narrative", "🌐 Translation Pair", "⚠ Drug Interaction", "💉 Vaccination Schedule", "⏱ Timeline"] },
             ].map(cat => (
-              <div key={cat.label} className="rounded-xl border border-slate-200 bg-white p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
-                  <span className="text-[11px] font-bold" style={{ color: cat.color }}>{cat.label}</span>
-                  <span className="ml-auto text-[10px] text-slate-400">{cat.zones.length}</span>
+              <div key={cat.label} className="rounded-xl border border-slate-200 bg-white px-2.5 py-2">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                  <span className="text-[10px] font-bold" style={{ color: cat.color }}>{cat.label}</span>
+                  <span className="ml-auto text-[9px] text-slate-400">{cat.zones.length}</span>
                 </div>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-0.5">
                   {cat.zones.map(z => (
-                    <span key={z} className="rounded-md bg-slate-50 px-1.5 py-0.5 text-[9px] text-slate-600">{z}</span>
+                    <span key={z} className="rounded bg-slate-50 px-1 py-[1px] text-[8px] text-slate-600 leading-tight">{z}</span>
                   ))}
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Detailed zone grid */}
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Detailed zone grid — compact */}
+          <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
             {CONTENT_ZONE_TYPES_FOR_ANATOMY.map((cz) => (
-              <div key={cz.zone} className="rounded-lg border border-slate-100 bg-white px-3 py-2.5 hover:shadow-sm transition-shadow">
-                <div className="mb-1 flex items-center gap-2">
-                  <span className="text-[14px]">{cz.icon}</span>
-                  <span className="text-[11px] font-bold text-slate-800">{cz.zone}</span>
+              <div key={cz.zone} className="rounded-lg border border-slate-100 bg-white px-2.5 py-2 hover:shadow-sm transition-shadow">
+                <div className="mb-0.5 flex items-center gap-1.5">
+                  <span className="text-[12px]">{cz.icon}</span>
+                  <span className="text-[10px] font-bold text-slate-800">{cz.zone}</span>
                 </div>
-                <p className="mb-1 text-[10px] leading-relaxed text-slate-500">{cz.description}</p>
-                <p className="text-[9px] text-slate-400"><strong className="text-slate-500">Used in:</strong> {cz.usedIn}</p>
+                <p className="mb-0.5 text-[9px] leading-snug text-slate-500">{cz.description}</p>
+                <p className="text-[8px] text-slate-400 leading-snug"><strong className="text-slate-500">Used in:</strong> {cz.usedIn}</p>
               </div>
             ))}
           </div>

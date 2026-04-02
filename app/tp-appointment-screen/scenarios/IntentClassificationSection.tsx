@@ -84,7 +84,7 @@ const INTENT_CATEGORIES = [
     defaultFormat: "hybrid",
     description: "Execute actions on behalf of the user — cancel appointments, generate bills, save documents, send reminders, translate, copy Rx, draft referrals.",
     triggerExamples: ["Cancel this appointment", "Generate bill", "Save against patient", "Translate to Hindi", "Copy prescription"],
-    cardOutputs: ["follow_up", "translation", "rx_preview", "referral", "advice_bundle", "completeness", "voice_structured_rx"],
+    cardOutputs: ["translation", "rx_preview", "referral", "advice_bundle", "completeness", "voice_structured_rx"],
     fallbackBehavior: "Text explaining what's needed first (e.g., generate meds before copy).",
   },
   {
@@ -738,19 +738,20 @@ export default function IntentClassificationSection({ onNavigateTab }: { onNavig
           When a card is selected, its body uses one of these zone types based on data shape.
         </p>
 
-        {/* Summary by category */}
-        <div className="mb-4 grid gap-2 sm:grid-cols-4">
+        {/* Summary by category — compact row */}
+        <div className="mb-4 grid gap-1.5 sm:grid-cols-4">
           {Object.entries(ZONE_CATEGORY_STYLES).map(([key, style]) => {
             const zones = CONTENT_ZONE_TYPES.filter(z => z.category === key)
             return (
-              <div key={key} className={`rounded-lg border border-slate-200 p-3 ${style.bg}`}>
-                <div className="flex items-center gap-2 mb-2">
+              <div key={key} className={`rounded-lg border border-slate-200 px-2.5 py-2 ${style.bg}`}>
+                <div className="flex items-center gap-1.5 mb-1.5">
                   <span className={`h-2 w-2 rounded-full ${style.dot}`} />
-                  <p className="text-[10px] font-semibold text-slate-700">{style.label} <span className="text-slate-400">({zones.length})</span></p>
+                  <p className="text-[10px] font-semibold text-slate-700">{style.label}</p>
+                  <span className="text-[9px] text-slate-400">({zones.length})</span>
                 </div>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-0.5">
                   {zones.map(z => (
-                    <span key={z.zone} className="rounded bg-white/70 px-1.5 py-0.5 text-[8px] text-slate-500">{z.icon} {z.zone}</span>
+                    <span key={z.zone} className="rounded bg-white/80 px-1 py-[1px] text-[8px] text-slate-500 leading-tight">{z.icon} {z.zone}</span>
                   ))}
                 </div>
               </div>
@@ -758,18 +759,18 @@ export default function IntentClassificationSection({ onNavigateTab }: { onNavig
           })}
         </div>
 
-        {/* Detailed grid */}
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Detailed grid — compact */}
+        <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
           {CONTENT_ZONE_TYPES.map((cz) => {
             const catStyle = ZONE_CATEGORY_STYLES[cz.category]
             return (
-              <div key={cz.zone} className={`rounded-lg border border-slate-100 bg-white px-3 py-2.5 border-l-2 ${catStyle?.border || ""}`}>
-                <div className="mb-1 flex items-center gap-2">
-                  <span className="text-[13px]">{cz.icon}</span>
-                  <span className="text-[11px] font-semibold text-slate-700">{cz.zone}</span>
+              <div key={cz.zone} className={`rounded-lg border border-slate-100 bg-white px-2.5 py-2 border-l-2 ${catStyle?.border || ""}`}>
+                <div className="mb-0.5 flex items-center gap-1.5">
+                  <span className="text-[12px]">{cz.icon}</span>
+                  <span className="text-[10px] font-semibold text-slate-700">{cz.zone}</span>
                 </div>
-                <p className="mb-1 text-[10px] leading-relaxed text-slate-500">{cz.description}</p>
-                <p className="text-[9px] text-slate-400">{cz.usedIn}</p>
+                <p className="mb-0.5 text-[9px] leading-snug text-slate-500">{cz.description}</p>
+                <p className="text-[8px] text-slate-400 leading-snug">{cz.usedIn}</p>
               </div>
             )
           })}
