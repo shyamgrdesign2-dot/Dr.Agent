@@ -733,17 +733,11 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
 
       let reply = buildReply(msg, summary, newPhase, intent)
 
-      // V0 guard: only allow summary card kinds, strip unsupported cards → text + suggestions
+      // V0 guard: only allow summary card kinds, strip unsupported cards
       if (reply.rxOutput && !V0_ALLOWED_KINDS.has(reply.rxOutput.kind)) {
         reply = {
-          text: "I can help with patient summaries, vitals, and clinical history in this mode. Try one of these:",
+          text: "I can help with patient summaries, vitals, and clinical history in this mode. Try asking for a patient summary, today's vitals, or medical history.",
           rxOutput: undefined,
-          suggestions: [
-            { label: "Patient summary", message: "Patient summary" },
-            { label: "Today's vitals", message: "Today's vitals" },
-            { label: "Medical history", message: "Medical history" },
-            { label: "Last visit", message: "Last visit details" },
-          ],
         }
       }
       delete reply.followUpPills
@@ -755,7 +749,6 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
         createdAt: new Date().toISOString(),
         rxOutput: reply.rxOutput,
         feedbackGiven: null,
-        suggestions: reply.suggestions,
       }
 
       setMessagesByPatient((prev) => ({

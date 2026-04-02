@@ -32,7 +32,6 @@ import { ChatThread } from "./chat/ChatThread"
 import { WelcomeScreen, type PageContext } from "./chat/WelcomeScreen"
 import { PillBar } from "./chat/PillBar"
 import { ChatInput } from "./chat/ChatInput"
-import { SuggestionBar } from "./chat/SuggestionBar"
 import { AttachPanel } from "./chat/AttachPanel"
 import { DocumentBottomSheet } from "./chat/DocumentBottomSheet"
 import type { PatientDocument } from "./types"
@@ -301,12 +300,6 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
     })
   }, [mode, activeTab, activeRailItem, isPatientContext, summary, phase, activeTabLens, selectedPatientId, showDoctorViewSelector, doctorViewType, shownCardKinds])
 
-  // ── Extract suggestions from the last assistant message (for input-area suggestion bar) ──
-  const lastAssistantSuggestions = useMemo(() => {
-    const lastAssistant = [...messages].reverse().find(m => m.role === "assistant")
-    return lastAssistant?.suggestions ?? []
-  }, [messages])
-
   // ── Sync patient allergies to context (for RxPad medication alerts) ──
   useEffect(() => {
     setPatientAllergies(summary.allergies ?? [])
@@ -524,7 +517,6 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
         createdAt: new Date().toISOString(),
         rxOutput: reply.rxOutput,
         feedbackGiven: null,
-        suggestions: reply.suggestions,
       }
 
       setMessagesByPatient((prev) => ({
@@ -968,16 +960,6 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
             <PillBar
               pills={pills}
               onTap={handlePillTap}
-              disabled={isTyping}
-            />
-          </div>
-        )}
-        {/* Suggestion chips from last assistant response — above input */}
-        {lastAssistantSuggestions.length > 0 && !isTyping && messages.filter(m => m.role === "user").length > 0 && (
-          <div className="px-[4px] pb-[4px]">
-            <SuggestionBar
-              suggestions={lastAssistantSuggestions}
-              onTap={(msg) => handleSend(msg)}
               disabled={isTyping}
             />
           </div>
