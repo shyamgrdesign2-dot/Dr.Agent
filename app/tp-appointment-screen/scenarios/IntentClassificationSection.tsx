@@ -12,6 +12,7 @@ const RESPONSE_TYPES = [
   {
     type: "UI Card",
     icon: "▣",
+    tint: "violet",
     description: "Structured visual cards with headers, data sections, charts, tables, copy actions, and navigation. Used when structured data exists.",
     when: [
       "Structured data exists (labs, vitals, medications, visit history)",
@@ -28,6 +29,7 @@ const RESPONSE_TYPES = [
   {
     type: "Text Response",
     icon: "≡",
+    tint: "blue",
     description: "Plain conversational text with suggestion pills. Used when data is insufficient for a card or the query is a simple question.",
     when: [
       "No relevant data exists for the query",
@@ -151,12 +153,12 @@ const INTENT_CATEGORIES = [
 
 const DECISION_FLOW_STEPS = [
   { step: 1, label: "Receive Input", description: "Doctor types a question or taps a canned pill." },
-  { step: 2, label: "Classify Intent", description: "Normalize input and match against 96+ keyword rules across 10 categories. Canned pills skip this via PILL_INTENT_MAP (160+ entries)." },
-  { step: 3, label: "Check Data", description: "Check patient/clinic data: labs, vitals, history, medications, specialty records. Determines card vs text." },
-  { step: 4, label: "Select Format", description: "Card (structured visual), Hybrid (card + text), or Text (plain). Data-rich → card, data-absent → text." },
-  { step: 5, label: "Choose Card", description: "Match query to one of 63+ card types. Pick content zone, section tags, copy actions, insight." },
-  { step: 6, label: "Assemble", description: "Build full card anatomy: Header, Content Zone, Insight, Canned Pills, Footer." },
-  { step: 7, label: "Render", description: "Render in chat panel. Wire copy to RxPad. Connect sidebar. Show follow-up pills." },
+  { step: 2, label: "Classify Intent", description: "Normalize and match against 96+ keyword rules. Pills skip via PILL_INTENT_MAP." },
+  { step: 3, label: "Check Data", description: "Check patient data: labs, vitals, history, meds, specialty records." },
+  { step: 4, label: "Select Format", description: "Card (visual), Hybrid (card + text), or Text (plain). Data-rich → card." },
+  { step: 5, label: "Choose Card", description: "Match to 63+ card types. Pick content zone, tags, copy actions." },
+  { step: 6, label: "Assemble", description: "Build anatomy: Header, Content, Insight, Pills, Footer." },
+  { step: 7, label: "Render", description: "Render in chat. Wire copy to RxPad. Show follow-up pills." },
 ]
 
 // ── Walkthrough ────────────────────────────────────────────
@@ -215,7 +217,7 @@ const SYNTHETIC_DATA_CHART = [
   {
     category: "Patient Context & Summaries",
     icon: "📋",
-    note: "All summaries follow SBAR format (Situation, Background, Assessment, Recommendation)",
+    note: "All summaries follow SBAR format (Situation, Background, Assessment, Recommendation). patient_summary and sbar_overview use the same SmartSummaryData structure.",
     entries: [
       { query: "Patient summary / SBAR", intent: "data_retrieval", dataCheck: "Any patient data", cardFormat: "sbar_overview", contentZone: "SBAR sections + inline data rows", fallback: "Text: suggest starting with history" },
       { query: "Pre-visit intake", intent: "data_retrieval", dataCheck: "Symptom collector data", cardFormat: "symptom_collector", contentZone: "Inline data rows", fallback: "Text: no pre-visit data submitted" },
@@ -321,12 +323,12 @@ const CONTENT_ZONE_TYPES = [
   { zone: "Timeline", description: "Chronological event list with type markers.", usedIn: "Patient timeline (visits, labs, procedures)", icon: "⏱", category: "specialized" },
 ]
 
-const ZONE_CATEGORIES = [
-  { key: "data", label: "Data Display", count: 4 },
-  { key: "chart", label: "Charts", count: 4 },
-  { key: "list", label: "Lists", count: 3 },
-  { key: "specialized", label: "Specialized", count: 7 },
-]
+const ZONE_CATEGORY_STYLES: Record<string, { label: string; bg: string; border: string; dot: string }> = {
+  data: { label: "Data Display", bg: "bg-blue-50/60", border: "border-l-blue-400", dot: "bg-blue-500" },
+  chart: { label: "Charts", bg: "bg-emerald-50/60", border: "border-l-emerald-400", dot: "bg-emerald-500" },
+  list: { label: "Lists", bg: "bg-amber-50/60", border: "border-l-amber-400", dot: "bg-amber-500" },
+  specialized: { label: "Specialized", bg: "bg-violet-50/60", border: "border-l-violet-400", dot: "bg-violet-500" },
+}
 
 // ── Component ────────────────────────────────────────────────
 
@@ -355,35 +357,38 @@ export default function IntentClassificationSection({ onNavigateTab }: { onNavig
       <section>
         <h4 className="mb-4 text-[15px] font-bold text-slate-800">Two Response Types</h4>
         <div className="grid gap-4 sm:grid-cols-2">
-          {RESPONSE_TYPES.map((rt, idx) => (
-            <div key={rt.type} className={`rounded-xl border p-5 ${idx === 0 ? "border-slate-200 bg-slate-50/50" : "border-slate-200 bg-white"}`}>
-              <div className="mb-3 flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-[16px]">{rt.icon}</span>
-                <h5 className="text-[13px] font-bold text-slate-800">{rt.type}</h5>
-              </div>
-              <p className="mb-3 text-[11px] leading-relaxed text-slate-500">{rt.description}</p>
+          {RESPONSE_TYPES.map((rt) => {
+            const isViolet = rt.tint === "violet"
+            return (
+              <div key={rt.type} className={`rounded-xl border p-5 ${isViolet ? "border-violet-200 bg-violet-50/30" : "border-blue-200 bg-blue-50/30"}`}>
+                <div className="mb-3 flex items-center gap-2">
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-lg text-[16px] ${isViolet ? "bg-violet-100" : "bg-blue-100"}`}>{rt.icon}</span>
+                  <h5 className={`text-[13px] font-bold ${isViolet ? "text-violet-800" : "text-blue-800"}`}>{rt.type}</h5>
+                </div>
+                <p className="mb-3 text-[11px] leading-relaxed text-slate-500">{rt.description}</p>
 
-              <p className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-300">When</p>
-              <div className="mb-3 space-y-1">
-                {rt.when.map((w, i) => (
-                  <div key={i} className="flex items-start gap-2">
-                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300" />
-                    <span className="text-[10px] leading-relaxed text-slate-500">{w}</span>
-                  </div>
-                ))}
-              </div>
+                <p className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-300">When</p>
+                <div className="mb-3 space-y-1">
+                  {rt.when.map((w, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${isViolet ? "bg-violet-300" : "bg-blue-300"}`} />
+                      <span className="text-[10px] leading-relaxed text-slate-500">{w}</span>
+                    </div>
+                  ))}
+                </div>
 
-              <p className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-300">Examples</p>
-              <div className="space-y-1">
-                {rt.examples.map((ex, i) => (
-                  <div key={i} className="flex items-center gap-2 rounded-md bg-slate-50 px-2 py-1">
-                    <span className="text-[10px] text-slate-500">{ex.query}</span>
-                    <span className="ml-auto text-[9px] font-mono text-slate-400">{ex.card}</span>
-                  </div>
-                ))}
+                <p className="mb-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-300">Examples</p>
+                <div className="space-y-1">
+                  {rt.examples.map((ex, i) => (
+                    <div key={i} className={`flex items-center gap-2 rounded-md px-2 py-1 ${isViolet ? "bg-violet-50/60" : "bg-blue-50/60"}`}>
+                      <span className="text-[10px] text-slate-500">{ex.query}</span>
+                      <span className={`ml-auto text-[9px] font-mono ${isViolet ? "text-violet-500" : "text-blue-500"}`}>{ex.card}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </section>
 
@@ -394,20 +399,20 @@ export default function IntentClassificationSection({ onNavigateTab }: { onNavig
         <h4 className="mb-4 text-[15px] font-bold text-slate-800">Decision Pipeline</h4>
 
         {/* Visual flow — connected cards with arrows */}
-        <div className="mb-6 overflow-x-auto rounded-xl border border-slate-200 bg-white px-5 py-6">
-          <div className="flex items-start gap-0 min-w-[880px]">
+        <div className="mb-6 overflow-x-auto rounded-xl border border-slate-200 bg-white px-6 py-7">
+          <div className="flex items-start gap-0 min-w-[960px]">
             {DECISION_FLOW_STEPS.map((s, i) => (
               <React.Fragment key={s.step}>
-                <div className="flex flex-col items-center" style={{ width: 110 }}>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-[12px] font-bold text-slate-600">
+                <div className="flex flex-col items-center" style={{ width: 130 }}>
+                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100 text-[13px] font-bold text-slate-600">
                     {s.step}
                   </div>
-                  <p className="mt-1.5 text-[10px] font-semibold text-slate-700 text-center leading-tight">{s.label}</p>
-                  <p className="mt-1 text-[8px] text-slate-400 text-center leading-snug max-w-[100px]">{s.description}</p>
+                  <p className="mt-2 text-[10px] font-semibold text-slate-700 text-center leading-tight">{s.label}</p>
+                  <p className="mt-1 text-[9px] text-slate-400 text-center leading-snug max-w-[115px]">{s.description}</p>
                 </div>
                 {i < DECISION_FLOW_STEPS.length - 1 && (
-                  <div className="flex items-center pt-4" style={{ minWidth: 16 }}>
-                    <div className="h-[1.5px] w-3 bg-slate-200" />
+                  <div className="flex items-center pt-4" style={{ minWidth: 8 }}>
+                    <div className="h-[1.5px] w-4 bg-slate-200" />
                     <svg width="6" height="8" viewBox="0 0 6 8" className="shrink-0 text-slate-300">
                       <path d="M0 0 L6 4 L0 8Z" fill="currentColor" />
                     </svg>
@@ -418,47 +423,46 @@ export default function IntentClassificationSection({ onNavigateTab }: { onNavig
           </div>
 
           {/* Outcome callout */}
-          <div className="mt-5 flex items-center justify-center gap-4 border-t border-slate-100 pt-4">
-            <div className="flex items-center gap-1.5 rounded-md bg-slate-50 border border-slate-200 px-3 py-1.5">
+          <div className="mt-6 flex items-center justify-center gap-4 border-t border-slate-100 pt-5">
+            <div className="flex items-center gap-1.5 rounded-md bg-violet-50 border border-violet-200 px-3 py-1.5">
               <span className="text-[10px]">▣</span>
-              <span className="text-[10px] font-medium text-slate-600">Data exists → <strong className="text-slate-800">UI Card</strong></span>
+              <span className="text-[10px] font-medium text-violet-700">Data exists → <strong>UI Card</strong></span>
             </div>
             <span className="text-[10px] text-slate-300">or</span>
-            <div className="flex items-center gap-1.5 rounded-md bg-slate-50 border border-slate-200 px-3 py-1.5">
+            <div className="flex items-center gap-1.5 rounded-md bg-blue-50 border border-blue-200 px-3 py-1.5">
               <span className="text-[10px]">≡</span>
-              <span className="text-[10px] font-medium text-slate-600">No data → <strong className="text-slate-800">Text + Pills</strong></span>
+              <span className="text-[10px] font-medium text-blue-700">No data → <strong>Text + Pills</strong></span>
             </div>
           </div>
         </div>
 
-        {/* Input routing: Pills vs Free Text — inline within pipeline */}
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <p className="mb-3 text-[11px] font-semibold text-slate-700">Input Routing: Two paths, one decision</p>
+        {/* Input routing */}
+        <div className="rounded-xl border border-slate-200 bg-white p-6">
+          <p className="mb-4 text-[11px] font-semibold text-slate-700">Input Routing: Two paths, one decision</p>
           <div className="overflow-x-auto">
             <div className="min-w-[640px]">
-              {/* Two input sources → processing → convergence → data check → outcomes */}
-              <div className="flex items-start gap-8 justify-center">
-                {/* Left path: Pills */}
-                <div className="flex flex-col items-center gap-2 w-48">
-                  <div className="flex h-11 w-full items-center justify-center rounded-lg bg-slate-100 border border-slate-200 gap-2">
+              <div className="flex items-start gap-10 justify-center">
+                {/* Left: Pills */}
+                <div className="flex flex-col items-center gap-2 w-52">
+                  <div className="flex h-12 w-full items-center justify-center rounded-lg bg-violet-50 border border-violet-200 gap-2">
                     <span className="text-[13px]">💊</span>
-                    <span className="text-[11px] font-semibold text-slate-700">Canned Pill Tap</span>
+                    <span className="text-[11px] font-semibold text-violet-700">Canned Pill Tap</span>
                   </div>
-                  <svg width="2" height="12" className="text-slate-300"><rect width="2" height="12" fill="currentColor" /></svg>
-                  <div className="flex h-10 w-full items-center justify-center rounded-lg bg-slate-700 text-white">
+                  <svg width="2" height="14" className="text-violet-300"><rect width="2" height="14" fill="currentColor" /></svg>
+                  <div className="flex h-11 w-full items-center justify-center rounded-lg bg-violet-600 text-white">
                     <span className="text-[10px] font-mono font-semibold">PILL_INTENT_MAP</span>
                   </div>
                   <span className="text-[8px] text-slate-400">160+ mapped → skip classification</span>
                 </div>
 
-                {/* Right path: Text */}
-                <div className="flex flex-col items-center gap-2 w-48">
-                  <div className="flex h-11 w-full items-center justify-center rounded-lg bg-slate-100 border border-slate-200 gap-2">
+                {/* Right: Text */}
+                <div className="flex flex-col items-center gap-2 w-52">
+                  <div className="flex h-12 w-full items-center justify-center rounded-lg bg-blue-50 border border-blue-200 gap-2">
                     <span className="text-[13px]">⌨</span>
-                    <span className="text-[11px] font-semibold text-slate-700">Free Text Input</span>
+                    <span className="text-[11px] font-semibold text-blue-700">Free Text Input</span>
                   </div>
-                  <svg width="2" height="12" className="text-slate-300"><rect width="2" height="12" fill="currentColor" /></svg>
-                  <div className="flex h-10 w-full items-center justify-center rounded-lg bg-slate-700 text-white">
+                  <svg width="2" height="14" className="text-blue-300"><rect width="2" height="14" fill="currentColor" /></svg>
+                  <div className="flex h-11 w-full items-center justify-center rounded-lg bg-blue-600 text-white">
                     <span className="text-[10px] font-semibold">Intent Engine (96+ rules)</span>
                   </div>
                   <span className="text-[8px] text-slate-400">Normalize → Match → Classify</span>
@@ -466,48 +470,48 @@ export default function IntentClassificationSection({ onNavigateTab }: { onNavig
               </div>
 
               {/* Converge */}
-              <div className="flex justify-center my-2">
-                <svg width="400" height="24" viewBox="0 0 400 24" className="text-slate-300">
-                  <path d="M104 0 L104 8 L200 16" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                  <path d="M296 0 L296 8 L200 16" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                  <path d="M200 16 L200 24" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                  <polygon points="196,24 204,24 200,28" fill="currentColor" />
+              <div className="flex justify-center my-3">
+                <svg width="440" height="28" viewBox="0 0 440 28" className="text-slate-300">
+                  <path d="M114 0 L114 10 L220 20" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                  <path d="M326 0 L326 10 L220 20" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                  <path d="M220 20 L220 28" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                  <polygon points="216,28 224,28 220,33" fill="currentColor" />
                 </svg>
               </div>
 
-              {/* Unified: Data Check */}
-              <div className="flex justify-center mb-2">
-                <div className="flex h-10 w-52 items-center justify-center rounded-lg bg-slate-800 text-white gap-2">
-                  <span className="text-[11px] font-semibold">Intent + Data Check</span>
+              {/* Data Check */}
+              <div className="flex justify-center mb-3">
+                <div className="flex h-11 w-56 items-center justify-center rounded-lg bg-slate-800 text-white gap-2">
+                  <span className="text-[11px] font-semibold">Intent + Data Availability Check</span>
                 </div>
               </div>
 
-              {/* Branch to outcomes */}
-              <div className="flex justify-center mb-2">
-                <svg width="400" height="24" viewBox="0 0 400 24" className="text-slate-300">
-                  <path d="M200 0 L200 8" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                  <path d="M200 8 L120 20" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                  <path d="M200 8 L280 20" stroke="currentColor" strokeWidth="1.5" fill="none" />
-                  <polygon points="116,17 124,20 118,24" fill="currentColor" />
-                  <polygon points="276,17 284,20 278,24" fill="currentColor" />
+              {/* Branch */}
+              <div className="flex justify-center mb-3">
+                <svg width="440" height="28" viewBox="0 0 440 28" className="text-slate-300">
+                  <path d="M220 0 L220 10" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                  <path d="M220 10 L130 22" stroke="#8B5CF6" strokeWidth="1.5" fill="none" />
+                  <path d="M220 10 L310 22" stroke="#3B82F6" strokeWidth="1.5" fill="none" />
+                  <polygon points="126,19 134,22 128,26" fill="#8B5CF6" />
+                  <polygon points="306,19 314,22 308,26" fill="#3B82F6" />
                 </svg>
               </div>
 
               {/* Two outcomes */}
-              <div className="flex justify-center gap-12">
+              <div className="flex justify-center gap-14">
                 <div className="flex flex-col items-center gap-1">
-                  <div className="flex h-10 w-40 items-center justify-center rounded-lg bg-slate-100 border border-slate-200 gap-1.5">
+                  <div className="flex h-11 w-44 items-center justify-center rounded-lg bg-violet-50 border border-violet-200 gap-1.5">
                     <span className="text-[12px]">▣</span>
-                    <span className="text-[11px] font-semibold text-slate-700">UI Card</span>
+                    <span className="text-[11px] font-semibold text-violet-700">UI Card</span>
                   </div>
-                  <span className="text-[8px] text-slate-400">63+ card types</span>
+                  <span className="text-[8px] text-violet-400">63+ card types</span>
                 </div>
                 <div className="flex flex-col items-center gap-1">
-                  <div className="flex h-10 w-40 items-center justify-center rounded-lg bg-slate-100 border border-slate-200 gap-1.5">
+                  <div className="flex h-11 w-44 items-center justify-center rounded-lg bg-blue-50 border border-blue-200 gap-1.5">
                     <span className="text-[12px]">≡</span>
-                    <span className="text-[11px] font-semibold text-slate-700">Text + Pills</span>
+                    <span className="text-[11px] font-semibold text-blue-700">Text + Pills</span>
                   </div>
-                  <span className="text-[8px] text-slate-400">Explanation / guardrail / fallback</span>
+                  <span className="text-[8px] text-blue-400">Explanation / guardrail / fallback</span>
                 </div>
               </div>
             </div>
@@ -563,54 +567,65 @@ export default function IntentClassificationSection({ onNavigateTab }: { onNavig
       <section>
         <h4 className="mb-2 text-[15px] font-bold text-slate-800">Walkthrough: &quot;{HBAIC_WALKTHROUGH.query}&quot;</h4>
         <p className="mb-4 text-[11px] text-slate-400">
-          Same question, 3 data scenarios, 3 different outcomes.
+          Same question, 3 data scenarios, 3 different outcomes. Click any row to see the AI thinking process.
         </p>
 
-        {/* Compact summary table */}
-        <div className="mb-4 rounded-xl border border-slate-200 bg-white overflow-hidden">
+        {/* Summary table */}
+        <div className="mb-4 rounded-xl border border-slate-200 bg-white overflow-hidden border-l-4 border-l-violet-300">
           <table className="w-full text-[11px]">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="px-3 py-2 text-left font-semibold text-slate-500 w-[35%]">Scenario</th>
-                <th className="px-3 py-2 text-left font-semibold text-slate-500 w-[12%]">Output</th>
-                <th className="px-3 py-2 text-left font-semibold text-slate-500">What happens</th>
+                <th className="px-4 py-2.5 text-left font-semibold text-slate-500 w-[30%]">Scenario</th>
+                <th className="px-3 py-2.5 text-left font-semibold text-slate-500 w-[10%]">Output</th>
+                <th className="px-3 py-2.5 text-left font-semibold text-slate-500">What happens</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-100">
               {HBAIC_WALKTHROUGH.scenarios.map((s, idx) => (
-                <tr key={idx} className="hover:bg-slate-25 cursor-pointer" onClick={() => setExpandedScenario(expandedScenario === idx ? null : idx)}>
-                  <td className="px-3 py-2 font-medium text-slate-700">{s.condition}</td>
-                  <td className="px-3 py-2">
-                    <span className={`rounded px-1.5 py-0.5 text-[9px] font-bold text-white ${s.outcome === "card" ? "bg-slate-700" : "bg-slate-400"}`}>
+                <tr
+                  key={idx}
+                  className={`cursor-pointer transition-colors ${expandedScenario === idx ? "bg-violet-50/30" : "hover:bg-slate-50"}`}
+                  onClick={() => setExpandedScenario(expandedScenario === idx ? null : idx)}
+                >
+                  <td className="px-4 py-2.5 font-medium text-slate-700">{s.condition}</td>
+                  <td className="px-3 py-2.5">
+                    <span className={`rounded px-1.5 py-0.5 text-[9px] font-bold text-white ${s.outcome === "card" ? "bg-violet-600" : "bg-blue-500"}`}>
                       {s.outcome}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-slate-500">{s.summary}</td>
+                  <td className="px-3 py-2.5 text-slate-500">
+                    {s.summary.split("→").map((part, pi) => (
+                      <React.Fragment key={pi}>
+                        {pi > 0 && <span className="text-slate-300"> → </span>}
+                        <span>{part.trim()}</span>
+                      </React.Fragment>
+                    ))}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        {/* Expanded detail (if any scenario selected) */}
+        {/* Expanded detail */}
         {expandedScenario !== null && (
-          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-100">
+          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden border-l-4 border-l-violet-300">
+            <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className={`rounded px-2 py-0.5 text-[10px] font-bold text-white ${HBAIC_WALKTHROUGH.scenarios[expandedScenario].outcome === "card" ? "bg-slate-700" : "bg-slate-400"}`}>
+                <span className={`rounded px-2 py-0.5 text-[10px] font-bold text-white ${HBAIC_WALKTHROUGH.scenarios[expandedScenario].outcome === "card" ? "bg-violet-600" : "bg-blue-500"}`}>
                   {HBAIC_WALKTHROUGH.scenarios[expandedScenario].outcome.toUpperCase()}
                 </span>
                 <span className="text-[12px] font-semibold text-slate-700">{HBAIC_WALKTHROUGH.scenarios[expandedScenario].condition}</span>
-                <span className="text-[10px] text-slate-400">→ {HBAIC_WALKTHROUGH.scenarios[expandedScenario].cardType}</span>
+                <span className="text-[10px] text-slate-400">→ <strong className="text-slate-600">{HBAIC_WALKTHROUGH.scenarios[expandedScenario].cardType}</strong></span>
               </div>
-              <button onClick={() => setExpandedScenario(null)} className="text-[10px] text-slate-400 hover:text-slate-600">Close</button>
+              <button onClick={() => setExpandedScenario(null)} className="text-[10px] text-slate-400 hover:text-slate-600">Close ✕</button>
             </div>
-            <div className="px-4 py-3">
+            <div className="px-5 py-4">
               <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-slate-300">AI Thinking Process</p>
               <div className="space-y-1.5">
                 {HBAIC_WALKTHROUGH.scenarios[expandedScenario].thinkingProcess.map((tp, i) => (
-                  <div key={i} className="flex items-start gap-3 rounded-lg bg-slate-50 px-3 py-2">
-                    <span className="mt-0.5 shrink-0 rounded bg-slate-200 px-1.5 py-0.5 text-[9px] font-bold text-slate-600 min-w-[60px] text-center">
+                  <div key={i} className={`flex items-start gap-3 rounded-lg px-3 py-2.5 ${i % 2 === 0 ? "bg-slate-50" : "bg-white"}`}>
+                    <span className="mt-0.5 shrink-0 rounded bg-violet-100 px-2 py-0.5 text-[9px] font-bold text-violet-700 min-w-[70px] text-center">
                       {tp.aspect}
                     </span>
                     <span className="text-[10px] leading-relaxed text-slate-600">{tp.decision}</span>
@@ -631,20 +646,9 @@ export default function IntentClassificationSection({ onNavigateTab }: { onNavig
           Query → Intent → Data Check → Card → Content Zone → Fallback. The single source of truth for what Dr. Agent shows.
         </p>
 
-        {/* SBAR note */}
-        <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5">
-          <p className="text-[10px] leading-relaxed text-slate-500">
-            <strong className="text-slate-600">Summaries & SBAR:</strong> All patient summaries follow{" "}
-            <strong className="text-slate-700">SBAR protocol</strong> (Situation, Background, Assessment, Recommendation).
-            Both <code className="rounded bg-slate-200 px-1 text-[9px]">patient_summary</code> and{" "}
-            <code className="rounded bg-slate-200 px-1 text-[9px]">sbar_overview</code> use the same{" "}
-            <code className="rounded bg-slate-200 px-1 text-[9px]">SmartSummaryData</code>. Specialty summaries also follow SBAR with domain-specific data.
-          </p>
-        </div>
-
         <div className="space-y-3">
           {SYNTHETIC_DATA_CHART.map((group) => (
-            <div key={group.category} className="overflow-hidden rounded-xl border border-slate-200">
+            <div key={group.category} className="overflow-hidden rounded-xl border border-slate-200 border-l-[3px] border-l-violet-200">
               <button
                 type="button"
                 className="flex w-full items-center justify-between px-4 py-2.5 bg-slate-50 hover:bg-slate-100 transition-colors"
@@ -690,7 +694,7 @@ export default function IntentClassificationSection({ onNavigateTab }: { onNavig
                             </td>
                             <td className="px-3 py-2 text-slate-500">{entry.dataCheck}</td>
                             <td className="px-3 py-2">
-                              <code className="rounded bg-slate-50 border border-slate-100 px-1 py-0.5 text-[9px] font-mono text-slate-600">{entry.cardFormat}</code>
+                              <code className="rounded bg-violet-50 border border-violet-100 px-1 py-0.5 text-[9px] font-mono text-violet-600">{entry.cardFormat}</code>
                             </td>
                             <td className="px-3 py-2 text-slate-500">{entry.contentZone}</td>
                             <td className="px-3 py-2 text-slate-400">{entry.fallback}</td>
@@ -717,14 +721,17 @@ export default function IntentClassificationSection({ onNavigateTab }: { onNavig
 
         {/* Summary by category */}
         <div className="mb-4 grid gap-2 sm:grid-cols-4">
-          {ZONE_CATEGORIES.map((cat) => {
-            const zones = CONTENT_ZONE_TYPES.filter(z => z.category === cat.key)
+          {Object.entries(ZONE_CATEGORY_STYLES).map(([key, style]) => {
+            const zones = CONTENT_ZONE_TYPES.filter(z => z.category === key)
             return (
-              <div key={cat.key} className="rounded-lg border border-slate-200 bg-white p-3">
-                <p className="mb-1.5 text-[10px] font-semibold text-slate-600">{cat.label} <span className="text-slate-300">({cat.count})</span></p>
+              <div key={key} className={`rounded-lg border border-slate-200 p-3 ${style.bg}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={`h-2 w-2 rounded-full ${style.dot}`} />
+                  <p className="text-[10px] font-semibold text-slate-700">{style.label} <span className="text-slate-400">({zones.length})</span></p>
+                </div>
                 <div className="flex flex-wrap gap-1">
                   {zones.map(z => (
-                    <span key={z.zone} className="rounded bg-slate-50 px-1.5 py-0.5 text-[8px] text-slate-500">{z.icon} {z.zone}</span>
+                    <span key={z.zone} className="rounded bg-white/70 px-1.5 py-0.5 text-[8px] text-slate-500">{z.icon} {z.zone}</span>
                   ))}
                 </div>
               </div>
@@ -734,16 +741,19 @@ export default function IntentClassificationSection({ onNavigateTab }: { onNavig
 
         {/* Detailed grid */}
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {CONTENT_ZONE_TYPES.map((cz) => (
-            <div key={cz.zone} className="rounded-lg border border-slate-100 bg-white px-3 py-2.5">
-              <div className="mb-1 flex items-center gap-2">
-                <span className="text-[13px]">{cz.icon}</span>
-                <span className="text-[11px] font-semibold text-slate-700">{cz.zone}</span>
+          {CONTENT_ZONE_TYPES.map((cz) => {
+            const catStyle = ZONE_CATEGORY_STYLES[cz.category]
+            return (
+              <div key={cz.zone} className={`rounded-lg border border-slate-100 bg-white px-3 py-2.5 border-l-2 ${catStyle?.border || ""}`}>
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="text-[13px]">{cz.icon}</span>
+                  <span className="text-[11px] font-semibold text-slate-700">{cz.zone}</span>
+                </div>
+                <p className="mb-1 text-[10px] leading-relaxed text-slate-500">{cz.description}</p>
+                <p className="text-[9px] text-slate-400">{cz.usedIn}</p>
               </div>
-              <p className="mb-1 text-[10px] leading-relaxed text-slate-500">{cz.description}</p>
-              <p className="text-[9px] text-slate-400">{cz.usedIn}</p>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </section>
 
