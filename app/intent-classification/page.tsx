@@ -18,7 +18,7 @@ import IntentClassificationSection from "@/app/tp-appointment-screen/scenarios/I
 // DR. AGENT — COMPREHENSIVE SYSTEM REFERENCE
 // ═══════════════════════════════════════════════════════════════
 
-type MainTab = "card-anatomy" | "card-catalog" | "response-management" | "user-scenarios"
+type MainTab = "intent-classification" | "card-anatomy" | "card-catalog" | "response-management" | "user-scenarios"
 
 // ── Helpers ──
 const noop = () => {}
@@ -819,12 +819,12 @@ const FAMILY_COLORS: Record<string, string> = {
 // ═══════════════════════════════════════════════════════════════
 
 function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
-  const [mainTab, setMainTab] = useState<MainTab>("card-anatomy")
+  const [mainTab, setMainTab] = useState<MainTab>("intent-classification")
   const [catalogSearch, setCatalogSearch] = useState("")
   const [catalogFilter, setCatalogFilter] = useState("all")
   const [activePhase, setActivePhase] = useState("empty")
   const [expandedPrimitive, setExpandedPrimitive] = useState<string | null>(null)
-  const [rmTab, setRmTab] = useState<"intent-classification" | "pipeline" | "card-rules" | "copy-rules" | "clinical-framework">("intent-classification")
+  const [rmTab, setRmTab] = useState<"pipeline" | "card-rules" | "copy-rules" | "clinical-framework">("pipeline")
   const [isDocHeaderVisible, setIsDocHeaderVisible] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 
@@ -1788,7 +1788,6 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
   // ── RESPONSE MANAGEMENT TAB ──
   function renderResponseMgmt() {
     const RM_TABS = [
-      { id: "intent-classification" as const, label: "Intent Classification" },
       { id: "pipeline" as const, label: "Pipeline & Phases" },
       { id: "card-rules" as const, label: "Card Rules" },
       { id: "copy-rules" as const, label: "Copy & Provenance" },
@@ -1838,11 +1837,6 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
             </button>
           ))}
         </div>
-
-        {/* ═══ TAB 0: Intent Classification ═══ */}
-        {rmTab === "intent-classification" && (
-          <IntentClassificationSection />
-        )}
 
         {/* ═══ TAB 1: Pipeline & Phases ═══ */}
         {rmTab === "pipeline" && (
@@ -3464,6 +3458,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
       <div className={`mb-5 border-b border-slate-200 pb-[10px] ${embedded ? "sticky top-0 z-30 bg-[#FAFAFE]/95 pt-2 backdrop-blur-md" : "sticky top-0 z-30 bg-[#FAFAFE]/95 pt-3 backdrop-blur-md"}`}>
         <div className="flex gap-1">
         {([
+          { id: "intent-classification" as MainTab, label: "Intent Classification" },
           { id: "card-anatomy" as MainTab, label: "Card Anatomy & Patterns" },
           { id: "card-catalog" as MainTab, label: "Card Catalog" },
           { id: "response-management" as MainTab, label: "Response Management" },
@@ -3479,6 +3474,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
         </div>
       </div>
 
+      {mainTab === "intent-classification" && <IntentClassificationSection />}
       {mainTab === "card-anatomy" && renderCardAnatomy()}
       {mainTab === "card-catalog" && renderCardCatalog()}
       {mainTab === "response-management" && renderResponseMgmt()}
@@ -3497,8 +3493,8 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
             </div>
             <div>
-              <h1 className="text-[18px] font-bold leading-tight bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">Dr. Agent — System Reference</h1>
-              <p className="text-[11px] text-slate-400">Card Anatomy, Catalog & Response Management</p>
+              <h1 className="text-[18px] font-bold leading-tight bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">Dr. Agent — Response Management</h1>
+              <p className="text-[11px] text-slate-400">Intent Classification, Card Anatomy, Catalog & Response Pipeline</p>
             </div>
           </div>
           <a href="/tp-appointment-screen/scenarios" className="rounded-lg border border-slate-200 px-3 py-1.5 text-[11px] font-medium text-slate-600 hover:bg-slate-50">Back</a>

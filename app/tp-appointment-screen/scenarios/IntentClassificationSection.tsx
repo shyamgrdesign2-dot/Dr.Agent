@@ -423,6 +423,47 @@ export default function IntentClassificationSection() {
         <p className="mb-4 text-[12px] text-slate-500">
           Every user input flows through these 7 steps before a response is rendered.
         </p>
+
+        {/* ── Visual Pipeline Flow Chart ── */}
+        <div className="mb-6 overflow-x-auto rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-4 py-5">
+          <div className="flex items-center gap-1 min-w-[900px]">
+            {DECISION_FLOW_STEPS.map((s, i) => (
+              <React.Fragment key={s.step}>
+                <div className="flex flex-col items-center gap-1.5" style={{ minWidth: 105 }}>
+                  <div
+                    className="flex h-10 w-10 items-center justify-center rounded-xl text-[14px] font-bold text-white shadow-sm"
+                    style={{ backgroundColor: s.color }}
+                  >
+                    {s.step}
+                  </div>
+                  <span className="text-[10px] font-semibold text-slate-700 text-center leading-tight">{s.label}</span>
+                </div>
+                {i < DECISION_FLOW_STEPS.length - 1 && (
+                  <div className="flex flex-1 items-center justify-center" style={{ minWidth: 20 }}>
+                    <div className="h-[2px] flex-1 bg-slate-200" />
+                    <svg width="8" height="10" viewBox="0 0 8 10" className="shrink-0 text-slate-300">
+                      <path d="M0 0 L8 5 L0 10Z" fill="currentColor" />
+                    </svg>
+                  </div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+          {/* ── Dual-path callout ── */}
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <div className="flex items-center gap-1.5 rounded-full bg-violet-50 border border-violet-200 px-3 py-1">
+              <span className="text-[10px]">▣</span>
+              <span className="text-[10px] font-semibold text-violet-700">Data exists → UI Card</span>
+            </div>
+            <span className="text-[10px] text-slate-300">or</span>
+            <div className="flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-3 py-1">
+              <span className="text-[10px]">≡</span>
+              <span className="text-[10px] font-semibold text-blue-700">No data / simple answer → Text</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Detailed Steps ── */}
         <div className="space-y-2">
           {DECISION_FLOW_STEPS.map((s) => (
             <div key={s.step} className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
@@ -438,6 +479,84 @@ export default function IntentClassificationSection() {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          SECTION 2.5: INPUT ROUTING DIAGRAM
+      ══════════════════════════════════════════════════════════ */}
+      <section>
+        <h4 className="mb-4 text-[16px] font-bold text-slate-800">Input Routing: Pills vs Free Text</h4>
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="overflow-x-auto">
+            <div className="min-w-[700px]">
+              {/* Row 1: Input sources */}
+              <div className="flex justify-center gap-16 mb-4">
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="flex h-12 w-32 items-center justify-center rounded-xl bg-violet-100 border border-violet-200">
+                    <span className="text-[12px] font-bold text-violet-700">Canned Pill Tap</span>
+                  </div>
+                  <span className="text-[9px] text-slate-400">160+ pre-mapped intents</span>
+                </div>
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="flex h-12 w-32 items-center justify-center rounded-xl bg-blue-100 border border-blue-200">
+                    <span className="text-[12px] font-bold text-blue-700">Free Text Input</span>
+                  </div>
+                  <span className="text-[9px] text-slate-400">Natural language queries</span>
+                </div>
+              </div>
+
+              {/* Arrows down */}
+              <div className="flex justify-center gap-16 mb-4">
+                <div className="flex flex-col items-center" style={{ width: 128 }}>
+                  <svg width="2" height="24" className="text-violet-300"><rect width="2" height="24" fill="currentColor" /></svg>
+                  <svg width="10" height="8" viewBox="0 0 10 8" className="text-violet-300"><path d="M0 0 L5 8 L10 0Z" fill="currentColor" /></svg>
+                </div>
+                <div className="flex flex-col items-center" style={{ width: 128 }}>
+                  <svg width="2" height="24" className="text-blue-300"><rect width="2" height="24" fill="currentColor" /></svg>
+                  <svg width="10" height="8" viewBox="0 0 10 8" className="text-blue-300"><path d="M0 0 L5 8 L10 0Z" fill="currentColor" /></svg>
+                </div>
+              </div>
+
+              {/* Row 2: Processing */}
+              <div className="flex justify-center gap-16 mb-4">
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="flex h-12 w-32 items-center justify-center rounded-xl bg-violet-500 text-white">
+                    <span className="text-[11px] font-bold text-center leading-tight">PILL_INTENT_MAP<br />Direct Lookup</span>
+                  </div>
+                  <span className="text-[9px] text-slate-400">Skip NLU classification</span>
+                </div>
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="flex h-12 w-32 items-center justify-center rounded-xl bg-blue-500 text-white">
+                    <span className="text-[11px] font-bold text-center leading-tight">Intent Engine<br />96+ Keyword Rules</span>
+                  </div>
+                  <span className="text-[9px] text-slate-400">Normalize → Match → Classify</span>
+                </div>
+              </div>
+
+              {/* Converge arrows */}
+              <div className="flex justify-center mb-4">
+                <div className="relative" style={{ width: 320 }}>
+                  <svg width="320" height="32" viewBox="0 0 320 32" className="text-slate-300">
+                    <path d="M80 0 L80 16 L160 24" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <path d="M240 0 L240 16 L160 24" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <path d="M160 24 L160 32" stroke="currentColor" strokeWidth="2" fill="none" />
+                    <polygon points="155,32 165,32 160,38" fill="currentColor" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Row 3: Unified output */}
+              <div className="flex justify-center">
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="flex h-12 w-48 items-center justify-center rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
+                    <span className="text-[12px] font-bold">Intent + Data Check → Response</span>
+                  </div>
+                  <span className="text-[9px] text-slate-400">Build card or generate text based on available data</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -610,13 +729,14 @@ export default function IntentClassificationSection() {
         </div>
       </section>
 
-      {/* ── Footer reference ── */}
-      <section className="rounded-lg border border-slate-200 bg-slate-50 px-5 py-4">
+      {/* ── Footer: Story continues ── */}
+      <section className="rounded-xl border border-violet-200 bg-gradient-to-r from-violet-50/80 via-white to-blue-50/60 px-5 py-4">
+        <p className="mb-1 text-[11px] font-semibold text-violet-700">The story continues →</p>
         <p className="text-[12px] leading-relaxed text-slate-500">
-          For the complete card anatomy (header, content, insight, pills, footer zones), see{" "}
-          <strong className="text-slate-600">Card Anatomy & Patterns</strong>.
-          For live previews of all 63+ card types and 120+ variants, see{" "}
-          <strong className="text-slate-600">Card Catalog</strong>.
+          Now that you understand how Dr. Agent decides what to show, explore how cards are structured in{" "}
+          <strong className="text-slate-700">Card Anatomy & Patterns</strong>, browse all 63+ card types in{" "}
+          <strong className="text-slate-700">Card Catalog</strong>, and see the full response pipeline in{" "}
+          <strong className="text-slate-700">Response Management</strong>.
         </p>
       </section>
 
