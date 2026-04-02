@@ -24,6 +24,7 @@ import { EmptyStateContent }        from "./content/EmptyStateContent";
 import type { NavItemId } from "./types";
 import { rxSidebarTokens } from "./tokens";
 import { SidebarPillBar } from "./SidebarPillBar";
+import { useV0Mode } from "@/components/tp-rxpad/dr-agent/hooks/useV0Mode";
 
 // ─── Section title map ────────────────────────────────────────────────────────
 
@@ -139,6 +140,7 @@ type Props = {
 };
 
 export function ContentPanel({ activeId, onClose }: Props) {
+  const { isV0Mode } = useV0Mode();
   return (
     <div className="bg-white content-stretch flex h-full w-[250px] min-w-[250px] max-w-[250px] shrink-0 flex-col items-center relative xl:w-[clamp(250px,26vw,350px)] xl:max-w-[350px]">
       <div aria-hidden="true" className={`absolute ${rxSidebarTokens.panelBorderClass} border-r border-solid inset-[0_-1px_0_0] pointer-events-none`} />
@@ -149,8 +151,8 @@ export function ContentPanel({ activeId, onClose }: Props) {
           <div className="flex-1 overflow-y-auto">
             <SectionContent activeId={activeId} />
           </div>
-          {/* Pill bar at bottom of every content panel */}
-          <SidebarPillBar sectionId={activeId} />
+          {/* Sidebar pill bar — hidden in V0 mode (AI actions in chat instead) */}
+          {!isV0Mode && <SidebarPillBar sectionId={activeId} />}
         </div>
       </div>
     </div>
