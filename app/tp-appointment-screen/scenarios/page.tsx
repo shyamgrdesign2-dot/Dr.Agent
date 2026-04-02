@@ -570,7 +570,7 @@ export default function ScenariosPage() {
                 </span>
               </div>
               <p className="text-[12px] text-slate-500">
-                Origin case study, response system, patient summary logic, and card system spec &middot; Not for production or client-facing use
+                Introduction, response system, patient summary logic, and card system spec &middot; Not for production or client-facing use
               </p>
             </div>
           </div>
@@ -579,7 +579,7 @@ export default function ScenariosPage() {
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <div className="flex gap-1">
               {([
-                { id: "clinical-research" as PageTab, label: "Origin Case Study", icon: <SearchNormal1 size={14} variant="Bold" /> },
+                { id: "clinical-research" as PageTab, label: "Intro", icon: <SearchNormal1 size={14} variant="Bold" /> },
                 { id: "intent-classification" as PageTab, label: "Response System", icon: <Cpu size={14} variant="Bold" /> },
                 { id: "summary-logic" as PageTab, label: "Patient Summary", icon: <DocumentText size={14} variant="Bold" /> },
                 { id: "design-system" as PageTab, label: "Card System & Spec", icon: <Brush2 size={14} variant="Bold" /> },

@@ -11,6 +11,7 @@ import { FeedbackRow } from "@/components/tp-rxpad/dr-agent/cards/FeedbackRow"
 import { DataCompletenessDonut } from "@/components/tp-rxpad/dr-agent/cards/DataCompletenessDonut"
 import { SourceInfoIcon } from "@/components/tp-rxpad/dr-agent/cards/CardShell"
 import { TPMedicalIcon } from "@/components/tp-ui"
+import ClinicalFrameworkSection from "@/app/tp-appointment-screen/scenarios/ClinicalFrameworkSection"
 
 // ═══════════════════════════════════════════════════════════════
 // DR. AGENT — COMPREHENSIVE SYSTEM REFERENCE
@@ -822,7 +823,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
   const [catalogFilter, setCatalogFilter] = useState("all")
   const [activePhase, setActivePhase] = useState("empty")
   const [expandedPrimitive, setExpandedPrimitive] = useState<string | null>(null)
-  const [rmTab, setRmTab] = useState<"pipeline" | "card-rules" | "copy-rules">("pipeline")
+  const [rmTab, setRmTab] = useState<"pipeline" | "card-rules" | "copy-rules" | "clinical-framework">("pipeline")
   const [isDocHeaderVisible, setIsDocHeaderVisible] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 
@@ -1789,6 +1790,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
       { id: "pipeline" as const, label: "Pipeline & Phases" },
       { id: "card-rules" as const, label: "Card Rules" },
       { id: "copy-rules" as const, label: "Copy & Provenance" },
+      { id: "clinical-framework" as const, label: "Clinical Framework" },
     ]
 
     return (
@@ -2544,6 +2546,11 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               </div>
             </DocSection>
           </div>
+        )}
+
+        {/* ═══ TAB 4: Clinical Framework ═══ */}
+        {rmTab === "clinical-framework" && (
+          <ClinicalFrameworkSection />
         )}
 
       </div>
