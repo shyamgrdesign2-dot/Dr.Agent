@@ -72,6 +72,28 @@ type ContentPrimitive = {
   exampleCard: string // kind from CATALOG to show as live preview
 }
 
+// ── Content Zone Types (shared between Intent Classification and Card Anatomy) ──
+const CONTENT_ZONE_TYPES_FOR_ANATOMY = [
+  { zone: "Inline Data Rows", description: "Section-tagged key:value pairs. Most common pattern for summaries and structured data.", usedIn: "Patient summary, Vitals, Last visit, Specialty summaries", icon: "═" },
+  { zone: "Line Chart", description: "Time-series visualization with threshold lines and tone coloring.", usedIn: "Lab trends (HbA1c, eGFR), Vital trends (BP, SpO2), Patient volume", icon: "📈" },
+  { zone: "Bar Chart", description: "Categorical or time-bucketed comparisons with stacked segments.", usedIn: "Revenue breakdown, Vital trends (bar variant), Condition distribution", icon: "📊" },
+  { zone: "Comparison Table", description: "Side-by-side previous vs current with delta indicators and flags.", usedIn: "Lab comparison, Revenue comparison", icon: "⇔" },
+  { zone: "Checkbox List", description: "Multi-select items with urgency or confidence tiers.", usedIn: "DDX (3-tier), Investigation bundle, Bulk actions", icon: "☑" },
+  { zone: "Radio List", description: "Single-select options with recommended flags and reasoning.", usedIn: "Follow-up scheduling, Follow-up questions", icon: "◉" },
+  { zone: "Bullet List", description: "Simple itemized content with optional copy-all action.", usedIn: "Advice bundle, Clinical guidelines, Text lists", icon: "•" },
+  { zone: "Medication Display", description: "Drug name + dosage + timing + duration + safety notes.", usedIn: "Protocol meds, Rx preview, Med history, Voice structured Rx", icon: "💊" },
+  { zone: "Patient List", description: "Name, age/gender, time, status badge, chief complaint rows.", usedIn: "Today's queue, Follow-up list, Due patients, Search results", icon: "👤" },
+  { zone: "SBAR Sections", description: "4-part scaffold: Situation, Background, Assessment, Recommendation.", usedIn: "SBAR overview, SBAR critical", icon: "S" },
+  { zone: "Donut / Pie Chart", description: "Proportional distribution visualization with labeled segments.", usedIn: "Demographics, Diagnosis breakdown, Data completeness", icon: "◔" },
+  { zone: "Heatmap Grid", description: "Row x Column intensity grid for time-based patterns.", usedIn: "Peak hours, Weekly volume", icon: "▦" },
+  { zone: "KPI Table", description: "Dashboard-style metric rows with this-period vs last-period and delta.", usedIn: "Weekly KPIs, Analytics table, Follow-up rate", icon: "▤" },
+  { zone: "Clinical Narrative", description: "AI-generated paragraph summarizing the patient in natural language.", usedIn: "Patient summary (collapsed), Patient narrative card", icon: "¶" },
+  { zone: "Translation Pair", description: "Source language left, target language right, with copy action.", usedIn: "Translation card (Hindi, Telugu, Tamil, Kannada, Marathi)", icon: "🌐" },
+  { zone: "Drug Interaction", description: "Drug A vs Drug B with severity level, risk description, and recommended action.", usedIn: "Drug interaction card, Allergy conflict card", icon: "⚠" },
+  { zone: "Vaccination Schedule", description: "Vaccine name + due date + status badge (completed/pending/overdue).", usedIn: "Vaccination schedule, Vaccination due list, ANC schedule", icon: "💉" },
+  { zone: "Timeline", description: "Chronological vertical event list with type-coded markers.", usedIn: "Patient timeline (visits, labs, procedures, admissions)", icon: "⏱" },
+]
+
 const HEADER_ELEMENTS = [
   { element: "Primary Icon", spec: "26×26px container, always tp-blue-50 background with blue medical icon", always: true },
   { element: "Primary Heading", spec: "12px/600 weight, tp-slate-800, single line truncated", always: true },
@@ -856,11 +878,28 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
   function renderCardAnatomy() {
     return (
       <div className="space-y-10">
+        {/* ── Story bridge from Intent Classification ── */}
+        <div className="rounded-xl border border-violet-200 bg-gradient-to-r from-violet-50/60 via-white to-blue-50/40 px-5 py-3">
+          <p className="text-[11px] leading-relaxed text-slate-500">
+            <strong className="text-violet-600">← Coming from Intent Classification:</strong>{" "}
+            Once the <strong className="text-slate-700">intent engine</strong> decides the response should be a{" "}
+            <strong className="text-violet-700">UI card</strong>, this is how that card is built.
+            Every card follows a <strong className="text-slate-700">5-zone anatomy</strong> and uses one of{" "}
+            <strong className="text-violet-600">18 content zone types</strong> for its body.
+          </p>
+        </div>
+
         {/* ── Page header ── */}
         <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-blue-50/80 via-white to-violet-50/60 px-6 py-5">
           <h3 className="text-[18px] font-bold text-slate-800 mb-1">Card Anatomy Blueprint</h3>
           <p className="text-[12px] leading-[1.6] text-slate-500 max-w-2xl">
-            Every Dr. Agent card follows a consistent structure: header, content, section tags, insight, canned messages, and footer. This reference defines each zone, its rules, and its variants.
+            Every Dr. Agent card follows a consistent <strong className="text-slate-700">5-zone structure</strong>:{" "}
+            <strong className="text-blue-600">header</strong>,{" "}
+            <strong className="text-violet-600">content</strong>,{" "}
+            <strong className="text-amber-600">insight</strong>,{" "}
+            <strong className="text-emerald-600">canned messages</strong>, and{" "}
+            <strong className="text-slate-700">footer</strong>.
+            This reference defines each zone, its rules, and its variants.
           </p>
         </div>
 
@@ -1601,6 +1640,30 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                 <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-blue-400" />Max 2 CTAs per card footer. If 2 CTAs, one can be action and one navigation.</li>
               </ul>
             </Callout>
+          </div>
+        </DocSection>
+
+        {/* ═══ 13. CONTENT ZONE TYPES ═══ */}
+        <DocSection number="13" title="Content Zone Types" subtitle="18 content zone types that power the content layer of every card. Each zone maps to a data shape — this is the bridge between intent classification and visual output.">
+          <div className="mb-3 rounded-lg border border-violet-100 bg-violet-50/50 px-4 py-2.5">
+            <p className="text-[11px] leading-relaxed text-violet-700">
+              <strong>Link to Intent Classification:</strong> When the intent engine selects a card type, the{" "}
+              <strong>content zone type</strong> is chosen based on the data shape. Time-series data → <strong>Line/Bar Chart</strong>.
+              Key-value pairs → <strong>Inline Data Rows</strong>. Multi-select options → <strong>Checkbox List</strong>.
+              See the <strong>Intent-to-Card Reference Chart</strong> for the full mapping.
+            </p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {CONTENT_ZONE_TYPES_FOR_ANATOMY.map((cz) => (
+              <div key={cz.zone} className="rounded-lg border border-slate-100 bg-white px-3 py-2.5">
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="text-[14px]">{cz.icon}</span>
+                  <span className="text-[11px] font-bold text-slate-800">{cz.zone}</span>
+                </div>
+                <p className="mb-1 text-[10px] leading-relaxed text-slate-500">{cz.description}</p>
+                <p className="text-[9px] text-slate-400"><strong className="text-slate-500">Used in:</strong> {cz.usedIn}</p>
+              </div>
+            ))}
           </div>
         </DocSection>
 
@@ -3474,7 +3537,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
         </div>
       </div>
 
-      {mainTab === "intent-classification" && <IntentClassificationSection />}
+      {mainTab === "intent-classification" && <IntentClassificationSection onNavigateTab={(tab) => setMainTab(tab as MainTab)} />}
       {mainTab === "card-anatomy" && renderCardAnatomy()}
       {mainTab === "card-catalog" && renderCardCatalog()}
       {mainTab === "response-management" && renderResponseMgmt()}

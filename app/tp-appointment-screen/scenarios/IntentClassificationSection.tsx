@@ -323,6 +323,15 @@ const SYNTHETIC_DATA_CHART = [
     ],
   },
   {
+    category: "Follow-Up & Clarification",
+    color: "#14B8A6",
+    entries: [
+      { query: "Yes, show me the details", intent: "follow_up", dataCheck: "Previous response context exists", cardFormat: "Refined card from original query", contentZone: "Depends on the refined query (any zone type)", fallback: "Context lost: text asking to rephrase" },
+      { query: "Option 2", intent: "follow_up", dataCheck: "Previous multi-option response", cardFormat: "Card matching the selected option", contentZone: "Determined by the selected option's data shape", fallback: "No options context: text 'Could you clarify what you'd like?'" },
+      { query: "Compare with last month", intent: "follow_up", dataCheck: "Previous data + historical data", cardFormat: "lab_comparison / revenue_comparison", contentZone: "Comparison table or bar chart", fallback: "No previous context: text asking what to compare" },
+    ],
+  },
+  {
     category: "Safety & Guardrails",
     color: "#EF4444",
     entries: [
@@ -358,7 +367,7 @@ const CONTENT_ZONE_TYPES = [
 
 // ── Component ────────────────────────────────────────────────
 
-export default function IntentClassificationSection() {
+export default function IntentClassificationSection({ onNavigateTab }: { onNavigateTab?: (tab: string) => void } = {}) {
   const [expandedScenario, setExpandedScenario] = useState<number | null>(0)
   const [expandedCategory, setExpandedCategory] = useState<string | null>("Patient Context & Summaries")
 
@@ -372,7 +381,11 @@ export default function IntentClassificationSection() {
           Every response starts with a decision: should this be a{" "}
           <strong className="text-violet-700">structured UI card</strong> or a{" "}
           <strong className="text-blue-700">plain text response</strong>? This section explains the
-          complete decision pipeline, from the moment the doctor types a question to the rendered output.
+          complete <strong className="text-slate-700">decision pipeline</strong>, from the moment the doctor types a question to the rendered output.
+          It covers <strong className="text-slate-700">10 intent categories</strong>, the{" "}
+          <strong className="text-slate-700">data availability check</strong> that drives format selection,
+          and a complete <strong className="text-slate-700">intent-to-card reference chart</strong> mapping{" "}
+          <strong className="text-violet-600">35+ query patterns</strong> to their card outputs.
         </p>
       </div>
 
@@ -421,7 +434,9 @@ export default function IntentClassificationSection() {
       <section>
         <h4 className="mb-4 text-[16px] font-bold text-slate-800">The Decision Pipeline</h4>
         <p className="mb-4 text-[12px] text-slate-500">
-          Every user input flows through these 7 steps before a response is rendered.
+          Every user input flows through these <strong className="text-slate-700">7 sequential steps</strong> before a response is rendered.
+          The pipeline handles both <strong className="text-violet-600">canned pill taps</strong> (pre-mapped, skip classification) and{" "}
+          <strong className="text-blue-600">free-text queries</strong> (full NLU classification).
         </p>
 
         {/* ── Visual Pipeline Flow Chart ── */}
@@ -475,7 +490,16 @@ export default function IntentClassificationSection() {
               </span>
               <div>
                 <p className="text-[12px] font-semibold text-slate-800">{s.label}</p>
-                <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">{s.description}</p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500"
+                  dangerouslySetInnerHTML={{
+                    __html: s.description
+                      .replace(/PILL_INTENT_MAP/g, '<strong class="font-mono text-violet-600 bg-violet-50 px-1 rounded">PILL_INTENT_MAP</strong>')
+                      .replace(/(\d+\+?\s*(?:keyword rules|entries|card types|mappings))/g, '<strong class="text-slate-700">$1</strong>')
+                      .replace(/(Card|Hybrid|Text)(\s*\()/g, '<strong class="text-slate-700">$1</strong>$2')
+                      .replace(/(CardRenderer)/g, '<strong class="font-mono text-blue-600 bg-blue-50 px-1 rounded">$1</strong>')
+                      .replace(/(63\+)/g, '<strong class="text-violet-600">$1</strong>')
+                  }}
+                />
               </div>
             </div>
           ))}
@@ -566,7 +590,10 @@ export default function IntentClassificationSection() {
       <section>
         <h4 className="mb-4 text-[16px] font-bold text-slate-800">10 Intent Categories</h4>
         <p className="mb-4 text-[12px] text-slate-500">
-          The intent engine classifies every input into one of these categories, each with a default response format and specific card outputs.
+          The <strong className="text-slate-700">intent engine</strong> classifies every input into one of these categories.
+          Each has a <strong className="text-violet-600">default response format</strong> (card, text, or hybrid),
+          specific <strong className="text-slate-700">card outputs</strong>, and a defined{" "}
+          <strong className="text-amber-600">fallback behavior</strong> when data is insufficient.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {INTENT_CATEGORIES.map((ic) => (
@@ -598,8 +625,9 @@ export default function IntentClassificationSection() {
       <section>
         <h4 className="mb-2 text-[16px] font-bold text-slate-800">Walkthrough: How AI Thinks Through One Question</h4>
         <p className="mb-4 text-[12px] text-slate-500">
-          For a single question, <strong className="text-slate-700">&quot;{HBAIC_WALKTHROUGH.query}&quot;</strong>, the
-          AI considers multiple data scenarios and makes different decisions for each. This is how every query is processed.
+          For a single question, <strong className="text-violet-700">&quot;{HBAIC_WALKTHROUGH.query}&quot;</strong>, the
+          AI considers <strong className="text-slate-700">3 different data scenarios</strong> and makes completely different decisions for each.
+          This demonstrates the <strong className="text-slate-700">data-driven branching</strong> at the heart of every query.
         </p>
 
         <div className="space-y-3">
@@ -647,8 +675,13 @@ export default function IntentClassificationSection() {
       <section>
         <h4 className="mb-2 text-[16px] font-bold text-slate-800">Intent-to-Card Reference Chart</h4>
         <p className="mb-4 text-[12px] text-slate-500">
-          The complete mapping from user queries to intent category to data check to card output to content zone to fallback behavior.
-          This is the reference for understanding what Dr. Agent will show for any given input.
+          The complete mapping: <strong className="text-slate-700">user query</strong> →{" "}
+          <strong className="text-blue-600">intent category</strong> →{" "}
+          <strong className="text-violet-600">data check</strong> →{" "}
+          <strong className="text-emerald-600">card output</strong> →{" "}
+          <strong className="text-amber-600">content zone</strong> →{" "}
+          <strong className="text-red-500">fallback behavior</strong>.
+          This is the <strong className="text-slate-700">single source of truth</strong> for understanding what Dr. Agent will show for any given input.
         </p>
 
         <div className="space-y-4">
@@ -712,8 +745,11 @@ export default function IntentClassificationSection() {
       <section>
         <h4 className="mb-4 text-[16px] font-bold text-slate-800">Content Zone Types</h4>
         <p className="mb-4 text-[12px] text-slate-500">
-          When a card is selected, its body is assembled from one of these 18 content zone types. The choice depends
-          on the data shape and what format best serves the doctor&apos;s needs.
+          When a card is selected, its body is assembled from one of these <strong className="text-violet-700">18 content zone types</strong>.
+          The choice depends on the <strong className="text-slate-700">data shape</strong> (time-series → chart, key-value → data rows, options → lists)
+          and what <strong className="text-slate-700">format best serves the doctor&apos;s workflow</strong>.
+          These same zone types are used in{" "}
+          <strong className="text-blue-600">Card Anatomy & Patterns</strong> as content primitives.
         </p>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {CONTENT_ZONE_TYPES.map((cz) => (
@@ -730,14 +766,49 @@ export default function IntentClassificationSection() {
       </section>
 
       {/* ── Footer: Story continues ── */}
-      <section className="rounded-xl border border-violet-200 bg-gradient-to-r from-violet-50/80 via-white to-blue-50/60 px-5 py-4">
-        <p className="mb-1 text-[11px] font-semibold text-violet-700">The story continues →</p>
-        <p className="text-[12px] leading-relaxed text-slate-500">
-          Now that you understand how Dr. Agent decides what to show, explore how cards are structured in{" "}
-          <strong className="text-slate-700">Card Anatomy & Patterns</strong>, browse all 63+ card types in{" "}
-          <strong className="text-slate-700">Card Catalog</strong>, and see the full response pipeline in{" "}
-          <strong className="text-slate-700">Response Management</strong>.
+      <section className="rounded-xl border border-violet-200 bg-gradient-to-r from-violet-50/80 via-white to-blue-50/60 px-5 py-5">
+        <p className="mb-2 text-[13px] font-bold text-violet-700">Next: How are these cards built? →</p>
+        <p className="mb-4 text-[12px] leading-relaxed text-slate-500">
+          You now understand <strong className="text-slate-700">how Dr. Agent classifies intent</strong>,{" "}
+          <strong className="text-slate-700">checks data availability</strong>, and{" "}
+          <strong className="text-slate-700">picks a response format</strong>.
+          The next step is understanding <strong className="text-violet-600">card anatomy</strong>: the 5-zone structure
+          (header, content, insight, pills, footer) that every UI card follows, and the{" "}
+          <strong className="text-violet-600">18 content zone types</strong> that power the content layer.
         </p>
+        <div className="flex flex-wrap gap-2">
+          {onNavigateTab ? (
+            <>
+              <button
+                onClick={() => onNavigateTab("card-anatomy")}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-[12px] font-semibold text-white shadow-sm hover:bg-violet-700 transition-colors"
+              >
+                Card Anatomy & Patterns
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+              <button
+                onClick={() => onNavigateTab("card-catalog")}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-[12px] font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Card Catalog (63+ types)
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+              <button
+                onClick={() => onNavigateTab("response-management")}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-[12px] font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                Response Management
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </>
+          ) : (
+            <p className="text-[11px] text-slate-400">
+              See the <strong className="text-slate-600">Card Anatomy & Patterns</strong> tab for the 5-zone card structure,
+              the <strong className="text-slate-600">Card Catalog</strong> for all 63+ card types with 120+ variants,
+              and <strong className="text-slate-600">Response Management</strong> for the full pipeline and copy rules.
+            </p>
+          )}
+        </div>
       </section>
 
     </div>
