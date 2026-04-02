@@ -52,7 +52,7 @@ const INTENT_CATEGORIES = [
     label: "Data Retrieval",
     icon: "📋",
     defaultFormat: "card",
-    description: "Fetch and display patient or clinic data — summaries (SBAR), vitals, labs, history, specialty records.",
+    description: "Fetch and display patient or clinic data — summaries, vitals, labs, medical history (chronic conditions, allergies, lifestyle, family, surgical), specialty records (obstetric, gynec, ophthal, pediatric).",
     triggerExamples: ["Patient summary", "Show vitals", "Lab results", "Medical history"],
     cardOutputs: ["sbar_overview", "vitals_summary", "lab_panel", "medical_history", "last_visit", "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary"],
     fallbackBehavior: "Text response suggesting to upload records or enter data.",
@@ -82,9 +82,9 @@ const INTENT_CATEGORIES = [
     label: "Action & Workflow",
     icon: "⚡",
     defaultFormat: "hybrid",
-    description: "Trigger workflow actions — follow-up, translate, copy Rx, referral, completeness check.",
-    triggerExamples: ["Plan follow-up", "Translate to Hindi", "Copy prescription"],
-    cardOutputs: ["follow_up", "translation", "rx_preview", "referral", "advice_bundle", "completeness"],
+    description: "Execute actions on behalf of the user — cancel appointments, generate bills, save documents, send reminders, translate, copy Rx, draft referrals.",
+    triggerExamples: ["Cancel this appointment", "Generate bill", "Save against patient", "Translate to Hindi", "Copy prescription"],
+    cardOutputs: ["follow_up", "translation", "rx_preview", "referral", "advice_bundle", "completeness", "voice_structured_rx"],
     fallbackBehavior: "Text explaining what's needed first (e.g., generate meds before copy).",
   },
   {
@@ -92,9 +92,9 @@ const INTENT_CATEGORIES = [
     label: "Document Analysis",
     icon: "📄",
     defaultFormat: "card",
-    description: "Extract data from uploaded documents — scanned reports, prescriptions, lab printouts.",
-    triggerExamples: ["Scan this report", "Extract lab values"],
-    cardOutputs: ["ocr_pathology", "ocr_extraction"],
+    description: "Auto-extract and structure data from uploaded documents — prescriptions, pathology reports, radiology reports, discharge summaries, and other patient records.",
+    triggerExamples: ["Upload Rx", "Upload pathology report", "Save radiology report", "Extract lab values"],
+    cardOutputs: ["ocr_pathology", "ocr_extraction", "rx_preview"],
     fallbackBehavior: "Text prompting to upload a file.",
   },
   {
@@ -217,54 +217,71 @@ const SYNTHETIC_DATA_CHART = [
   {
     category: "Patient Context & Summaries",
     icon: "📋",
-    note: "All summaries follow SBAR format (Situation, Background, Assessment, Recommendation). patient_summary and sbar_overview use the same SmartSummaryData structure.",
+    note: "Patient summary follows the SBAR protocol (Situation, Background, Assessment, Recommendation) using inline data rows. Specialty summaries use section-tagged inline data rows specific to each specialty — they do not follow SBAR.",
     entries: [
-      { query: "Patient summary / SBAR", intent: "data_retrieval", dataCheck: "Any patient data", cardFormat: "sbar_overview", contentZone: "SBAR sections + inline data rows", fallback: "Text: suggest starting with history" },
+      { query: "Patient summary / SBAR", intent: "data_retrieval", dataCheck: "Any patient data", cardFormat: "sbar_overview", contentZone: "Inline data rows (SBAR-structured)", fallback: "Text: suggest starting with history" },
       { query: "Pre-visit intake", intent: "data_retrieval", dataCheck: "Symptom collector data", cardFormat: "symptom_collector", contentZone: "Inline data rows", fallback: "Text: no pre-visit data submitted" },
-      { query: "Medical history", intent: "data_retrieval", dataCheck: "Chronic conditions / allergies", cardFormat: "medical_history", contentZone: "Section-grouped data rows", fallback: "Text: no history recorded" },
-      { query: "Past visit", intent: "data_retrieval", dataCheck: "Previous visit records", cardFormat: "last_visit", contentZone: "5-section strip", fallback: "Text: no previous visits" },
-      { query: "Specialty summary", intent: "data_retrieval", dataCheck: "Specialty data exists", cardFormat: "obstetric / gynec / pediatric / ophthal", contentZone: "Specialty SBAR sections", fallback: "Text: no specialty data" },
+      { query: "Medical history", intent: "data_retrieval", dataCheck: "Any history data exists", cardFormat: "medical_history", contentZone: "Section-grouped inline rows (chronic conditions, allergies, lifestyle, family history, surgical history, additional history)", fallback: "Text: no history recorded" },
+      { query: "Past visit", intent: "data_retrieval", dataCheck: "Previous visit records", cardFormat: "last_visit", contentZone: "5-section strip (inline data rows)", fallback: "Text: no previous visits" },
+      { query: "Obstetric summary", intent: "data_retrieval", dataCheck: "Obstetric data", cardFormat: "obstetric_summary", contentZone: "Inline data rows (LMP, EDD, GA, GPLAE, ANC, vaccines, last exam)", fallback: "Text: no obstetric data" },
+      { query: "Gynec summary", intent: "data_retrieval", dataCheck: "Gynec data", cardFormat: "gynec_summary", contentZone: "Inline data rows (menstrual history, menarche, cycle, flow, pain, LMP)", fallback: "Text: no gynec data" },
+      { query: "Ophthalmic summary", intent: "data_retrieval", dataCheck: "Ophthal data", cardFormat: "ophthal_summary", contentZone: "Inline data rows (OD/OS vision, IOP, slit lamp, fundus)", fallback: "Text: no ophthal data" },
+      { query: "Pediatric summary", intent: "data_retrieval", dataCheck: "Pediatric data", cardFormat: "pediatric_summary", contentZone: "Inline data rows (growth: height/weight/BMI percentiles, OFC, vaccines)", fallback: "Text: no pediatric data" },
+      { query: "Vaccination history", intent: "data_retrieval", dataCheck: "Vaccine records", cardFormat: "vaccination_schedule", contentZone: "Vaccination schedule (name, due date, status badge)", fallback: "Text: no vaccine records" },
     ],
   },
   {
     category: "Labs & Vitals",
     icon: "🔬",
+    note: "Trends can be single-parameter (e.g. 'HbA1c trend') or multi-parameter (e.g. 'Lab trends', 'Show all vital trends'). Single-param shows one line with threshold; multi-param overlays multiple lines or uses grouped bar chart.",
     entries: [
-      { query: "Today's vitals", intent: "data_retrieval", dataCheck: "Vitals recorded today", cardFormat: "vitals_summary", contentZone: "Data rows with flags", fallback: "Text: no vitals today" },
+      { query: "Today's vitals", intent: "data_retrieval", dataCheck: "Vitals recorded today", cardFormat: "vitals_summary", contentZone: "Flagged inline data rows (BP, SpO2, temp, pulse, weight)", fallback: "Text: no vitals today" },
       { query: "Lab panel", intent: "data_retrieval", dataCheck: "Lab values exist", cardFormat: "lab_panel", contentZone: "Flagged data rows + reference ranges", fallback: "Text: no labs found" },
-      { query: "HbA1c trend", intent: "comparison", dataCheck: "Multiple values over time", cardFormat: "lab_trend", contentZone: "Line chart + threshold", fallback: "Single: text. None: text" },
-      { query: "Compare labs", intent: "comparison", dataCheck: "2+ visit values", cardFormat: "lab_comparison", contentZone: "Comparison table (prev/curr/delta)", fallback: "Text: only one set" },
-      { query: "Vital trends", intent: "comparison", dataCheck: "Multiple readings", cardFormat: "vitals_trend_line/bar", contentZone: "Line or bar chart", fallback: "Text: single reading" },
+      { query: "Single lab trend (e.g. HbA1c)", intent: "comparison", dataCheck: "2+ values for that param", cardFormat: "lab_trend", contentZone: "Line chart (single line + threshold)", fallback: "1 value: text with value + ref range. 0: text suggesting upload" },
+      { query: "Multi-param lab trends", intent: "comparison", dataCheck: "2+ values across params", cardFormat: "lab_trend", contentZone: "Multi-line chart or grouped bar chart", fallback: "Insufficient data: text listing available values" },
+      { query: "Compare labs", intent: "comparison", dataCheck: "2+ visit values", cardFormat: "lab_comparison", contentZone: "Comparison table (prev/curr/delta)", fallback: "Text: only one set available" },
+      { query: "Single vital trend (e.g. BP)", intent: "comparison", dataCheck: "Multiple BP readings", cardFormat: "vitals_trend_line", contentZone: "Line chart with normal range band", fallback: "1 reading: text. 0: text" },
+      { query: "All vital trends", intent: "comparison", dataCheck: "Multiple readings across vitals", cardFormat: "vitals_trend_bar", contentZone: "Grouped bar chart (BP, pulse, SpO2, temp)", fallback: "Single reading: text summary" },
     ],
   },
   {
     category: "Clinical Decision Support",
     icon: "🧠",
     entries: [
-      { query: "Suggest DDX", intent: "clinical_decision", dataCheck: "Symptoms available", cardFormat: "ddx", contentZone: "3-tier checkbox list", fallback: "Text: enter chief complaint" },
-      { query: "Protocol medications", intent: "clinical_decision", dataCheck: "Diagnosis exists", cardFormat: "protocol_meds", contentZone: "Medication display", fallback: "Text: accept diagnosis first" },
+      { query: "Suggest DDX", intent: "clinical_decision", dataCheck: "Symptoms available", cardFormat: "ddx", contentZone: "3-tier checkbox list (can't miss, most likely, consider)", fallback: "Text: enter chief complaint" },
+      { query: "Protocol medications", intent: "clinical_decision", dataCheck: "Diagnosis exists", cardFormat: "protocol_meds", contentZone: "Medication display (drug + dose + timing + duration)", fallback: "Text: accept diagnosis first" },
       { query: "Suggest investigations", intent: "clinical_decision", dataCheck: "Clinical suspicion", cardFormat: "investigation_bundle", contentZone: "Checkbox list + rationale", fallback: "Text: provide symptoms" },
-      { query: "Drug interactions", intent: "clinical_question", dataCheck: "Active medications", cardFormat: "drug_interaction", contentZone: "Drug A vs B + severity", fallback: "Text: no medications" },
-      { query: "Clinical guideline", intent: "clinical_decision", dataCheck: "Condition mentioned", cardFormat: "clinical_guideline", contentZone: "Recommendation list", fallback: "Text: specify condition" },
+      { query: "Drug interactions", intent: "clinical_question", dataCheck: "2+ active medications", cardFormat: "drug_interaction", contentZone: "Drug A vs B + severity + recommended action", fallback: "Text: no medications or single med" },
+      { query: "Allergy conflict", intent: "clinical_question", dataCheck: "Meds + allergies on record", cardFormat: "allergy_conflict", contentZone: "Drug vs allergen + severity + alternative", fallback: "Text: no allergies on record" },
+      { query: "Clinical guideline", intent: "clinical_decision", dataCheck: "Condition mentioned", cardFormat: "clinical_guideline", contentZone: "Recommendation list + evidence level", fallback: "Text: specify condition" },
     ],
   },
   {
     category: "Actions & Workflow",
     icon: "⚡",
+    note: "Dr. Agent can execute real actions — not just display data. These range from clinical workflow actions (translate, copy Rx) to operational actions (cancel appointment, generate bill, save document).",
     entries: [
-      { query: "Plan follow-up", intent: "action", dataCheck: "Active encounter", cardFormat: "follow_up", contentZone: "Radio options + reasoning", fallback: "Text: start consultation first" },
-      { query: "Draft advice", intent: "action", dataCheck: "Diagnosis + meds", cardFormat: "advice_bundle", contentZone: "Bullet list", fallback: "Generic wellness tips" },
+      { query: "Cancel appointment", intent: "action", dataCheck: "Active appointment", cardFormat: "action confirmation", contentZone: "Confirmation + patient details", fallback: "Text: no appointment found" },
+      { query: "Generate bill", intent: "action", dataCheck: "Consultation data", cardFormat: "action confirmation", contentZone: "Bill summary + confirm CTA", fallback: "Text: no billable items" },
+      { query: "Save document against patient", intent: "action", dataCheck: "Uploaded document + patient", cardFormat: "action confirmation", contentZone: "Document preview + patient match", fallback: "Text: upload a document first" },
+      { query: "Send reminder", intent: "action", dataCheck: "Patient + contact info", cardFormat: "action confirmation", contentZone: "Reminder preview + send CTA", fallback: "Text: no contact info" },
+      { query: "Draft advice", intent: "action", dataCheck: "Diagnosis + meds", cardFormat: "advice_bundle", contentZone: "Bullet list + copy/share", fallback: "Generic wellness tips" },
       { query: "Translate to Hindi", intent: "action", dataCheck: "Content exists", cardFormat: "translation", contentZone: "Translation pair + copy", fallback: "Text: nothing to translate" },
-      { query: "Copy prescription", intent: "action", dataCheck: "Generated meds", cardFormat: "rx_preview", contentZone: "Structured Rx + copy", fallback: "Text: generate meds first" },
-      { query: "Completeness check", intent: "action", dataCheck: "RxPad state", cardFormat: "completeness", contentZone: "Section checklist", fallback: "Always available" },
+      { query: "Copy prescription", intent: "action", dataCheck: "Generated meds", cardFormat: "rx_preview", contentZone: "Structured Rx sections + copy CTA", fallback: "Text: generate meds first" },
+      { query: "Completeness check", intent: "action", dataCheck: "RxPad state", cardFormat: "completeness", contentZone: "Section checklist (missing fields highlighted)", fallback: "Always available" },
+      { query: "Draft referral", intent: "action", dataCheck: "Diagnosis + reason", cardFormat: "referral", contentZone: "Referral form (doctor, specialty, reason)", fallback: "Text: specify referral details" },
     ],
   },
   {
     category: "Document Analysis",
     icon: "📄",
+    note: "Documents are auto-extracted on upload. Supported types: prescriptions (Rx), pathology reports, radiology reports, discharge summaries, vaccination records. All extracted data is structured into flagged inline data rows.",
     entries: [
-      { query: "Scan report", intent: "document_analysis", dataCheck: "Document uploaded", cardFormat: "ocr_extraction", contentZone: "Structured sections", fallback: "Text: upload a document" },
-      { query: "Extract lab values", intent: "document_analysis", dataCheck: "Lab report uploaded", cardFormat: "ocr_pathology", contentZone: "Flagged data rows", fallback: "Text: upload lab report" },
+      { query: "Upload prescription (Rx)", intent: "document_analysis", dataCheck: "Rx document uploaded", cardFormat: "ocr_extraction", contentZone: "Structured sections (meds, dose, frequency, duration)", fallback: "Text: upload a prescription" },
+      { query: "Upload pathology report", intent: "document_analysis", dataCheck: "Pathology report uploaded", cardFormat: "ocr_pathology", contentZone: "Flagged data rows (param, value, ref range, flag)", fallback: "Text: upload pathology report" },
+      { query: "Upload radiology report", intent: "document_analysis", dataCheck: "Radiology document uploaded", cardFormat: "ocr_extraction", contentZone: "Structured sections (findings, impression, recommendation)", fallback: "Text: upload radiology report" },
+      { query: "Upload discharge summary", intent: "document_analysis", dataCheck: "Discharge doc uploaded", cardFormat: "ocr_extraction", contentZone: "Structured sections (diagnosis, treatment, follow-up)", fallback: "Text: upload discharge summary" },
+      { query: "Save against patient", intent: "document_analysis", dataCheck: "Extracted + patient matched", cardFormat: "action confirmation", contentZone: "Extracted preview + save CTA", fallback: "Text: match to patient first" },
     ],
   },
   {
@@ -278,6 +295,9 @@ const SYNTHETIC_DATA_CHART = [
       { query: "Demographics", intent: "operational", dataCheck: "Patient registry", cardFormat: "donut_chart", contentZone: "Donut/pie chart", fallback: "Empty chart" },
       { query: "Peak hours", intent: "operational", dataCheck: "Time data", cardFormat: "heatmap", contentZone: "Grid heatmap", fallback: "Empty heatmap" },
       { query: "Vaccination schedule", intent: "operational", dataCheck: "Vaccine records", cardFormat: "vaccination_schedule", contentZone: "Schedule + status badges", fallback: "Text: no records" },
+      { query: "Patient search", intent: "operational", dataCheck: "Search term", cardFormat: "patient_list", contentZone: "Patient list rows (name, age, phone)", fallback: "Text: no matches" },
+      { query: "Appointment analytics", intent: "operational", dataCheck: "Appointment history", cardFormat: "analytics_table", contentZone: "KPI rows (total, completed, cancelled, no-show)", fallback: "Text: no appointment data" },
+      { query: "Diagnosis distribution", intent: "operational", dataCheck: "Diagnosis records", cardFormat: "donut_chart", contentZone: "Donut chart (condition breakdown)", fallback: "Text: no diagnosis data" },
     ],
   },
   {
@@ -295,7 +315,6 @@ const SYNTHETIC_DATA_CHART = [
     entries: [
       { query: "Non-medical query", intent: "out_of_scope", dataCheck: "N/A", cardFormat: "guardrail", contentZone: "Redirect + pills", fallback: "Always guardrail" },
       { query: "Ambiguous input", intent: "ambiguous", dataCheck: "N/A", cardFormat: "text + pills", contentZone: "Sorry message + 4 pills", fallback: "Guided suggestions" },
-      { query: "Allergy conflict", intent: "clinical_question", dataCheck: "Meds + allergies", cardFormat: "allergy_conflict", contentZone: "Drug vs allergen + alternatives", fallback: "Text: no allergies on record" },
     ],
   },
 ]
@@ -303,24 +322,24 @@ const SYNTHETIC_DATA_CHART = [
 // ── Content Zone Types ──────────────────────────────────────
 
 const CONTENT_ZONE_TYPES = [
-  { zone: "Inline Data Rows", description: "Section-tagged key:value pairs. Most common pattern.", usedIn: "Summaries, Vitals, Last visit, Specialty", icon: "═", category: "data" },
-  { zone: "Line Chart", description: "Time-series with threshold lines and tone coloring.", usedIn: "Lab trends, Vital trends, Patient volume", icon: "📈", category: "chart" },
-  { zone: "Bar Chart", description: "Categorical comparisons with stacked segments.", usedIn: "Revenue, Vital trends (bar), Condition distribution", icon: "📊", category: "chart" },
-  { zone: "Comparison Table", description: "Previous vs current with delta indicators.", usedIn: "Lab comparison, Revenue comparison", icon: "⇔", category: "data" },
-  { zone: "Checkbox List", description: "Multi-select with urgency tiers.", usedIn: "DDX, Investigation bundle, Bulk actions", icon: "☑", category: "list" },
-  { zone: "Radio List", description: "Single-select with reasoning.", usedIn: "Follow-up scheduling, Follow-up questions", icon: "◉", category: "list" },
-  { zone: "Bullet List", description: "Itemized content with optional copy-all.", usedIn: "Advice, Guidelines, Text lists", icon: "•", category: "list" },
-  { zone: "Medication Display", description: "Drug + dosage + timing + duration + safety.", usedIn: "Protocol meds, Rx preview, Med history", icon: "💊", category: "specialized" },
-  { zone: "Patient List", description: "Name, age, time, status, complaint rows.", usedIn: "Queue, Follow-up list, Search results", icon: "👤", category: "data" },
-  { zone: "SBAR Sections", description: "Situation → Background → Assessment → Recommendation.", usedIn: "Patient summary, Specialty summaries", icon: "S", category: "specialized" },
-  { zone: "Donut / Pie Chart", description: "Proportional distribution visualization.", usedIn: "Demographics, Diagnosis breakdown", icon: "◔", category: "chart" },
-  { zone: "Heatmap Grid", description: "Row x Column intensity grid.", usedIn: "Peak hours, Weekly volume", icon: "▦", category: "chart" },
-  { zone: "KPI Table", description: "Metric rows with period comparison and delta.", usedIn: "Weekly KPIs, Analytics, Follow-up rate", icon: "▤", category: "data" },
-  { zone: "Clinical Narrative", description: "AI-generated paragraph summary.", usedIn: "Patient summary (collapsed), Narrative card", icon: "¶", category: "specialized" },
-  { zone: "Translation Pair", description: "Source left, target right, with copy.", usedIn: "Translation card (Hindi, Telugu, etc.)", icon: "🌐", category: "specialized" },
-  { zone: "Drug Interaction", description: "Drug A vs B + severity + action.", usedIn: "Drug interaction, Allergy conflict", icon: "⚠", category: "specialized" },
-  { zone: "Vaccination Schedule", description: "Vaccine + due date + status badge.", usedIn: "Vaccination schedule, ANC schedule", icon: "💉", category: "specialized" },
-  { zone: "Timeline", description: "Chronological event list with type markers.", usedIn: "Patient timeline (visits, labs, procedures)", icon: "⏱", category: "specialized" },
+  { zone: "Inline Data Rows", description: "Section-tagged key:value pairs. Most common pattern across all cards. For patient summaries, these rows follow the SBAR protocol (Situation, Background, Assessment, Recommendation) as a structuring convention — not a separate zone type.", usedIn: "Patient summary (SBAR), Vitals, Last visit, Specialty summaries, Med history, OCR extraction", icon: "═", category: "data" },
+  { zone: "Flagged Data Rows", description: "Inline data rows with abnormal-value highlighting, reference ranges, and flag indicators (high/low/critical).", usedIn: "Lab panels, OCR pathology, Vitals (abnormal)", icon: "⚑", category: "data" },
+  { zone: "Line Chart", description: "Time-series with threshold lines and tone coloring. Single-param: one line with reference band. Multi-param: overlaid lines with legend.", usedIn: "Lab trends (HbA1c, eGFR), Vital trends (BP, SpO2)", icon: "📈", category: "chart" },
+  { zone: "Bar Chart", description: "Categorical or time-bucketed comparisons with stacked or grouped segments.", usedIn: "Revenue, Multi-param vital trends, Condition distribution", icon: "📊", category: "chart" },
+  { zone: "Comparison Table", description: "Side-by-side previous vs current with delta indicators and flags.", usedIn: "Lab comparison, Revenue comparison", icon: "⇔", category: "data" },
+  { zone: "Checkbox List", description: "Multi-select items with urgency or confidence tiers.", usedIn: "DDX (3-tier), Investigation bundle, Bulk actions", icon: "☑", category: "list" },
+  { zone: "Radio List", description: "Single-select options with recommended flags and reasoning.", usedIn: "Follow-up scheduling, Follow-up questions", icon: "◉", category: "list" },
+  { zone: "Bullet List", description: "Simple itemized content with optional copy-all action.", usedIn: "Advice bundle, Clinical guidelines, Text lists", icon: "•", category: "list" },
+  { zone: "Medication Display", description: "Drug name + dosage + timing + duration + safety notes.", usedIn: "Protocol meds, Rx preview, Med history, Voice structured Rx", icon: "💊", category: "specialized" },
+  { zone: "Patient List", description: "Name, age/gender, time, status badge, chief complaint rows.", usedIn: "Today's queue, Follow-up list, Due patients, Search results", icon: "👤", category: "data" },
+  { zone: "Donut / Pie Chart", description: "Proportional distribution visualization with labeled segments.", usedIn: "Demographics, Diagnosis breakdown, Data completeness", icon: "◔", category: "chart" },
+  { zone: "Heatmap Grid", description: "Row x Column intensity grid for time-based patterns.", usedIn: "Peak hours, Weekly volume", icon: "▦", category: "chart" },
+  { zone: "KPI Table", description: "Dashboard-style metric rows with this-period vs last-period and delta.", usedIn: "Weekly KPIs, Analytics table, Follow-up rate", icon: "▤", category: "data" },
+  { zone: "Clinical Narrative", description: "AI-generated paragraph summarizing the patient in natural language.", usedIn: "Patient summary (collapsed), Patient narrative card", icon: "¶", category: "specialized" },
+  { zone: "Translation Pair", description: "Source language left, target language right, with copy action.", usedIn: "Translation card (Hindi, Telugu, Tamil, Kannada, Marathi)", icon: "🌐", category: "specialized" },
+  { zone: "Drug Interaction", description: "Drug A vs Drug B with severity level, risk description, and recommended action.", usedIn: "Drug interaction card, Allergy conflict card", icon: "⚠", category: "specialized" },
+  { zone: "Vaccination Schedule", description: "Vaccine name + due date + status badge (completed/pending/overdue).", usedIn: "Vaccination schedule, ANC schedule, Pediatric vaccines", icon: "💉", category: "specialized" },
+  { zone: "Timeline", description: "Chronological vertical event list with type-coded markers.", usedIn: "Patient timeline (visits, labs, procedures, admissions)", icon: "⏱", category: "specialized" },
 ]
 
 const ZONE_CATEGORY_STYLES: Record<string, { label: string; bg: string; border: string; dot: string }> = {
@@ -339,24 +358,15 @@ export default function IntentClassificationSection({ onNavigateTab }: { onNavig
   return (
     <div className="space-y-10">
 
-      {/* ── Page Header / Intro ── */}
+      {/* ── Page Header ── */}
       <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-50/80 px-6 py-5">
         <h3 className="mb-1 text-[18px] font-bold text-slate-800">How Dr. Agent Decides What to Show</h3>
         <p className="max-w-2xl text-[12px] leading-[1.6] text-slate-500">
-          Dr. Agent is an <strong className="text-slate-700">AI co-pilot</strong> built for{" "}
-          <strong className="text-slate-700">doctors, nurses, admins, and clinical operators</strong> — anyone
-          involved in the patient care workflow. It does two things:{" "}
-          <strong className="text-slate-700">surfaces the right information</strong> at the right time (summaries,
-          vitals, history, trends) and <strong className="text-slate-700">takes action</strong> on behalf of the
-          user — cancelling appointments, saving uploaded documents against a patient, generating bills,
-          sending reminders, and more.
-        </p>
-        <p className="mt-2 max-w-2xl text-[12px] leading-[1.6] text-slate-500">
           Every response starts with a decision: <strong className="text-slate-700">UI card</strong> or{" "}
           <strong className="text-slate-700">plain text</strong>? This section covers the{" "}
           <strong className="text-slate-700">7-step pipeline</strong>,{" "}
           <strong className="text-slate-700">10 intent categories</strong>, and the complete{" "}
-          <strong className="text-slate-700">intent-to-card reference</strong> mapping 35+ query patterns to outputs.
+          <strong className="text-slate-700">intent-to-card reference</strong> mapping 50+ query patterns to outputs.
         </p>
       </div>
 

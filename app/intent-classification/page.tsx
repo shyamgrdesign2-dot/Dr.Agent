@@ -74,23 +74,23 @@ type ContentPrimitive = {
 
 // ── Content Zone Types (shared between Intent Classification and Card Anatomy) ──
 const CONTENT_ZONE_TYPES_FOR_ANATOMY = [
-  { zone: "Inline Data Rows", description: "Section-tagged key:value pairs. Most common pattern for summaries and structured data.", usedIn: "Patient summary, Vitals, Last visit, Specialty summaries", icon: "═" },
-  { zone: "Line Chart", description: "Time-series visualization with threshold lines and tone coloring.", usedIn: "Lab trends (HbA1c, eGFR), Vital trends (BP, SpO2), Patient volume", icon: "📈" },
-  { zone: "Bar Chart", description: "Categorical or time-bucketed comparisons with stacked segments.", usedIn: "Revenue breakdown, Vital trends (bar variant), Condition distribution", icon: "📊" },
+  { zone: "Inline Data Rows", description: "Section-tagged key:value pairs. Most common pattern. For patient summaries, follows SBAR protocol as a structuring convention.", usedIn: "Patient summary (SBAR), Vitals, Last visit, Specialty summaries, Med history, OCR extraction", icon: "═" },
+  { zone: "Flagged Data Rows", description: "Inline data rows with abnormal-value highlighting, reference ranges, and flag indicators (high/low/critical).", usedIn: "Lab panels, OCR pathology, Vitals (abnormal)", icon: "⚑" },
+  { zone: "Line Chart", description: "Time-series visualization with threshold lines. Single-param: one line + ref band. Multi-param: overlaid lines.", usedIn: "Lab trends (HbA1c, eGFR), Vital trends (BP, SpO2)", icon: "📈" },
+  { zone: "Bar Chart", description: "Categorical or time-bucketed comparisons with stacked or grouped segments.", usedIn: "Revenue, Multi-param vital trends, Condition distribution", icon: "📊" },
   { zone: "Comparison Table", description: "Side-by-side previous vs current with delta indicators and flags.", usedIn: "Lab comparison, Revenue comparison", icon: "⇔" },
   { zone: "Checkbox List", description: "Multi-select items with urgency or confidence tiers.", usedIn: "DDX (3-tier), Investigation bundle, Bulk actions", icon: "☑" },
   { zone: "Radio List", description: "Single-select options with recommended flags and reasoning.", usedIn: "Follow-up scheduling, Follow-up questions", icon: "◉" },
   { zone: "Bullet List", description: "Simple itemized content with optional copy-all action.", usedIn: "Advice bundle, Clinical guidelines, Text lists", icon: "•" },
   { zone: "Medication Display", description: "Drug name + dosage + timing + duration + safety notes.", usedIn: "Protocol meds, Rx preview, Med history, Voice structured Rx", icon: "💊" },
   { zone: "Patient List", description: "Name, age/gender, time, status badge, chief complaint rows.", usedIn: "Today's queue, Follow-up list, Due patients, Search results", icon: "👤" },
-  { zone: "SBAR Sections", description: "4-part scaffold: Situation, Background, Assessment, Recommendation.", usedIn: "SBAR overview, SBAR critical", icon: "S" },
   { zone: "Donut / Pie Chart", description: "Proportional distribution visualization with labeled segments.", usedIn: "Demographics, Diagnosis breakdown, Data completeness", icon: "◔" },
   { zone: "Heatmap Grid", description: "Row x Column intensity grid for time-based patterns.", usedIn: "Peak hours, Weekly volume", icon: "▦" },
   { zone: "KPI Table", description: "Dashboard-style metric rows with this-period vs last-period and delta.", usedIn: "Weekly KPIs, Analytics table, Follow-up rate", icon: "▤" },
   { zone: "Clinical Narrative", description: "AI-generated paragraph summarizing the patient in natural language.", usedIn: "Patient summary (collapsed), Patient narrative card", icon: "¶" },
   { zone: "Translation Pair", description: "Source language left, target language right, with copy action.", usedIn: "Translation card (Hindi, Telugu, Tamil, Kannada, Marathi)", icon: "🌐" },
   { zone: "Drug Interaction", description: "Drug A vs Drug B with severity level, risk description, and recommended action.", usedIn: "Drug interaction card, Allergy conflict card", icon: "⚠" },
-  { zone: "Vaccination Schedule", description: "Vaccine name + due date + status badge (completed/pending/overdue).", usedIn: "Vaccination schedule, Vaccination due list, ANC schedule", icon: "💉" },
+  { zone: "Vaccination Schedule", description: "Vaccine name + due date + status badge (completed/pending/overdue).", usedIn: "Vaccination schedule, ANC schedule, Pediatric vaccines", icon: "💉" },
   { zone: "Timeline", description: "Chronological vertical event list with type-coded markers.", usedIn: "Patient timeline (visits, labs, procedures, admissions)", icon: "⏱" },
 ]
 
@@ -1655,10 +1655,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           {/* Summary overview by category */}
           <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { label: "Data Display", color: "#3B82F6", zones: ["═ Inline Data Rows", "⇔ Comparison Table", "👤 Patient List", "▤ KPI Table"] },
+              { label: "Data Display", color: "#3B82F6", zones: ["═ Inline Data Rows", "⚑ Flagged Data Rows", "⇔ Comparison Table", "👤 Patient List", "▤ KPI Table"] },
               { label: "Charts & Visualization", color: "#059669", zones: ["📈 Line Chart", "📊 Bar Chart", "◔ Donut / Pie Chart", "▦ Heatmap Grid"] },
               { label: "Lists & Selection", color: "#D97706", zones: ["☑ Checkbox List", "◉ Radio List", "• Bullet List"] },
-              { label: "Specialized Formats", color: "#8B5CF6", zones: ["💊 Medication Display", "S SBAR Sections", "¶ Clinical Narrative", "🌐 Translation Pair", "⚠ Drug Interaction", "💉 Vaccination Schedule", "⏱ Timeline"] },
+              { label: "Specialized Formats", color: "#8B5CF6", zones: ["💊 Medication Display", "¶ Clinical Narrative", "🌐 Translation Pair", "⚠ Drug Interaction", "💉 Vaccination Schedule", "⏱ Timeline"] },
             ].map(cat => (
               <div key={cat.label} className="rounded-xl border border-slate-200 bg-white p-3">
                 <div className="flex items-center gap-2 mb-2">
@@ -3537,11 +3537,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
     )
   }
 
-  // ── MAIN CONTENT ──
-  const content = (
+  // ── EMBEDDED CONTENT (tabs inside content for embedded mode) ──
+  const embeddedContent = (
     <div>
-      {/* Main tabs */}
-      <div className={`mb-5 border-b border-slate-200 pb-[10px] ${embedded ? "sticky top-0 z-30 bg-[#FAFAFE]/95 pt-2 backdrop-blur-md" : "sticky top-0 z-30 bg-[#FAFAFE]/95 pt-3 backdrop-blur-md"}`}>
+      <div className="sticky top-0 z-30 bg-[#FAFAFE]/95 pt-2 pb-[10px] border-b border-slate-200 backdrop-blur-md mb-5">
         <div className="flex gap-1">
         {([
           { id: "intent-classification" as MainTab, label: "Intent Classification" },
@@ -3568,27 +3567,53 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
     </div>
   )
 
-  if (embedded) return content
+  if (embedded) return embeddedContent
 
   return (
     <div className="h-screen overflow-hidden bg-[#FAFAFE]">
-      <header className={`fixed left-0 right-0 top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-md transition-transform duration-200 ${isDocHeaderVisible ? "translate-y-0" : "-translate-y-full"}`}>
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+      {/* ── Fixed header + tabs (always sticky together) ── */}
+      <header className="fixed left-0 right-0 top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
+        {/* Title bar */}
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2.5 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-700">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-700">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
             </div>
             <div>
-              <h1 className="text-[18px] font-bold leading-tight bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">Dr. Agent — Response Management</h1>
-              <p className="text-[11px] text-slate-400">Intent Classification, Card Anatomy, Catalog & Response Pipeline</p>
+              <h1 className="text-[16px] font-bold leading-tight bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">Dr. Agent — Documentation</h1>
+              <p className="text-[10px] text-slate-400">AI co-pilot for doctors, nurses, admins & clinical operators — surfaces data and takes action</p>
             </div>
           </div>
           <a href="/tp-appointment-screen/scenarios" className="rounded-lg border border-slate-200 px-3 py-1.5 text-[11px] font-medium text-slate-600 hover:bg-slate-50">Back</a>
         </div>
+        {/* Tab bar */}
+        <div className="mx-auto max-w-7xl px-4 pb-2 sm:px-6">
+          <div className="flex gap-1">
+            {([
+              { id: "intent-classification" as MainTab, label: "Intent Classification" },
+              { id: "card-anatomy" as MainTab, label: "Card Anatomy & Patterns" },
+              { id: "card-catalog" as MainTab, label: "Card Catalog" },
+              { id: "response-management" as MainTab, label: "Response Management" },
+              { id: "user-scenarios" as MainTab, label: "User Scenarios" },
+            ]).map(tab => (
+              <button key={tab.id} onClick={() => setMainTab(tab.id)}
+                className={`rounded-lg px-4 py-1.5 text-[11px] font-medium transition-colors ${
+                  mainTab === tab.id ? "bg-violet-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </header>
-      <main className={`mx-auto max-w-7xl overflow-hidden px-4 transition-[margin-top,height] duration-200 sm:px-6 ${isDocHeaderVisible ? "mt-[73px] h-[calc(100vh-73px)]" : "mt-0 h-screen"}`}>
-        <div ref={scrollContainerRef} className="h-full overflow-y-auto py-8">
-          {content}
+      {/* ── Scrollable content area ── */}
+      <main className="mx-auto max-w-7xl overflow-hidden px-4 mt-[100px] h-[calc(100vh-100px)] sm:px-6">
+        <div ref={scrollContainerRef} className="h-full overflow-y-auto py-6">
+          {mainTab === "intent-classification" && <IntentClassificationSection onNavigateTab={(tab) => setMainTab(tab as MainTab)} />}
+          {mainTab === "card-anatomy" && renderCardAnatomy()}
+          {mainTab === "card-catalog" && renderCardCatalog()}
+          {mainTab === "response-management" && renderResponseMgmt()}
+          {mainTab === "user-scenarios" && renderUserScenarios()}
         </div>
       </main>
     </div>
