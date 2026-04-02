@@ -11,6 +11,7 @@ import { EmbeddedSpecialtyBox } from "./EmbeddedSpecialtyBox"
 import { VITAL_META } from "../../constants"
 import type { SmartSummaryData, SpecialtyTabId, DoctorViewType } from "../../types"
 import { highlightClinicalText } from "../../shared/highlightClinicalText"
+import { formatWithHierarchy } from "../../shared/formatWithHierarchy"
 
 
 const LAB_SHORT_NAMES: Record<string, string> = {
@@ -217,7 +218,12 @@ export function buildSummaryNarrative(
     parts.push(
       <span key="allergies">
         {parts.length > 0 ? ". Allergic to " : "Allergic to "}
-        <span className="text-tp-slate-700">{data.allergies.slice(0, 2).join(", ")}</span>
+        {data.allergies.slice(0, 2).map((a, i, arr) => (
+          <React.Fragment key={i}>
+            {formatWithHierarchy(a.trim(), "text-tp-slate-700", "text-tp-slate-400")}
+            {i < arr.length - 1 && <span className="text-tp-slate-400">, </span>}
+          </React.Fragment>
+        ))}
       </span>,
     )
   }
@@ -242,7 +248,7 @@ export function buildSummaryNarrative(
       parts.push(
         <span key="lastVisit">
           {parts.length > 0 ? ". " : ""}
-          Last seen <NarrBold>{lastDate}</NarrBold> — Dx: <NarrBold>{dx}</NarrBold>
+          Last seen <NarrBold>{lastDate}</NarrBold> — Dx: {formatWithHierarchy(dx, "font-semibold not-italic text-tp-slate-700", "font-normal not-italic text-tp-slate-400")}
         </span>,
       )
     }

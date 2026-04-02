@@ -608,6 +608,11 @@ export function buildReply(
     return {
       text: "Patient's detailed summary:",
       rxOutput: { kind: "patient_summary", data: summary, hideNarrative: true },
+      suggestions: [
+        { label: "Today's vitals", message: "Today's vitals" },
+        { label: "Medical history", message: "Medical history" },
+        { label: "Lab overview", message: "Lab overview" },
+      ],
     }
   }
 
@@ -616,6 +621,11 @@ export function buildReply(
     return {
       text: "Here's the clinical summary.",
       rxOutput: { kind: "sbar_overview", data: summary },
+      suggestions: [
+        { label: "Today's vitals", message: "Today's vitals" },
+        { label: "Lab overview", message: "Lab overview" },
+        { label: "Last visit", message: "Last visit details" },
+      ],
     }
   }
 
@@ -626,6 +636,11 @@ export function buildReply(
         ? "Here's the patient's clinical summary."
         : "This is a new patient, no records found yet. You can begin by adding history or uploading reports.",
       rxOutput: { kind: "sbar_overview", data: summary },
+      suggestions: [
+        { label: "Today's vitals", message: "Today's vitals" },
+        { label: "Medical history", message: "Medical history" },
+        { label: "Last visit", message: "Last visit details" },
+      ],
     }
   }
 
@@ -676,6 +691,11 @@ export function buildReply(
           },
         },
       },
+      suggestions: [
+        { label: "Medical history", message: "Medical history" },
+        { label: "Today's vitals", message: "Today's vitals" },
+        { label: "Suggest DDX", message: "Suggest DDX" },
+      ],
     }
   }
 
@@ -719,6 +739,11 @@ export function buildReply(
             : undefined,
         },
       },
+      suggestions: [
+        { label: "Medication history", message: "Medication history" },
+        { label: "Last visit", message: "Last visit details" },
+        { label: "Today's vitals", message: "Today's vitals" },
+      ],
     }
   }
 
@@ -743,6 +768,11 @@ export function buildReply(
           insight: entries.length > 3 ? "Multiple active medications — consider polypharmacy review." : `${entries.length} active medication${entries.length > 1 ? "s" : ""} on record.`,
         },
       },
+      suggestions: [
+        { label: "Drug interactions", message: "Check drug interactions" },
+        { label: "Medical history", message: "Medical history" },
+        { label: "Lab overview", message: "Lab overview" },
+      ],
     }
   }
 
@@ -796,6 +826,11 @@ export function buildReply(
           insight: flaggedCount > 0 ? `${flaggedCount} value${flaggedCount > 1 ? "s" : ""} outside normal range — review recommended.` : "All parameters within normal limits.",
         },
       },
+      suggestions: [
+        { label: "Vital trends", message: "Vital trends" },
+        { label: "Lab overview", message: "Lab overview" },
+        { label: "Patient summary", message: "Patient summary" },
+      ],
     }
   }
 
@@ -1233,6 +1268,11 @@ export function buildReply(
           hiddenNormalCount: Math.max(0, 17 - summary.keyLabs.length),
         },
       },
+      suggestions: [
+        { label: "Lab comparison", message: "Lab comparison" },
+        { label: "Today's vitals", message: "Today's vitals" },
+        { label: "Suggest investigations", message: "Suggest investigations" },
+      ],
     }
   }
 

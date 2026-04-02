@@ -6,6 +6,7 @@ import { SectionTag, SECTION_TAG_ICON_MAP } from "../SectionTag"
 import { cn } from "@/lib/utils"
 import type { SbarCriticalCardData } from "../../types"
 import { highlightClinicalText } from "../../shared/highlightClinicalText"
+import { formatWithHierarchy } from "../../shared/formatWithHierarchy"
 
 interface SbarCriticalCardProps {
   data: SbarCriticalCardData
@@ -37,9 +38,12 @@ export function SbarCriticalCard({ data }: SbarCriticalCardProps) {
         {data.activeProblems.length > 0 && (
           <div className="text-[14px] leading-[1.8] text-tp-slate-800">
             <SectionTag label="Current Symptoms" icon="clipboard-activity" />{" "}
-            <span className="text-tp-slate-700">
-              {data.activeProblems.join(", ")}
-            </span>
+            {data.activeProblems.map((p, i, arr) => (
+              <React.Fragment key={i}>
+                {formatWithHierarchy(p.trim(), "text-tp-slate-700", "text-tp-slate-400")}
+                {i < arr.length - 1 && <span className="text-tp-slate-400">, </span>}
+              </React.Fragment>
+            ))}
           </div>
         )}
 
@@ -47,7 +51,12 @@ export function SbarCriticalCard({ data }: SbarCriticalCardProps) {
         {data.allergies.length > 0 && (
           <div className="text-[14px] leading-[1.8]">
             <SectionTag label="Allergies" icon="shield-cross" />{" "}
-            <span className="text-tp-slate-700">{data.allergies.join(", ")}</span>
+            {data.allergies.map((a, i, arr) => (
+              <React.Fragment key={i}>
+                {formatWithHierarchy(a.trim(), "text-tp-slate-700", "text-tp-slate-400")}
+                {i < arr.length - 1 && <span className="text-tp-slate-400">, </span>}
+              </React.Fragment>
+            ))}
           </div>
         )}
 
@@ -55,9 +64,12 @@ export function SbarCriticalCard({ data }: SbarCriticalCardProps) {
         {data.keyMeds.length > 0 && (
           <div className="text-[14px] leading-[1.8] text-tp-slate-800">
             <SectionTag label="Key Medications" icon={SECTION_TAG_ICON_MAP["Medications"]} />{" "}
-            <span className="text-tp-slate-700">
-              {data.keyMeds.slice(0, 8).join(", ")}
-            </span>
+            {data.keyMeds.slice(0, 8).map((m, i, arr) => (
+              <React.Fragment key={i}>
+                {formatWithHierarchy(m.trim(), "text-tp-slate-700", "text-tp-slate-400")}
+                {i < arr.length - 1 && <span className="text-tp-slate-400">, </span>}
+              </React.Fragment>
+            ))}
           </div>
         )}
 

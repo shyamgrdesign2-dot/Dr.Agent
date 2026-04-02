@@ -430,23 +430,39 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
               <>
                 <span className="mx-[6px] text-tp-slate-200">|</span>
                 <span className="text-tp-slate-400">Sx:&nbsp;</span>
-                <span className="text-tp-slate-700">{lastVisit.symptoms}</span>
+                {lastVisit.symptoms.split(", ").map((s, i, arr) => (
+                  <React.Fragment key={i}>
+                    {formatWithHierarchy(s.trim(), "text-tp-slate-700", "font-normal text-tp-slate-400")}
+                    {i < arr.length - 1 && <span className="text-tp-slate-400">, </span>}
+                  </React.Fragment>
+                ))}
               </>
             )}
             {lastVisit.diagnosis && (
               <>
                 <span className="mx-[6px] text-tp-slate-200">|</span>
                 <span className="text-tp-slate-400">Dx:&nbsp;</span>
-                <span className="font-medium text-tp-slate-700">{lastVisit.diagnosis}</span>
+                {lastVisit.diagnosis.split(", ").map((d, i, arr) => (
+                  <React.Fragment key={i}>
+                    {formatWithHierarchy(d.trim(), "font-medium text-tp-slate-700", "font-normal text-tp-slate-400")}
+                    {i < arr.length - 1 && <span className="text-tp-slate-400">, </span>}
+                  </React.Fragment>
+                ))}
               </>
             )}
             {lastVisit.medication && (
               <>
                 <span className="mx-[6px] text-tp-slate-200">|</span>
                 <span className="text-tp-slate-400">Rx:&nbsp;</span>
-                <span className="text-tp-slate-700">
-                  {splitRespectingParens(lastVisit.medication).map(shortenMedication).join(", ")}
-                </span>
+                {splitRespectingParens(lastVisit.medication).map((m, i, arr) => {
+                  const shortened = shortenMedication(m)
+                  return (
+                    <React.Fragment key={i}>
+                      {formatWithHierarchy(shortened, "text-tp-slate-700", "font-normal text-tp-slate-400")}
+                      {i < arr.length - 1 && <span className="text-tp-slate-400">, </span>}
+                    </React.Fragment>
+                  )
+                })}
               </>
             )}
           </div>

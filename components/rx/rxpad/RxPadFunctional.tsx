@@ -17,7 +17,7 @@ import {
   symptomSuggestions,
 } from "../sample-data"
 import { useRxPadSync } from "@/components/tp-rxpad/rxpad-sync-context"
-import { AiTriggerChip } from "@/components/tp-rxpad/dr-agent/shared/AiTriggerChip"
+// AiTriggerChip removed — canned AI actions moved to Dr. Agent chat suggestions
 import { PER_PATIENT_RXPAD_DATA, checkDrugInteraction, checkTableInteractions } from "./per-patient-rxpad-data"
 import {
   TPMedicalIcon,
@@ -2486,20 +2486,7 @@ export function RxPadFunctional({ patientId = "__patient__" }: { patientId?: str
         searchPlaceholder="Search & Add Symptoms"
         searchSuggestions={symptomSuggestions}
         cannedChips={symptomSuggestions.slice(0, 12)}
-        afterSearch={
-          hasFilledSymptoms ? (
-            <AiTriggerChip
-              label="Suggest DDX"
-              signalLabel="Generate differential diagnosis based on current symptoms"
-              sectionId="symptoms"
-              onAfterClick={() => {
-                setTimeout(() => {
-                  document.querySelector('[data-rxpad-module="diagnosis"]')?.scrollIntoView({ behavior: "smooth", block: "start" })
-                }, 100)
-              }}
-            />
-          ) : null
-        }
+        afterSearch={null}
       />
 
       <EditableTableModule
@@ -2549,15 +2536,7 @@ export function RxPadFunctional({ patientId = "__patient__" }: { patientId?: str
             </TPTooltip>
           )
         }}
-        afterSearch={
-          hasFilledDiagnosis ? (
-            <AiTriggerChip
-              label="Suggest lab tests"
-              signalLabel="Suggest lab investigations based on diagnosis"
-              sectionId="diagnosis"
-            />
-          ) : null
-        }
+        afterSearch={null}
       />
 
       <EditableTableModule
@@ -2603,15 +2582,7 @@ export function RxPadFunctional({ patientId = "__patient__" }: { patientId?: str
           "Multivitamin",
           "Ibuprofen 400mg",
         ]}
-        afterSearch={
-          hasFilledMedication ? (
-            <AiTriggerChip
-              label="Check interactions"
-              signalLabel="Check drug interactions for current medications"
-              sectionId="medication"
-            />
-          ) : null
-        }
+        afterSearch={null}
       />
 
       <EditableTableModule
@@ -2624,15 +2595,7 @@ export function RxPadFunctional({ patientId = "__patient__" }: { patientId?: str
         onChangeRows={setAdviceRows}
         searchPlaceholder="Search & Add Advice"
         cannedChips={ADVICE_SUGGESTIONS}
-        afterSearch={
-          hasFilledAdvice ? (
-            <AiTriggerChip
-              label="Translate advice"
-              signalLabel="Translate advice to patient's language"
-              sectionId="advice"
-            />
-          ) : null
-        }
+        afterSearch={null}
       />
 
       <EditableTableModule
@@ -2670,15 +2633,7 @@ export function RxPadFunctional({ patientId = "__patient__" }: { patientId?: str
             </TPTooltip>
           )
         }}
-        afterSearch={
-          hasFilledDiagnosis ? (
-            <AiTriggerChip
-              label="Suggest investigations"
-              signalLabel="Suggest lab investigations based on diagnosis"
-              sectionId="lab"
-            />
-          ) : null
-        }
+        afterSearch={null}
       />
 
       <EditableTableModule
