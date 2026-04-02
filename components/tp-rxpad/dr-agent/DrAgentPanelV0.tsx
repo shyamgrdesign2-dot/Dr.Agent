@@ -95,6 +95,7 @@ const PILL_TO_CARD_KINDS: Record<string, string[]> = {
   "Last visit": ["last_visit"],
   "Last visit details": ["last_visit"],
   "Past visit details": ["last_visit"],
+  "Past visit summaries": ["last_visit"],
   "Vital trends": ["vitals_trend_bar"],
   "Today's vitals": ["vitals_summary"],
   "Obstetric summary": ["obstetric_summary"],
@@ -167,9 +168,9 @@ const ACTION_VITALS: V0QuickAction = {
 
 const ACTION_PAST_VISITS: V0QuickAction = {
   icon: <Calendar2 size={ICON_SIZE} variant="Bulk" />,
-  title: "Past visit details",
-  subtitle: "Previous visit prescriptions, follow-ups, and notes",
-  message: "Last visit details",
+  title: "Past visit summaries",
+  subtitle: "Browse any past visit — prescriptions, diagnosis, and notes",
+  message: "Past visit summaries",
 }
 
 function getSpecialtyAction(summary: SmartSummaryData): V0QuickAction | null {
@@ -678,7 +679,7 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
       ...(hasIntake ? [{ id: "v0-intake", label: "Pre-visit intake", priority: 15, layer: 3, tone } as CannedPill] : []),
       { id: "v0-history", label: "Medical history", priority: 20, layer: 3, tone },
       ...(hasVitals ? [{ id: "v0-vitals", label: "Today's vitals", priority: 25, layer: 3, tone } as CannedPill] : []),
-      ...(hasLastVisit ? [{ id: "v0-last-visit", label: "Last visit", priority: 30, layer: 3, tone } as CannedPill] : []),
+      ...(hasLastVisit ? [{ id: "v0-past-visits", label: "Past visit summaries", priority: 30, layer: 3, tone } as CannedPill] : []),
       ...(summary.obstetricData ? [{ id: "v0-obstetric", label: "Obstetric summary", priority: 35, layer: 3, tone } as CannedPill] : []),
       ...(summary.gynecData ? [{ id: "v0-gynec", label: "Gynec summary", priority: 35, layer: 3, tone } as CannedPill] : []),
       ...(summary.pediatricsData ? [{ id: "v0-pediatric", label: "Growth & vaccines", priority: 35, layer: 3, tone } as CannedPill] : []),

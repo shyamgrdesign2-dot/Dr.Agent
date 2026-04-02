@@ -98,7 +98,7 @@ export function LastVisitCard({
     <CardShell
       icon={<span />}
       tpIconName="medical-record"
-      title="Last Visit Summary"
+      title="Visit Summary"
       badge={
         data.visitDate
           ? { label: data.visitDate, color: "#6D28D9", bg: "#EDE9FE" }

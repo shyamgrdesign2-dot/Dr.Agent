@@ -273,6 +273,7 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
     "Pre-visit Intake": ["symptom_collector"],
     "Last visit": ["last_visit"],
     "Last visit details": ["last_visit"],
+    "Past visit summaries": ["last_visit"],
     "Vital trends": ["vitals_trend_bar"],
     "Suggest DDX": ["ddx"],
     "Lab overview": ["lab_panel"],

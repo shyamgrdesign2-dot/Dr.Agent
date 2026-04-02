@@ -644,13 +644,13 @@ export function buildReply(
     }
   }
 
-  // === LAST VISIT ===
+  // === PAST VISIT SUMMARIES ===
   if (normalized.includes("last visit") || normalized.includes("past visit") || normalized.includes("previous")) {
     if (!summary.lastVisit) {
       return { text: "No past visits found for this patient yet." }
     }
     return {
-      text: `Here's a summary from the last visit on ${summary.lastVisit.date}.`,
+      text: `Here's the visit summary from ${summary.lastVisit.date}. You can ask for any specific date to see that visit's details.`,
       rxOutput: {
         kind: "last_visit",
         data: {

@@ -40,7 +40,7 @@ V0 renders only these 10 card kinds (defined in `V0_ALLOWED_KINDS`):
 | `sbar_overview` | SBAR clinical overview card |
 | `patient_summary` | Patient summary snapshot |
 | `symptom_collector` | Pre-visit intake data from patient |
-| `last_visit` | Last visit summary |
+| `last_visit` | Past visit summaries — any specific visit by date |
 | `obstetric_summary` | Obstetric specialty summary |
 | `gynec_summary` | Gynecology specialty summary |
 | `pediatric_summary` | Pediatric specialty summary |
@@ -96,7 +96,7 @@ This guarantees every visible pill in V0 produces a real UI card — no text-onl
 
 - Patient summary
 - Medical history
-- Last visit
+- Past visit summaries
 - Today's vitals
 - Pre-visit intake (when symptom collector data exists)
 - Specialty summaries (obstetric, gynec, pediatric, ophthal — when specialty data exists)

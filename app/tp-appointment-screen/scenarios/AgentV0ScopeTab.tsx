@@ -72,7 +72,7 @@ const V0_ALLOWED_CARDS: { kind: string; label: string; category: string }[] = [
   { kind: "sbar_overview", label: "SBAR Clinical Overview", category: "Summary" },
   { kind: "patient_summary", label: "Patient Summary Snapshot", category: "Summary" },
   { kind: "symptom_collector", label: "Pre-visit Intake", category: "Intake" },
-  { kind: "last_visit", label: "Last Visit Summary", category: "History" },
+  { kind: "last_visit", label: "Past Visit Summaries", category: "History" },
   { kind: "medical_history", label: "Medical History (Expanded)", category: "History" },
 
   { kind: "vitals_summary", label: "Today's Vitals Table", category: "Assessment" },
@@ -94,7 +94,7 @@ const V0_PILLS = [
   { label: "Patient summary", kind: "sbar_overview, patient_summary", condition: "Always" },
   { label: "Medical history", kind: "medical_history", condition: "Always" },
   { label: "Today's vitals", kind: "vitals_summary", condition: "When vitals recorded" },
-  { label: "Last visit", kind: "last_visit", condition: "When prior visit exists" },
+  { label: "Past visit summaries", kind: "last_visit", condition: "When prior visit exists" },
   { label: "Pre-visit intake", kind: "symptom_collector", condition: "When intake submitted" },
   { label: "Obstetric summary", kind: "obstetric_summary", condition: "Obstetric patient" },
   { label: "Gynec summary", kind: "gynec_summary", condition: "Gynec patient" },
@@ -176,7 +176,7 @@ function OverviewSection() {
               <li>• Patient summary narratives (SBAR-based)</li>
               <li>• Medical history overview</li>
               <li>• Today{"'"}s vitals display</li>
-              <li>• Last visit summary</li>
+              <li>• Past visit summaries (any specific date)</li>
               <li>• Pre-visit intake from patient app</li>
               <li>• Specialty summaries (OB/GYN/Peds/Ophthal)</li>
             </ul>
@@ -313,7 +313,7 @@ function PillSystemSection() {
       <DocSection number="3" title="Pill Lifecycle" subtitle="How pills appear, disappear, and interact with loading state.">
         <div className="space-y-3">
           {[
-            { step: "1", title: "Generated on patient select", desc: "When a patient is selected, the V0 pill list is computed from available data (vitals, last visit, intake, specialty)." },
+            { step: "1", title: "Generated on patient select", desc: "When a patient is selected, the V0 pill list is computed from available data (vitals, past visits, intake, specialty)." },
             { step: "2", title: "Hidden during loading", desc: "While the AI is generating a response (isTyping = true), the PillBar is completely hidden — no grayed-out/disabled pills." },
             { step: "3", title: "Shown after response", desc: "Once the response is complete, pills reappear above the input box." },
             { step: "4", title: "Filtered by shown cards", desc: "If a pill's card kind has already been rendered in the conversation, that pill is removed from the list." },
