@@ -24,47 +24,125 @@ export default function ClinicalResearchTab() {
         <p className="max-w-3xl text-[14px] leading-relaxed text-slate-600">
           <strong className="text-violet-700">Dr. Agent</strong> is an{" "}
           <strong className="text-slate-800">AI-powered intelligence layer</strong> that sits on top of the EMR
-          and works alongside the doctor throughout their entire workflow. From{" "}
-          <strong className="text-slate-800">summarising patient history</strong> and{" "}
-          <strong className="text-slate-800">surfacing clinical insights</strong> to{" "}
-          <strong className="text-slate-800">generating prescriptions</strong>,{" "}
-          <strong className="text-slate-800">running clinic analytics</strong>, and{" "}
-          <strong className="text-slate-800">handling operational tasks</strong>{" "}
-          — it turns the EMR from a passive record system into an active assistant that reads, reasons,
-          and acts. Everything happens inside a single conversational interface with{" "}
-          <strong className="text-slate-800">60 structured UI card types</strong>,{" "}
-          <strong className="text-slate-800">10 intent categories</strong>, and{" "}
-          <strong className="text-slate-800">5 specialty modes</strong> — no switching apps, no extra clicks.
+          and works alongside the doctor throughout their entire workflow — from patient summaries and
+          clinical decision support to prescriptions, billing, analytics, and clinic operations. It turns
+          the EMR from a passive record system into an{" "}
+          <strong className="text-slate-800">active assistant that reads, reasons, and acts</strong>.
         </p>
       </section>
 
       {/* ══════════════════════════════════════════════════════════
-          THE PROBLEM — Why this exists
+          5W1H — Who, What, Why, Where, When, How
       ══════════════════════════════════════════════════════════ */}
       <section className="rounded-xl border border-slate-200 bg-white p-6">
-        <h3 className="mb-3 text-[18px] font-bold text-slate-800">The Problem</h3>
-        <p className="max-w-3xl text-[13px] leading-relaxed text-slate-600">
-          Doctors already have the data — EMR records, lab results, uploaded reports, patient intake, historical
-          sidebars. But the effort to{" "}
-          <strong className="text-slate-800">assemble, interpret, and act on it</strong> still falls entirely on
-          the doctor. Context is scattered across tabs, trend data is invisible, documentation is manual,
-          and operational insights (revenue, follow-ups, patient load) live in completely separate systems.
-          The result: doctors spend as much time navigating software as they do on clinical work.
-        </p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* WHO */}
+          <div className="rounded-lg border border-slate-100 bg-slate-50/50 p-4">
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-violet-600">Who is it for?</p>
+            <p className="text-[12px] leading-relaxed text-slate-600">
+              <strong className="text-slate-800">Doctors</strong> across specialties — GPs, nephrologists, cardiologists,
+              gynecologists, ophthalmologists, obstetricians, pediatricians — and{" "}
+              <strong className="text-slate-800">clinic operators</strong> who need operational visibility.
+            </p>
+          </div>
+
+          {/* WHAT */}
+          <div className="rounded-lg border border-slate-100 bg-slate-50/50 p-4">
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-blue-600">What does it do?</p>
+            <p className="text-[12px] leading-relaxed text-slate-600">
+              Reads all available patient and clinic data, then responds with{" "}
+              <strong className="text-slate-800">structured UI cards</strong> the doctor can scan, verify, and act on.
+              60 card types covering clinical summaries, safety checks, treatment plans, lab analysis,
+              billing, analytics, and more.
+            </p>
+          </div>
+
+          {/* WHY */}
+          <div className="rounded-lg border border-slate-100 bg-slate-50/50 p-4">
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-rose-600">Why does it exist?</p>
+            <p className="text-[12px] leading-relaxed text-slate-600">
+              Doctors spend as much time <strong className="text-slate-800">navigating software</strong> as doing
+              clinical work — reading scattered records, writing prescriptions manually, checking labs across tabs.
+              Dr. Agent eliminates that friction so the doctor can focus on the patient.
+            </p>
+          </div>
+
+          {/* WHERE */}
+          <div className="rounded-lg border border-slate-100 bg-slate-50/50 p-4">
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600">Where does it live?</p>
+            <p className="text-[12px] leading-relaxed text-slate-600">
+              <strong className="text-slate-800">Inside the EMR itself</strong> — not a separate app, not a floating
+              window. It appears as a conversational panel within the consultation screen, with every output
+              connected to RxPad, sidebars, and historical sections.
+            </p>
+          </div>
+
+          {/* WHEN */}
+          <div className="rounded-lg border border-slate-100 bg-slate-50/50 p-4">
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-600">When does it help?</p>
+            <p className="text-[12px] leading-relaxed text-slate-600">
+              <strong className="text-slate-800">Throughout the entire workflow</strong> — before the consultation
+              (patient context, symptom collection), during (DDX, prescriptions, investigations), after
+              (documentation, follow-ups), and beyond (analytics, revenue, patient lists).
+            </p>
+          </div>
+
+          {/* HOW */}
+          <div className="rounded-lg border border-slate-100 bg-slate-50/50 p-4">
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">How does it work?</p>
+            <p className="text-[12px] leading-relaxed text-slate-600">
+              An <strong className="text-slate-800">intent engine</strong> classifies every doctor input, routes it
+              to the right card type, and the response engine assembles structured data into visual cards.
+              Canned pills guide the doctor forward without free-text prompting.
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* ══════════════════════════════════════════════════════════
-          THE APPROACH — How we solve it
+          WHAT IT SOLVES FOR THE DOCTOR
       ══════════════════════════════════════════════════════════ */}
-      <section className="rounded-xl border border-slate-200 bg-white p-6">
-        <h3 className="mb-3 text-[18px] font-bold text-slate-800">The Approach</h3>
-        <p className="max-w-3xl text-[13px] leading-relaxed text-slate-600">
-          Instead of building a separate AI tool, we embedded Dr. Agent{" "}
-          <strong className="text-slate-800">directly inside the EMR interface</strong>. It reads the same data
-          the doctor would read, structures it into purpose-built UI cards, and connects every output
-          to an action — copy to RxPad, jump to a sidebar section, or trigger the next clinical step.
-          The doctor stays in one place; the agent does the legwork.
-        </p>
+      <section className="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50/40 to-white p-6">
+        <h3 className="mb-4 text-[18px] font-bold text-slate-800">What This Solves for the Doctor</h3>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[
+            {
+              before: "Spends 2-3 minutes reading scattered patient records before every consultation",
+              after: "Complete patient summary with SBAR overview ready before the patient walks in",
+            },
+            {
+              before: "Manually writes prescriptions, investigations, and advice from memory",
+              after: "One-click copy of AI-generated medications, labs, and advice directly into RxPad",
+            },
+            {
+              before: "Misses declining trends because lab values are buried across multiple visits",
+              after: "Vital trends and lab comparisons surface patterns automatically with visual indicators",
+            },
+            {
+              before: "Switches between 4-5 tabs to check history, labs, vitals, and past visits",
+              after: "All patient context assembled in one place with sidebar links for instant verification",
+            },
+            {
+              before: "Has no visibility into clinic operations without opening separate dashboards",
+              after: "Revenue insights, follow-up tracking, patient lists, and analytics available inside the same chat",
+            },
+            {
+              before: "Types the same clinical notes and follow-up instructions repeatedly",
+              after: "Structured advice cards and follow-up templates generated contextually from patient data",
+            },
+          ].map((item, i) => (
+            <div key={i} className="rounded-lg border border-slate-100 bg-white p-4">
+              <div className="mb-2 flex items-start gap-2">
+                <span className="mt-0.5 text-[12px] text-rose-400">✕</span>
+                <p className="text-[11px] leading-relaxed text-slate-400">{item.before}</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 text-[12px] text-emerald-500">✓</span>
+                <p className="text-[11px] font-medium leading-relaxed text-slate-700">{item.after}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* ══════════════════════════════════════════════════════════
