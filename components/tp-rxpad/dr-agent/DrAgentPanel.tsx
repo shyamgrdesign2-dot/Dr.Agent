@@ -517,6 +517,7 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
         createdAt: new Date().toISOString(),
         rxOutput: reply.rxOutput,
         feedbackGiven: null,
+        suggestions: reply.suggestions,
       }
 
       setMessagesByPatient((prev) => ({
@@ -764,6 +765,7 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
         createdAt: new Date().toISOString(),
         rxOutput: reply.rxOutput,
         feedbackGiven: null,
+        suggestions: reply.suggestions,
       }
 
       setMessagesByPatient((prev) => ({
