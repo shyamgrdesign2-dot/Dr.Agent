@@ -3,25 +3,11 @@
 import React from "react"
 import { CardShell } from "../CardShell"
 import { cn } from "@/lib/utils"
+import { FlagArrow } from "../../shared/FlagArrow"
 import type { VitalsSummaryCardData } from "../../types"
 
 interface VitalsSummaryCardProps {
   data: VitalsSummaryCardData
-}
-
-/** Compact arrow icon for flagged vitals — ▲ for high/critical, ▼ for low */
-function FlagArrow({ flag }: { flag: "high" | "low" | "critical" }) {
-  const isUp = flag === "high" || flag === "critical"
-  return (
-    <span className="ml-[4px] inline-flex items-center text-tp-error-500">
-      <svg width={8} height={8} viewBox="0 0 8 8" fill="none">
-        <path
-          d={isUp ? "M4 1L7 6H1L4 1Z" : "M4 7L1 2H7L4 7Z"}
-          fill="currentColor"
-        />
-      </svg>
-    </span>
-  )
 }
 
 /**
@@ -71,7 +57,7 @@ export function VitalsSummaryCard({ data }: VitalsSummaryCardProps) {
                   {row.value}
                 </span>
                 {isFlagged && row.flag && row.flag !== "normal" && (
-                  <FlagArrow flag={row.flag} />
+                  <FlagArrow flag={row.flag} className="ml-[4px]" />
                 )}
               </div>
             </div>

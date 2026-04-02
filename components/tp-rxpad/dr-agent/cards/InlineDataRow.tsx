@@ -4,6 +4,7 @@ import React from "react"
 import { SectionTag } from "./SectionTag"
 import { ActionableTooltip } from "./ActionableTooltip"
 import { CopyIcon } from "./CopyIcon"
+import { FlagArrow } from "../shared/FlagArrow"
 import { cn } from "@/lib/utils"
 import { useTouchDevice } from "@/hooks/use-touch-device"
 
@@ -174,17 +175,19 @@ export function InlineDataRow({
   /** Render a single (non-compound) value with ActionableTooltip */
   /** Render a single (non-compound) value with color hierarchy applied */
   const renderSimpleValue = (v: InlineValue) => {
-    const flagPrefix = v.flag === "high" ? "\u2191" : v.flag === "low" ? "\u2193" : ""
-    const displayValue = `${flagPrefix}${v.value}`
-    const copyText = `${v.key}: ${displayValue}`
+    const flagArrowType = v.flag === "high" ? "high" as const : v.flag === "low" ? "low" as const : null
+    // Keep Unicode in copy text for clipboard readability
+    const flagPrefix = flagArrowType === "high" ? "\u2191" : flagArrowType === "low" ? "\u2193" : ""
+    const copyText = `${v.key}: ${flagPrefix}${v.value}`
     const tooltipLabel = `Fill ${truncate(copyText)} to ${destinationLabel}`
     const flagClass = cn(FLAG_STYLES[v.flag || "normal"])
 
     if (!showCopy) {
       return (
-        <span className="inline-flex items-baseline">
+        <span className="inline-flex items-center">
           {v.key && <span className="text-tp-slate-400">{v.key}:&nbsp;</span>}
-          {renderWithColorHierarchy(displayValue, flagClass)}
+          {flagArrowType && <FlagArrow flag={flagArrowType} className="mr-[2px]" />}
+          {renderWithColorHierarchy(v.value, flagClass)}
         </span>
       )
     }
@@ -194,9 +197,10 @@ export function InlineDataRow({
         label={tooltipLabel}
         onAction={() => handleCopyText(copyText)}
       >
-        <span className="inline-flex items-baseline cursor-pointer">
+        <span className="inline-flex items-center cursor-pointer">
           {v.key && <span className="text-tp-slate-400">{v.key}:&nbsp;</span>}
-          {renderWithColorHierarchy(displayValue, flagClass)}
+          {flagArrowType && <FlagArrow flag={flagArrowType} className="mr-[2px]" />}
+          {renderWithColorHierarchy(v.value, flagClass)}
         </span>
       </ActionableTooltip>
     )

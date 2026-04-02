@@ -4,18 +4,13 @@ import { CardShell } from "../CardShell"
 
 import { SidebarLink } from "../SidebarLink"
 import { cn } from "@/lib/utils"
+import { FlagArrow } from "../../shared/FlagArrow"
 import type { LabPanelData } from "../../types"
 
 interface LabPanelCardProps {
   data: LabPanelData
   onPillTap?: (label: string) => void
   onSidebarNav?: (tab: string) => void
-}
-
-function FlagArrow({ flag }: { flag: "high" | "low" }) {
-  if (flag === "high")
-    return <span className="text-tp-error-500">↑</span>
-  return <span className="text-tp-error-500">↓</span>
 }
 
 export function LabPanelCard({ data, onPillTap, onSidebarNav }: LabPanelCardProps) {

@@ -5,6 +5,7 @@ import { CardShell } from "../CardShell"
 import { DataCompletenessDonut, type SourceDocEntry } from "../DataCompletenessDonut"
 import { SectionTag, SECTION_TAG_ICON_MAP } from "../SectionTag"
 import { formatWithHierarchy } from "../../shared/formatWithHierarchy"
+import { FlagArrow } from "../../shared/FlagArrow"
 import { cn } from "@/lib/utils"
 import type { PomrProblemCardData } from "../../types"
 
@@ -80,8 +81,8 @@ export function PomrProblemCard({ data, onPillTap, onOpenDocument }: PomrProblem
             {data.labs.map((lab, i) => (
               <span key={lab.name}>
                 <span className="text-tp-slate-400">{lab.name}:&nbsp;</span>
-                <span className={cn(FLAG_COLORS[lab.flag || "normal"])}>
-                  {lab.flag === "high" ? "\u2191" : lab.flag === "low" ? "\u2193" : ""}
+                <span className={cn("inline-flex items-center", FLAG_COLORS[lab.flag || "normal"])}>
+                  {(lab.flag === "high" || lab.flag === "low" || lab.flag === "critical") && <FlagArrow flag={lab.flag} className="mr-[1px]" />}
                   {lab.value}
                   {lab.unit ? ` ${lab.unit}` : ""}
                 </span>

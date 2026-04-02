@@ -4,6 +4,7 @@ import { CardShell } from "../CardShell"
 
 import { SidebarLink } from "../SidebarLink"
 import { cn } from "@/lib/utils"
+import { DirectionArrow } from "../../shared/DirectionArrow"
 import type { LabComparisonRow } from "../../types"
 
 interface LabComparisonCardProps {
@@ -11,31 +12,6 @@ interface LabComparisonCardProps {
     rows: LabComparisonRow[]
     insight?: string
   }
-}
-
-/** Single SVG arrow — cleaner than Unicode characters, consistent across platforms */
-function DirectionArrow({
-  direction,
-}: {
-  direction: "up" | "down" | "stable"
-}) {
-  if (direction === "up")
-    return (
-      <svg width="10" height="10" viewBox="0 0 10 10" className="inline-block text-tp-error-500">
-        <path d="M5 2L8 6H2L5 2Z" fill="currentColor" />
-      </svg>
-    )
-  if (direction === "down")
-    return (
-      <svg width="10" height="10" viewBox="0 0 10 10" className="inline-block text-tp-success-600">
-        <path d="M5 8L2 4H8L5 8Z" fill="currentColor" />
-      </svg>
-    )
-  return (
-    <svg width="10" height="10" viewBox="0 0 10 10" className="inline-block text-tp-slate-400">
-      <path d="M2 5H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  )
 }
 
 export function LabComparisonCard({ data }: LabComparisonCardProps) {

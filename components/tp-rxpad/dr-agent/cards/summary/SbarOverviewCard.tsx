@@ -72,6 +72,25 @@ function expandAbbreviation(text: string): string {
   })
 }
 
+/** Split by commas but respect parenthetical groups */
+function splitRespectingParens(str: string): string[] {
+  const parts: string[] = []
+  let depth = 0
+  let current = ""
+  for (const ch of str) {
+    if (ch === "(") depth++
+    else if (ch === ")") depth--
+    if (ch === "," && depth === 0) {
+      if (current.trim()) parts.push(current.trim())
+      current = ""
+    } else {
+      current += ch
+    }
+  }
+  if (current.trim()) parts.push(current.trim())
+  return parts
+}
+
 /** Shorten symptom — "Fever (2d, high, evening spikes)" → "Fever (2d)" */
 function shortenSymptom(raw: string): string {
   const match = raw.match(/^([^(]+)\(([^,)]+)/)
@@ -254,7 +273,7 @@ function highlightRecommendation(text: string): React.ReactNode {
 }
 
 /** Build a short last visit summary line */
-function buildLastVisitLine(data: SmartSummaryData): { date?: string; diagnosis?: string; symptoms?: string } | null {
+function buildLastVisitLine(data: SmartSummaryData): { date?: string; diagnosis?: string; symptoms?: string; medication?: string } | null {
   if (!data.lastVisit) return null
   const lv = data.lastVisit
   return {
@@ -263,6 +282,7 @@ function buildLastVisitLine(data: SmartSummaryData): { date?: string; diagnosis?
     symptoms: lv.symptoms
       ? lv.symptoms.split(",").slice(0, 2).map(s => shortenSymptom(s.trim())).join(", ")
       : undefined,
+    medication: lv.medication || undefined,
   }
 }
 
@@ -406,6 +426,13 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
             {lastVisit.date && (
               <span className="font-medium text-tp-slate-700">{lastVisit.date}</span>
             )}
+            {lastVisit.symptoms && (
+              <>
+                <span className="mx-[6px] text-tp-slate-200">|</span>
+                <span className="text-tp-slate-400">Sx:&nbsp;</span>
+                <span className="text-tp-slate-700">{lastVisit.symptoms}</span>
+              </>
+            )}
             {lastVisit.diagnosis && (
               <>
                 <span className="mx-[6px] text-tp-slate-200">|</span>
@@ -413,11 +440,13 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
                 <span className="font-medium text-tp-slate-700">{lastVisit.diagnosis}</span>
               </>
             )}
-            {lastVisit.symptoms && (
+            {lastVisit.medication && (
               <>
                 <span className="mx-[6px] text-tp-slate-200">|</span>
-                <span className="text-tp-slate-400">Sx:&nbsp;</span>
-                <span className="text-tp-slate-700">{lastVisit.symptoms}</span>
+                <span className="text-tp-slate-400">Rx:&nbsp;</span>
+                <span className="text-tp-slate-700">
+                  {splitRespectingParens(lastVisit.medication).map(shortenMedication).join(", ")}
+                </span>
               </>
             )}
           </div>

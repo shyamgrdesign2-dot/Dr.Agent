@@ -221,19 +221,21 @@ Example rendering:
 | Attribute | Value |
 |---|---|
 | Source | `data.lastVisit` |
-| Format | `[date] | Dx: [diagnosis] | Sx: [top 2 symptoms]` (pipe dividers with `mx-[6px]`, not `·`) |
+| Format | `[date] | Sx: [top 2 symptoms] | Dx: [diagnosis] | Rx: [shortened medication]` (pipe dividers with `mx-[6px]`, not `·`) |
 | Style | `SectionTag` + inline text at `text-[14px] leading-[1.7]` |
 
 **Color hierarchy** (same pattern as History):
 - Date → `font-medium text-tp-slate-700` (dark, prominent)
-- Labels (`Dx:`, `Sx:`) → `text-tp-slate-400` (lighter, de-emphasized)
-- Diagnosis → `font-medium text-tp-slate-700` (dark, important clinical data)
+- Labels (`Sx:`, `Dx:`, `Rx:`) → `text-tp-slate-400` (lighter, de-emphasized)
 - Symptoms → `text-tp-slate-700` (normal weight)
+- Diagnosis → `font-medium text-tp-slate-700` (dark, important clinical data)
+- Medication → `text-tp-slate-700` (normal weight, shortened via `splitRespectingParens` + `shortenMedication`)
 - Pipe separators (`|`) → `text-tp-slate-200` with `mx-[6px]` spacing
 
-**Why include**: Continuity of care — the doctor needs to know what happened last time to understand the current visit in context. Kept to a single line for brevity.
+**Why include**: Continuity of care — the doctor needs to know what happened last time (symptoms, diagnosis, and what was prescribed) to understand the current visit in context.
 
 **Symptom shortening**: `"Fever (2d, high, evening spikes)"` → `"Fever (2d)"` — only the duration is clinically relevant in a summary context.
+**Medication shortening**: `"Telma 20mg (Twice daily | Before food)"` → `"Telma 20mg"` — only the drug name and dosage are shown in the summary.
 
 **Empty state**: Section hidden if no last visit data.
 

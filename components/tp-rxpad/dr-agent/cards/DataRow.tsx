@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils"
 import { Copy } from "iconsax-reactjs"
 import { useTouchDevice } from "@/hooks/use-touch-device"
+import { FlagArrow } from "../shared/FlagArrow"
 
 interface DataRowProps {
   label: string
@@ -34,8 +35,9 @@ export function DataRow({ label, unit, value, flag, refRange, isLast, onCopy, co
         {unit && <span className="ml-1 text-[12px] text-tp-slate-400">({unit})</span>}
         {refRange && <span className="ml-1 text-[12px] text-tp-slate-200">{refRange}</span>}
       </div>
-      <div className={cn("min-w-[40px] text-right text-[14px] font-medium", valueColor)}>
-        {flag === "high" && "↑"}{flag === "low" && "↓"}{value}
+      <div className={cn("min-w-[40px] flex items-center justify-end gap-[2px] text-[14px] font-medium", valueColor)}>
+        {flag && <FlagArrow flag={flag} />}
+        {value}
       </div>
       {onCopy && (
         <button

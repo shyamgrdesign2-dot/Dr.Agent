@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { CardShell } from "../CardShell"
 import { cn } from "@/lib/utils"
+import { FlagArrow } from "../../shared/FlagArrow"
 import type { OCRParameter } from "../../types"
 import type { RxPadCopyPayload } from "@/components/tp-rxpad/rxpad-sync-context"
 
@@ -16,15 +17,6 @@ interface OCRPathologyCardProps {
   }
   onPillTap?: (label: string) => void
   onCopy?: (payload: RxPadCopyPayload) => void
-}
-
-function FlagArrow({ flag }: { flag?: "high" | "low" }) {
-  if (!flag) return null
-  return (
-    <span className="text-[12px]">
-      {flag === "high" ? "\u2191" : "\u2193"}
-    </span>
-  )
 }
 
 export function OCRPathologyCard({ data, onPillTap, onCopy }: OCRPathologyCardProps) {
@@ -75,7 +67,7 @@ export function OCRPathologyCard({ data, onPillTap, onCopy }: OCRPathologyCardPr
               "flex items-center gap-[3px] font-medium",
               param.flag ? "text-tp-error-600" : "text-tp-slate-800",
             )}>
-              <FlagArrow flag={param.flag} />
+              {param.flag && <FlagArrow flag={param.flag} />}
               {param.value}
             </span>
             <span className="text-tp-slate-400">{param.refRange ?? "\u2014"}</span>

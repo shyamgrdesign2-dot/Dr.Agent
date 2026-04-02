@@ -181,6 +181,7 @@ POMR cards are the only cards that show the completeness donut, because they hav
 - **V0 mode sync**: Shared `useV0Mode` hook persists toggle state in localStorage, syncs across pages via custom events
 - **V0 panel**: Standalone `DrAgentPanelV0` component with its own patient search, canned actions, scroll-aware floating chip, and PatientSelector bottom sheet
 - **Patient selector**: Shared `PatientSelector` bottom sheet component used by both V0 and full agent — supports custom title prop, radio-button selection, circular avatars, gender/age/phone metadata
+- **Shared arrow indicators**: `shared/FlagArrow.tsx` (8×8 SVG triangle for abnormal values, always red) and `shared/DirectionArrow.tsx` (10×10 SVG for trend direction — red/green/gray). All cards use these shared components for consistent flag display.
 
 ---
 

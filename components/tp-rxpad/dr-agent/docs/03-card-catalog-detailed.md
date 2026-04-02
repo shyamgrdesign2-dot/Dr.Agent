@@ -208,7 +208,7 @@
 ## B. Data Family (8 cards)
 
 ### B1. `lab_panel` — Flagged Lab Results
-**What it does:** Grid table of flagged lab values — only abnormal results shown with ↑↓ arrows, reference ranges, and AI insight.
+**What it does:** Grid table of flagged lab values — only abnormal results shown with SVG flag arrows (▲/▼), reference ranges, and AI insight.
 
 **When triggered:**
 - "13 lab values flagged" pill
@@ -781,3 +781,23 @@
 
 ### I-extra. `bulk_action`, `external_cta`
 **Scenario:** Batch operations (SMS reminders) and external CTAs (links to reports, tools).
+
+---
+
+## Shared Components — Arrow Indicators
+
+All flag and trend arrow indicators use shared SVG components for consistency across every card.
+
+### `shared/FlagArrow.tsx` — Abnormal Value Flag
+- **Purpose:** Indicates a value is outside normal range (high/low/critical)
+- **Format:** 8×8px SVG filled triangle — ▲ for high/critical, ▼ for low
+- **Color:** Always `text-tp-error-500` (red) — both up and down
+- **Used in:** `LabPanelCard`, `VitalsSummaryCard`, `OCRPathologyCard`, `DataRow`, `InlineDataRow`, `PomrProblemCard`
+- **Clipboard:** Copy-to-clipboard still uses Unicode `↑`/`↓` for text readability
+
+### `shared/DirectionArrow.tsx` — Trend Direction
+- **Purpose:** Shows direction of change between two values (lab comparison, KPIs)
+- **Format:** 10×10px SVG — filled triangle or horizontal line
+- **Colors:** Up → `text-tp-error-500` (red/worsening), Down → `text-tp-success-600` (green/improving), Stable → `text-tp-slate-400` (gray)
+- **Used in:** `LabComparisonCard`
+- **Note:** Semantically different from FlagArrow — "up" means worsening trend, not just above range
