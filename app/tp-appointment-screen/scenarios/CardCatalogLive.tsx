@@ -12,7 +12,7 @@ import type { RxPadCopyPayload } from "@/components/tp-rxpad/rxpad-sync-context"
 // Reusable dummy payload
 const DUMMY_PAYLOAD: RxPadCopyPayload = { sourceDateLabel: "Demo" }
 
-// ═══════ MOCK DATA FOR ALL 60 CARD KINDS ═══════
+// ═══════ MOCK DATA FOR ALL 63 CARD KINDS ═══════
 
 export interface CatalogEntry {
   kind: string
@@ -1201,6 +1201,65 @@ export const CATALOG: CatalogEntry[] = [
         specialtyTags: ["Hypertension", "Type 2 DM"],
         followUpOverdueDays: 12,
         labFlagCount: 3,
+      },
+    },
+  },
+
+  // ── K. Missing Cards from RxAgentOutput ──────────────────────
+
+  {
+    kind: "medical_history",
+    family: "Data",
+    label: "Medical History",
+    output: {
+      kind: "medical_history",
+      data: {
+        sections: [
+          { tag: "Chronic Conditions", icon: "heart", items: ["Type 2 Diabetes Mellitus (5yr, Active)", "Hypertension Stage 2 (3yr, Controlled)", "Dyslipidemia (2yr, On statins)"] },
+          { tag: "Allergies", icon: "danger", items: ["Aspirin — GI bleeding", "Sulfonamides — Rash"] },
+          { tag: "Family History", icon: "people", items: ["Father — MI at 52", "Mother — Type 2 DM", "Sister — Hypothyroidism"] },
+          { tag: "Surgical History", icon: "hospital", items: ["Appendectomy (2018)", "Dental extraction (2021)"] },
+          { tag: "Lifestyle", icon: "activity", items: ["Non-smoker", "Occasional alcohol (social)", "Sedentary lifestyle", "Diet: high carb, irregular meals"] },
+        ],
+      },
+    },
+  },
+
+  {
+    kind: "vitals_summary",
+    family: "Data",
+    label: "Today's Vitals",
+    output: {
+      kind: "vitals_summary",
+      data: {
+        title: "Today's Vitals",
+        recordedAt: "02 Apr'26, 10:15 AM",
+        rows: [
+          { shortLabel: "BP", label: "Blood Pressure", value: "148/92", unit: "mmHg", flag: "high" as const },
+          { shortLabel: "HR", label: "Heart Rate", value: "82", unit: "bpm", flag: "normal" as const },
+          { shortLabel: "SpO₂", label: "Oxygen Saturation", value: "97", unit: "%", flag: "normal" as const },
+          { shortLabel: "Temp", label: "Temperature", value: "98.4", unit: "°F", flag: "normal" as const },
+          { shortLabel: "Wt", label: "Weight", value: "78.5", unit: "kg" },
+          { shortLabel: "Ht", label: "Height", value: "172", unit: "cm" },
+          { shortLabel: "BMI", label: "Body Mass Index", value: "26.5", unit: "kg/m²", flag: "high" as const },
+        ],
+      },
+    },
+  },
+
+  {
+    kind: "guardrail",
+    family: "Utility",
+    label: "Guardrail Response",
+    output: {
+      kind: "guardrail",
+      data: {
+        message: "I'm unable to provide specific medication dosage recommendations without reviewing the patient's renal function, current medications, and allergy profile. This type of clinical decision requires direct physician assessment.",
+        suggestions: [
+          { label: "Show patient summary", message: "Patient summary" },
+          { label: "Check drug interactions", message: "Check interactions for current medications" },
+          { label: "View lab results", message: "Show latest lab panel" },
+        ],
       },
     },
   },

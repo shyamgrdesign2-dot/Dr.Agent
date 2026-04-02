@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Doctor Agent renders **60 card variants** organized into families. Each card has:
+The Doctor Agent renders **63 card variants** organized into families. Each card has:
 - A **kind** (discriminated union tag in `RxAgentOutput`)
 - A **family** (logical grouping by clinical purpose)
 - A **data type** (TypeScript interface in `types.ts`)

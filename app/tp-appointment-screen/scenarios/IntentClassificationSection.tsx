@@ -157,7 +157,7 @@ const DECISION_FLOW_STEPS = [
   { step: 3, label: "Check Data", description: "Check patient data: labs, vitals, history, meds, specialty records." },
   { step: 4, label: "Select Format", description: "Card (visual), Hybrid (card + text), or Text (plain). Data-rich → card." },
   { step: 5, label: "Choose Card", description: "Match to 63+ card types. Pick content zone, tags, copy actions." },
-  { step: 6, label: "Assemble", description: "Build anatomy: Header, Content, Insight, Pills, Footer." },
+  { step: 6, label: "Assemble", description: "Build anatomy: Header, Content, Canned Messages, Footer." },
   { step: 7, label: "Render", description: "Render in chat. Wire copy to RxPad. Show follow-up pills." },
 ]
 
@@ -170,14 +170,13 @@ const HBAIC_WALKTHROUGH = {
       condition: "3+ HbA1c values exist",
       outcome: "card" as const,
       cardType: "lab_trend (line chart)",
-      summary: "5 values found → line chart with 6.5% threshold → insight: improving but above target",
+      summary: "5 values found → line chart with 6.5% threshold, improving but above target",
       thinkingProcess: [
         { aspect: "Data Check", decision: "Found 5 HbA1c values across visits (Jun'25 to Feb'26). Sufficient for trend." },
         { aspect: "Format", decision: "Multiple data points → visual trend more useful than listing numbers. Card format." },
         { aspect: "Content Zone", decision: "Time-series → line chart. Date on X-axis, value on Y-axis." },
         { aspect: "Header", decision: "Title: 'HbA1c Trend'. Lab icon. Date range subtext." },
         { aspect: "Reference Range", decision: "Target < 6.5% shown as threshold line. Above = critical tone." },
-        { aspect: "Insight", decision: "'Gradual improvement from 10.1% to 9.2% over 8 months, still above target 6.5%.'" },
         { aspect: "Source", decision: "EMR lab records. Confidence: high." },
         { aspect: "Pills", decision: "'Compare with other labs', 'Suggest medications', 'Patient summary'" },
       ],
@@ -190,8 +189,7 @@ const HBAIC_WALKTHROUGH = {
       thinkingProcess: [
         { aspect: "Data Check", decision: "Only 1 HbA1c: 9.2% (Feb 2026). Cannot show trend with single point." },
         { aspect: "Format", decision: "Single point → no visual benefit. Text response." },
-        { aspect: "Content", decision: "'One HbA1c available: 9.2% (Feb 2026). Above target < 6.5%.'" },
-        { aspect: "Insight", decision: "'Baseline value. Follow-up in 3 months to assess trend.'" },
+        { aspect: "Content", decision: "'One HbA1c available: 9.2% (Feb 2026). Above target < 6.5%. Baseline value — follow-up in 3 months to assess trend.'" },
         { aspect: "Pills", decision: "'Full lab panel', 'Suggest medications', 'Patient summary'" },
       ],
     },

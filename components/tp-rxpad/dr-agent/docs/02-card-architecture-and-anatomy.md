@@ -29,7 +29,7 @@ type RxAgentOutput =
   | { kind: "ddx"; data: { context: string; options: DDXOption[] } }
   | { kind: "lab_panel"; data: LabPanelData }
   | { kind: "pomr_problem_card"; data: PomrProblemCardData }
-  | ... // 54 total kinds
+  | ... // 63 total kinds
 ```
 
 **For AI/backend developers:** You produce this JSON. The `kind` determines the card. The `data` must match the exact shape or the card won't render.
@@ -302,7 +302,7 @@ These render as styled inline chat content — no header, no wrapper:
 ```
 
 ### Rules for Generating Output
-1. The `kind` field MUST be one of the 54 defined card kinds
+1. The `kind` field MUST be one of the 63 defined card kinds
 2. The `data` shape MUST match the TypeScript interface for that kind
 3. Empty arrays are allowed — the card will hide those sections
 4. `undefined` fields are allowed for optional props — the card will suppress those sections

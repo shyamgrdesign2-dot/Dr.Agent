@@ -1,7 +1,7 @@
 # Dr. Agent — Card Catalog (Detailed)
 
 > Every card: what it does, when to use it, what triggers it, and how to vary it.
-> 60 card kinds organized by family.
+> 63 card kinds organized by family.
 
 ---
 

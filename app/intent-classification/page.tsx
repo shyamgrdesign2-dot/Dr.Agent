@@ -29,7 +29,7 @@ function findCatalogCard(kind: string): CatalogEntry | undefined {
 }
 
 // Render a live card preview without adding an extra shell around the real card
-function LiveCardPreview({ kind, label, highlightZone }: { kind: string; label?: string; highlightZone?: "header" | "content" | "insight" | "footer" }) {
+function LiveCardPreview({ kind, label, highlightZone }: { kind: string; label?: string; highlightZone?: "header" | "content" | "footer" }) {
   const entry = findCatalogCard(kind)
   if (!entry) return null
   return (
@@ -41,7 +41,6 @@ function LiveCardPreview({ kind, label, highlightZone }: { kind: string; label?:
           <div className={`absolute right-0 top-0 z-10 rounded-bl-lg px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
             highlightZone === "header" ? "bg-blue-500 text-white" :
             highlightZone === "content" ? "bg-violet-500 text-white" :
-            highlightZone === "insight" ? "bg-amber-500 text-white" :
             "bg-emerald-500 text-white"
           }`}>
             {highlightZone} zone
@@ -271,13 +270,6 @@ function TagIconPreview({ iconName, variant, size = 14 }: { iconName: string; va
   )
 }
 
-const INSIGHT_VARIANTS = [
-  { variant: "red", when: "Critical / worsening values", example: "HbA1c worsened from 7.4 → 8.2%. Immediate attention needed." },
-  { variant: "amber", when: "Borderline / watch items", example: "Creatinine trending up. Monitor closely." },
-  { variant: "purple", when: "AI-generated correlation", example: "BP and weight trends suggest medication adjustment." },
-  { variant: "teal", when: "Positive / improving", example: "LDL improved from 162 to 128 after statin initiation." },
-]
-
 const FOOTER_CONFIG = {
   scenarios: [
     { type: "No CTA", when: "Review-only cards or cards that finish within the body itself", example: "Trend charts, comparison views, pure informational cards" },
@@ -419,7 +411,7 @@ function FooterVariantPreview({
 
 const PILL_LOGIC = {
   structure: [
-    "Canned messages always sit between the main content/insight area and the footer zone.",
+    "Canned messages always sit between the main content area and the footer zone.",
     "Show a maximum of 4 pills at a time. Prioritize the most relevant next-step actions instead of showing every possible option.",
     "Each pill should read like a short next action or follow-up question, ideally 2-4 words.",
   ],
@@ -706,13 +698,13 @@ const CONTENT_PRIMITIVES: ContentPrimitive[] = [
 ]
 
 // ── CARD CATALOG DATA ──
-type CardSpec = { kind: string; family: string; description: string; intent: string; whenToShow: string; permutations: string[]; dataParams: string }
+type CardSpec = { kind: string; family: string; description: string; intent: string; whenToShow: string; permutations: string[]; dataParams: string; dataSources: string; formattingNotes: string; cannedMessages: string[]; intentSummary: string }
 
 function getCardFetchFrom(kind: string): string {
   if (["last_visit", "patient_timeline"].includes(kind)) return "Past Visit history and other chronological historical modules"
   if (["lab_panel", "lab_trend", "lab_comparison"].includes(kind)) return "Lab Results history, Records OCR, or mixed lab context"
   if (["vitals_trend_bar", "vitals_trend_line"].includes(kind)) return "Vitals history and encounter vitals"
-  if (["patient_summary", "sbar_overview", "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary", "symptom_collector"].includes(kind)) {
+  if (["patient_summary", "sbar_overview", "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary", "symptom_collector", "vitals_summary"].includes(kind)) {
     return "Mixed patient context: historical sidebar modules + current encounter data"
   }
   if (["protocol_meds", "investigation_bundle", "follow_up", "advice_bundle", "rx_preview", "voice_structured_rx", "ddx"].includes(kind)) {
@@ -721,7 +713,8 @@ function getCardFetchFrom(kind: string): string {
   if (["ocr_pathology", "ocr_extraction", "translation", "drug_interaction", "allergy_conflict", "clinical_guideline"].includes(kind)) {
     return "Generated analysis layer from uploaded records, current RxPad state, or user query context"
   }
-  if (["med_history", "vaccination_schedule"].includes(kind)) return "Historical sidebar modules"
+  if (["med_history", "vaccination_schedule", "medical_history"].includes(kind)) return "Historical sidebar modules"
+  if (kind === "guardrail") return "No external data — internally generated redirect card"
   if (["sbar_critical", "pomr_problem_card", "completeness", "follow_up_question"].includes(kind)) return "Mixed historical + current clinical context"
   if (["welcome_card", "patient_list", "patient_search", "follow_up_list", "revenue_bar", "bulk_action", "donut_chart", "pie_chart", "line_graph", "analytics_table", "condition_bar", "heatmap", "billing_summary", "external_cta", "referral"].includes(kind)) {
     return "Homepage or operational analytics datasets"
@@ -730,86 +723,90 @@ function getCardFetchFrom(kind: string): string {
 }
 
 function getCardUiRule(kind: string): string {
-  if (["patient_summary", "sbar_overview", "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary"].includes(kind)) return "Lead with compressed scan-friendly summary blocks, then expand into tag-led structured rows."
+  if (["patient_summary", "sbar_overview", "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary", "vitals_summary"].includes(kind)) return "Lead with compressed scan-friendly summary blocks, then expand into tag-led structured rows."
   if (["last_visit", "rx_preview", "voice_structured_rx"].includes(kind)) return "Use sectioned content with icon-led tags and expose common header copy when the entire card is copyable."
-  if (["lab_panel", "med_history", "vaccination_schedule", "ocr_pathology", "ocr_extraction"].includes(kind)) return "Keep each row or section strongly structured so clinicians can inspect details without losing source meaning."
+  if (["lab_panel", "med_history", "vaccination_schedule", "ocr_pathology", "ocr_extraction", "medical_history"].includes(kind)) return "Keep each row or section strongly structured so clinicians can inspect details without losing source meaning."
+  if (kind === "guardrail") return "Soft redirect with suggestion pills — neutral tone, no severity coloring."
   if (["lab_trend", "lab_comparison", "vitals_trend_bar", "vitals_trend_line"].includes(kind)) return "Prioritize quick comparison and trend recognition over text density."
   if (["ddx", "investigation_bundle", "follow_up", "advice_bundle", "protocol_meds"].includes(kind)) return "Action cards should make selection or fillability obvious before any secondary explanation."
   if (["welcome_card", "patient_list", "patient_search", "follow_up_list", "revenue_bar", "bulk_action", "donut_chart", "pie_chart", "line_graph", "analytics_table", "condition_bar", "heatmap", "billing_summary", "external_cta", "referral"].includes(kind)) {
     return "Operational cards should stay glanceable, compact, and list/dashboard oriented."
   }
-  return "Use the standard card shell with a stable header, structured body, optional insight, and action-aware footer."
+  return "Use the standard card shell with a stable header, structured body, and action-aware footer."
 }
 
 const CARD_SPECS: CardSpec[] = [
-  // Summary
-  { kind: "patient_summary", family: "Summary", description: "Comprehensive patient overview — vitals, labs, flags, chronic conditions, medications, narrative.", intent: "data_retrieval", whenToShow: "'Patient summary', 'overview', 'snapshot' or 'Patient's detailed summary' pill.", permutations: ["With/without labs", "With chronic conditions", "With symptom collector", "With specialty alerts", "With vitals abnormals"], dataParams: "SmartSummaryData" },
-  { kind: "sbar_overview", family: "Summary", description: "ISBAR-structured patient summary — Situation (narrative), Background (history + allergies), Assessment (vitals + labs), Recommendation (action items).", intent: "data_retrieval", whenToShow: "'Patient summary' pill for SBAR/critical care view. Used in Emergency/On-call context.", permutations: ["Full SBAR with all sections", "Without labs", "With critical vitals", "With follow-up overdue", "With last visit"], dataParams: "SmartSummaryData" },
-  { kind: "symptom_collector", family: "Summary", description: "Patient-reported symptoms from pre-visit intake form.", intent: "data_retrieval", whenToShow: "'Pre-visit intake' pill.", permutations: ["Full intake", "Partial intake", "With severity ratings"], dataParams: "SymptomCollectorData" },
-  { kind: "last_visit", family: "Summary", description: "Previous visit summary with copy-to-rx action.", intent: "data_retrieval", whenToShow: "'Last visit details' pill.", permutations: ["Recent (<30d)", "Old (>90d amber)", "With meds"], dataParams: "LastVisitCardData" },
-  { kind: "obstetric_summary", family: "Summary", description: "ANC status, gravida/para, EDD, gestational weeks, fetal data.", intent: "data_retrieval", whenToShow: "Obstetric data exists + pill tapped.", permutations: ["Active pregnancy", "High-risk", "Post-delivery"], dataParams: "ObstetricData" },
-  { kind: "gynec_summary", family: "Summary", description: "Menarche, cycle, LMP, Pap smear, flow/pain.", intent: "data_retrieval", whenToShow: "Gynec data exists + pill tapped.", permutations: ["Regular", "Irregular", "Post-menopausal"], dataParams: "GynecData" },
-  { kind: "pediatric_summary", family: "Summary", description: "Growth percentiles, milestones, vaccine status.", intent: "data_retrieval", whenToShow: "Pediatric data exists + pill tapped.", permutations: ["Infant", "Child", "Overdue vaccines"], dataParams: "PediatricsData" },
-  { kind: "ophthal_summary", family: "Summary", description: "Visual acuity, IOP, refraction, slit lamp, fundus.", intent: "data_retrieval", whenToShow: "Ophthal data exists + pill tapped.", permutations: ["Normal", "Elevated IOP", "Refractive error"], dataParams: "OphthalData" },
-  // Data & Trends
-  { kind: "lab_panel", family: "Data", description: "Latest lab results grid with flags and insight.", intent: "data_retrieval", whenToShow: "'Lab overview' or 'N lab values flagged' pill.", permutations: ["All normal", "Mixed flags", "Critical flags", "By category"], dataParams: "LabPanelData" },
-  { kind: "vitals_trend_bar", family: "Data", description: "Vitals over time as bar chart with thresholds.", intent: "comparison", whenToShow: "'Vital trends' or 'Bar view' pill.", permutations: ["Single vital", "Multiple overlaid", "With thresholds"], dataParams: "{title, series: VitalTrendSeries[]}" },
-  { kind: "vitals_trend_line", family: "Data", description: "Vitals over time as line chart with tone coloring.", intent: "comparison", whenToShow: "'Line graph' pill.", permutations: ["Stable (green)", "Declining (red)", "Improving"], dataParams: "{title, series: VitalTrendSeries[]}" },
-  { kind: "lab_trend", family: "Data", description: "Single lab parameter trend over time.", intent: "comparison", whenToShow: "'HbA1c trend' type queries.", permutations: ["Improving", "Worsening", "Stable", "With normal range band"], dataParams: "{title, series, parameterName}" },
-  { kind: "lab_comparison", family: "Data", description: "Previous vs current lab values with deltas.", intent: "comparison", whenToShow: "'Compare labs' or 'Lab comparison' pill.", permutations: ["All improved", "Mixed", "No previous data"], dataParams: "{rows: LabComparisonRow[], insight}" },
-  { kind: "med_history", family: "Data", description: "Medication history timeline.", intent: "data_retrieval", whenToShow: "'Med history' pill.", permutations: ["Active only", "Full history", "By diagnosis"], dataParams: "{entries: MedHistoryEntry[], insight}" },
-  { kind: "patient_timeline", family: "Data", description: "Chronological event timeline.", intent: "data_retrieval", whenToShow: "'Patient timeline' pill.", permutations: ["All events", "Visits only", "By date range"], dataParams: "PatientTimelineCardData" },
-  { kind: "vaccination_schedule", family: "Data", description: "Vaccine schedule with status badges.", intent: "data_retrieval", whenToShow: "Patient-level vaccine schedule.", permutations: ["Infant", "Adult", "Pregnancy", "Overdue"], dataParams: "VaccinationScheduleCardData" },
-  // Action
-  { kind: "ddx", family: "Action", description: "Differential diagnosis — 3 tiers with checkboxes.", intent: "clinical_decision", whenToShow: "'Suggest DDX' pill.", permutations: ["Single complaint", "Multiple complaints", "With lab correlation", "Emergency"], dataParams: "{context, options: DDXOption[]}" },
-  { kind: "protocol_meds", family: "Action", description: "Protocol medications with safety notes + copy to RxPad.", intent: "clinical_decision", whenToShow: "'Suggest medications' pill.", permutations: ["Single diagnosis", "Multi-diagnosis", "Pediatric dosing", "Renal-adjusted"], dataParams: "{diagnosis, meds, safetyCheck, copyPayload}" },
-  { kind: "investigation_bundle", family: "Action", description: "Suggested tests with rationale + copy.", intent: "clinical_decision", whenToShow: "'Suggest investigations' pill.", permutations: ["Initial workup", "Follow-up", "Pre-surgical", "Missing tests"], dataParams: "{title, items, copyPayload}" },
-  { kind: "follow_up", family: "Action", description: "Follow-up schedule radio selection.", intent: "action", whenToShow: "'Plan follow-up' pill.", permutations: ["Acute (3-5d)", "Chronic (2-4wk)", "Post-procedure"], dataParams: "{context, options: FollowUpOption[]}" },
-  { kind: "advice_bundle", family: "Action", description: "Patient advice list with copy + share.", intent: "action", whenToShow: "'Draft advice' pill.", permutations: ["General", "Condition-specific", "Post-procedure", "With share"], dataParams: "{title, items, shareMessage, copyPayload}" },
-  { kind: "rx_preview", family: "Action", description: "Full prescription preview with tag-based section headers.", intent: "action", whenToShow: "Near consultation completion.", permutations: ["Complete Rx", "Partial (missing)", "Multi-diagnosis"], dataParams: "RxPreviewCardData" },
-  { kind: "voice_structured_rx", family: "Action", description: "Voice dictation parsed into RxPad sections.", intent: "action", whenToShow: "After voice input.", permutations: ["Full", "Partial", "With corrections"], dataParams: "VoiceStructuredRxData" },
-  // Analysis
-  { kind: "ocr_pathology", family: "Analysis", description: "Pathology report OCR with flags and confidence.", intent: "document_analysis", whenToShow: "Upload pathology report.", permutations: ["CBC", "Lipid", "Renal/liver", "Low-confidence"], dataParams: "{title, category, parameters, normalCount, insight}" },
-  { kind: "ocr_extraction", family: "Analysis", description: "Full document extraction by section.", intent: "document_analysis", whenToShow: "Upload discharge/prescription.", permutations: ["Discharge summary", "Prescription", "Referral letter"], dataParams: "{title, category, sections, insight}" },
-  // Clinical Problem
-  { kind: "sbar_critical", family: "Clinical", description: "SBAR emergency triage with completeness ring.", intent: "data_retrieval", whenToShow: "Critical flags (SpO2 <90, critical labs).", permutations: ["Emergency", "Critical lab", "Vital deterioration"], dataParams: "SbarCriticalCardData" },
-  { kind: "pomr_problem_card", family: "Clinical", description: "POMR single problem with completeness donut.", intent: "data_retrieval", whenToShow: "Chronic condition pills (CKD, DM, HTN).", permutations: ["CKD", "Diabetes", "HTN", "Anaemia", "High/low completeness"], dataParams: "PomrProblemCardData" },
-  // Utility & Safety
-  { kind: "translation", family: "Utility", description: "Language translation side-by-side + copy.", intent: "action", whenToShow: "'Translate' pill.", permutations: ["Hindi", "Telugu", "Tamil", "Kannada", "Marathi"], dataParams: "TranslationData & {copyPayload}" },
-  { kind: "drug_interaction", family: "Safety", description: "Drug-drug interaction alert with severity.", intent: "clinical_question", whenToShow: "'Check interactions' or auto-triggered.", permutations: ["Critical", "Major", "Moderate", "Clear"], dataParams: "DrugInteractionData" },
-  { kind: "allergy_conflict", family: "Safety", description: "Drug-allergy conflict with alternatives.", intent: "clinical_question", whenToShow: "Auto-triggered on allergy match.", permutations: ["Direct match", "Cross-reactivity", "With alternatives"], dataParams: "AllergyConflictData" },
-  { kind: "follow_up_question", family: "Utility", description: "Agent asks doctor for clarification.", intent: "follow_up", whenToShow: "Ambiguous input needs clarification.", permutations: ["Single-select", "Multi-select"], dataParams: "{question, options, multiSelect}" },
-  { kind: "clinical_guideline", family: "Utility", description: "Evidence-based guideline recommendations.", intent: "clinical_decision", whenToShow: "Guidelines query.", permutations: ["KDIGO", "ADA", "JNC", "NICE"], dataParams: "ClinicalGuidelineCardData" },
-  { kind: "referral", family: "Utility", description: "Referral summary — top referrers.", intent: "operational", whenToShow: "'Referral summary' pill.", permutations: ["By referrer", "By specialty", "Trends"], dataParams: "ReferralCardData" },
-  // Text
-  { kind: "text_fact", family: "Text", description: "Fact box with source citation.", intent: "clinical_question", whenToShow: "Short factual questions.", permutations: ["Medical fact", "Drug info", "Lab range"], dataParams: "{value, context, source}" },
-  { kind: "text_alert", family: "Text", description: "Severity-colored alert bar.", intent: "clinical_question", whenToShow: "Urgent message.", permutations: ["Critical", "Warning", "Info"], dataParams: "{message, severity}" },
-  { kind: "text_list", family: "Text", description: "Bulleted list.", intent: "clinical_question", whenToShow: "List response.", permutations: ["Short", "Long"], dataParams: "{items}" },
-  { kind: "text_step", family: "Text", description: "Numbered steps with blue border.", intent: "clinical_question", whenToShow: "Procedural instructions.", permutations: ["Clinical", "Patient", "Medication"], dataParams: "{steps}" },
-  { kind: "text_quote", family: "Text", description: "Clinical quotation with attribution.", intent: "clinical_question", whenToShow: "Citing guidelines.", permutations: ["Guideline", "Textbook", "Research"], dataParams: "{quote, source}" },
-  { kind: "text_comparison", family: "Text", description: "Two-column comparison.", intent: "clinical_question", whenToShow: "Comparing two options.", permutations: ["Drug vs Drug", "Treatment comparison"], dataParams: "{labelA, labelB, itemsA, itemsB}" },
-  // Homepage
-  { kind: "welcome_card", family: "Homepage", description: "Daily greeting with stats.", intent: "operational", whenToShow: "Homepage load.", permutations: ["Weekday", "Weekend"], dataParams: "WelcomeCardData" },
-  { kind: "patient_list", family: "Homepage", description: "Today's patient queue.", intent: "operational", whenToShow: "'Today's schedule' pill.", permutations: ["Full day", "Filtered"], dataParams: "PatientListCardData" },
-  { kind: "patient_search", family: "Homepage", description: "Patient search with results.", intent: "operational", whenToShow: "Doctor types patient name.", permutations: ["Single match", "Multiple", "No match"], dataParams: "PatientSearchCardData" },
-  { kind: "follow_up_list", family: "Homepage", description: "Due/overdue follow-ups.", intent: "operational", whenToShow: "'Follow-ups due' pill.", permutations: ["This week", "Overdue"], dataParams: "FollowUpListCardData" },
-  { kind: "revenue_bar", family: "Homepage", description: "Daily revenue stacked bars.", intent: "operational", whenToShow: "'Revenue today' pill.", permutations: ["Today", "This week"], dataParams: "RevenueBarCardData" },
-  { kind: "bulk_action", family: "Homepage", description: "Batch SMS/email campaign.", intent: "operational", whenToShow: "'Send reminder' pill.", permutations: ["Follow-up SMS", "Appointment", "Custom"], dataParams: "BulkActionCardData" },
-  { kind: "donut_chart", family: "Homepage", description: "Patient distribution donut.", intent: "operational", whenToShow: "'Demographics' pill.", permutations: ["Gender", "Age group", "Payment"], dataParams: "DonutChartCardData" },
-  { kind: "pie_chart", family: "Homepage", description: "Filled pie chart.", intent: "operational", whenToShow: "Alternative to donut.", permutations: ["Same as donut"], dataParams: "PieChartCardData" },
-  { kind: "line_graph", family: "Homepage", description: "Metric trend line.", intent: "operational", whenToShow: "'Patient trends' pill.", permutations: ["Footfall", "Revenue"], dataParams: "LineGraphCardData" },
-  { kind: "analytics_table", family: "Homepage", description: "KPI dashboard table.", intent: "operational", whenToShow: "'Weekly KPIs' pill.", permutations: ["Weekly", "Monthly"], dataParams: "AnalyticsTableCardData" },
-  { kind: "condition_bar", family: "Homepage", description: "Top conditions bars.", intent: "operational", whenToShow: "'Diagnosis distribution'.", permutations: ["Top 10", "Chronic"], dataParams: "ConditionBarCardData" },
-  { kind: "heatmap", family: "Homepage", description: "Appointment density grid.", intent: "operational", whenToShow: "'Busiest hours' pill.", permutations: ["This week", "Month"], dataParams: "HeatmapCardData" },
-  { kind: "billing_summary", family: "Homepage", description: "Session billing overview.", intent: "operational", whenToShow: "'Billing overview' pill.", permutations: ["Today", "By status"], dataParams: "BillingSummaryCardData" },
-  { kind: "external_cta", family: "Homepage", description: "External link (Excel/Word download).", intent: "operational", whenToShow: "Export or download ready.", permutations: ["Excel", "Word", "Custom URL"], dataParams: "ExternalCtaCardData" },
-  { kind: "anc_schedule_list", family: "Homepage", description: "ANC schedule with overdue/due items per patient.", intent: "operational", whenToShow: "'ANC schedule' pill.", permutations: ["All due", "Overdue only", "By trimester"], dataParams: "ANCScheduleListCardData" },
-  { kind: "follow_up_rate", family: "Homepage", description: "Follow-up rate analytics with trend.", intent: "operational", whenToShow: "'Follow-up rate' pill.", permutations: ["Weekly", "Monthly", "With overdue"], dataParams: "FollowUpRateCardData" },
-  { kind: "revenue_comparison", family: "Homepage", description: "Revenue comparison between two periods.", intent: "operational", whenToShow: "'Compare revenue' pill.", permutations: ["Week-on-week", "Month-on-month"], dataParams: "RevenueComparisonCardData" },
-  { kind: "vaccination_due_list", family: "Homepage", description: "Patients with vaccinations due/overdue.", intent: "operational", whenToShow: "'Vaccination due list' pill.", permutations: ["Overdue", "Due this week", "By vaccine type"], dataParams: "VaccinationDueListCardData" },
-  { kind: "due_patients", family: "Homepage", description: "Patients with pending payment dues.", intent: "operational", whenToShow: "'Patients with due' pill.", permutations: ["This week", "Last 30 days", "All pending"], dataParams: "DuePatientsCardData" },
-  { kind: "completeness", family: "Utility", description: "Documentation completeness check with filled/empty sections.", intent: "operational", whenToShow: "'Completeness check' pill.", permutations: ["Mostly complete", "Mostly empty", "All filled"], dataParams: "{sections: CompletenessSection[], emptyCount}" },
-  { kind: "patient_narrative", family: "Text", description: "Standalone patient narrative as violet-bordered paragraph.", intent: "data_retrieval", whenToShow: "Part of patient summary flow.", permutations: ["Short (1 line)", "Full (3-4 lines)"], dataParams: "{patientNarrative, specialtyTags, followUpOverdueDays}" },
+  // ── Summary ──
+  { kind: "patient_summary", family: "Summary", description: "Comprehensive patient overview — vitals, labs, flags, chronic conditions, medications, narrative.", intent: "data_retrieval", whenToShow: "'Patient summary', 'overview', 'snapshot' or 'Patient's detailed summary' pill.", permutations: ["With/without labs", "With chronic conditions", "With symptom collector", "With specialty alerts", "With vitals abnormals"], dataParams: "SmartSummaryData", dataSources: "EMR: vitals, labs, conditions, meds, allergies. Uploaded documents (AI-extracted). Symptom collector (patient-reported). Specialty modules (obstetric/gynec/ophthal/pediatric).", formattingNotes: "Inline data rows: primary text in tp-slate-700 (#454551), (parenthetical details) in tp-slate-400 (#A2A2A8), dividers · | in tp-slate-200 (#E2E2EA). Section tags with icons. Provenance dots: EMR tp-success-600 (#059669), AI tp-warning-600 (#D97706). Narrative in tp-violet-600 (#8A4DBB) italic. Font: Inter 10-11px body, 9px captions.", cannedMessages: ["Patient summary", "Overview", "Patient's detailed summary", "Show patient snapshot"], intentSummary: "data_retrieval → Card: multi-section clinical overview too complex for text" },
+  { kind: "sbar_overview", family: "Summary", description: "ISBAR-structured patient summary — Situation (narrative), Background (history + allergies), Assessment (vitals + labs), Recommendation (action items).", intent: "data_retrieval", whenToShow: "'Patient summary' pill for SBAR/critical care view. Used in Emergency/On-call context.", permutations: ["Full SBAR with all sections", "Without labs", "With critical vitals", "With follow-up overdue", "With last visit"], dataParams: "SmartSummaryData", dataSources: "EMR: vitals, labs, conditions, meds, allergies. Historical visit data. Symptom collector. Same sources as patient_summary, structured into ISBAR format.", formattingNotes: "ISBAR section headers (Situation, Background, Assessment, Recommendation) with colored left borders. Compact rows within each section. Critical flags in red.", cannedMessages: ["SBAR summary", "Patient summary", "Emergency overview", "On-call handoff"], intentSummary: "data_retrieval → Card: ISBAR-structured overview needs section-based card layout" },
+  { kind: "symptom_collector", family: "Summary", description: "Patient-reported symptoms from pre-visit intake form.", intent: "data_retrieval", whenToShow: "'Pre-visit intake' pill.", permutations: ["Full intake", "Partial intake", "With severity ratings"], dataParams: "SymptomCollectorData", dataSources: "Patient-reported pre-visit intake form. Symptoms, medical history, family history, allergies, lifestyle, and questions to doctor.", formattingNotes: "Section-tagged rows — symptoms with severity badges, history as tag pills, allergies in red-tinted row. Questionnaire format with expandable sections.", cannedMessages: ["Pre-visit intake", "Symptoms reported", "What did the patient report?", "Intake form"], intentSummary: "data_retrieval → Card: multi-section intake data with severity ratings needs structured layout" },
+  { kind: "last_visit", family: "Summary", description: "Previous visit summary with copy-to-rx action.", intent: "data_retrieval", whenToShow: "'Last visit details' pill.", permutations: ["Recent (<30d)", "Old (>90d amber)", "With meds"], dataParams: "LastVisitCardData", dataSources: "EMR visit records — symptoms, examination, diagnosis, medication, advice, follow-up, lab tests suggested.", formattingNotes: "Section-tagged rows: 'Fever (2d, high)' → 'Fever' in tp-slate-700 (#454551), '(2d, high)' in tp-slate-400 (#A2A2A8). Pipe '|' dot '·' in tp-slate-200 (#E2E2EA). Copy-to-RxPad per section. Font: Inter 10px body.", cannedMessages: ["Last visit details", "Previous visit", "What happened last time?", "Show visit on [date]"], intentSummary: "data_retrieval → Card: structured visit data with copy-to-RxPad needs card layout" },
+  { kind: "obstetric_summary", family: "Summary", description: "ANC status, gravida/para, EDD, gestational weeks, fetal data.", intent: "data_retrieval", whenToShow: "Obstetric data exists + pill tapped.", permutations: ["Active pregnancy", "High-risk", "Post-delivery"], dataParams: "ObstetricData", dataSources: "EMR obstetric module: gravida/para/living/abortion, LMP, EDD, gestational age, fetal data, ANC schedule, vaccine status, BP tracking.", formattingNotes: "Key-value grid with gestational age prominently displayed. ANC timeline with due/overdue badges. High-risk flags in red. Fetal data section with icons.", cannedMessages: ["Obstetric summary", "ANC status", "Pregnancy details", "Gestational age"], intentSummary: "data_retrieval → Card: pregnancy tracking with timeline and risk flags needs structured card" },
+  { kind: "gynec_summary", family: "Summary", description: "Menarche, cycle, LMP, Pap smear, flow/pain.", intent: "data_retrieval", whenToShow: "Gynec data exists + pill tapped.", permutations: ["Regular", "Irregular", "Post-menopausal"], dataParams: "GynecData", dataSources: "EMR gynecology module: menarche, cycle details (length, regularity, flow, pain), LMP, Pap smear history.", formattingNotes: "Key-value rows with cycle regularity badge (regular/irregular). Pain score as visual scale. Alerts in amber/red rows. LMP prominently displayed.", cannedMessages: ["Gynec summary", "Menstrual history", "Cycle details", "LMP status"], intentSummary: "data_retrieval → Card: gynecological history with cycle data needs structured layout" },
+  { kind: "pediatric_summary", family: "Summary", description: "Growth percentiles, milestones, vaccine status.", intent: "data_retrieval", whenToShow: "Pediatric data exists + pill tapped.", permutations: ["Infant", "Child", "Overdue vaccines"], dataParams: "PediatricsData", dataSources: "EMR pediatric module: growth measurements (height/weight/OFC percentiles), milestone tracking, vaccine schedule, feeding notes.", formattingNotes: "Growth percentile badges (green normal, amber borderline, red concerning). Vaccine status with overdue count in red. Milestone checklist format.", cannedMessages: ["Pediatric summary", "Growth chart", "Vaccine status", "Child development"], intentSummary: "data_retrieval → Card: growth percentiles and vaccine tracking need visual badges and structure" },
+  { kind: "ophthal_summary", family: "Summary", description: "Visual acuity, IOP, refraction, slit lamp, fundus.", intent: "data_retrieval", whenToShow: "Ophthal data exists + pill tapped.", permutations: ["Normal", "Elevated IOP", "Refractive error"], dataParams: "OphthalData", dataSources: "EMR ophthalmology module: visual acuity (near/far), IOP, slit lamp findings, fundus examination, glass prescription.", formattingNotes: "Two-column layout for R/L eye comparison. IOP with threshold coloring. Slit lamp and fundus as descriptive rows. Glass prescription in monospace.", cannedMessages: ["Eye examination", "Ophthal summary", "Visual acuity", "IOP reading"], intentSummary: "data_retrieval → Card: bilateral eye data with R/L comparison needs structured card" },
+  // ── Data & Trends ──
+  { kind: "lab_panel", family: "Data", description: "Latest lab results grid with flags.", intent: "data_retrieval", whenToShow: "'Lab overview' or 'N lab values flagged' pill.", permutations: ["All normal", "Mixed flags", "Critical flags", "By category"], dataParams: "LabPanelData", dataSources: "EMR lab orders and results. Uploaded lab report PDFs (AI-extracted with confidence scoring).", formattingNotes: "Grid rows: flag arrows ↑↓ in tp-error-600 (#C8102E). Ref ranges in tp-slate-400 (#A2A2A8). Alternating rows white/tp-slate-50 (#FAFAFB). Flagged count badge tp-error-50 bg. Font: Inter 10px body, 9px ref range.", cannedMessages: ["Lab overview", "Show labs", "What labs are flagged?", "N lab values flagged"], intentSummary: "data_retrieval → Card: flagged values need color coding and grid structure" },
+  { kind: "vitals_trend_bar", family: "Data", description: "Vitals over time as bar chart with thresholds.", intent: "comparison", whenToShow: "'Vital trends' or 'Bar view' pill.", permutations: ["Single vital", "Multiple overlaid", "With thresholds"], dataParams: "{title, series: VitalTrendSeries[]}", dataSources: "EMR vitals history across visits. Encounter vitals recorded by nurse/doctor.", formattingNotes: "Stacked/grouped bar chart with threshold line overlay. Color-coded bars (green=ok, amber=warn, red=critical). Date labels on x-axis.", cannedMessages: ["Vital trends", "Bar view", "Show vitals over time", "BP trend"], intentSummary: "comparison → Card: temporal bar chart with thresholds requires chart rendering" },
+  { kind: "vitals_trend_line", family: "Data", description: "Vitals over time as line chart with tone coloring.", intent: "comparison", whenToShow: "'Line graph' pill.", permutations: ["Stable (green)", "Declining (red)", "Improving"], dataParams: "{title, series: VitalTrendSeries[]}", dataSources: "EMR vitals history across visits. Encounter vitals recorded by nurse/doctor.", formattingNotes: "Line chart with tone coloring (green=stable, red=declining). Data points at each visit. Threshold reference line if applicable.", cannedMessages: ["Line graph", "Vitals line trend", "Show trend line", "Vitals over time"], intentSummary: "comparison → Card: line chart with tone-based coloring requires chart rendering" },
+  { kind: "lab_trend", family: "Data", description: "Single lab parameter trend over time.", intent: "comparison", whenToShow: "'HbA1c trend' type queries.", permutations: ["Improving", "Worsening", "Stable", "With normal range band"], dataParams: "{title, series, parameterName}", dataSources: "EMR lab results history for a single parameter over time. May include AI-extracted values from uploaded reports.", formattingNotes: "Single-parameter line chart with normal range band shaded. Data points labeled with values. Improving/worsening direction arrow.", cannedMessages: ["HbA1c trend", "Creatinine trend", "Show lab trend", "How has [param] changed?"], intentSummary: "comparison → Card: single-parameter trend with normal range band needs chart layout" },
+  { kind: "lab_comparison", family: "Data", description: "Previous vs current lab values with deltas.", intent: "comparison", whenToShow: "'Compare labs' or 'Lab comparison' pill.", permutations: ["All improved", "Mixed", "No previous data"], dataParams: "{rows: LabComparisonRow[]}", dataSources: "EMR lab results — previous vs current values. Delta calculations generated by system.", formattingNotes: "Two-column comparison table with delta arrows (↑↓). Flagged rows highlighted. Previous and current dates in column headers.", cannedMessages: ["Compare labs", "Lab comparison", "Previous vs current labs", "What changed in labs?"], intentSummary: "comparison → Card: side-by-side lab comparison with deltas needs table structure" },
+  { kind: "med_history", family: "Data", description: "Medication history timeline.", intent: "data_retrieval", whenToShow: "'Med history' pill.", permutations: ["Active only", "Full history", "By diagnosis"], dataParams: "{entries: MedHistoryEntry[]}", dataSources: "EMR medication records — prescribed drugs with dosage, dates, and linked diagnoses. Uploaded prescription records.", formattingNotes: "Timeline-style rows with drug name bold, dosage and diagnosis in lighter text. Date column. Source badge (prescribed/uploaded).", cannedMessages: ["Med history", "Medication history", "Past medications", "What was prescribed before?"], intentSummary: "data_retrieval → Card: medication timeline with source attribution needs structured rows" },
+  { kind: "patient_timeline", family: "Data", description: "Chronological event timeline.", intent: "data_retrieval", whenToShow: "'Patient timeline' pill.", permutations: ["All events", "Visits only", "By date range"], dataParams: "PatientTimelineCardData", dataSources: "EMR visit records, lab events, procedures, admissions — all chronological patient events.", formattingNotes: "Vertical timeline with event type icons (visit/lab/procedure/admission). Date on left, summary on right. Color-coded by event type.", cannedMessages: ["Patient timeline", "Visit history", "Show timeline", "Chronological history"], intentSummary: "data_retrieval → Card: chronological event timeline with type icons needs visual layout" },
+  { kind: "vaccination_schedule", family: "Data", description: "Vaccine schedule with status badges.", intent: "data_retrieval", whenToShow: "Patient-level vaccine schedule.", permutations: ["Infant", "Adult", "Pregnancy", "Overdue"], dataParams: "VaccinationScheduleCardData", dataSources: "EMR vaccine records — scheduled vaccines with dose tracking, due dates, and status (given/due/overdue).", formattingNotes: "Schedule rows with status badges (green=given, amber=due, red=overdue). Patient name and dose info. Grouped by vaccine name.", cannedMessages: ["Vaccine schedule", "Vaccination status", "Pending vaccines", "Immunization record"], intentSummary: "data_retrieval → Card: vaccine schedule with status badges needs structured layout" },
+  { kind: "medical_history", family: "Data", description: "Chronic conditions, allergies, family history, surgical history, lifestyle — organized by section tags.", intent: "data_retrieval", whenToShow: "'Medical history' pill or 'Show allergies/conditions/family history'.", permutations: ["Full history", "Chronic only", "Allergy-focused", "Family history only"], dataParams: "MedicalHistoryCardData", dataSources: "EMR historical sidebar modules: chronic conditions, surgical history, allergies, family history, social history. AI-extracted from uploaded documents.", formattingNotes: "Section-tagged rows with icons per category (conditions, surgeries, allergies, family). Items as inline tag pills. Parenthetical durations in lighter text.", cannedMessages: ["Medical history", "Past medical history", "Chronic conditions", "Show patient history"], intentSummary: "data_retrieval → Card: multi-section medical history with categorized tags needs card layout" },
+  { kind: "vitals_summary", family: "Data", description: "Today's vitals in structured table — BP, pulse, SpO₂, temp, weight, height, BMI.", intent: "data_retrieval", whenToShow: "'Today's vitals' pill or 'What are the current vitals?'.", permutations: ["All normal", "With abnormals", "Incomplete vitals"], dataParams: "VitalsSummaryCardData", dataSources: "EMR encounter vitals: BP, pulse, SpO₂, temp, BMI, respiratory rate, weight, height. Recorded during current or most recent visit.", formattingNotes: "Grid rows with short label (BP, HR, SpO₂), value, unit, and flag badge (normal green, high/low red). Recorded timestamp in header.", cannedMessages: ["Today's vitals", "Vitals summary", "Current vitals", "Show vitals"], intentSummary: "data_retrieval → Card: vital parameters with flag badges need grid-based card layout" },
+  // ── Action ──
+  { kind: "ddx", family: "Action", description: "Differential diagnosis — 3 tiers with checkboxes.", intent: "clinical_decision", whenToShow: "'Suggest DDX' pill.", permutations: ["Single complaint", "Multiple complaints", "With lab correlation", "Emergency"], dataParams: "{context, options: DDXOption[]}", dataSources: "AI-generated from current symptoms, examination, labs, and clinical context. Cross-referenced with clinical protocols.", formattingNotes: "3-tier checkbox list: Most Likely (green), Possible (amber), Less Likely (slate). Rationale text under each option.", cannedMessages: ["Suggest DDX", "Differential diagnosis", "What could this be?", "Possible diagnoses"], intentSummary: "clinical_decision → Card: tiered selection with checkboxes requires interactive UI" },
+  { kind: "protocol_meds", family: "Action", description: "Protocol medications with safety notes + copy to RxPad.", intent: "clinical_decision", whenToShow: "'Suggest medications' pill.", permutations: ["Single diagnosis", "Multi-diagnosis", "Pediatric dosing", "Renal-adjusted"], dataParams: "{diagnosis, meds, safetyCheck, copyPayload}", dataSources: "AI-generated from accepted diagnosis + clinical protocols. Cross-checked against patient allergies, renal function, age/weight for dosing.", formattingNotes: "Drug rows with name bold, dosage/timing/duration in structured columns. Safety check banner at top. Copy-to-RxPad button in footer.", cannedMessages: ["Suggest medications", "Protocol meds", "What should I prescribe?", "Treatment plan"], intentSummary: "clinical_decision → Card: medication list with safety checks and copy-to-RxPad needs card" },
+  { kind: "investigation_bundle", family: "Action", description: "Suggested tests with rationale + copy.", intent: "clinical_decision", whenToShow: "'Suggest investigations' pill.", permutations: ["Initial workup", "Follow-up", "Pre-surgical", "Missing tests"], dataParams: "{title, items, copyPayload}", dataSources: "AI-generated from clinical context — suggested tests based on symptoms, differential, and missing data.", formattingNotes: "Checkbox list with test name and rationale below each. Copy-to-RxPad in footer. Selected tests highlighted.", cannedMessages: ["Suggest investigations", "What tests to order?", "Lab workup", "Missing tests"], intentSummary: "clinical_decision → Card: test selection with rationale and copy needs interactive card" },
+  { kind: "follow_up", family: "Action", description: "Follow-up schedule radio selection.", intent: "action", whenToShow: "'Plan follow-up' pill.", permutations: ["Acute (3-5d)", "Chronic (2-4wk)", "Post-procedure"], dataParams: "{context, options: FollowUpOption[]}", dataSources: "AI-generated follow-up recommendations based on diagnosis acuity, treatment plan, and clinical protocols.", formattingNotes: "Radio-button list with follow-up intervals. Recommended option highlighted. Reason text under each option.", cannedMessages: ["Plan follow-up", "When should they return?", "Follow-up schedule", "Next visit"], intentSummary: "action → Card: radio selection for follow-up interval needs interactive UI" },
+  { kind: "advice_bundle", family: "Action", description: "Patient advice list with copy + share.", intent: "action", whenToShow: "'Draft advice' pill.", permutations: ["General", "Condition-specific", "Post-procedure", "With share"], dataParams: "{title, items, shareMessage, copyPayload}", dataSources: "AI-generated patient advice based on diagnosis, medications, and clinical context. Share-ready format.", formattingNotes: "Bulleted advice items. Copy-all and share buttons in footer. Share preview in patient-friendly language.", cannedMessages: ["Draft advice", "Patient advice", "What to tell the patient?", "Discharge instructions"], intentSummary: "action → Card: advice list with copy and share actions needs card layout" },
+  { kind: "rx_preview", family: "Action", description: "Full prescription preview with tag-based section headers.", intent: "action", whenToShow: "Near consultation completion.", permutations: ["Complete Rx", "Partial (missing)", "Multi-diagnosis"], dataParams: "RxPreviewCardData", dataSources: "Current RxPad state — compiled prescription with all sections (diagnosis, medication, investigation, advice, follow-up).", formattingNotes: "Tag-based section headers matching RxPad sections. Items listed per section. Complete/incomplete status indicators. Print-ready layout.", cannedMessages: ["Preview prescription", "Rx preview", "Show prescription", "Before I print"], intentSummary: "action → Card: full prescription preview with section headers needs structured card" },
+  { kind: "voice_structured_rx", family: "Action", description: "Voice dictation parsed into RxPad sections.", intent: "action", whenToShow: "After voice input.", permutations: ["Full", "Partial", "With corrections"], dataParams: "VoiceStructuredRxData", dataSources: "Voice transcription parsed into structured RxPad sections by AI. Original voice text preserved for verification.", formattingNotes: "Section-tagged rows matching RxPad format (Symptoms, Examination, Diagnosis, Medication, etc.). Original voice text in collapsible block. Copy-all to RxPad in footer.", cannedMessages: ["Voice Rx", "Dictate prescription", "Voice input", "Speak prescription"], intentSummary: "action → Card: voice-parsed structured sections with copy-to-RxPad needs card layout" },
+  // ── Analysis ──
+  { kind: "ocr_pathology", family: "Analysis", description: "Pathology report OCR with flags and confidence.", intent: "document_analysis", whenToShow: "Upload pathology report.", permutations: ["CBC", "Lipid", "Renal/liver", "Low-confidence"], dataParams: "{title, category, parameters, normalCount}", dataSources: "Uploaded pathology report PDF — AI-extracted parameters with confidence scoring. Cross-referenced with reference ranges.", formattingNotes: "Grid rows with parameter name, value, reference range, and flag. Confidence dots (high=green, medium=amber, low=red). Normal count hidden by default.", cannedMessages: ["Analyze report", "Read pathology", "Extract lab values", "What does this report say?"], intentSummary: "document_analysis → Card: extracted parameters with flags and confidence need grid layout" },
+  { kind: "ocr_extraction", family: "Analysis", description: "Full document extraction by section.", intent: "document_analysis", whenToShow: "Upload discharge/prescription.", permutations: ["Discharge summary", "Prescription", "Referral letter"], dataParams: "{title, category, sections}", dataSources: "Uploaded document PDF (discharge summary, prescription, referral) — AI-extracted sections with copy destinations.", formattingNotes: "Section-based extraction with icon-led headers. Items listed per section. Copy-to-RxPad destination labeled per section.", cannedMessages: ["Extract document", "Read this file", "What does this say?", "Parse upload"], intentSummary: "document_analysis → Card: multi-section document extraction with copy targets needs card" },
+  // ── Clinical Problem ──
+  { kind: "sbar_critical", family: "Clinical", description: "SBAR emergency triage with completeness ring.", intent: "data_retrieval", whenToShow: "Critical flags (SpO2 <90, critical labs).", permutations: ["Emergency", "Critical lab", "Vital deterioration"], dataParams: "SbarCriticalCardData", dataSources: "EMR critical flags — SpO₂, critical labs, vital deterioration. Active problems, allergies, key medications, recent ER visits.", formattingNotes: "Red-bordered urgent card. Situation text prominent. Critical flags with severity badges. Allergies and meds as tag pills. Completeness ring in header.", cannedMessages: ["Emergency summary", "Critical flags", "SBAR triage", "Urgent overview"], intentSummary: "data_retrieval → Card: emergency triage with critical flags needs high-visibility card layout" },
+  { kind: "pomr_problem_card", family: "Clinical", description: "POMR single problem with completeness donut.", intent: "data_retrieval", whenToShow: "Chronic condition pills (CKD, DM, HTN).", permutations: ["CKD", "Diabetes", "HTN", "Anaemia", "High/low completeness"], dataParams: "PomrProblemCardData", dataSources: "EMR problem list — single chronic condition with related labs, meds, missing fields. Data completeness from EMR + AI sources.", formattingNotes: "Problem header with status badge and completeness donut. Lab rows with provenance dots. Missing fields as amber prompts. Source entries listed.", cannedMessages: ["CKD status", "Diabetes management", "HTN control", "Show [condition] card"], intentSummary: "data_retrieval → Card: problem-oriented view with completeness donut needs structured card" },
+  // ── Utility & Safety ──
+  { kind: "translation", family: "Utility", description: "Language translation side-by-side + copy.", intent: "action", whenToShow: "'Translate' pill.", permutations: ["Hindi", "Telugu", "Tamil", "Kannada", "Marathi"], dataParams: "TranslationData & {copyPayload}", dataSources: "AI translation engine — source text from RxPad or chat. Supports Hindi, Telugu, Tamil, Kannada, Marathi.", formattingNotes: "Side-by-side source and translated text. Language labels above each column. Copy-to-RxPad button for translated text.", cannedMessages: ["Translate", "Translate to Hindi", "Patient language", "Translate advice"], intentSummary: "action → Card: side-by-side translation with copy needs two-column card layout" },
+  { kind: "drug_interaction", family: "Safety", description: "Drug-drug interaction alert with severity.", intent: "clinical_question", whenToShow: "'Check interactions' or auto-triggered.", permutations: ["Critical", "Major", "Moderate", "Clear"], dataParams: "DrugInteractionData", dataSources: "Drug interaction database — checked against current RxPad medications. Severity classification and recommended actions.", formattingNotes: "Alert banner with severity color (critical=red, major=orange, moderate=amber). Drug pair prominently displayed. Risk and action text below.", cannedMessages: ["Check interactions", "Drug interactions", "Is this combination safe?", "Interaction alert"], intentSummary: "clinical_question → Card: drug interaction alert with severity coloring needs card format" },
+  { kind: "allergy_conflict", family: "Safety", description: "Drug-allergy conflict with alternatives.", intent: "clinical_question", whenToShow: "Auto-triggered on allergy match.", permutations: ["Direct match", "Cross-reactivity", "With alternatives"], dataParams: "AllergyConflictData", dataSources: "Patient allergy records cross-referenced with prescribed/being-prescribed medications. Alternative suggestions.", formattingNotes: "Red alert banner with drug-allergen pair. Alternative medication suggestion in green-tinted row. Auto-triggered format.", cannedMessages: ["Allergy check", "Is this safe for allergies?", "Allergy conflict", "Alternative medication"], intentSummary: "clinical_question → Card: allergy conflict alert with alternative suggestion needs card format" },
+  { kind: "follow_up_question", family: "Utility", description: "Agent asks doctor for clarification.", intent: "follow_up", whenToShow: "Ambiguous input needs clarification.", permutations: ["Single-select", "Multi-select"], dataParams: "{question, options, multiSelect}", dataSources: "Internally generated by AI agent when input is ambiguous or insufficient for a confident response.", formattingNotes: "Question text prominent. Option buttons/chips below. Single-select as radio, multi-select as checkboxes.", cannedMessages: ["Clarify", "Which one?", "Can you specify?", "More details needed"], intentSummary: "follow_up → Card: clarification question with selectable options needs interactive card" },
+  { kind: "clinical_guideline", family: "Utility", description: "Evidence-based guideline recommendations.", intent: "clinical_decision", whenToShow: "Guidelines query.", permutations: ["KDIGO", "ADA", "JNC", "NICE"], dataParams: "ClinicalGuidelineCardData", dataSources: "Clinical guideline databases — KDIGO, ADA, JNC, NICE. Evidence-level rated recommendations for specific conditions.", formattingNotes: "Condition and source in header. Recommendations as numbered list. Evidence level badge (A/B/C) with color coding.", cannedMessages: ["Clinical guideline", "What do guidelines say?", "Evidence-based recommendation", "KDIGO for CKD"], intentSummary: "clinical_decision → Card: guideline recommendations with evidence levels need structured card" },
+  { kind: "referral", family: "Utility", description: "Referral summary — top referrers.", intent: "operational", whenToShow: "'Referral summary' pill.", permutations: ["By referrer", "By specialty", "Trends"], dataParams: "ReferralCardData", dataSources: "Operational database — referral records with referring doctor details, specialty, patient counts, top reasons.", formattingNotes: "List rows with doctor name, specialty, patient count, and top reason. Summary stats in header.", cannedMessages: ["Referral summary", "Top referrers", "Who refers patients?", "Referral analytics"], intentSummary: "operational → Card: referral list with stats needs structured card layout" },
+  { kind: "completeness", family: "Utility", description: "Documentation completeness check with filled/empty sections.", intent: "operational", whenToShow: "'Completeness check' pill.", permutations: ["Mostly complete", "Mostly empty", "All filled"], dataParams: "{sections: CompletenessSection[], emptyCount}", dataSources: "Current RxPad state — analysis of filled vs empty documentation sections. Real-time completeness check.", formattingNotes: "Checklist rows with filled/empty status icons (green check/red x). Empty count badge in header. Section names in dark text.", cannedMessages: ["Completeness check", "Am I missing anything?", "Documentation status", "What's incomplete?"], intentSummary: "operational → Card: documentation checklist with fill status needs card layout" },
+  { kind: "guardrail", family: "Utility", description: "Out-of-scope or policy-restricted response — explains why and suggests alternatives.", intent: "ambiguous", whenToShow: "When query is outside Dr. Agent's scope or restricted by policy.", permutations: ["Out of scope", "Policy restricted", "Requires human review"], dataParams: "GuardrailCardData", dataSources: "No external data — internally generated redirect card when query is out-of-scope or potentially unsafe.", formattingNotes: "Soft message explaining limitation. Suggestion pills below as horizontal scrollable chips. No severity coloring — neutral tone.", cannedMessages: ["Out of scope", "I can't help with that", "Not a clinical question", "Try rephrasing"], intentSummary: "ambiguous → Card: soft redirect with actionable suggestion pills needs card format" },
+  // ── Text ──
+  { kind: "text_fact", family: "Text", description: "Fact box with source citation.", intent: "clinical_question", whenToShow: "Short factual questions.", permutations: ["Medical fact", "Drug info", "Lab range"], dataParams: "{value, context, source}", dataSources: "AI-generated clinical knowledge response with source citation. Drug info, lab ranges, medical facts.", formattingNotes: "Fact value prominent in dark text. Context and source in lighter text below. Source as clickable citation.", cannedMessages: ["What is normal [param]?", "Drug dosage", "Quick fact", "Lab reference range"], intentSummary: "clinical_question → Card: cited fact with source needs minimal card shell" },
+  { kind: "text_alert", family: "Text", description: "Severity-colored alert bar.", intent: "clinical_question", whenToShow: "Urgent message.", permutations: ["Critical", "Warning", "Info"], dataParams: "{message, severity}", dataSources: "System-generated or AI-triggered alert — urgent messages requiring doctor attention.", formattingNotes: "Severity-colored full-width bar (critical=red, high=orange, moderate=amber, low=blue). Message text in contrasting color.", cannedMessages: ["Alert", "Urgent notice", "Warning", "Critical message"], intentSummary: "clinical_question → Card: severity-colored alert needs visual formatting" },
+  { kind: "text_list", family: "Text", description: "Bulleted list.", intent: "clinical_question", whenToShow: "List response.", permutations: ["Short", "Long"], dataParams: "{items}", dataSources: "AI-generated list response — bulleted items from clinical knowledge or patient data.", formattingNotes: "Simple bulleted list with consistent spacing. No special coloring — standard text.", cannedMessages: ["List options", "What are the causes?", "Side effects of [drug]", "Symptoms of [condition]"], intentSummary: "clinical_question → Card: bulleted list with consistent formatting needs card shell" },
+  { kind: "text_step", family: "Text", description: "Numbered steps with blue border.", intent: "clinical_question", whenToShow: "Procedural instructions.", permutations: ["Clinical", "Patient", "Medication"], dataParams: "{steps}", dataSources: "AI-generated procedural instructions — step-by-step clinical, patient, or medication procedures.", formattingNotes: "Numbered steps with blue left border. Each step as a distinct row. Sequential reading flow.", cannedMessages: ["How to [procedure]?", "Steps for [treatment]", "Instructions", "Procedure steps"], intentSummary: "clinical_question → Card: numbered procedural steps need visual step formatting" },
+  { kind: "text_quote", family: "Text", description: "Clinical quotation with attribution.", intent: "clinical_question", whenToShow: "Citing guidelines.", permutations: ["Guideline", "Textbook", "Research"], dataParams: "{quote, source}", dataSources: "Clinical guideline, textbook, or research citation — direct quote with attribution.", formattingNotes: "Indented blockquote with left border. Source attribution below in italics. Quotation marks styling.", cannedMessages: ["What does [guideline] say?", "Quote from [source]", "Cite reference", "Guideline text"], intentSummary: "clinical_question → Card: attributed quotation needs blockquote formatting" },
+  { kind: "text_comparison", family: "Text", description: "Two-column comparison.", intent: "clinical_question", whenToShow: "Comparing two options.", permutations: ["Drug vs Drug", "Treatment comparison"], dataParams: "{labelA, labelB, itemsA, itemsB}", dataSources: "AI-generated comparison — two options side by side with bullet points for each.", formattingNotes: "Two-column layout with label headers. Bullet items under each column. Balanced width distribution.", cannedMessages: ["Compare [A] vs [B]", "Drug comparison", "Which is better?", "Treatment comparison"], intentSummary: "clinical_question → Card: two-column comparison needs side-by-side layout" },
+  { kind: "patient_narrative", family: "Text", description: "Standalone patient narrative as violet-bordered paragraph.", intent: "data_retrieval", whenToShow: "Part of patient summary flow.", permutations: ["Short (1 line)", "Full (3-4 lines)"], dataParams: "{patientNarrative, specialtyTags, followUpOverdueDays}", dataSources: "AI-generated patient narrative from SmartSummaryData — synthesized clinical summary in natural language.", formattingNotes: "Violet-bordered paragraph block in italic. Specialty tags and follow-up overdue days as contextual badges above narrative.", cannedMessages: ["Patient narrative", "Clinical summary", "Tell me about this patient", "Quick narrative"], intentSummary: "data_retrieval → Card: narrative paragraph with contextual badges needs bordered card" },
+  // ── Homepage ──
+  { kind: "welcome_card", family: "Homepage", description: "Daily greeting with stats.", intent: "operational", whenToShow: "Homepage load.", permutations: ["Weekday", "Weekend"], dataParams: "WelcomeCardData", dataSources: "Operational database — today's appointment count, pending follow-ups, revenue snapshot, contextual tips.", formattingNotes: "Greeting with date. Stat cards in horizontal row with icons and colors. Quick action buttons below.", cannedMessages: ["Good morning", "Dashboard", "Today's overview", "Home"], intentSummary: "operational → Card: dashboard greeting with stats and actions needs card layout" },
+  { kind: "patient_list", family: "Homepage", description: "Today's patient queue.", intent: "operational", whenToShow: "'Today's schedule' pill.", permutations: ["Full day", "Filtered"], dataParams: "PatientListCardData", dataSources: "Operational database — today's appointment schedule with patient details, status, and time slots.", formattingNotes: "List rows with patient name, age, gender, time, and status badge (color-coded). Total count in header.", cannedMessages: ["Today's patients", "Appointment list", "Who's next?", "Today's schedule"], intentSummary: "operational → Card: patient queue with status badges needs list card layout" },
+  { kind: "patient_search", family: "Homepage", description: "Patient search with results.", intent: "operational", whenToShow: "Doctor types patient name.", permutations: ["Single match", "Multiple", "No match"], dataParams: "PatientSearchCardData", dataSources: "Patient database — search results matching name query. Includes appointment status and basic demographics.", formattingNotes: "Search result rows with patient name, meta info, and today's appointment indicator. Clickable rows.", cannedMessages: ["Search [name]", "Find patient", "Look up [name]", "Patient search"], intentSummary: "operational → Card: search results with clickable rows need card layout" },
+  { kind: "follow_up_list", family: "Homepage", description: "Due/overdue follow-ups.", intent: "operational", whenToShow: "'Follow-ups due' pill.", permutations: ["This week", "Overdue"], dataParams: "FollowUpListCardData", dataSources: "Operational database — scheduled follow-ups with due dates, reasons, and overdue status.", formattingNotes: "List rows with patient name, scheduled date, reason, and overdue badge (red if overdue). Overdue count in header.", cannedMessages: ["Follow-ups due", "Overdue follow-ups", "Who needs follow-up?", "Pending follow-ups"], intentSummary: "operational → Card: follow-up list with overdue badges needs list card layout" },
+  { kind: "revenue_bar", family: "Homepage", description: "Daily revenue stacked bars.", intent: "operational", whenToShow: "'Revenue today' pill.", permutations: ["Today", "This week"], dataParams: "RevenueBarCardData", dataSources: "Operational database — daily revenue data: paid, due, refunded amounts per day.", formattingNotes: "Stacked bar chart with paid (green), due (amber), refunded (red) segments. Total revenue summary above chart.", cannedMessages: ["Revenue today", "Daily revenue", "Billing chart", "Show earnings"], intentSummary: "operational → Card: stacked revenue bars with color segments need chart layout" },
+  { kind: "bulk_action", family: "Homepage", description: "Batch SMS/email campaign.", intent: "operational", whenToShow: "'Send reminder' pill.", permutations: ["Follow-up SMS", "Appointment", "Custom"], dataParams: "BulkActionCardData", dataSources: "Operational database — recipient list for batch SMS/email campaigns. Message preview and recipient count.", formattingNotes: "Action type header. Message preview in bordered box. Recipient list/count. Send confirmation button.", cannedMessages: ["Send reminder", "Bulk SMS", "Notify patients", "Send follow-up reminders"], intentSummary: "operational → Card: batch action with preview and confirmation needs card layout" },
+  { kind: "donut_chart", family: "Homepage", description: "Patient distribution donut.", intent: "operational", whenToShow: "'Demographics' pill.", permutations: ["Gender", "Age group", "Payment"], dataParams: "DonutChartCardData", dataSources: "Operational analytics — patient distribution data by category (gender, age group, payment type).", formattingNotes: "Donut chart with colored segments. Center label with total. Legend with segment labels and values.", cannedMessages: ["Demographics", "Patient distribution", "Gender breakdown", "Age distribution"], intentSummary: "operational → Card: donut chart visualization needs chart card layout" },
+  { kind: "pie_chart", family: "Homepage", description: "Filled pie chart.", intent: "operational", whenToShow: "Alternative to donut.", permutations: ["Same as donut"], dataParams: "PieChartCardData", dataSources: "Operational analytics — same data sources as donut chart, rendered as filled pie.", formattingNotes: "Filled pie chart with colored segments. Legend with segment labels and values.", cannedMessages: ["Pie chart", "Distribution chart", "Show breakdown", "Category split"], intentSummary: "operational → Card: pie chart visualization needs chart card layout" },
+  { kind: "line_graph", family: "Homepage", description: "Metric trend line.", intent: "operational", whenToShow: "'Patient trends' pill.", permutations: ["Footfall", "Revenue"], dataParams: "LineGraphCardData", dataSources: "Operational analytics — metric trends over time (footfall, revenue, patient count).", formattingNotes: "Line chart with data points. Average line overlay. Change percent badge (up green, down red). Title and period in header.", cannedMessages: ["Patient trends", "Footfall graph", "Show trend", "Weekly graph"], intentSummary: "operational → Card: trend line chart with change indicators needs chart layout" },
+  { kind: "analytics_table", family: "Homepage", description: "KPI dashboard table.", intent: "operational", whenToShow: "'Weekly KPIs' pill.", permutations: ["Weekly", "Monthly"], dataParams: "AnalyticsTableCardData", dataSources: "Operational analytics — weekly/monthly KPI comparisons with delta calculations.", formattingNotes: "Table with metric name, this week, last week, delta, and direction arrow. Good/bad coloring on delta.", cannedMessages: ["Weekly KPIs", "Performance metrics", "Analytics dashboard", "How did we do?"], intentSummary: "operational → Card: KPI comparison table with deltas needs structured table layout" },
+  { kind: "condition_bar", family: "Homepage", description: "Top conditions bars.", intent: "operational", whenToShow: "'Diagnosis distribution'.", permutations: ["Top 10", "Chronic"], dataParams: "ConditionBarCardData", dataSources: "Operational analytics — diagnosis distribution data with patient counts per condition.", formattingNotes: "Horizontal bar chart with condition labels. Color-coded bars. Count labels.", cannedMessages: ["Diagnosis distribution", "Top conditions", "Common diagnoses", "Disease breakdown"], intentSummary: "operational → Card: condition distribution bars need chart layout" },
+  { kind: "heatmap", family: "Homepage", description: "Appointment density grid.", intent: "operational", whenToShow: "'Busiest hours' pill.", permutations: ["This week", "Month"], dataParams: "HeatmapCardData", dataSources: "Operational analytics — appointment density data by day and hour.", formattingNotes: "Grid with days as rows, hours as columns. Cell intensity coloring (low=light, high=dark).", cannedMessages: ["Busiest hours", "Appointment heatmap", "When am I busiest?", "Peak hours"], intentSummary: "operational → Card: density heatmap grid needs visual matrix layout" },
+  { kind: "billing_summary", family: "Homepage", description: "Session billing overview.", intent: "operational", whenToShow: "'Billing overview' pill.", permutations: ["Today", "By status"], dataParams: "BillingSummaryCardData", dataSources: "Operational database — billing records with patient details, amounts, status (paid/due/refunded/deposited).", formattingNotes: "Summary stats in header (billed, collected, due, refunded). Item rows with reference number, patient name, amount, and status badge.", cannedMessages: ["Billing overview", "Today's billing", "Payment status", "Collection summary"], intentSummary: "operational → Card: billing data with status badges and totals needs structured card" },
+  { kind: "external_cta", family: "Homepage", description: "External link (Excel/Word download).", intent: "operational", whenToShow: "Export or download ready.", permutations: ["Excel", "Word", "Custom URL"], dataParams: "ExternalCtaCardData", dataSources: "System-generated link — export/download URLs for Excel, Word, or custom external resources.", formattingNotes: "Title and description text. Prominent CTA button with link. Optional new-tab indicator.", cannedMessages: ["Download report", "Export data", "Open in Excel", "Download file"], intentSummary: "operational → Card: external link with CTA button needs minimal card shell" },
+  { kind: "anc_schedule_list", family: "Homepage", description: "ANC schedule with overdue/due items per patient.", intent: "operational", whenToShow: "'ANC schedule' pill.", permutations: ["All due", "Overdue only", "By trimester"], dataParams: "ANCScheduleListCardData", dataSources: "Operational database — ANC schedule items across patients with due dates, gestational age, and overdue status.", formattingNotes: "List rows with patient name, ANC item, due week, gestational age, and overdue badge.", cannedMessages: ["ANC schedule", "Antenatal due list", "ANC overdue", "Pregnancy follow-ups"], intentSummary: "operational → Card: ANC schedule list with overdue tracking needs list card layout" },
+  { kind: "follow_up_rate", family: "Homepage", description: "Follow-up rate analytics with trend.", intent: "operational", whenToShow: "'Follow-up rate' pill.", permutations: ["Weekly", "Monthly", "With overdue"], dataParams: "FollowUpRateCardData", dataSources: "Operational analytics — follow-up compliance rate with trend data, due/overdue/completed counts.", formattingNotes: "Rate percentage prominent. Comparison with last week. Due/overdue/completed counts. Trend line chart below.", cannedMessages: ["Follow-up rate", "Compliance rate", "Are patients returning?", "Follow-up analytics"], intentSummary: "operational → Card: rate analytics with trend line needs chart card layout" },
+  { kind: "revenue_comparison", family: "Homepage", description: "Revenue comparison between two periods.", intent: "operational", whenToShow: "'Compare revenue' pill.", permutations: ["Week-on-week", "Month-on-month"], dataParams: "RevenueComparisonCardData", dataSources: "Operational database — revenue data for two time periods with deposits and refunds for comparison.", formattingNotes: "Two-period comparison with primary and compare columns. Revenue, refunded, deposits rows.", cannedMessages: ["Compare revenue", "Week-on-week", "Revenue comparison", "How does this compare?"], intentSummary: "operational → Card: two-period revenue comparison needs structured comparison layout" },
+  { kind: "vaccination_due_list", family: "Homepage", description: "Patients with vaccinations due/overdue.", intent: "operational", whenToShow: "'Vaccination due list' pill.", permutations: ["Overdue", "Due this week", "By vaccine type"], dataParams: "VaccinationDueListCardData", dataSources: "Operational database — patients with vaccinations due or overdue, with vaccine name, dose, and due date.", formattingNotes: "List rows with patient name, vaccine name, dose, due date, and overdue badge.", cannedMessages: ["Vaccination due list", "Overdue vaccines", "Who needs vaccination?", "Vaccine reminders"], intentSummary: "operational → Card: vaccination due list with overdue badges needs list card layout" },
+  { kind: "due_patients", family: "Homepage", description: "Patients with pending payment dues.", intent: "operational", whenToShow: "'Patients with due' pill.", permutations: ["This week", "Last 30 days", "All pending"], dataParams: "DuePatientsCardData", dataSources: "Operational database — patients with pending payment dues, total due amounts, and collection period.", formattingNotes: "Summary stats (patient count, total due, as-of date). CTA button for detailed view. Period label in header.", cannedMessages: ["Patients with dues", "Pending payments", "Outstanding dues", "Who owes?"], intentSummary: "operational → Card: due patient summary with CTA needs compact card layout" },
 ]
 
 const INTENTS = [
@@ -821,6 +818,7 @@ const INTENTS = [
   { id: "clinical_question", label: "Clinical Q", bg: "bg-teal-50", color: "text-teal-700" },
   { id: "operational", label: "Operational", bg: "bg-orange-50", color: "text-orange-700" },
   { id: "follow_up", label: "Follow-up", bg: "bg-indigo-50", color: "text-indigo-700" },
+  { id: "ambiguous", label: "Ambiguous", bg: "bg-slate-100", color: "text-slate-600" },
 ]
 
 const FAMILIES = [...new Set(CARD_SPECS.map(c => c.family))]
@@ -846,6 +844,8 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
   const [catalogFilter, setCatalogFilter] = useState("all")
   const [activePhase, setActivePhase] = useState("empty")
   const [expandedPrimitive, setExpandedPrimitive] = useState<string | null>(null)
+  const [contentPrimitiveSidebarOpen, setContentPrimitiveSidebarOpen] = useState(false)
+  const [selectedPrimitiveIndex, setSelectedPrimitiveIndex] = useState(0)
   const [rmTab, setRmTab] = useState<"pipeline" | "card-rules" | "copy-rules" | "clinical-framework">("pipeline")
   const [isDocHeaderVisible, setIsDocHeaderVisible] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
@@ -883,7 +883,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           <p className="text-[10px] leading-relaxed text-slate-500">
             <strong className="text-violet-600">From Intent Classification:</strong>{" "}
             Once the intent engine decides the response is a <strong className="text-slate-700">UI card</strong>, this is how it&apos;s built.
-            Every card follows a <strong className="text-slate-700">5-zone anatomy</strong> with one of <strong className="text-slate-700">18 content zone types</strong>.
+            Every card follows a <strong className="text-slate-700">4-zone anatomy</strong> with one of <strong className="text-slate-700">18 content zone types</strong>.
           </p>
         </div>
 
@@ -891,25 +891,47 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
         <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-violet-50/60 via-white to-slate-50/80 px-5 py-4">
           <h3 className="text-[17px] font-bold text-slate-800 mb-0.5">Card Anatomy Blueprint</h3>
           <p className="text-[11px] leading-[1.6] text-slate-500 max-w-2xl">
-            Every Dr. Agent card follows a consistent <strong className="text-slate-700">5-zone structure</strong>:{" "}
-            <strong className="text-slate-700">header</strong>,{" "}
-            <strong className="text-slate-700">content</strong>,{" "}
-            <strong className="text-slate-700">insight</strong>,{" "}
-            <strong className="text-slate-700">canned messages</strong>, and{" "}
-            <strong className="text-slate-700">footer</strong>.
-            The content zone itself uses one of <strong className="text-slate-700">18 zone types</strong> based on the data shape.
+            An <strong className="text-slate-700">8-section</strong> deep dive — from card architecture and rendering pipeline through the{" "}
+            <strong className="text-slate-700">4-zone card structure</strong> (header, content, canned messages, footer),{" "}
+            <strong className="text-slate-700">18 content zone types</strong>, and iPad/tablet considerations.
           </p>
         </div>
 
-        {/* ═══ 1. CARD STRUCTURE ═══ */}
+        {/* ═══ 1. CARD ARCHITECTURE ═══ */}
         <section>
           <div className="mb-1 flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">1</span>
-            <h4 className="text-[15px] font-bold text-slate-800">Card Structure</h4>
+            <h4 className="text-[15px] font-bold text-slate-800">Card Architecture</h4>
           </div>
-          <p className="mb-4 ml-9 text-[11px] text-slate-400">Five zones stacked top-to-bottom inside a CardShell.</p>
+          <p className="mb-4 ml-9 text-[11px] text-slate-400">How a card is built — from the rendering pipeline through the universal CardShell to shared primitives.</p>
 
-          <div className="grid gap-4 lg:grid-cols-2">
+          {/* ── Step 1: Pipeline (compact horizontal strip) ── */}
+          <div className="mb-3 rounded-lg border border-slate-200 bg-slate-900 px-4 py-3">
+            <p className="text-[8px] font-bold uppercase tracking-widest text-slate-500 mb-2">Rendering Pipeline</p>
+            <div className="flex flex-wrap items-center gap-1.5 text-[9px] font-mono">
+              {[
+                { label: "Reply Engine", sub: "produces RxAgentOutput" },
+                { label: "ChatBubble", sub: "receives { kind, data }" },
+                { label: "CardRenderer", sub: "switch(kind) → component" },
+                { label: "CardShell", sub: "universal wrapper" },
+                { label: "Feedback Row", sub: "👍👎 + Source + Donut" },
+              ].map((step, i) => (
+                <span key={step.label} className="flex items-center gap-1.5">
+                  {i > 0 && <span className="text-slate-600">→</span>}
+                  <span className="rounded bg-slate-800 border border-slate-700 px-2 py-1">
+                    <span className="text-emerald-400 font-semibold">{step.label}</span>
+                    <span className="text-slate-500 ml-1 text-[8px]">{step.sub}</span>
+                  </span>
+                </span>
+              ))}
+            </div>
+            <p className="mt-2 text-[8px] text-slate-500">
+              Every card is a member of a <strong className="text-emerald-400">discriminated union</strong> — the <code className="text-violet-400">kind</code> field picks the data shape. <strong className="text-emerald-400">63 card kinds.</strong>
+            </p>
+          </div>
+
+          {/* ── Step 2: Card structure + Live preview ── */}
+          <div className="mb-3 grid gap-4 lg:grid-cols-2">
             <div className="space-y-2">
               <div className="overflow-x-auto rounded-[10px] bg-slate-900 px-3 py-3 font-mono text-[9px] leading-[1.5] text-emerald-300">
                 <pre>{`┌─ CardShell ──────────────────────────────┐
@@ -919,9 +941,6 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
 │ CONTENT                                 │
 │ rows / tags / tables / charts / lists   │
 ├─────────────────────────────────────────┤
-│ INSIGHT                                 │
-│ optional severity callout               │
-├─────────────────────────────────────────┤
 │ CANNED MESSAGES                         │
 │ [Compare prev] [Show trend] [Next]      │
 ├─────────────────────────────────────────┤
@@ -929,22 +948,177 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
 │ 0 / 1 / 2 CTAs                         │
 └─────────────────────────────────────────┘`}</pre>
               </div>
-              <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
-                <ul className="space-y-0.5">
+              <ul className="space-y-0.5 px-1">
+                {[
+                  "Header — identity layer: icon, title, metadata, shared controls (copy, collapse).",
+                  "Content — main payload: structured rows, tags, charts, tables, or sectioned text.",
+                  "Canned Messages — next-step suggestion pills between content and footer.",
+                  "Footer — 0, 1, or 2 CTAs. Always the final zone.",
+                ].map((t, i) => (
+                  <li key={i} className="flex items-start gap-1.5 text-[9px] text-slate-600">
+                    <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-violet-400" />{t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="rounded-xl bg-[#F1F1F5] p-4">
+              <p className="mb-2 text-[8px] font-bold uppercase tracking-widest text-slate-400">Live Preview</p>
+              <LiveCardPreview kind="lab_panel" label="Full Card — all 4 zones" />
+            </div>
+          </div>
+
+          {/* ── Step 3: CardShell Props + Shared Primitives (side by side) ── */}
+          <div className="mb-3 grid gap-3 lg:grid-cols-2">
+            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+              <div className="border-b border-slate-100 bg-slate-50 px-2.5 py-1.5">
+                <p className="text-[10px] font-bold text-slate-700">CardShell Props</p>
+              </div>
+              <table className="min-w-full text-[9px]">
+                <tbody>
                   {[
-                    "Header is the identity layer: icon, title, optional metadata, and shared controls.",
-                    "Content is the main payload: structured rows, tags, charts, tables, or sectioned text.",
-                    "Insight is optional — only when AI interpretation adds value beyond raw data.",
-                    "Canned messages always come before the footer. Footer is always the last zone.",
-                  ].map((t, i) => (
-                    <li key={i} className="flex items-start gap-1.5 text-[10px] text-slate-600">
-                      <span className="mt-[4px] h-1 w-1 flex-shrink-0 rounded-full bg-slate-400" />{t}
-                    </li>
+                    { prop: "icon / tpIconName", ctrl: "Left icon in header (SVG or TP icon name)" },
+                    { prop: "title", ctrl: "Card title text" },
+                    { prop: "date / badge", ctrl: "Date badge or custom badge (e.g., '13 flagged')" },
+                    { prop: "headerExtra", ctrl: "Slot after badge — used for completeness donut" },
+                    { prop: "copyAll", ctrl: "Copy-all button handler for header copy icon" },
+                    { prop: "collapsible", ctrl: "Can the card collapse? (boolean)" },
+                    { prop: "actions", ctrl: "Canned message pill buttons below body" },
+                    { prop: "sidebarLink", ctrl: "CTA at bottom below divider" },
+                  ].map(item => (
+                    <tr key={item.prop} className="border-b border-slate-50">
+                      <td className="px-2.5 py-1 w-32 font-mono text-[8px] text-violet-600">{item.prop}</td>
+                      <td className="px-2.5 py-1 text-slate-600">{item.ctrl}</td>
+                    </tr>
                   ))}
-                </ul>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+              <div className="border-b border-slate-100 bg-slate-50 px-2.5 py-1.5">
+                <p className="text-[10px] font-bold text-slate-700">Shared Primitives</p>
+              </div>
+              <div className="divide-y divide-slate-50 text-[9px]">
+                {[
+                  { name: "InlineDataRow", desc: "Key-value with provenance dots and flags" },
+                  { name: "SectionTag", desc: "Section heading with icon — never text-only" },
+                  { name: "DataRow", desc: "Simple key-value with optional copy button" },
+                  { name: "CheckboxRow / RadioRow", desc: "Multi-select or single-select with reasoning" },
+                  { name: "ChatPillButton", desc: "Canned message pill — triggers new query on tap" },
+                  { name: "CopyIcon", desc: "Copy-to-clipboard with Linear→Bulk animation" },
+                  { name: "DataCompletenessDonut", desc: "18px SVG donut: green=EMR, amber=AI, gray=missing" },
+                ].map(item => (
+                  <div key={item.name} className="flex items-baseline gap-2 px-2.5 py-1">
+                    <span className="font-mono text-[8px] font-semibold text-violet-600 flex-shrink-0 w-32">{item.name}</span>
+                    <span className="text-slate-600">{item.desc}</span>
+                  </div>
+                ))}
               </div>
             </div>
-            <LiveCardPreview kind="lab_panel" label="Full Card Example — all 5 zones" />
+          </div>
+
+          {/* ── Step 4: Design Foundations — TP Design System tokens ── */}
+          <div className="space-y-3">
+            {/* Core Colors with TP tokens */}
+            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+              <div className="border-b border-slate-100 bg-slate-50 px-2.5 py-1.5">
+                <p className="text-[10px] font-bold text-slate-700">Core Colors — TP Design System</p>
+              </div>
+              <table className="min-w-full text-[9px]">
+                <thead><tr className="border-b border-slate-100 bg-slate-50/40 text-left text-[8px] text-slate-400">
+                  <th className="px-2 py-1 font-semibold w-6"></th>
+                  <th className="px-2 py-1 font-semibold w-16">Role</th>
+                  <th className="px-2 py-1 font-semibold w-24">Icon/Badge</th>
+                  <th className="px-2 py-1 font-semibold w-24">Text</th>
+                  <th className="px-2 py-1 font-semibold w-24">Background</th>
+                  <th className="px-2 py-1 font-semibold">Usage</th>
+                </tr></thead>
+                <tbody>
+                  {[
+                    { hex: "#C8102E", role: "Critical", icon: "tp-error-600", text: "tp-error-700 #9F1239", bg: "tp-error-50 #FFF1F2", usage: "Abnormal labs, safety alerts, SBAR critical", dotClass: "bg-[#C8102E]" },
+                    { hex: "#D97706", role: "Warning", icon: "tp-warning-600", text: "tp-warning-700 #B45309", bg: "tp-warning-50 #FFFBEB", usage: "Borderline, AI-extracted, overdue", dotClass: "bg-[#D97706]" },
+                    { hex: "#059669", role: "Success", icon: "tp-success-600", text: "tp-success-700 #047857", bg: "tp-success-50 #ECFDF5", usage: "Normal values, EMR-verified, improving", dotClass: "bg-[#059669]" },
+                    { hex: "#717179", role: "Neutral", icon: "tp-slate-500", text: "tp-slate-700 #454551", bg: "tp-slate-50 #FAFAFB", usage: "Labels, secondary text, dividers", dotClass: "bg-[#717179]" },
+                    { hex: "#4B4AD5", role: "Action", icon: "tp-blue-500", text: "tp-blue-600 #3C3BB5", bg: "tp-blue-50 #EEEEFF", usage: "CTAs, pills, links, interactive", dotClass: "bg-[#4B4AD5]" },
+                    { hex: "#8A4DBB", role: "AI", icon: "tp-violet-600", text: "tp-violet-800 #572A81", bg: "tp-violet-50 #FAF5FE", usage: "Narratives, agent-generated content", dotClass: "bg-[#8A4DBB]" },
+                  ].map(item => (
+                    <tr key={item.role} className="border-b border-slate-50">
+                      <td className="px-2 py-1"><span className={`inline-block h-3 w-3 rounded-full ${item.dotClass}`} /></td>
+                      <td className="px-2 py-1 font-semibold text-slate-700">{item.role}</td>
+                      <td className="px-2 py-1 font-mono text-[8px] text-slate-500">{item.icon}</td>
+                      <td className="px-2 py-1 font-mono text-[8px] text-slate-500">{item.text}</td>
+                      <td className="px-2 py-1 font-mono text-[8px] text-slate-500">{item.bg}</td>
+                      <td className="px-2 py-1 text-slate-600">{item.usage}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-3">
+              {/* Typography */}
+              <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                <p className="text-[9px] font-bold text-slate-700 mb-1.5">Typography</p>
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[8px] font-semibold text-slate-500 w-14">Headings</span>
+                    <span className="text-[8px] text-slate-600">Mulish 600-700wt</span>
+                  </div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[8px] font-semibold text-slate-500 w-14">Body/UI</span>
+                    <span className="text-[8px] text-slate-600">Inter 400-500wt</span>
+                  </div>
+                  <div className="mt-1.5 pt-1 border-t border-slate-100 space-y-0.5">
+                    <p className="text-[8px] text-slate-600"><strong className="font-mono text-[#454551]">tp-slate-700</strong> — primary text, key terms</p>
+                    <p className="text-[8px] text-slate-600"><strong className="font-mono text-[#A2A2A8]">tp-slate-400</strong> — (parenthetical details)</p>
+                    <p className="text-[8px] text-slate-600"><strong className="font-mono text-[#E2E2EA]">tp-slate-200</strong> — dividers &middot; | separators</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Spacing & Radius */}
+              <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                <p className="text-[9px] font-bold text-slate-700 mb-1.5">Spacing &amp; Radius</p>
+                <div className="space-y-0.5">
+                  {[
+                    ["Card padding", "12-16px"],
+                    ["Section gap", "8px"],
+                    ["Row gap", "4-6px"],
+                    ["Card radius", "12px"],
+                    ["Inner radius", "8px"],
+                    ["Border", "1px tp-slate-200 (#E2E2EA)"],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex items-baseline gap-1.5 text-[8px]">
+                      <span className="font-semibold text-slate-500 w-20">{k}</span>
+                      <span className="font-mono text-slate-600">{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Trust signals — compact */}
+              <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                <p className="text-[9px] font-bold text-slate-700 mb-1.5">Trust Signals</p>
+                <div className="space-y-1.5">
+                  <div>
+                    <p className="text-[8px] font-semibold text-slate-600 mb-0.5">Data Provenance Dots</p>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center gap-1 text-[8px] text-slate-500"><span className="h-[5px] w-[5px] rounded-full bg-[#059669]" />EMR <span className="font-mono text-[7px] text-slate-400">tp-success-600</span></span>
+                      <span className="flex items-center gap-1 text-[8px] text-slate-500"><span className="h-[5px] w-[5px] rounded-full bg-[#D97706]" />AI <span className="font-mono text-[7px] text-slate-400">tp-warning-600</span></span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-semibold text-slate-600 mb-0.5">Completeness Donut</p>
+                    <p className="text-[8px] text-slate-500 leading-[1.3]">POMR, SBAR, OCR only. Not on summary, labs, DDX, vitals.</p>
+                  </div>
+                  <div className="pt-1 border-t border-slate-100">
+                    <p className="text-[8px] font-semibold text-[#4B4AD5] mb-0.5">For AI/Backend</p>
+                    <p className="text-[8px] text-slate-500 leading-[1.3]">kind must match one of 63 kinds. data shape must match TypeScript interface.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -958,6 +1132,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
 
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="space-y-2">
+              {/* Element spec table */}
               <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
                 <table className="min-w-full text-[10px]">
                   <thead><tr className="border-b border-slate-100 bg-slate-50 text-left text-slate-500">
@@ -975,30 +1150,46 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                 </table>
               </div>
 
-              <div className="rounded-lg border border-blue-100 bg-blue-50/60 px-2.5 py-2">
-                <p className="text-[10px] font-semibold text-blue-800 mb-1">Mandatory vs optional</p>
-                <ul className="space-y-0.5">
-                  {HEADER_MANDATORY_RULES.map((rule, i) => (
-                    <li key={i} className="flex items-start gap-1.5 text-[9px] leading-[1.45] text-blue-700">
-                      <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-blue-400" />{rule}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="rounded-lg border border-amber-200 bg-amber-50/60 px-2.5 py-2">
-                <p className="text-[10px] font-semibold text-amber-800 mb-1">Copy icon logic</p>
-                <ul className="space-y-0.5">
-                  {HEADER_COPY_RULES.map((rule, i) => (
-                    <li key={i} className="flex items-start gap-1.5 text-[9px] leading-[1.45] text-amber-700">
-                      <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-amber-500" />{rule}
-                    </li>
-                  ))}
-                </ul>
+              {/* Merged: mandatory rules + copy logic in one callout */}
+              <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+                <div className="px-2.5 py-2 border-b border-slate-100">
+                  <p className="text-[10px] font-semibold text-blue-800 mb-1">Mandatory vs optional</p>
+                  <ul className="space-y-0.5">
+                    {HEADER_MANDATORY_RULES.map((rule, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-[9px] leading-[1.45] text-blue-700">
+                        <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-blue-400" />{rule}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="px-2.5 py-2 border-b border-slate-100">
+                  <p className="text-[10px] font-semibold text-amber-800 mb-1">Copy icon logic</p>
+                  <ul className="space-y-0.5">
+                    {HEADER_COPY_RULES.map((rule, i) => (
+                      <li key={i} className="flex items-start gap-1.5 text-[9px] leading-[1.45] text-amber-700">
+                        <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-amber-500" />{rule}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="px-2.5 py-2">
+                  <p className="text-[10px] font-semibold text-slate-700 mb-1">Copy functionality types</p>
+                  <div className="space-y-0.5">
+                    {[
+                      ["Copy-all (Header)", "Copies entire card content as formatted text into RxPad or clipboard."],
+                      ["Per-item copy", "Individual copy buttons on hover — protocol meds, advice items, lab values."],
+                      ["Per-section copy", "Section-level copy for voice-structured-rx, OCR extraction, last visit."],
+                    ].map(([type, desc]) => (
+                      <p key={type} className="text-[9px] text-slate-600"><strong className="text-slate-700">{type}:</strong> {desc}</p>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
+            {/* Right: Header variant previews in gradient container */}
+            <div className="rounded-xl bg-[#F1F1F5] p-4 space-y-3">
+              <p className="text-[8px] font-bold uppercase tracking-widest text-slate-400">Live Preview</p>
               <HeaderPreview label="Variant A — mandatory pieces only" title="Lab Panel" iconName="lab" alignCenter />
               <HeaderPreview label="Variant B — full mixed header" title="Last Visit Summary" subtitle="22 Feb'26" tag="Past Visit" iconName="medical-record" showCopy alignCenter />
             </div>
@@ -1076,85 +1267,21 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
             </table>
           </div>
 
-          {/* Content primitives accordion */}
-          <p className="mb-1.5 text-[10px] font-semibold text-slate-600">{CONTENT_PRIMITIVES.length} content primitives — click to expand</p>
-          <div className="space-y-1.5">
-            {CONTENT_PRIMITIVES.map(cp => {
-              const isExpanded = expandedPrimitive === cp.name
-              const catalogEntry = findCatalogCard(cp.exampleCard)
-              return (
-                <div key={cp.name} className="rounded-lg border border-slate-200 bg-white overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setExpandedPrimitive(isExpanded ? null : cp.name)}
-                    className="flex w-full items-start gap-2 px-2.5 py-2 text-left hover:bg-slate-50/50 transition-colors"
-                  >
-                    <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded bg-violet-100 text-[9px] font-bold text-violet-600">
-                      {isExpanded ? "\u2212" : "+"}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-semibold text-slate-800">{cp.name}</p>
-                      <p className="mt-0.5 text-[9px] text-slate-500 leading-[1.4]">{cp.description}</p>
-                    </div>
-                    <div className="flex flex-shrink-0 flex-wrap gap-0.5 max-w-[180px] justify-end">
-                      {cp.usedIn.slice(0, 3).map(u => (
-                        <span key={u} className="rounded bg-violet-50 border border-violet-100 px-1 py-[1px] text-[8px] text-violet-600 whitespace-nowrap">{u}</span>
-                      ))}
-                      {cp.usedIn.length > 3 && (
-                        <span className="rounded bg-slate-100 px-1 py-[1px] text-[8px] text-slate-500">+{cp.usedIn.length - 3}</span>
-                      )}
-                    </div>
-                  </button>
-
-                  {isExpanded && (
-                    <div className="border-t border-slate-100">
-                      <div className="grid gap-3 p-3 lg:grid-cols-2">
-                        <div className="space-y-2">
-                          <div>
-                            <p className="text-[8px] font-semibold uppercase tracking-wide text-slate-400 mb-0.5">Used in cards</p>
-                            <div className="flex flex-wrap gap-0.5">
-                              {cp.usedIn.map(u => <span key={u} className="rounded bg-violet-50 border border-violet-100 px-1 py-[1px] text-[8px] text-violet-600">{u}</span>)}
-                            </div>
-                          </div>
-                          {cp.variations && (
-                            <div>
-                              <p className="text-[8px] font-semibold uppercase tracking-wide text-slate-400 mb-0.5">Variations</p>
-                              <div className="flex flex-wrap gap-0.5">
-                                {cp.variations.map(v => <span key={v} className="rounded bg-slate-100 px-1 py-[1px] text-[8px] text-slate-600">{v}</span>)}
-                              </div>
-                            </div>
-                          )}
-                          {cp.fetchFrom && (
-                            <div className="rounded border border-slate-200 bg-slate-50 px-2.5 py-1.5">
-                              <p className="mb-0.5 text-[8px] font-semibold uppercase tracking-wide text-slate-400">Fetch from</p>
-                              <p className="text-[9px] leading-[1.4] text-slate-600">{cp.fetchFrom}</p>
-                            </div>
-                          )}
-                          {cp.uiRule && (
-                            <div className="rounded border border-emerald-100 bg-emerald-50 px-2.5 py-1.5">
-                              <p className="mb-0.5 text-[8px] font-semibold uppercase tracking-wide text-emerald-600">UI rule</p>
-                              <p className="text-[9px] leading-[1.4] text-emerald-700">{cp.uiRule}</p>
-                            </div>
-                          )}
-                        </div>
-                        {catalogEntry && (
-                          <div>
-                            <p className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-slate-400">
-                              Live Preview — {catalogEntry.label}
-                            </p>
-                            <div className="rounded-lg overflow-hidden">
-                              <div className="w-full max-w-[380px]">
-                                <CardRenderer output={catalogEntry.output} onPillTap={noop} onCopy={noop} onSidebarNav={noop} />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+          {/* Content primitives — compact grid + sidebar trigger */}
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] font-semibold text-slate-600">{CONTENT_PRIMITIVES.length} content primitives</p>
+            <button onClick={() => { setContentPrimitiveSidebarOpen(true); setSelectedPrimitiveIndex(0); }} className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-1 text-[10px] font-semibold text-violet-700 hover:bg-violet-100 transition-colors">
+              View all {CONTENT_PRIMITIVES.length} primitives →
+            </button>
+          </div>
+          <div className="grid gap-1 sm:grid-cols-3 lg:grid-cols-4">
+            {CONTENT_PRIMITIVES.map((cp, i) => (
+              <button key={cp.name} onClick={() => { setContentPrimitiveSidebarOpen(true); setSelectedPrimitiveIndex(i); }}
+                className="rounded-lg border border-slate-100 bg-white px-2 py-1.5 text-left hover:border-violet-200 hover:bg-violet-50/30 transition-colors group">
+                <p className="text-[9px] font-semibold text-slate-700 group-hover:text-violet-700">{cp.name}</p>
+                <p className="text-[8px] text-slate-400 truncate">{cp.usedIn[0]}{cp.usedIn.length > 1 ? ` +${cp.usedIn.length - 1}` : ""}</p>
+              </button>
+            ))}
           </div>
         </section>
 
@@ -1235,46 +1362,22 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
             </div>
 
             <div className="space-y-2">
-              <LiveCardPreview kind="last_visit" label="Last Visit with icon-led tags" highlightZone="content" />
-              <LiveCardPreview kind="rx_preview" label="Rx Preview with icon-led tags" highlightZone="content" />
+              <div className="rounded-xl bg-[#F1F1F5] p-4">
+                <p className="mb-2 text-[8px] font-bold uppercase tracking-widest text-slate-400">Live Preview</p>
+                <LiveCardPreview kind="last_visit" label="Last Visit with icon-led tags" highlightZone="content" />
+              </div>
+              <div className="rounded-xl bg-[#F1F1F5] p-4">
+                <p className="mb-2 text-[8px] font-bold uppercase tracking-widest text-slate-400">Live Preview</p>
+                <LiveCardPreview kind="rx_preview" label="Rx Preview with icon-led tags" highlightZone="content" />
+              </div>
             </div>
           </div>
         </section>
 
-        {/* ═══ 5. INSIGHT ZONE ═══ */}
+        {/* ═══ 5. PILLS / CANNED MESSAGES ═══ */}
         <section>
           <div className="mb-1 flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">5</span>
-            <h4 className="text-[15px] font-bold text-slate-800">Insight Zone</h4>
-          </div>
-          <p className="mb-4 ml-9 text-[11px] text-slate-400">AI-generated interpretation below content. 4 color variants based on clinical severity.</p>
-
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="grid gap-1.5 sm:grid-cols-2">
-              {INSIGHT_VARIANTS.map(iv => (
-                <div key={iv.variant} className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
-                  <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-bold mb-1 ${
-                    iv.variant === "red" ? "bg-red-100 text-red-700" :
-                    iv.variant === "amber" ? "bg-amber-100 text-amber-700" :
-                    iv.variant === "purple" ? "bg-violet-100 text-violet-700" :
-                    "bg-teal-100 text-teal-700"
-                  }`}>{iv.variant}</span>
-                  <p className="text-[9px] text-slate-600"><strong>When:</strong> {iv.when}</p>
-                  <p className="text-[9px] text-slate-400 mt-0.5 italic">&quot;{iv.example}&quot;</p>
-                </div>
-              ))}
-            </div>
-            <div className="space-y-2">
-              <LiveCardPreview kind="lab_panel" label="Insight in Lab Panel" highlightZone="insight" />
-              <LiveCardPreview kind="med_history" label="Insight in Med History" highlightZone="insight" />
-            </div>
-          </div>
-        </section>
-
-        {/* ═══ 6. PILLS / CANNED MESSAGES ═══ */}
-        <section>
-          <div className="mb-1 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">6</span>
             <h4 className="text-[15px] font-bold text-slate-800">Pills / Canned Messages</h4>
           </div>
           <p className="mb-4 ml-9 text-[11px] text-slate-400">Next-step suggestions above the footer. Help the doctor continue without typing.</p>
@@ -1289,7 +1392,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                   </tr></thead>
                   <tbody>
                     {[
-                      ["Placement", "Always above footer, below content or insight."],
+                      ["Placement", "Always above footer, below content."],
                       ["Count", "Max 4 pills. Prefer strongest next steps."],
                       ["Length", "2-4 words each, glanceable and tappable."],
                       ["Type", "Next actions: compare, explain, trend, translate, continue, refine."],
@@ -1345,15 +1448,18 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                   ))}
                 </div>
               </div>
-              <LiveCardPreview kind="lab_panel" label="Canned messages above footer" />
+              <div className="rounded-xl bg-[#F1F1F5] p-4">
+                <p className="mb-2 text-[8px] font-bold uppercase tracking-widest text-slate-400">Live Preview</p>
+                <LiveCardPreview kind="lab_panel" label="Canned messages above footer" />
+              </div>
             </div>
           </div>
         </section>
 
-        {/* ═══ 7. FOOTER & CTAs ═══ */}
+        {/* ═══ 6. FOOTER & CTAs ═══ */}
         <section>
           <div className="mb-1 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">7</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">6</span>
             <h4 className="text-[15px] font-bold text-slate-800">Footer &amp; CTAs</h4>
           </div>
           <p className="mb-4 ml-9 text-[11px] text-slate-400">0, 1, or 2 CTAs. Secondary for actions, tertiary for navigation. Always the final zone.</p>
@@ -1431,7 +1537,8 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
             </div>
 
             {/* CTA variant previews */}
-            <div className="space-y-2">
+            <div className="rounded-xl bg-[#F1F1F5] p-4 space-y-2">
+              <p className="text-[8px] font-bold uppercase tracking-widest text-slate-400">Live Preview</p>
               <FooterVariantPreview label="Single CTA - Tertiary" variant="tertiary" align="left" ctas={[{ text: "Open Excel", icon: "right", iconKind: "arrow", tone: "blue", hug: true }]} />
               <FooterVariantPreview label="Single CTA - Secondary" variant="secondary" align="left" ctas={[{ text: "Acknowledge", icon: "left", iconKind: "check", tone: "green" }]} />
               <FooterVariantPreview label="Two CTAs - Tertiary" variant="tertiary" ctas={[{ text: "View full report", tone: "blue" }, { text: "Explore details", tone: "blue" }]} />
@@ -1440,10 +1547,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           </div>
         </section>
 
-        {/* ═══ 8. SUPPORT ELEMENTS ═══ */}
+        {/* ═══ 7. SUPPORT ELEMENTS ═══ */}
         <section>
           <div className="mb-1 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">8</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">7</span>
             <h4 className="text-[15px] font-bold text-slate-800">Support Elements</h4>
           </div>
           <p className="mb-4 ml-9 text-[11px] text-slate-400">Feedback, data completeness, and source provenance signals that live outside the card body.</p>
@@ -1524,10 +1631,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           </div>
         </section>
 
-        {/* ═══ 9. iPad / TABLET ═══ */}
+        {/* ═══ 8. iPad / TABLET ═══ */}
         <section>
           <div className="mb-1 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">9</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">8</span>
             <h4 className="text-[15px] font-bold text-slate-800">iPad / Tablet</h4>
           </div>
           <p className="mb-4 ml-9 text-[11px] text-slate-400">Touch-first considerations for hover-dependent interactions.</p>
@@ -1597,7 +1704,115 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               </div>
             ))}
           </div>
+
+          {/* Responsive card specs */}
+          <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 bg-white">
+            <div className="border-b border-slate-100 bg-slate-50 px-2.5 py-1.5">
+              <p className="text-[10px] font-bold text-slate-700">Dr. Agent Panel — Responsive Specs</p>
+            </div>
+            <table className="min-w-full text-[9px]">
+              <thead><tr className="border-b border-slate-100 bg-slate-50/40 text-left text-[8px] text-slate-400">
+                <th className="px-2.5 py-1 font-semibold w-32">Property</th>
+                <th className="px-2.5 py-1 font-semibold">Value</th>
+                <th className="px-2.5 py-1 font-semibold">Notes</th>
+              </tr></thead>
+              <tbody>
+                {[
+                  { prop: "Panel min-width", val: "350px", note: "Below this, panel switches to full-width overlay mode" },
+                  { prop: "Card max-width", val: "420px", note: "Cards fill available width but cap at this maximum" },
+                  { prop: "iPad Landscape", val: "Panel as sidebar", note: "Panel sits alongside RxPad — side-by-side layout" },
+                  { prop: "iPad Portrait", val: "Full-width overlay", note: "Panel takes full width as a sheet/overlay" },
+                  { prop: "Touch scroll", val: "-webkit-overflow-scrolling: touch", note: "Momentum scrolling for long card content" },
+                  { prop: "Min font size", val: "9px", note: "Never go below 9px on touch devices for readability" },
+                  { prop: "Tap target min", val: "44 × 44px", note: "Apple HIG compliance — all interactive elements" },
+                ].map(item => (
+                  <tr key={item.prop} className="border-b border-slate-50">
+                    <td className="px-2.5 py-1 font-medium text-slate-700">{item.prop}</td>
+                    <td className="px-2.5 py-1 font-mono text-violet-600">{item.val}</td>
+                    <td className="px-2.5 py-1 text-slate-500">{item.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
+
+        {/* ═══ CONTENT PRIMITIVE SIDEBAR ═══ */}
+        {contentPrimitiveSidebarOpen && (
+          <div className="fixed inset-0 z-50 flex">
+            <div className="absolute inset-0 bg-black/30" onClick={() => setContentPrimitiveSidebarOpen(false)} />
+            <div className="relative ml-auto h-full w-full max-w-2xl bg-white shadow-2xl overflow-y-auto">
+              {/* Header */}
+              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-3">
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Content Primitive {selectedPrimitiveIndex + 1} / {CONTENT_PRIMITIVES.length}</p>
+                  <h4 className="text-[15px] font-bold text-slate-800">{CONTENT_PRIMITIVES[selectedPrimitiveIndex].name}</h4>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setSelectedPrimitiveIndex(i => Math.max(0, i - 1))} disabled={selectedPrimitiveIndex === 0} className="rounded-lg border border-slate-200 px-2 py-1 text-[10px] font-semibold text-slate-600 disabled:opacity-30 hover:bg-slate-50">&larr; Prev</button>
+                  <button onClick={() => setSelectedPrimitiveIndex(i => Math.min(CONTENT_PRIMITIVES.length - 1, i + 1))} disabled={selectedPrimitiveIndex === CONTENT_PRIMITIVES.length - 1} className="rounded-lg border border-slate-200 px-2 py-1 text-[10px] font-semibold text-slate-600 disabled:opacity-30 hover:bg-slate-50">Next &rarr;</button>
+                  <button onClick={() => setContentPrimitiveSidebarOpen(false)} className="rounded-lg border border-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-600 hover:bg-slate-50">&times;</button>
+                </div>
+              </div>
+              {/* Body */}
+              <div className="grid grid-cols-[200px_1fr] divide-x divide-slate-100">
+                {/* Left nav */}
+                <div className="h-[calc(100vh-56px)] overflow-y-auto bg-slate-50/50">
+                  {CONTENT_PRIMITIVES.map((cp, i) => (
+                    <button key={cp.name} onClick={() => setSelectedPrimitiveIndex(i)}
+                      className={`w-full text-left px-3 py-2 text-[10px] border-b border-slate-100 transition-colors ${i === selectedPrimitiveIndex ? "bg-violet-50 text-violet-700 font-semibold border-l-2 border-l-violet-500" : "text-slate-600 hover:bg-slate-50"}`}>
+                      {cp.name}
+                    </button>
+                  ))}
+                </div>
+                {/* Right content */}
+                <div className="p-5 overflow-y-auto h-[calc(100vh-56px)]">
+                  {(() => {
+                    const cp = CONTENT_PRIMITIVES[selectedPrimitiveIndex]
+                    const catalogEntry = findCatalogCard(cp.exampleCard)
+                    return (
+                      <div className="space-y-4">
+                        <p className="text-[11px] leading-[1.6] text-slate-600">{cp.description}</p>
+                        <div>
+                          <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400 mb-1">Used in cards</p>
+                          <div className="flex flex-wrap gap-1">{cp.usedIn.map(u => <span key={u} className="rounded-full bg-violet-50 border border-violet-100 px-2 py-0.5 text-[9px] text-violet-600">{u}</span>)}</div>
+                        </div>
+                        {cp.variations && (
+                          <div>
+                            <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400 mb-1">Variations</p>
+                            <div className="flex flex-wrap gap-1">{cp.variations.map(v => <span key={v} className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] text-slate-600">{v}</span>)}</div>
+                          </div>
+                        )}
+                        {cp.fetchFrom && (
+                          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                            <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400 mb-0.5">Fetch from</p>
+                            <p className="text-[10px] leading-[1.5] text-slate-600">{cp.fetchFrom}</p>
+                          </div>
+                        )}
+                        {cp.uiRule && (
+                          <div className="rounded-lg border border-emerald-100 bg-emerald-50/60 px-3 py-2">
+                            <p className="text-[9px] font-bold uppercase tracking-wide text-emerald-600 mb-0.5">UI rule</p>
+                            <p className="text-[10px] leading-[1.5] text-emerald-700">{cp.uiRule}</p>
+                          </div>
+                        )}
+                        {catalogEntry && (
+                          <div>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-2">Live Preview — {catalogEntry.label}</p>
+                            <div className="rounded-xl bg-[#F1F1F5] p-4">
+                              <div className="w-full max-w-[380px]">
+                                <CardRenderer output={catalogEntry.output} onPillTap={noop} onCopy={noop} onSidebarNav={noop} />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     )
@@ -1609,13 +1824,11 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
     return (
       <div>
         <div className="mb-4">
-          <h3 className="text-[16px] font-bold text-slate-800">All {CARD_SPECS.length} Card Types</h3>
-          <p className="text-[11px] text-slate-500">Spec + live preview for each card. Search and filter below.</p>
-          <div className="mt-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
-            <p className="text-[10px] leading-[1.55] text-slate-600">
-              This catalog should read exactly like the response bible: each card is documented by what it is, when to show it, where its data comes from, how its UI is structured, and what permutations exist. Copy behavior is defined once in the `Copy Rules` section and should be applied consistently across matching cards.
-            </p>
-          </div>
+          <h3 className="text-[16px] font-bold text-slate-800">All {CARD_SPECS.length} Card Types — The Card Bible</h3>
+          <p className="text-[11px] text-slate-500 max-w-2xl">
+            The complete reference for every UI card in Dr. Agent. Each entry documents: what triggers it (intent &amp; canned messages),
+            where data comes from, how it&apos;s formatted, when to show it, what permutations exist, and a live preview with real mock data.
+          </p>
         </div>
 
         {/* Search + Filter bar */}
@@ -1680,9 +1893,43 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
 
                 {/* Content: spec on left, live preview on right */}
                 <div className="grid gap-4 p-4 lg:grid-cols-2">
-                  {/* Left: Spec info */}
-                  <div className="space-y-2">
+                  {/* Left: Spec info — flowing story */}
+                  <div className="space-y-2.5">
                     <p className="text-[11px] text-slate-700 leading-[1.6]">{card.description}</p>
+
+                    {/* Intent & Triggers */}
+                    {card.intentSummary && (
+                      <div className="rounded-lg border border-violet-100 bg-violet-50/40 px-2.5 py-1.5">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-violet-500 mb-0.5">Intent &amp; Trigger</p>
+                        <p className="text-[9px] text-violet-700 leading-[1.45]">{card.intentSummary}</p>
+                        {card.cannedMessages?.length > 0 && (
+                          <div className="mt-1.5 flex flex-wrap gap-1">
+                            {card.cannedMessages.map((cm, i) => (
+                              <span key={i} className="rounded-full border border-violet-200 bg-white px-2 py-[2px] text-[8px] font-medium text-violet-600">{cm}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Data Sources */}
+                    {card.dataSources && (
+                      <div className="flex items-start gap-1.5">
+                        <span className="mt-[2px] text-[10px]">&#128451;</span>
+                        <div>
+                          <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">Data sources</span>
+                          <p className="text-[10px] text-slate-600 leading-[1.5]">{card.dataSources}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Formatting Notes */}
+                    {card.formattingNotes && (
+                      <div className="rounded-lg border border-slate-100 bg-slate-50/60 px-2.5 py-1.5">
+                        <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">Formatting &amp; display</span>
+                        <p className="text-[10px] text-slate-600 leading-[1.5] mt-0.5">{card.formattingNotes}</p>
+                      </div>
+                    )}
 
                     <div>
                       <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">When shown: </span>
@@ -1695,16 +1942,6 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                     </div>
 
                     <div>
-                      <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">Fetch from: </span>
-                      <span className="text-[10px] text-slate-600">{getCardFetchFrom(card.kind)}</span>
-                    </div>
-
-                    <div>
-                      <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">UI rule: </span>
-                      <span className="text-[10px] text-slate-600">{getCardUiRule(card.kind)}</span>
-                    </div>
-
-                    <div>
                       <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Permutations</p>
                       <div className="flex flex-wrap gap-1">
                         {card.permutations.map((p, i) => (
@@ -1714,20 +1951,18 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                     </div>
                   </div>
 
-                  {/* Right: Live card preview */}
+                  {/* Right: Live card preview in gradient container */}
                   <div>
                     {catalogEntry ? (
-                      <div>
-                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Live Preview</p>
-                        <div className="rounded-xl overflow-hidden">
-                          <div className="w-full max-w-[380px]">
-                            <CardRenderer
-                              output={catalogEntry.output}
-                              onPillTap={noop}
-                              onCopy={noop}
-                              onSidebarNav={noop}
-                            />
-                          </div>
+                      <div className="rounded-xl bg-[#F1F1F5] p-4">
+                        <p className="mb-2 text-[8px] font-bold uppercase tracking-widest text-slate-400">Live Preview</p>
+                        <div className="w-full max-w-[380px]">
+                          <CardRenderer
+                            output={catalogEntry.output}
+                            onPillTap={noop}
+                            onCopy={noop}
+                            onSidebarNav={noop}
+                          />
                         </div>
                       </div>
                     ) : (
@@ -2299,164 +2534,8 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
               </div>
             </DocSection>
 
-            {/* 6. Insight Engine */}
-            <DocSection number="6" title="Insight Engine" subtitle="When, why, and how Dr. Agent generates clinical insights. Minimal by design. Most cards do NOT show insights.">
-              <div className="space-y-4">
-                <Callout tone="amber" label="Design philosophy">
-                  <ul className="space-y-1.5">
-                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />Insights are RARE, not default. Most cards should NOT show an insight.</li>
-                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />Show an insight ONLY when the doctor would miss something critical without it.</li>
-                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />If the card data already tells the story (flagged values, status badges), do NOT add an insight.</li>
-                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-amber-400" />If the card IS the recommendation (DDX, Advice, Protocol Meds), do NOT add an insight.</li>
-                  </ul>
-                </Callout>
-
-                {/* Variant rules */}
-                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-                  <div className="bg-slate-50/60 px-4 py-2.5 border-b border-slate-100">
-                    <p className="text-[11px] font-bold text-slate-700">4 Insight variants</p>
-                  </div>
-                  <div className="divide-y divide-slate-50">
-                    {[
-                      { variant: "Red", color: "bg-red-100 text-red-700", when: "Critical or life-threatening", example: "K+ 6.8 mEq/L. Immediate ECG and calcium gluconate needed.", trigger: "Value exceeds critical clinical range (e.g., K+ > 6.0, Glucose < 40, SpO2 < 88%)" },
-                      { variant: "Amber", color: "bg-amber-100 text-amber-700", when: "Worsening trend needing attention", example: "HbA1c worsened from 7.4% to 8.2% over 3 months. Consider medication adjustment.", trigger: "Value trending in wrong direction across 2+ data points with clinical significance" },
-                      { variant: "Purple", color: "bg-violet-100 text-violet-700", when: "AI correlation across multiple data points", example: "Rising creatinine + declining eGFR + new proteinuria suggest CKD progression.", trigger: "Agent detects a pattern across multiple parameters that individually might not alarm" },
-                      { variant: "Teal", color: "bg-teal-100 text-teal-700", when: "Positive improvement", example: "LDL improved from 162 to 128 mg/dL after statin initiation.", trigger: "Value improving toward target after a clinical intervention" },
-                    ].map(item => (
-                      <div key={item.variant} className="px-4 py-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`rounded px-2 py-0.5 text-[10px] font-bold ${item.color}`}>{item.variant}</span>
-                          <span className="text-[12px] font-medium text-slate-700">{item.when}</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mb-1 italic">{item.example}</p>
-                        <p className="text-[10px] text-slate-400">Trigger: {item.trigger}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Decision matrix */}
-                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-                  <div className="bg-slate-50/60 px-4 py-2.5 border-b border-slate-100">
-                    <p className="text-[11px] font-bold text-slate-700">Insight decision matrix (all card types)</p>
-                  </div>
-                  <table className="min-w-full text-[11px]">
-                    <thead>
-                      <tr className="border-b border-slate-100 bg-slate-50/40 text-left text-[10px]">
-                        <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400 w-36">Card</th>
-                        <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400 w-20">Insight?</th>
-                        <th className="px-3 py-2 font-semibold uppercase tracking-wider text-slate-400">Reason</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[
-                        { card: "POMR Problem Card", show: true, reason: "Shows when completeness is critically low OR a key value needs immediate action. The POMR card aggregates data, so the insight highlights what the doctor should focus on first." },
-                        { card: "SBAR Critical", show: true, reason: "The card itself IS the alert, but the recommendation section at bottom serves as the 'insight' (always red variant). Built into the card structure." },
-                        { card: "Cross-Problem Flags (in Patient Summary)", show: true, reason: "When two conditions interact dangerously (e.g., CKD + NSAIDs, DM + steroids). This is the one insight type that surfaces in the summary view because the interaction isn't visible from individual data." },
-                        { card: "Follow-up Card", show: true, reason: "Only when the AI recommends a specific interval with clinical reasoning (e.g., 'Why 3 days: BP was 170/100, needs early recheck'). Amber variant." },
-                        { card: "Lab Panel", show: false, reason: "Flagged values (red/high, blue/low) already tell the story. Adding insight text is redundant. If a value is critical, it should trigger an SBAR card instead." },
-                        { card: "Lab Comparison", show: false, reason: "Delta arrows and color coding already show worsening/improving. The comparison IS the insight." },
-                        { card: "Lab Trends", show: false, reason: "The trend line IS the insight. Doctor reads the chart." },
-                        { card: "Vital Trends", show: false, reason: "Same as lab trends. The chart tells the story." },
-                        { card: "Med History", show: false, reason: "Timeline layout is sufficient. If polypharmacy is a concern, it should be a cross-problem flag in the summary." },
-                        { card: "DDX", show: false, reason: "Doctor makes the diagnosis decision. Agent suggests, doctor decides. Insight would be presumptuous." },
-                        { card: "Protocol Meds", show: false, reason: "Safety notes are built into the card. Insight would duplicate the safety check." },
-                        { card: "Advice / Investigation", show: false, reason: "The content IS the recommendation. No meta-commentary needed." },
-                        { card: "Rx Preview", show: false, reason: "Display card, not analytical. Doctor reviews what they wrote." },
-                        { card: "Translation", show: false, reason: "Utility card. No clinical interpretation." },
-                        { card: "Drug Interaction", show: false, reason: "Severity badge + mechanism description already serve as the insight." },
-                        { card: "Allergy Conflict", show: false, reason: "The alert IS the insight. Red card with alternative suggestions." },
-                        { card: "Completeness", show: false, reason: "The checklist IS the insight. No additional commentary needed." },
-                        { card: "Vaccination", show: false, reason: "Status badges (Due/Overdue/Given) are sufficient." },
-                        { card: "OCR Pathology", show: false, reason: "Extracted values with flags are self-explanatory. If critical, should trigger SBAR." },
-                        { card: "OCR Extraction", show: false, reason: "Document sections are displayed as-is. Doctor reads the content." },
-                        { card: "Specialty Summaries (Gynec, Obstetric, Pediatric, Ophthal)", show: false, reason: "Alert badges handle the critical cases. Summary data is self-explanatory." },
-                        { card: "Homepage cards (Revenue, Queue, Analytics, etc.)", show: false, reason: "Operational data, not clinical. No clinical interpretation needed." },
-                        { card: "Text responses (fact, list, step, quote, comparison)", show: false, reason: "These ARE the agent's response. Adding insight to the response is circular." },
-                      ].map(item => (
-                        <tr key={item.card} className="border-b border-slate-50 align-top">
-                          <td className="px-3 py-2 font-medium text-slate-700">{item.card}</td>
-                          <td className="px-3 py-2">
-                            {item.show ? (
-                              <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">Yes</span>
-                            ) : (
-                              <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-400">No</span>
-                            )}
-                          </td>
-                          <td className="px-3 py-2 text-slate-500 leading-[1.5]">{item.reason}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Per-card insight rules for the 4 cards that DO show insights */}
-                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-                  <div className="bg-slate-50/60 px-4 py-2.5 border-b border-slate-100">
-                    <p className="text-[11px] font-bold text-slate-700">Insight rules for cards that show insights (only 4 cards)</p>
-                  </div>
-                  <div className="divide-y divide-slate-50">
-                    {[
-                      {
-                        card: "POMR Problem Card",
-                        trigger: "Completeness below 60% OR any lab value in critical range for that specific problem",
-                        priority: "1. Critical lab value for this problem (e.g., eGFR < 15 for CKD) 2. Missing expected tests overdue > 3 months 3. Cross-problem medication conflict",
-                        template: "[What is wrong]. [Clinical significance]. [What to do next].",
-                        variant: "Red if critical value, Amber if monitoring needed, Purple if AI-detected pattern",
-                        example: "eGFR declined from 15 to 11 over 6 months. CKD progression accelerating. Consider nephrology referral for dialysis transition planning.",
-                      },
-                      {
-                        card: "Cross-Problem Flags (Patient Summary)",
-                        trigger: "Two or more active conditions have a dangerous interaction that isn't obvious from individual data",
-                        priority: "1. Drug-disease interaction (e.g., NSAIDs with CKD) 2. Condition-condition interaction (e.g., DM + steroids) 3. Cumulative risk (e.g., 3+ cardiovascular risk factors)",
-                        template: "[Condition A] + [Condition B] interaction: [what the risk is]. [Recommended action].",
-                        variant: "Red if life-threatening interaction, Amber if needs monitoring",
-                        example: "CKD Stage 5 + NSAID use detected. NSAIDs contraindicated in advanced CKD. Review medication list.",
-                      },
-                      {
-                        card: "SBAR Critical",
-                        trigger: "Always present (the card only appears for critical situations). The 'Recommendation' section at the bottom IS the insight.",
-                        priority: "Single insight: the recommended next action based on the SBAR assessment",
-                        template: "Built into card structure as the 'R' (Recommendation) section of SBAR",
-                        variant: "Always Red (the entire card is a critical alert)",
-                        example: "Immediate: Administer O2, escalate to senior physician. Prepare for ICU transfer if SpO2 does not improve within 15 minutes.",
-                      },
-                      {
-                        card: "Follow-up Card",
-                        trigger: "Agent has a specific clinical reason for recommending a particular follow-up interval",
-                        priority: "Show only when the reasoning adds value beyond 'routine follow-up'. Do NOT show for standard intervals.",
-                        template: "Why [interval]: [clinical reasoning based on current visit data].",
-                        variant: "Always Amber (advisory, not critical)",
-                        example: "Why 3 days: BP was 170/100 with new antihypertensive started. Early recheck needed to confirm response and adjust dose.",
-                      },
-                    ].map(item => (
-                      <div key={item.card} className="px-4 py-3">
-                        <p className="text-[13px] font-semibold text-violet-700 mb-2">{item.card}</p>
-                        <div className="grid gap-2 text-[11px]">
-                          <div><span className="font-semibold text-slate-600">Trigger:</span> <span className="text-slate-500">{item.trigger}</span></div>
-                          <div><span className="font-semibold text-slate-600">Priority:</span> <span className="text-slate-500">{item.priority}</span></div>
-                          <div><span className="font-semibold text-slate-600">Template:</span> <span className="text-slate-500 font-mono">{item.template}</span></div>
-                          <div><span className="font-semibold text-slate-600">Variant:</span> <span className="text-slate-500">{item.variant}</span></div>
-                          <div className="rounded bg-slate-50 px-3 py-2 mt-1 italic text-slate-500">{item.example}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <Callout tone="emerald" label="Backend prompt guidance">
-                  <ul className="space-y-1.5">
-                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-emerald-400" />Default behavior: NO insight. Only generate when a clear trigger condition is met.</li>
-                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-emerald-400" />Max 1 insight per card. If multiple triggers fire, pick the highest priority one.</li>
-                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-emerald-400" />Insight text: max 2 sentences. First sentence states the finding, second states the action.</li>
-                    <li className="flex items-start gap-2 text-[11px]"><span className="dot mt-[5px] h-[5px] w-[5px] flex-shrink-0 rounded-full bg-emerald-400" />Do not repeat what the data already shows. The insight should reveal something the raw data alone does not.</li>
-                  </ul>
-                </Callout>
-              </div>
-            </DocSection>
-
-            {/* 7. Document Upload Rules */}
-            <DocSection number="7" title="Document Upload Rules" subtitle="How Dr. Agent handles uploaded documents, patient association, and contextual analysis.">
+            {/* 6. Document Upload Rules */}
+            <DocSection number="6" title="Document Upload Rules" subtitle="How Dr. Agent handles uploaded documents, patient association, and contextual analysis.">
               <div className="space-y-3">
                 <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
                   <table className="min-w-full text-[11px]">
@@ -3366,7 +3445,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
             <DocSection number="B8" title="Document Analysis Scenarios" subtitle="When the doctor uploads or scans a document (lab report, discharge summary, prescription), OCR-based cards are triggered.">
               <div className="space-y-3">
                 {[
-                  { scenario: "Upload pathology / lab report", trigger: "Doctor uploads CBC, lipid, renal, liver report image or PDF", card: "ocr_pathology", details: "OCR extracts parameters, flags abnormals, computes confidence score. Insight compares with previous values if available.", permutations: ["CBC", "Lipid profile", "Renal function", "Liver function", "Low-confidence OCR"] },
+                  { scenario: "Upload pathology / lab report", trigger: "Doctor uploads CBC, lipid, renal, liver report image or PDF", card: "ocr_pathology", details: "OCR extracts parameters, flags abnormals, computes confidence score. Compares with previous values if available.", permutations: ["CBC", "Lipid profile", "Renal function", "Liver function", "Low-confidence OCR"] },
                   { scenario: "Upload discharge summary", trigger: "Doctor uploads discharge summary from another hospital", card: "ocr_extraction", details: "Full text extraction organized by sections: diagnosis, procedures, medications, follow-up instructions.", permutations: ["Discharge summary", "Referral letter", "OP consultation notes"] },
                   { scenario: "Upload old prescription", trigger: "Doctor scans patient's existing prescription from another doctor", card: "ocr_extraction", details: "Extracts medication list, dosages, and instructions. Can be copied into current RxPad.", permutations: ["Single prescription", "Multiple prescriptions", "Illegible portions"] },
                 ].map(item => (
