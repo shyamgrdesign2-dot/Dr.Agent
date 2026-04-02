@@ -879,25 +879,23 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
     return (
       <div className="space-y-10">
         {/* ── Story bridge from Intent Classification ── */}
-        <div className="rounded-xl border border-violet-200 bg-gradient-to-r from-violet-50/60 via-white to-blue-50/40 px-5 py-3">
-          <p className="text-[11px] leading-relaxed text-slate-500">
-            <strong className="text-violet-600">← Coming from Intent Classification:</strong>{" "}
-            Once the <strong className="text-slate-700">intent engine</strong> decides the response should be a{" "}
-            <strong className="text-violet-700">UI card</strong>, this is how that card is built.
-            Every card follows a <strong className="text-slate-700">5-zone anatomy</strong> and uses one of{" "}
-            <strong className="text-violet-600">18 content zone types</strong> for its body.
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5">
+          <p className="text-[10px] leading-relaxed text-slate-400">
+            <strong className="text-slate-500">From Intent Classification:</strong>{" "}
+            Once the intent engine decides the response is a <strong className="text-slate-600">UI card</strong>, this is how it&apos;s built.
+            Every card follows a <strong className="text-slate-600">5-zone anatomy</strong> with one of 18 content zone types.
           </p>
         </div>
 
         {/* ── Page header ── */}
-        <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-blue-50/80 via-white to-violet-50/60 px-6 py-5">
+        <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-slate-50/80 px-6 py-5">
           <h3 className="text-[18px] font-bold text-slate-800 mb-1">Card Anatomy Blueprint</h3>
           <p className="text-[12px] leading-[1.6] text-slate-500 max-w-2xl">
             Every Dr. Agent card follows a consistent <strong className="text-slate-700">5-zone structure</strong>:{" "}
-            <strong className="text-blue-600">header</strong>,{" "}
-            <strong className="text-violet-600">content</strong>,{" "}
-            <strong className="text-amber-600">insight</strong>,{" "}
-            <strong className="text-emerald-600">canned messages</strong>, and{" "}
+            <strong className="text-slate-700">header</strong>,{" "}
+            <strong className="text-slate-700">content</strong>,{" "}
+            <strong className="text-slate-700">insight</strong>,{" "}
+            <strong className="text-slate-700">canned messages</strong>, and{" "}
             <strong className="text-slate-700">footer</strong>.
             This reference defines each zone, its rules, and its variants.
           </p>
