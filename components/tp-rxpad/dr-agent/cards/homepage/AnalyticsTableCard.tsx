@@ -37,7 +37,7 @@ export function AnalyticsTableCard({ data, onPillTap }: Props) {
         </div>
         {/* Rows */}
         {data.kpis.map((kpi, i) => {
-          const arrow = kpi.direction === "up" ? "\u2191" : kpi.direction === "down" ? "\u2193" : "\u2192"
+          const arrow = kpi.direction === "up" ? "\u25B2" : kpi.direction === "down" ? "\u25BC" : "\u25B6"
           const deltaColor = kpi.isGood ? "text-tp-green-600" : kpi.direction === "stable" ? "text-tp-slate-400" : "text-tp-error-600"
           return (
             <div key={i} className={`grid grid-cols-4 gap-[1px] px-[8px] py-[6px] text-[14px] ${i % 2 === 0 ? "bg-white" : "bg-tp-slate-50"}`}>

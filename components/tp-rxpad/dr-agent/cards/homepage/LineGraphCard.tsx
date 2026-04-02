@@ -19,7 +19,7 @@ export function LineGraphCard({ data, onPillTap }: Props) {
   const [viewMode, setViewMode] = useState<"graph" | "text">("graph")
   const [chartType, setChartType] = useState<"line" | "bar">("bar")
 
-  const dirArrow = data.changeDirection === "up" ? "\u2191" : data.changeDirection === "down" ? "\u2193" : "\u2192"
+  const dirArrow = data.changeDirection === "up" ? "\u25B2" : data.changeDirection === "down" ? "\u25BC" : "\u25B6"
   const dirColor = data.changeDirection === "up" ? "#15803D" : data.changeDirection === "down" ? "#DC2626" : "#6D28D9"
 
   const handleDownload = () => {

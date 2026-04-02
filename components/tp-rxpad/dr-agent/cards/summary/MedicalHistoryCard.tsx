@@ -21,7 +21,8 @@ export function MedicalHistoryCard({ data, onSidebarNav }: MedicalHistoryCardPro
     >
       <div className="flex flex-col gap-[8px]">
         {data.sections.map((section, i) => {
-          // Combine items into comma-separated string for InlineDataRow
+          // Join items as comma-separated string — InlineDataRow's compound renderer
+          // splits by commas and applies renderWithColorHierarchy to each sub-item
           const values = section.items.length > 0
             ? [{ key: "", value: section.items.join(", ") }]
             : [{ key: "", value: "Not recorded" }]

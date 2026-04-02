@@ -342,7 +342,7 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
   // ── Assessment: Labs ──
   const labEntries = (data.keyLabs ?? []).slice(0, 4).map(lab => ({
     key: shortenLabName(lab.name),
-    value: `${lab.flag === "high" ? "↑" : lab.flag === "low" ? "↓" : ""}${lab.value}${lab.unit ? " " + lab.unit : ""}`,
+    value: `${lab.value}${lab.unit ? " " + lab.unit : ""}`,
     flag: lab.flag as FlagValue,
   }))
 

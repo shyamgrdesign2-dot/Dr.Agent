@@ -12,7 +12,7 @@ interface VitalsSummaryCardProps {
 
 /**
  * Today's Vitals card — compact clinical format:
- *   ShortLabel (unit)           ↑/↓ value
+ *   ShortLabel (unit)           ▲/▼ value
  *   e.g.  BP (mmHg)             ▼ 70/60
  */
 export function VitalsSummaryCard({ data }: VitalsSummaryCardProps) {

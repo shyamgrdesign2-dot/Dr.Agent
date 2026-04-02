@@ -66,9 +66,23 @@ function isCompoundValue(value: string): boolean {
   return value.includes(", ")
 }
 
-/** Split compound value into individual sub-values */
+/** Split compound value into individual sub-values, respecting parentheses */
 function splitCompoundValue(value: string): string[] {
-  return value.split(", ").map((s) => s.trim()).filter(Boolean)
+  const parts: string[] = []
+  let depth = 0
+  let current = ""
+  for (const ch of value) {
+    if (ch === "(") depth++
+    else if (ch === ")") depth--
+    if (ch === "," && depth === 0) {
+      if (current.trim()) parts.push(current.trim())
+      current = ""
+    } else {
+      current += ch
+    }
+  }
+  if (current.trim()) parts.push(current.trim())
+  return parts
 }
 
 /** Extract a clean display name from a sub-value, e.g. "Diabetes (1yr)" -> "Diabetes" */
@@ -177,7 +191,7 @@ export function InlineDataRow({
   const renderSimpleValue = (v: InlineValue) => {
     const flagArrowType = v.flag === "high" ? "high" as const : v.flag === "low" ? "low" as const : null
     // Keep Unicode in copy text for clipboard readability
-    const flagPrefix = flagArrowType === "high" ? "\u2191" : flagArrowType === "low" ? "\u2193" : ""
+    const flagPrefix = flagArrowType === "high" ? "\u25B2" : flagArrowType === "low" ? "\u25BC" : ""
     const copyText = `${v.key}: ${flagPrefix}${v.value}`
     const tooltipLabel = `Fill ${truncate(copyText)} to ${destinationLabel}`
     const flagClass = cn(FLAG_STYLES[v.flag || "normal"])

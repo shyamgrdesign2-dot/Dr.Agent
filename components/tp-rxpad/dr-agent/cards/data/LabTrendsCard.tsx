@@ -28,8 +28,8 @@ function getTrendSummary(series: VitalTrendSeries): string {
   const last = series.values[series.values.length - 1]
   const diff = last - first
   const pct = Math.abs(diff / (first || 1)) * 100
-  if (pct < 2) return "\u2192 Stable"
-  return diff > 0 ? "\u2191 Increasing" : "\u2193 Declining"
+  if (pct < 2) return "\u25B6 Stable"
+  return diff > 0 ? "\u25B2 Increasing" : "\u25BC Declining"
 }
 
 function toRechartsData(allSeries: VitalTrendSeries[]) {
