@@ -1788,7 +1788,7 @@ function buildDefaultResponse(input: string, summary: SmartSummaryData): string 
   if (summary.specialtyTags.length === 0) {
     return "This patient is new \u2014 you can start by adding history, uploading reports, or just ask me anything."
   }
-  return "Happy to help! You can ask about vitals, labs, medications, or I can suggest a diagnosis. The quick-action pills above can also guide you."
+  return "Happy to help! You can ask about vitals, labs, medications, or I can suggest a diagnosis. The quick-action pills below can also guide you."
 }
 
 // \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 PER-PATIENT PROTOCOL MEDS \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
