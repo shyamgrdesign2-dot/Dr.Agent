@@ -3605,7 +3605,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
   // ── EMBEDDED CONTENT (tabs inside content for embedded mode) ──
   const embeddedContent = (
     <div>
-      <div className="sticky top-0 z-30 bg-[#FAFAFE]/95 pt-2 pb-[10px] border-b border-slate-200 backdrop-blur-md mb-5">
+      <div className="sticky top-0 z-30 bg-white/95 pt-3 pb-2 border-b border-slate-200 backdrop-blur-md">
         <div className="flex gap-1">
         {([
           { id: "intent-classification" as MainTab, label: "Intent Classification" },

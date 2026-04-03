@@ -527,33 +527,12 @@ type PageTab = "clinical-research" | "summary-logic" | "intent-classification" |
 export default function ScenariosPage() {
   const [expandedPatient, setExpandedPatient] = useState<string | null>("apt-zerodata")
   const [activeTab, setActiveTab] = useState<PageTab>("clinical-research")
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true)
-
-  useEffect(() => {
-    let lastScrollY = window.scrollY
-
-    const handleScroll = () => {
-      const nextScrollY = window.scrollY
-
-      if (nextScrollY <= 8) {
-        setIsHeaderVisible(true)
-      } else if (nextScrollY > lastScrollY) {
-        setIsHeaderVisible(false)
-      } else if (nextScrollY < lastScrollY) {
-        setIsHeaderVisible(true)
-      }
-
-      lastScrollY = nextScrollY
-    }
-
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+  // Header is always visible — no scroll-to-hide
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Header */}
-      <div className={`sticky top-0 z-50 border-b border-slate-200/60 bg-white/90 backdrop-blur-md transition-transform duration-200 ${isHeaderVisible ? "translate-y-0" : "-translate-y-full"}`}>
+      <div className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/95 backdrop-blur-md">
         <div className="mx-auto max-w-5xl px-6 py-4">
           <div className="flex items-center gap-3">
             <Link
@@ -629,7 +608,7 @@ export default function ScenariosPage() {
           <DesignSystemTab />
         </div>
       ) : activeTab === "intent-classification" ? (
-        <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="mx-auto max-w-7xl px-6 pt-0 pb-8">
           <IntentClassificationContent />
         </div>
       ) : activeTab === "summary-logic" ? (
