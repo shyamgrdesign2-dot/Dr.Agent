@@ -234,6 +234,17 @@ export default function PatientSummaryLogicTab() {
         </p>
       </div>
 
+      {/* ── Note: Data availability ── */}
+      <div className="rounded-lg border border-blue-200 bg-blue-50/40 px-4 py-3">
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-[10px] font-bold text-blue-700">i</span>
+          <p className="text-[11px] font-bold text-blue-800">Data Availability — Graceful Degradation</p>
+        </div>
+        <p className="text-[10px] text-blue-700 leading-[1.6]">
+          The patient summary card can <strong>only generate with available data</strong>. Each SBAR section is independently shown or hidden — if no data exists for a section, it is silently omitted (no empty placeholders, no &quot;N/A&quot; labels). For <strong>new patients with zero data</strong>, a minimal fallback is shown: <em>&quot;New patient, no prior clinical data available.&quot;</em> with suggested next actions. The card never fails — it always renders something meaningful, from a full multi-section summary down to a single-line new patient message.
+        </p>
+      </div>
+
       {/* ═══════════════════════════════════════════════════════
           SECTION 3: Short Summary (Narrative) Generation
       ═══════════════════════════════════════════════════════ */}

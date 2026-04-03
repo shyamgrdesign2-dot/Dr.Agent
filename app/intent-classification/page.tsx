@@ -1980,32 +1980,48 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                       </div>
                     )}
 
-                    {/* Formatting Notes — slate callout */}
+                    {/* Formatting Notes — emerald tint callout */}
                     {card.formattingNotes && (
-                      <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-2.5 py-1.5">
+                      <div className="rounded-lg border border-emerald-100 bg-emerald-50/30 px-2.5 py-1.5">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Formatting &amp; Display</span>
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-600">Formatting &amp; Display</span>
                         </div>
                         <p className="text-[10px] text-tp-slate-500 leading-[1.5]">{card.formattingNotes}</p>
                       </div>
                     )}
 
-                    <div>
-                      <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">When shown: </span>
-                      <span className="text-[10px] text-slate-600">{card.whenToShow}</span>
+                    {/* Note for patient_summary — Last Visit */}
+                    {card.kind === "patient_summary" && (
+                      <div className="rounded-lg border border-amber-200 bg-amber-50/40 px-2.5 py-1.5">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-100 text-[8px] font-bold text-amber-700">!</span>
+                          <span className="text-[9px] font-bold text-amber-700">Note — Optional: Last Visit Summary</span>
+                        </div>
+                        <p className="text-[9px] text-amber-600 leading-[1.5]">
+                          Although <strong>Last Visit</strong> is not part of the core SBAR protocol, including it (date, Dx, Rx) helps doctors understand <strong>continuity of care</strong>. The card can only generate with available data — if no clinical data exists, a &quot;New patient&quot; fallback is shown.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* When shown + Data type — inline row */}
+                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                      <div>
+                        <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">When shown: </span>
+                        <span className="text-[10px] text-tp-slate-600">{card.whenToShow}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">Data type: </span>
+                        <code className="text-[10px] font-mono text-violet-600">{card.dataParams}</code>
+                      </div>
                     </div>
 
-                    <div>
-                      <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">Data type: </span>
-                      <code className="text-[10px] font-mono text-violet-600">{card.dataParams}</code>
-                    </div>
-
+                    {/* Permutations */}
                     <div>
                       <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Permutations</p>
                       <div className="flex flex-wrap gap-1">
                         {card.permutations.map((p, i) => (
-                          <span key={i} className="rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[9px] text-slate-600">{p}</span>
+                          <span key={i} className="rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[9px] text-tp-slate-600">{p}</span>
                         ))}
                       </div>
                     </div>
