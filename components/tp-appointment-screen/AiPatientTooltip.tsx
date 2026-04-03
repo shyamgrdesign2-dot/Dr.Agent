@@ -177,13 +177,16 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
     })
   }, [])
 
-  // Reposition expanded tooltip
+  // Reposition expanded tooltip — double-RAF to ensure DOM has painted new content
   useEffect(() => {
     if (phase !== "loading" && phase !== "summary") {
       setPos(null)
       return
     }
-    requestAnimationFrame(updatePosition)
+    // First RAF: let React commit the render. Second RAF: DOM has painted, measure correctly.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(updatePosition)
+    })
   }, [phase, updatePosition])
 
   // Reposition hover pill
@@ -272,9 +275,8 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
     if (showTimerRef.current) clearTimeout(showTimerRef.current)
     if (phase === "hover") {
       setPhase("idle")
-    } else if (phase === "summary") {
-      hideTimerRef.current = setTimeout(() => setPhase("idle"), 300)
     }
+    // Summary and loading phases stay open — closed only by click-outside, icon re-click, or Escape
   }, [phase])
 
   /* ── Click handler → Phase 2 (loading → summary) ───── */
@@ -360,19 +362,19 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
                 : { top: -9999, left: -9999, width: 300, opacity: 0 }
             }
             onMouseEnter={() => {
+              // Keep tooltip alive while hovering over it
               if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
             }}
-            onMouseLeave={handleMouseLeave}
           >
-            {/* Inject shimmer keyframes */}
+            {/* Inject shimmer + bounce keyframes */}
             <style>{`
               @keyframes tooltipShimmer {
                 0% { background-position: -200% 0; }
                 100% { background-position: 200% 0; }
               }
-              @keyframes loadingFade {
-                0%, 100% { opacity: 0.4; }
-                50% { opacity: 1; }
+              @keyframes dotBounce {
+                0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+                40% { transform: translateY(-4px); opacity: 1; }
               }
             `}</style>
 
@@ -390,32 +392,39 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
                 {phase === "loading" ? (
                   /* ── SHIMMER LOADING STATE ── */
                   <div>
+                    {/* Header with AI icon — no loading text here */}
                     <div className="flex items-center gap-[6px] mb-[10px]">
                       <AiBrandSparkIcon size={18} withBackground />
-                      <p className="text-[12px] font-semibold text-tp-slate-400">Loading summary...</p>
+                      <p className="text-[12px] font-semibold text-tp-slate-700">Patient Summary</p>
                     </div>
 
                     {/* Shimmer lines */}
-                    <div className="space-y-[8px] mb-[12px]">
+                    <div className="space-y-[8px] mb-[14px]">
                       <ShimmerLine width="100%" />
                       <ShimmerLine width="85%" />
                       <ShimmerLine width="70%" />
                       <ShimmerLine width="50%" />
                     </div>
 
-                    {/* Rotating loading message */}
-                    <div className="flex items-center gap-[6px]">
-                      <div
-                        className="h-[3px] w-[3px] rounded-full"
-                        style={{
-                          background: "#8B5CF6",
-                          animation: "loadingFade 1.5s ease-in-out infinite",
-                        }}
-                      />
+                    {/* Single loading indicator: three-dot bounce + rotating message */}
+                    <div className="flex items-center justify-center gap-[8px] py-[2px]">
+                      {/* Three bouncing dots */}
+                      <div className="flex items-center gap-[3px]">
+                        {[0, 1, 2].map(i => (
+                          <div
+                            key={i}
+                            className="h-[4px] w-[4px] rounded-full"
+                            style={{
+                              background: "#8B5CF6",
+                              animation: `dotBounce 1.2s ease-in-out ${i * 0.15}s infinite`,
+                            }}
+                          />
+                        ))}
+                      </div>
+                      {/* Rotating status text */}
                       <p
-                        className="text-[10px] text-tp-slate-400 transition-opacity duration-300"
+                        className="text-[10px] text-tp-slate-400"
                         key={loadingMsgIndex}
-                        style={{ animation: "loadingFade 2s ease-in-out infinite" }}
                       >
                         {LOADING_MESSAGES[loadingMsgIndex]}
                       </p>
