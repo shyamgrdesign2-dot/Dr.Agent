@@ -115,8 +115,12 @@ export function CardShell({
 
         {/* Title + Date */}
         <div className="flex min-w-0 flex-col text-tp-slate-800">
-          <span className="max-w-[200px] text-[13px] font-semibold leading-[1.4] truncate" title={title}>
+          <span className="group/title relative max-w-[200px] text-[13px] font-semibold leading-[1.4] truncate">
             {title}
+            {/* Instant tooltip on truncated title */}
+            <span className="pointer-events-none absolute bottom-full left-0 mb-1 hidden whitespace-nowrap rounded-[4px] bg-tp-slate-800 px-2 py-1 text-[10px] font-normal text-white shadow-md group-hover/title:block z-50">
+              {title}
+            </span>
           </span>
           {date && (
             <span className="mt-[1px] max-w-[200px] text-[11px] font-normal text-tp-slate-400 leading-[1.4] truncate">
@@ -150,11 +154,13 @@ export function CardShell({
         {/* Badge — truncated with tooltip if too long */}
         {badge && (
           <span
-            className="max-w-[100px] truncate rounded-[4px] px-[6px] py-[3px] text-[12px] font-semibold leading-[1.2]"
+            className="group/badge relative max-w-[100px] truncate rounded-[4px] px-[6px] py-[3px] text-[12px] font-semibold leading-[1.2]"
             style={{ background: badge.bg, color: badge.color }}
-            title={badge.label}
           >
             {badge.label}
+            <span className="pointer-events-none absolute bottom-full right-0 mb-1 hidden whitespace-nowrap rounded-[4px] bg-tp-slate-800 px-2 py-1 text-[10px] font-normal text-white shadow-md group-hover/badge:block z-50">
+              {badge.label}
+            </span>
           </span>
         )}
 

@@ -3605,7 +3605,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
   const embeddedContent = (
     <div>
       <div className="sticky top-[120px] z-30 bg-white/95 border-b border-slate-200 backdrop-blur-md">
-        <div className="flex justify-center gap-0">
+        <div className="flex justify-between gap-0 w-full">
         {([
           { id: "intent-classification" as MainTab, label: "Intent Classification" },
           { id: "card-anatomy" as MainTab, label: "UI Card Anatomy & Patterns" },
