@@ -599,20 +599,23 @@ interface DrAgentPanelV0Props {
   autoMessage?: string
   /** Counter to re-trigger autoMessage even with same text */
   autoMessageTrigger?: number
+  /** Counter to force patient context re-sync from parent */
+  patientSwitchTrigger?: number
 }
 
-export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage = false, autoMessage, autoMessageTrigger }: DrAgentPanelV0Props) {
+export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage = false, autoMessage, autoMessageTrigger, patientSwitchTrigger }: DrAgentPanelV0Props) {
   // ── Patient Context ──
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(initialPatientId ?? null)
   // Animation state for patient selection
   const [animatingPatient, setAnimatingPatient] = useState<string | null>(null)
 
   // Sync when initialPatientId changes from parent
+  // patientSwitchTrigger forces re-sync even if same patient ID
   useEffect(() => {
     if (initialPatientId) {
       setSelectedPatientId(initialPatientId)
     }
-  }, [initialPatientId])
+  }, [initialPatientId, patientSwitchTrigger])
 
   // ── Per-Patient State ──
   const [messagesByPatient, setMessagesByPatient] = useState<Record<string, RxAgentChatMessage[]>>({})

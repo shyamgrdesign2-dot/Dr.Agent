@@ -183,11 +183,13 @@ interface DrAgentPanelProps {
   autoMessage?: string
   /** Counter to re-trigger autoMessage even with same text */
   autoMessageTrigger?: number
+  /** Counter to force patient context re-sync from parent */
+  patientSwitchTrigger?: number
 }
 
 const HOMEPAGE_COMMON_ID = "__homepage_common__"
 
-export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", activeTab, activeRailItem, homepagePatients, autoMessage, autoMessageTrigger }: DrAgentPanelProps) {
+export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", activeTab, activeRailItem, homepagePatients, autoMessage, autoMessageTrigger, patientSwitchTrigger }: DrAgentPanelProps) {
   // ── Patient Context ──
   // In homepage mode with no patient, use a special common ID for operational context
   const effectiveDefaultId = (mode === "homepage" && !initialPatientId) ? HOMEPAGE_COMMON_ID : (initialPatientId ?? CONTEXT_PATIENT_ID)
@@ -199,11 +201,11 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
       if (selectedPatientId !== HOMEPAGE_COMMON_ID) {
         setSelectedPatientId(HOMEPAGE_COMMON_ID)
       }
-    } else if (initialPatientId && initialPatientId !== selectedPatientId) {
+    } else if (initialPatientId) {
       setSelectedPatientId(initialPatientId)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialPatientId, mode])
+  }, [initialPatientId, mode, patientSwitchTrigger])
 
   // ── Per-Patient State (keyed by patient ID) ──
   const [messagesByPatient, setMessagesByPatient] = useState<Record<string, RxAgentChatMessage[]>>({})

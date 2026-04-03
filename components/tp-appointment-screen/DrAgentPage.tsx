@@ -904,9 +904,12 @@ export function DrAgentPage() {
   // Auto-message state — passed as prop to DrAgentPanel which handles its own chat
   const [panelAutoMessage, setPanelAutoMessage] = useState<string | undefined>()
   const [panelAutoTrigger, setPanelAutoTrigger] = useState(0)
+  // Patient switch trigger — forces panel to re-sync patient context on every icon click
+  const [patientSwitchTrigger, setPatientSwitchTrigger] = useState(0)
 
   function openAgentForPatient(row: AppointmentRow, autoMessage?: string) {
     setSelectedChatPatientId(row.id)
+    setPatientSwitchTrigger((c) => c + 1) // Force panel to re-sync patient
     if (isV0Mode) {
       // V0 mode: route through V0 panel with patient pre-selected + auto-message
       setIsV0PanelOpen(true)
@@ -1490,6 +1493,7 @@ export function DrAgentPage() {
                   onClose={() => setIsAgentWindowOpen(false)}
                   autoMessage={panelAutoMessage}
                   autoMessageTrigger={panelAutoTrigger}
+                  patientSwitchTrigger={patientSwitchTrigger}
                 />
               </aside>
             )}
@@ -1502,6 +1506,7 @@ export function DrAgentPage() {
                   onClose={() => setIsV0PanelOpen(false)}
                   autoMessage={panelAutoMessage}
                   autoMessageTrigger={panelAutoTrigger}
+                  patientSwitchTrigger={patientSwitchTrigger}
                 />
               </aside>
             )}
