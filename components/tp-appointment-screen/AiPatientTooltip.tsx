@@ -406,9 +406,16 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
                       <ShimmerLine width="50%" />
                     </div>
 
-                    {/* Single loading indicator: three-dot bounce + rotating message */}
-                    <div className="flex items-center justify-center gap-[8px] py-[2px]">
-                      {/* Three bouncing dots */}
+                    {/* Loading indicator: rotating message + three-dot bounce after text */}
+                    <div className="flex items-center justify-center gap-[5px] py-[2px]">
+                      {/* Rotating status text */}
+                      <p
+                        className="text-[10px] text-tp-slate-400"
+                        key={loadingMsgIndex}
+                      >
+                        {LOADING_MESSAGES[loadingMsgIndex]}
+                      </p>
+                      {/* Three bouncing dots after text */}
                       <div className="flex items-center gap-[3px]">
                         {[0, 1, 2].map(i => (
                           <div
@@ -421,13 +428,6 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
                           />
                         ))}
                       </div>
-                      {/* Rotating status text */}
-                      <p
-                        className="text-[10px] text-tp-slate-400"
-                        key={loadingMsgIndex}
-                      >
-                        {LOADING_MESSAGES[loadingMsgIndex]}
-                      </p>
                     </div>
                   </div>
                 ) : (
