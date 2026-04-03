@@ -560,6 +560,17 @@ export function buildReply(
     }
   }
 
+  // === SYMPTOM COLLECTOR / PATIENT-REPORTED DATA (must be before generic patient/summary matchers) ===
+  if (normalized.includes("intake") || normalized.includes("collector") || normalized.includes("reported by patient") || (normalized.includes("reported") && !normalized.includes("summary"))) {
+    if (summary.symptomCollectorData) {
+      return {
+        text: `Here's the patient-reported data from ${summary.symptomCollectorData.reportedAt}.`,
+        rxOutput: { kind: "symptom_collector", data: summary.symptomCollectorData },
+      }
+    }
+    return { text: "No patient-reported data available for this visit yet." }
+  }
+
   // === PATIENT'S DETAILED SUMMARY (pill-triggered) ===
   // Avoids redundancy with intro:
   //   - If patient has intake → quick snapshot = intake summary, sections = historical data
@@ -1583,17 +1594,6 @@ export function buildReply(
       }
     }
     return { text: "No allergies recorded for this patient." }
-  }
-
-  // === SYMPTOM COLLECTOR ===
-  if (normalized.includes("intake") || normalized.includes("collector") || normalized.includes("reported")) {
-    if (summary.symptomCollectorData) {
-      return {
-        text: `Here's the patient-reported data from ${summary.symptomCollectorData.reportedAt}.`,
-        rxOutput: { kind: "symptom_collector", data: summary.symptomCollectorData },
-      }
-    }
-    return { text: "No patient-reported data available for this visit yet." }
   }
 
   // === CHECK INTERACTIONS ===
