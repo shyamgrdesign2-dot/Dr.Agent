@@ -107,8 +107,7 @@ const PILL_TO_CARD_KINDS: Record<string, string[]> = {
   "Vaccination & growth history": ["pediatric_summary"],
   "Vision summary": ["ophthal_summary"],
   "Vision history": ["ophthal_summary"],
-  "Pre-visit intake": ["symptom_collector"],
-  "Pre-visit Intake": ["symptom_collector"],
+  "Reported by patient": ["symptom_collector"],
 }
 
 // ═══════════════ V0 CANNED ACTIONS — Smart Priority System ═══════════════
@@ -142,7 +141,7 @@ const ACTION_INTAKE: V0QuickAction = {
   icon: <ClipboardText size={ICON_SIZE} variant="Bulk" />,
   title: "Reported by patient",
   subtitle: "Symptoms & history shared before the visit",
-  message: "Show pre-visit intake",
+  message: "Show patient-reported details",
 }
 
 const ACTION_SUMMARY: V0QuickAction = {
@@ -676,7 +675,7 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
     const tone: PillTone = "primary"
     const candidates: CannedPill[] = [
       { id: "v0-summary", label: "Patient summary", priority: 10, layer: 3, tone },
-      ...(hasIntake ? [{ id: "v0-intake", label: "Pre-visit intake", priority: 15, layer: 3, tone } as CannedPill] : []),
+      ...(hasIntake ? [{ id: "v0-intake", label: "Reported by patient", priority: 15, layer: 3, tone } as CannedPill] : []),
       { id: "v0-history", label: "Medical history", priority: 20, layer: 3, tone },
       ...(hasVitals ? [{ id: "v0-vitals", label: "Today's vitals", priority: 25, layer: 3, tone } as CannedPill] : []),
       ...(hasLastVisit ? [{ id: "v0-past-visits", label: "Past visit summaries", priority: 30, layer: 3, tone } as CannedPill] : []),

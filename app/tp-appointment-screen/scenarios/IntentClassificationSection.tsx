@@ -218,7 +218,7 @@ const SYNTHETIC_DATA_CHART = [
     note: "Patient summary follows the SBAR protocol (Situation, Background, Assessment, Recommendation) using inline data rows. Specialty summaries use section-tagged inline data rows specific to each specialty — they do not follow SBAR.",
     entries: [
       { query: "Patient summary / SBAR", intent: "data_retrieval", dataCheck: "Any patient data", cardFormat: "sbar_overview", contentZone: "Inline data rows (SBAR-structured)", fallback: "Text: suggest starting with history" },
-      { query: "Pre-visit intake", intent: "data_retrieval", dataCheck: "Symptom collector data", cardFormat: "symptom_collector", contentZone: "Inline data rows", fallback: "Text: no pre-visit data submitted" },
+      { query: "Reported by patient", intent: "data_retrieval", dataCheck: "Symptom collector data", cardFormat: "symptom_collector", contentZone: "Inline data rows", fallback: "Text: no pre-visit data submitted" },
       { query: "Medical history", intent: "data_retrieval", dataCheck: "Any history data exists", cardFormat: "medical_history", contentZone: "Section-grouped inline rows (chronic conditions, allergies, lifestyle, family history, surgical history, additional history)", fallback: "Text: no history recorded" },
       { query: "Past visit", intent: "data_retrieval", dataCheck: "Previous visit records", cardFormat: "last_visit", contentZone: "5-section strip (inline data rows)", fallback: "Text: no previous visits" },
       { query: "Obstetric summary", intent: "data_retrieval", dataCheck: "Obstetric data", cardFormat: "obstetric_summary", contentZone: "Inline data rows (LMP, EDD, GA, GPLAE, ANC, vaccines, last exam)", fallback: "Text: no obstetric data" },

@@ -110,7 +110,7 @@ function buildIntroMessages(
     messages.push({
       id: uid(),
       role: "assistant",
-      text: `${patient.label}'s pre-visit intake via Symptom Collector:`,
+      text: `${patient.label}'s details reported by patient via Symptom Collector:`,
       createdAt: new Date().toISOString(),
       rxOutput: {
         kind: "symptom_collector",
@@ -269,8 +269,7 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
   const PILL_TO_CARD_KINDS: Record<string, string[]> = {
     "Patient's detailed summary": ["patient_summary", "sbar_overview"],
     "Patient summary": ["sbar_overview", "patient_summary"],
-    "Pre-visit intake": ["symptom_collector"],
-    "Pre-visit Intake": ["symptom_collector"],
+    "Reported by patient": ["symptom_collector"],
     "Last visit": ["last_visit"],
     "Last visit details": ["last_visit"],
     "Past visit summaries": ["last_visit"],

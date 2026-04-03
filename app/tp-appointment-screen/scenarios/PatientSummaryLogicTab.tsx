@@ -220,6 +220,20 @@ export default function PatientSummaryLogicTab() {
         </div>
       </section>
 
+      {/* ── Note: Optional additions to the SBAR card ── */}
+      <div className="rounded-lg border border-amber-200 bg-amber-50/40 px-4 py-3">
+        <div className="flex items-center gap-2 mb-1.5">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-[10px] font-bold text-amber-700">!</span>
+          <p className="text-[11px] font-bold text-amber-800">Note — Optional: Last Visit Summary</p>
+        </div>
+        <p className="text-[10px] text-amber-700 leading-[1.6]">
+          Although <strong>Last Visit</strong> is not part of the core SBAR protocol, including a brief last visit summary (date, diagnosis, key treatment) inside the patient summary card helps the doctor understand <strong>continuity of care</strong> — what happened in the previous consultation, what was prescribed, and what follow-up was planned. This context is especially valuable for returning patients where the current visit is a follow-up to a prior diagnosis.
+        </p>
+        <p className="text-[10px] text-amber-700 leading-[1.6] mt-1">
+          <strong>Display format:</strong> Shown below the Assessment section as an additional inline data row — <span className="font-mono text-[9px] bg-amber-100 px-1 rounded">Last Visit 27 Jan&apos;26 | Sx: Fever (2d) | Dx: Viral fever | Rx: Paracetamol 650mg</span>
+        </p>
+      </div>
+
       {/* ═══════════════════════════════════════════════════════
           SECTION 3: Short Summary (Narrative) Generation
       ═══════════════════════════════════════════════════════ */}

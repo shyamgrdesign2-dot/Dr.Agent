@@ -165,7 +165,7 @@ function getLayer3(phase: ConsultPhase, summary: SmartSummaryData): CannedPill[]
     if (isNewPatient) {
       // New patient — no past data to show, focus on intake + initial workup
       const pills: CannedPill[] = []
-      if (hasSymptoms) pills.push({ id: "phase-intake", label: "Pre-visit intake", priority: 30, layer: 3, tone: "primary" })
+      if (hasSymptoms) pills.push({ id: "phase-intake", label: "Reported by patient", priority: 30, layer: 3, tone: "primary" })
       pills.push({ id: "phase-ddx", label: "Suggest DDX", priority: 32, layer: 3, tone: "primary" })
       pills.push({ id: "phase-initial-workup", label: "Initial investigations", priority: 34, layer: 3, tone: "primary" })
       pills.push({ id: "phase-ask", label: "Ask me anything", priority: 36, layer: 3, tone: "primary" })
@@ -178,7 +178,7 @@ function getLayer3(phase: ConsultPhase, summary: SmartSummaryData): CannedPill[]
     const hasFollowUp = !!summary.followUpOverdueDays
     // Always show "Patient's detailed summary" as the absolute first pill
     pills.push({ id: "phase-detailed-summary", label: "Patient's detailed summary", priority: -1, layer: 3, force: true, tone: "primary" })
-    if (hasIntake) pills.push({ id: "phase-intake", label: "Pre-visit intake", priority: 30, layer: 3, tone: "primary" })
+    if (hasIntake) pills.push({ id: "phase-intake", label: "Reported by patient", priority: 30, layer: 3, tone: "primary" })
     if (hasVitals) pills.push({ id: "phase-vital-trends", label: "Vital trends", priority: 31, layer: 3, tone: "primary" })
     if (hasFlaggedLabs) pills.push({ id: "phase-flagged-labs", label: "Flagged lab results", priority: 32, layer: 3, tone: "primary" })
     else if (hasLabs) pills.push({ id: "phase-labs", label: "Lab overview", priority: 32, layer: 3, tone: "primary" })

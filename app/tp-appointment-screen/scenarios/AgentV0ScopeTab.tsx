@@ -71,7 +71,7 @@ function SpecTable({ headers, rows }: { headers: string[]; rows: (string | React
 const V0_ALLOWED_CARDS: { kind: string; label: string; category: string }[] = [
   { kind: "sbar_overview", label: "SBAR Clinical Overview", category: "Summary" },
   { kind: "patient_summary", label: "Patient Summary Snapshot", category: "Summary" },
-  { kind: "symptom_collector", label: "Pre-visit Intake", category: "Intake" },
+  { kind: "symptom_collector", label: "Reported by Patient", category: "Intake" },
   { kind: "last_visit", label: "Past Visit Summaries", category: "History" },
   { kind: "medical_history", label: "Medical History (Expanded)", category: "History" },
 
@@ -95,7 +95,7 @@ const V0_PILLS = [
   { label: "Medical history", kind: "medical_history", condition: "Always" },
   { label: "Today's vitals", kind: "vitals_summary", condition: "When vitals recorded" },
   { label: "Past visit summaries", kind: "last_visit", condition: "When prior visit exists" },
-  { label: "Pre-visit intake", kind: "symptom_collector", condition: "When intake submitted" },
+  { label: "Reported by patient", kind: "symptom_collector", condition: "When intake submitted" },
   { label: "Obstetric summary", kind: "obstetric_summary", condition: "Obstetric patient" },
   { label: "Gynec summary", kind: "gynec_summary", condition: "Gynec patient" },
   { label: "Growth & vaccines", kind: "pediatric_summary", condition: "Pediatric patient" },
@@ -177,7 +177,7 @@ function OverviewSection() {
               <li>• Medical history overview</li>
               <li>• Today{"'"}s vitals display</li>
               <li>• Past visit summaries (any specific date)</li>
-              <li>• Pre-visit intake from patient app</li>
+              <li>• Reported by patient from patient app</li>
               <li>• Specialty summaries (OB/GYN/Peds/Ophthal)</li>
             </ul>
           </div>

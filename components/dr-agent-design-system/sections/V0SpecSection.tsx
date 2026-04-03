@@ -3,7 +3,7 @@
 const V0_ALLOWED_CARDS = [
   { kind: "sbar_overview", label: "SBAR Clinical Overview" },
   { kind: "patient_summary", label: "Patient Summary Snapshot" },
-  { kind: "symptom_collector", label: "Pre-visit Intake" },
+  { kind: "symptom_collector", label: "Reported by Patient" },
   { kind: "last_visit", label: "Past Visit Summaries" },
   { kind: "obstetric_summary", label: "Obstetric Summary" },
   { kind: "gynec_summary", label: "Gynecology Summary" },
@@ -29,7 +29,7 @@ const V0_PILLS = [
   { label: "Medical history", mapsTo: "medical_history", always: true },
   { label: "Today's vitals", mapsTo: "vitals_summary", always: false },
   { label: "Past visit summaries", mapsTo: "last_visit", always: false },
-  { label: "Pre-visit intake", mapsTo: "symptom_collector", always: false },
+  { label: "Reported by patient", mapsTo: "symptom_collector", always: false },
   { label: "Obstetric summary", mapsTo: "obstetric_summary", always: false },
   { label: "Gynec summary", mapsTo: "gynec_summary", always: false },
   { label: "Growth & vaccines", mapsTo: "pediatric_summary", always: false },

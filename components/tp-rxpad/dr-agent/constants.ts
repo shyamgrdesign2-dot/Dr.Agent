@@ -204,7 +204,7 @@ export const CARD = {
 // ═══════════════ PHASE PROMPTS (for prompt chips) ═══════════════
 
 export const PHASE_PROMPTS: Record<string, string[]> = {
-  empty: ["Patient's detailed summary", "Last visit", "Abnormal labs", "Pre-visit intake"],
+  empty: ["Patient's detailed summary", "Last visit", "Abnormal labs", "Reported by patient"],
   symptoms_entered: ["Generate DDX", "Last visit compare", "Vitals review", "Lab focus"],
   dx_accepted: ["Medication plan", "Investigations", "Advice draft", "Follow-up plan"],
   meds_written: ["Refine advice", "Translate advice", "Follow-up plan", "Completeness check"],

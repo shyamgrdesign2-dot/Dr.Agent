@@ -128,7 +128,7 @@ function generatePatientContextPills(summary: SmartSummaryData): CannedPill[] {
   if (isNew) {
     // New patient: focus on intake review, DDX, initial workup
     if (summary.symptomCollectorData?.symptoms?.length) {
-      pills.push({ id: "pc-intake", label: "Pre-visit intake", priority: p, layer: 3, tone: "primary" }); p += 2
+      pills.push({ id: "pc-intake", label: "Reported by patient", priority: p, layer: 3, tone: "primary" }); p += 2
     }
     pills.push({ id: "pc-ddx", label: "Suggest DDX", priority: p, layer: 3, tone: "primary" }); p += 2
     if (summary.allergies?.length) {

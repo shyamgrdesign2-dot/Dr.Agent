@@ -170,7 +170,7 @@ const PATIENT_ACTION_INTAKE: QuickAction = {
   icon: <ClipboardText size={ICON_SIZE} variant="Bulk" />,
   title: "Reported by patient",
   subtitle: "Symptoms & history shared before the visit",
-  message: "Show pre-visit intake",
+  message: "Show patient-reported details",
 }
 const PATIENT_ACTION_SUMMARY: QuickAction = {
   icon: <DocumentText size={ICON_SIZE} variant="Bulk" />,

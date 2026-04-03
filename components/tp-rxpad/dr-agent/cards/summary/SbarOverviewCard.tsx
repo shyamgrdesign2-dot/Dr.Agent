@@ -183,8 +183,10 @@ function buildRecommendations(data: SmartSummaryData): string[] {
  * and action words — wraps them in semibold + darker color.
  */
 function highlightRecommendation(text: string): React.ReactNode {
-  // Capture groups for clinical terms worth highlighting
-  const pattern = /(\b(?:BP|SpO[₂2]|HbA1c|eGFR|LDL|HDL|TSH|PTH|Creatinine|Lipid Profile|Hemoglobin|WBC|INR|EPO)\b|(?:overdue|critically low|severely elevated|hypertensive urgency|hypotension|supplemental oxygen|evaluate source)\b|\d+\/\d+(?:\s*mmHg)?|\d+(?:\.\d+)?%|\d+(?:\.\d+)?°F|\d+\s*days?|\d+(?:\.\d+)?\s*mg\/(?:dL|L)|\d+(?:\.\d+)?\s*m[Ll]\/min)/gi
+  // Critical/concerning terms get red; clinical values get bold dark
+  const criticalPattern = /(\b(?:overdue|critically low|severely elevated|hypertensive urgency|hypotension|critical|urgent|immediately)\b)/gi
+  const valuePattern = /(\b(?:BP|SpO[₂2]|HbA1c|eGFR|LDL|HDL|TSH|PTH|Creatinine|Lipid Profile|Hemoglobin|WBC|INR|EPO)\b|\d+\/\d+(?:\s*mmHg)?|\d+(?:\.\d+)?%|\d+(?:\.\d+)?°F|\d+\s*days?|\d+(?:\.\d+)?\s*mg\/(?:dL|L)|\d+(?:\.\d+)?\s*m[Ll]\/min)/gi
+  const pattern = new RegExp(`(${criticalPattern.source})|(${valuePattern.source})`, "gi")
   const result: React.ReactNode[] = []
   let lastIndex = 0
   let match: RegExpExecArray | null
@@ -194,9 +196,11 @@ function highlightRecommendation(text: string): React.ReactNode {
     if (match.index > lastIndex) {
       result.push(text.slice(lastIndex, match.index))
     }
-    // Add highlighted match
+    // Critical terms in tp-error-600, values in tp-slate-700 bold
+    const isCritical = criticalPattern.test(match[0])
+    criticalPattern.lastIndex = 0 // reset regex
     result.push(
-      <span key={match.index} className="font-semibold text-tp-slate-700">{match[0]}</span>
+      <span key={match.index} className={isCritical ? "font-semibold text-tp-error-600" : "font-semibold text-tp-slate-700"}>{match[0]}</span>
     )
     lastIndex = pattern.lastIndex
   }
@@ -410,12 +414,18 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
           <div className="text-[14px] leading-[1.7]">
             <SectionTag label="Recommendations" icon={SECTION_TAG_ICON_MAP["Due Alerts"]} />
             <ul className="mt-[2px] flex flex-col gap-[2px] ml-[4px]">
-              {recommendations.map((rec, i) => (
-                <li key={i} className="flex items-start gap-[6px]">
-                  <span className="text-tp-slate-300 mt-[3px] text-[10px] leading-[18px]">●</span>
-                  <span className="text-tp-slate-600 text-[14px] leading-[20px]">{highlightRecommendation(rec)}</span>
-                </li>
-              ))}
+              {recommendations.map((rec, i) => {
+                // Use warning dot for overdue, error dot for critical
+                const isCritical = /critical|urgent|immediately|severely/i.test(rec)
+                const isOverdue = /overdue/i.test(rec)
+                const dotColor = isCritical ? "text-tp-error-500" : isOverdue ? "text-tp-warning-500" : "text-tp-slate-300"
+                return (
+                  <li key={i} className="flex items-start gap-[6px]">
+                    <span className={`${dotColor} mt-[3px] text-[10px] leading-[18px]`}>●</span>
+                    <span className="text-tp-slate-600 text-[14px] leading-[20px]">{highlightRecommendation(rec)}</span>
+                  </li>
+                )
+              })}
             </ul>
           </div>
         )}

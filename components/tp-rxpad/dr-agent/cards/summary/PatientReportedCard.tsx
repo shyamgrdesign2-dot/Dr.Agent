@@ -221,7 +221,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed 
     <CardShell
       icon={<span />}
       tpIconName="clipboard-activity"
-      title="Pre-Visit Intake"
+      title="Reported by Patient"
       badge={
         data.reportedAt
           ? { label: data.reportedAt, color: "#6D28D9", bg: "#EDE9FE" }
