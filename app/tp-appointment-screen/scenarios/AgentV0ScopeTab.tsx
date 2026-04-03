@@ -361,7 +361,7 @@ function GuardBehaviorSection() {
         <SpecTable
           headers={["Priority", "Candidate", "Title", "Condition"]}
           rows={[
-            ["1", <span key="c1" className="font-semibold">Intake</span>, "\"Details from patient\"", "Only when symptom collector data exists"],
+            ["1", <span key="c1" className="font-semibold">Intake</span>, "\"Reported by patient\"", "Only when symptom collector data exists"],
             ["2", <span key="c2" className="font-semibold">Summary</span>, "\"Patient summary\"", "Always available"],
             ["3", <span key="c3" className="font-semibold">History</span>, "\"Medical history\"", "Always available"],
             ["4", <span key="c4" className="font-semibold">Specialty</span>, "Varies by specialty", "Only when specialty data exists"],

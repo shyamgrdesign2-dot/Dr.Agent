@@ -86,7 +86,7 @@ const V0_ALLOWED_KINDS = new Set([
 // ═══════════════ V0 PILL-TO-CARD MAP ═══════════════
 
 const PILL_TO_CARD_KINDS: Record<string, string[]> = {
-  "Details from patient": ["symptom_collector"],
+  "Reported by patient": ["symptom_collector"],
   "Patient reported details": ["symptom_collector"],
   "Patient summary": ["sbar_overview", "patient_summary"],
   "Patient's detailed summary": ["patient_summary", "sbar_overview"],
@@ -115,7 +115,7 @@ const PILL_TO_CARD_KINDS: Record<string, string[]> = {
 //
 // 5 candidate cards, pick best 4 based on available data:
 //
-//   1. INTAKE    — "Details from patient"       (only if symptom collector data exists)
+//   1. INTAKE    — "Reported by patient"         (only if symptom collector data exists)
 //   2. SUMMARY   — "Patient summary"            (always available)
 //   3. HISTORY   — "Medical history"            (past visits, prescriptions)
 //   4. SPECIALTY — Specialty-specific history    (obstetric / gynec / pediatric / ophthal)
@@ -140,8 +140,8 @@ interface V0QuickAction {
 
 const ACTION_INTAKE: V0QuickAction = {
   icon: <ClipboardText size={ICON_SIZE} variant="Bulk" />,
-  title: "Details from patient",
-  subtitle: "Symptoms and history reported before the visit",
+  title: "Reported by patient",
+  subtitle: "Symptoms & history shared before the visit",
   message: "Show pre-visit intake",
 }
 

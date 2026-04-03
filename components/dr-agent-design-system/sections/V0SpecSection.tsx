@@ -275,7 +275,7 @@ export function V0SpecSection() {
             <tbody>
               <tr className="border-b border-tp-slate-100">
                 <td className="px-4 py-2 font-medium text-tp-slate-700">Intake</td>
-                <td className="px-4 py-2 text-tp-slate-600">&ldquo;Details from patient&rdquo;</td>
+                <td className="px-4 py-2 text-tp-slate-600">&ldquo;Reported by patient&rdquo;</td>
                 <td className="px-4 py-2 text-tp-slate-600">Only when symptom collector data exists</td>
               </tr>
               <tr className="border-b border-tp-slate-100">
