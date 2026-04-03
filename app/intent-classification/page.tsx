@@ -890,7 +890,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
         <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-violet-50/60 via-white to-slate-50/80 px-5 py-4">
           <h3 className="text-[17px] font-bold text-slate-800 mb-0.5">Card Anatomy Blueprint</h3>
           <p className="text-[11px] leading-[1.6] text-slate-500 max-w-2xl">
-            An <strong className="text-slate-700">8-section</strong> deep dive — from card architecture and rendering pipeline through the{" "}
+            A <strong className="text-slate-700">9-section</strong> deep dive — from card architecture and design principles through the{" "}
             <strong className="text-slate-700">4-zone card structure</strong> (header, content, canned messages, footer),{" "}
             <strong className="text-slate-700">18 content zone types</strong>, and iPad/tablet considerations.
           </p>
@@ -931,20 +931,30 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                   "Canned Messages — next-step suggestion pills between content and footer.",
                   "Footer — 0, 1, or 2 CTAs. Always the final zone.",
                 ].map((t, i) => (
-                  <li key={i} className="flex items-start gap-1.5 text-[9px] text-slate-600">
-                    <span className="mt-[3px] h-1 w-1 flex-shrink-0 rounded-full bg-violet-400" />{t}
+                  <li key={i} className="flex items-start gap-1.5 text-[10px] leading-[1.6] text-slate-600">
+                    <span className="mt-[5px] h-1 w-1 flex-shrink-0 rounded-full bg-violet-400" />{t}
                   </li>
                 ))}
               </ul>
             </div>
 
             <div className="rounded-xl bg-[#F1F1F5] p-4">
-              <p className="mb-2 text-[8px] font-bold uppercase tracking-widest text-slate-400">Live Preview</p>
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Live Preview</p>
               <LiveCardPreview kind="lab_panel" label="Full Card — all 4 zones" />
             </div>
           </div>
 
-          {/* ── Step 3: CardShell Props + Shared Primitives (side by side) ── */}
+        </section>
+
+        {/* ═══ 2. CARD DESIGN PRINCIPLES ═══ */}
+        <section>
+          <div className="mb-1 flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">2</span>
+            <h4 className="text-[15px] font-bold text-slate-800">Card Design Principles</h4>
+          </div>
+          <p className="mb-4 ml-9 text-[11px] text-tp-slate-400">CardShell props, shared primitives, typography, color system, spacing tokens, and trust signals.</p>
+
+          {/* ── CardShell Props + Shared Primitives (side by side) ── */}
           <div className="mb-3 grid gap-3 lg:grid-cols-2">
             <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
               <div className="border-b border-slate-100 bg-slate-50 px-2.5 py-1.5">
@@ -1175,10 +1185,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           </div>
         </section>
 
-        {/* ═══ 2. HEADER ZONE ═══ */}
+        {/* ═══ 3. HEADER ZONE ═══ */}
         <section>
           <div className="mb-1 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">2</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">3</span>
             <h4 className="text-[15px] font-bold text-slate-800">Header Zone</h4>
           </div>
           <p className="mb-4 ml-9 text-[11px] text-slate-400">Identity layer. Icon, title, optional metadata, and shared controls.</p>
@@ -1249,10 +1259,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           </div>
         </section>
 
-        {/* ═══ 3. CONTENT ZONE & TYPES ═══ */}
+        {/* ═══ 4. CONTENT ZONE & TYPES ═══ */}
         <section>
           <div className="mb-1 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">3</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">4</span>
             <h4 className="text-[15px] font-bold text-slate-800">Content Zone &amp; Types</h4>
           </div>
           <p className="mb-4 ml-9 text-[11px] text-slate-400">18 content zone types power the content layer. Each maps to a data shape — the bridge between intent classification and visual output.</p>
@@ -1338,10 +1348,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           </div>
         </section>
 
-        {/* ═══ 4. SECTION TAGS ═══ */}
+        {/* ═══ 5. SECTION TAGS ═══ */}
         <section>
           <div className="mb-1 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">4</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">5</span>
             <h4 className="text-[15px] font-bold text-slate-800">Section Tags</h4>
           </div>
           <p className="mb-4 ml-9 text-[11px] text-slate-400">{ALL_SECTION_TAGS.length} documented tags across all cards. Always paired with icons — never text-only.</p>
@@ -1427,10 +1437,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           </div>
         </section>
 
-        {/* ═══ 5. PILLS / CANNED MESSAGES ═══ */}
+        {/* ═══ 6. PILLS / CANNED MESSAGES ═══ */}
         <section>
           <div className="mb-1 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">5</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">6</span>
             <h4 className="text-[15px] font-bold text-slate-800">Pills / Canned Messages</h4>
           </div>
           <p className="mb-4 ml-9 text-[11px] text-slate-400">Next-step suggestions above the footer. Help the doctor continue without typing.</p>
@@ -1491,28 +1501,38 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
             </div>
 
             <div className="space-y-2">
-              <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
-                <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400 mb-1.5">Visual example</p>
-                <div className="flex flex-wrap gap-1">
-                  {["Compare prev", "Show trend", "Suggest next steps", "Translate advice"].map((pill) => (
-                    <span key={pill} className="inline-flex items-center rounded-full border border-violet-200 bg-gradient-to-r from-violet-50 to-blue-50 px-2.5 py-0.5 text-[10px] font-medium text-violet-700">
-                      {pill}
+              {/* Two pill variants */}
+              <div className="rounded-lg border border-slate-200 bg-white px-3 py-2.5">
+                <p className="text-[10px] font-semibold text-slate-500 mb-2">Above input box (SuggestionBar)</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {["Patient summary", "Last visit", "Medical history"].map((pill) => (
+                    <span key={pill} className="rounded-full border border-tp-slate-200 bg-white px-[10px] py-[5px] text-[12px] font-medium text-tp-slate-600">{pill}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="rounded-lg border border-slate-200 bg-white px-3 py-2.5">
+                <p className="text-[10px] font-semibold text-slate-500 mb-2">Inside UI cards (AI gradient)</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {["Compare previous", "Show trend", "Suggest next steps"].map((pill) => (
+                    <span key={pill} className="rounded-full px-[10px] py-[5px] text-[12px] font-medium"
+                      style={{ background: "linear-gradient(135deg, rgba(213,101,234,0.08) 0%, rgba(103,58,172,0.08) 50%, rgba(26,25,148,0.08) 100%)", border: "1px solid rgba(103,58,172,0.15)" }}>
+                      <span style={{ background: "linear-gradient(91deg, #D565EA 3%, #673AAC 67%, #1A1994 130%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{pill}</span>
                     </span>
                   ))}
                 </div>
               </div>
               <div className="rounded-xl bg-[#F1F1F5] p-4">
-                <p className="mb-2 text-[8px] font-bold uppercase tracking-widest text-slate-400">Live Preview</p>
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Live Preview</p>
                 <LiveCardPreview kind="lab_panel" label="Canned messages above footer" />
               </div>
             </div>
           </div>
         </section>
 
-        {/* ═══ 6. FOOTER & CTAs ═══ */}
+        {/* ═══ 7. FOOTER & CTAs ═══ */}
         <section>
           <div className="mb-1 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">6</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">7</span>
             <h4 className="text-[15px] font-bold text-slate-800">Footer &amp; CTAs</h4>
           </div>
           <p className="mb-4 ml-9 text-[11px] text-slate-400">0, 1, or 2 CTAs. Secondary for actions, tertiary for navigation. Always the final zone.</p>
@@ -1600,10 +1620,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           </div>
         </section>
 
-        {/* ═══ 7. SUPPORT ELEMENTS ═══ */}
+        {/* ═══ 8. SUPPORT ELEMENTS ═══ */}
         <section>
           <div className="mb-1 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">7</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">8</span>
             <h4 className="text-[15px] font-bold text-slate-800">Support Elements</h4>
           </div>
           <p className="mb-4 ml-9 text-[11px] text-slate-400">Feedback, data completeness, and source provenance signals that live outside the card body.</p>
@@ -1675,8 +1695,8 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                     <p key={k}><strong className="text-slate-700">{k}:</strong> {v}</p>
                   ))}
                 </div>
-                <div className="rounded border border-slate-100 bg-slate-50 px-2 py-1.5">
-                  <p className="text-[8px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Live</p>
+                <div className="rounded border border-slate-100 bg-slate-50 px-2 py-1.5 min-h-[100px] overflow-visible relative">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 mb-1">Live</p>
                   <SourceInfoIcon sources={["EMR Records", "Lab Reports", "Uploaded Documents"]} />
                 </div>
               </div>
@@ -1684,10 +1704,10 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           </div>
         </section>
 
-        {/* ═══ 8. iPad / TABLET ═══ */}
+        {/* ═══ 9. iPad / TABLET ═══ */}
         <section>
           <div className="mb-1 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">8</span>
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">9</span>
             <h4 className="text-[15px] font-bold text-slate-800">iPad / Tablet</h4>
           </div>
           <p className="mb-4 ml-9 text-[11px] text-slate-400">Touch-first considerations for hover-dependent interactions.</p>
@@ -1778,6 +1798,9 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                   { prop: "Touch scroll", val: "-webkit-overflow-scrolling: touch", note: "Momentum scrolling for long card content" },
                   { prop: "Min font size", val: "9px", note: "Never go below 9px on touch devices for readability" },
                   { prop: "Tap target min", val: "44 × 44px", note: "Apple HIG compliance — all interactive elements" },
+                  { prop: "Voice dictation", val: "Always visible mic", note: "Mic button always shown — no long-press required" },
+                  { prop: "Document upload", val: "Tap-to-upload sheet", note: "No drag-and-drop on touch — tap opens file picker" },
+                  { prop: "Split view", val: "Overlay at <500px", note: "iPad multitasking — panel collapses to overlay in split view" },
                 ].map(item => (
                   <tr key={item.prop} className="border-b border-slate-50">
                     <td className="px-2.5 py-1 font-medium text-slate-700">{item.prop}</td>
