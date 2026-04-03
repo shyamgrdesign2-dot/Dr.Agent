@@ -124,6 +124,8 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0)
   // Track if summary was ever generated — once true, hover shows summary directly
   const [summaryGenerated, setSummaryGenerated] = useState(false)
+  // Track if current summary was opened via click (stays open) vs hover (auto-hides on leave)
+  const openedViaClick = useRef(false)
 
   const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -277,6 +279,7 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
     // If summary was previously generated, show it directly on hover (no dark pill)
     if (summaryGenerated) {
+      openedViaClick.current = false // hover-opened — will auto-hide on leave
       showTimerRef.current = setTimeout(() => setPhase("summary"), 300)
     } else {
       showTimerRef.current = setTimeout(() => setPhase("hover"), 400)
@@ -288,11 +291,11 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
     if (phase === "hover") {
       setPhase("idle")
     }
-    // If showing summary via hover (after first generation), auto-hide on leave
-    if (phase === "summary" && summaryGenerated) {
+    // Only auto-hide if this summary was opened via hover (not click)
+    if (phase === "summary" && !openedViaClick.current) {
       hideTimerRef.current = setTimeout(() => setPhase("idle"), 200)
     }
-  }, [phase, summaryGenerated])
+  }, [phase])
 
   /* ── Click handler → Phase 2 (loading → summary) ───── */
 
@@ -305,7 +308,8 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
       return
     }
 
-    // Start loading phase
+    // Start loading phase — opened via click, stays until explicitly closed
+    openedViaClick.current = true
     setPhase("loading")
 
     // Simulate data fetch — transition to summary after 1.5s
@@ -382,8 +386,8 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
               if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
             }}
             onMouseLeave={() => {
-              // When mouse leaves tooltip, hide if this is a hover-triggered summary
-              if (phase === "summary" && summaryGenerated) {
+              // When mouse leaves tooltip, hide only if opened via hover (not click)
+              if (phase === "summary" && !openedViaClick.current) {
                 hideTimerRef.current = setTimeout(() => setPhase("idle"), 200)
               }
             }}
