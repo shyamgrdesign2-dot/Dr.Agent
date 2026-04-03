@@ -27,7 +27,7 @@ export const CATALOG: CatalogEntry[] = [
   {
     kind: "patient_summary",
     family: "Summary",
-    label: "Patient Summary (GP)",
+    label: "Patient Overview (SBAR)",
     output: {
       kind: "patient_summary",
       data: {
@@ -527,38 +527,7 @@ export const CATALOG: CatalogEntry[] = [
     },
   },
 
-  {
-    kind: "sbar_overview",
-    family: "Summary",
-    label: "SBAR Overview",
-    output: {
-      kind: "sbar_overview",
-      data: {
-        specialtyTags: ["General Medicine", "Diabetology"],
-        followUpOverdueDays: 5,
-        sbarSituation: "25M, 3-day fever with evening spikes, dry cough, bilateral conjunctivitis. Known DM 1yr + HTN 6mo. BP 70/60, SpO2 93%, Temp 104\u00B0F. Working Dx: Viral fever, conjunctivitis.",
-        chronicConditions: ["Diabetes (1yr, Active, on Metsmail 500mg)", "Hypertension (6mo, Active)"],
-        allergies: ["Dust", "Egg"],
-        activeMeds: ["Telma 20mg (Twice daily)", "Metsmail 500mg (Once daily)"],
-        labFlagCount: 3,
-        todayVitals: { bp: "70/60", pulse: "78", spo2: "93", temp: "104", weight: "94" },
-        keyLabs: [
-          { name: "HbA1c", value: "8.1", unit: "%", flag: "high", refRange: "<7%" },
-          { name: "LDL", value: "142", unit: "mg/dL", flag: "high", refRange: "<100" },
-          { name: "Vitamin D", value: "18", unit: "ng/mL", flag: "low", refRange: "30-100" },
-        ],
-        lastVisit: {
-          date: "27 Jan'26", vitals: "", symptoms: "Fever (2d, high), Eye redness (2d, bilateral)",
-          examination: "Conjunctival congestion bilateral", diagnosis: "Viral fever, Conjunctivitis",
-          medication: "Paracetamol 650mg", labTestsSuggested: "CBC, LFT",
-        },
-        dueAlerts: ["HbA1c recheck overdue", "Eye exam due"],
-        crossProblemFlags: [
-          { text: "Hypotension + high HbA1c — risk of diabetic crisis", problems: ["DM", "HTN"], severity: "high" },
-        ],
-      },
-    },
-  },
+  // sbar_overview removed — patient_summary is the single unified patient summary card (SBAR protocol)
 
   {
     kind: "sbar_critical",

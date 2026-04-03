@@ -561,7 +561,7 @@ export default function ScenariosPage() {
                 { id: "clinical-research" as PageTab, label: "Intro", icon: <SearchNormal1 size={14} variant="Bold" /> },
                 { id: "intent-classification" as PageTab, label: "Response System", icon: <Cpu size={14} variant="Bold" /> },
                 { id: "summary-logic" as PageTab, label: "Patient Summary", icon: <DocumentText size={14} variant="Bold" /> },
-                { id: "design-system" as PageTab, label: "Card System & Spec", icon: <Brush2 size={14} variant="Bold" /> },
+                // Card System & Spec removed — content merged into Response System tab
                 { id: "ftux-discovery" as PageTab, label: "Discovery & FTUX", icon: <MagicStar size={14} variant="Bold" /> },
                 { id: "agent-v0-scope" as PageTab, label: "Agent V0 Scope", icon: <Layer size={14} variant="Bold" /> },
               ]).map(tab => (
@@ -602,10 +602,6 @@ export default function ScenariosPage() {
       {activeTab === "clinical-research" ? (
         <div className="mx-auto max-w-5xl px-6 py-8">
           <ClinicalResearchTab />
-        </div>
-      ) : activeTab === "design-system" ? (
-        <div className="mx-auto max-w-5xl px-6 py-8">
-          <DesignSystemTab />
         </div>
       ) : activeTab === "intent-classification" ? (
         <div className="mx-auto max-w-7xl px-6 pt-0 pb-8">

@@ -566,7 +566,7 @@ export function ChatInput({
                     "flex shrink-0 items-center justify-center transition-all hover:opacity-90",
                     disabled && "pointer-events-none",
                   )}
-                  title="Send message"
+                  title="Enter to send · Shift+Enter for new line"
                 >
                   <svg width={24} height={24} viewBox="0 0 24 24" fill="none">
                     <path d="M0 12C0 5.37258 5.37258 0 12 0V0C18.6274 0 24 5.37258 24 12V12C24 18.6274 18.6274 24 12 24V24C5.37258 24 0 18.6274 0 12V12Z" fill="url(#sendGrad)" />

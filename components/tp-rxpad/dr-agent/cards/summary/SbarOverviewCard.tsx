@@ -295,7 +295,7 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
       tpIconName="stethoscope"
       title="Patient Summary"
       dataSources={["EMR Records"]}
-      collapsible={false}
+      collapsible
     >
       <div className="flex flex-col gap-[8px]">
 
