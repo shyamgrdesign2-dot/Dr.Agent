@@ -3605,8 +3605,8 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
   // ── EMBEDDED CONTENT (tabs inside content for embedded mode) ──
   const embeddedContent = (
     <div>
-      <div className="sticky top-0 z-30 bg-white/95 pt-3 pb-2 border-b border-slate-200 backdrop-blur-md">
-        <div className="flex gap-1">
+      <div className="sticky top-[120px] z-30 bg-white/95 border-b border-slate-200 backdrop-blur-md">
+        <div className="flex justify-center gap-0">
         {([
           { id: "intent-classification" as MainTab, label: "Intent Classification" },
           { id: "card-anatomy" as MainTab, label: "Card Anatomy & Patterns" },
@@ -3615,10 +3615,11 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           { id: "user-scenarios" as MainTab, label: "User Scenarios" },
         ]).map(tab => (
           <button key={tab.id} onClick={() => setMainTab(tab.id)}
-            className={`rounded-lg px-4 py-2 text-[12px] font-medium transition-colors ${
-              mainTab === tab.id ? "bg-violet-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            className={`relative px-5 py-2.5 text-[12px] font-medium transition-colors ${
+              mainTab === tab.id ? "text-[#4B4AD5]" : "text-slate-400 hover:text-slate-600"
             }`}>
             {tab.label}
+            {mainTab === tab.id && <span className="absolute bottom-0 left-2 right-2 h-[2px] rounded-t-full bg-[#4B4AD5]" />}
           </button>
         ))}
         </div>
