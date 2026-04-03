@@ -904,30 +904,7 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           </div>
           <p className="mb-4 ml-9 text-[11px] text-slate-400">How a card is built — from the rendering pipeline through the universal CardShell to shared primitives.</p>
 
-          {/* ── Step 1: Pipeline (compact horizontal strip) ── */}
-          <div className="mb-3 rounded-lg border border-slate-200 bg-slate-900 px-4 py-3">
-            <p className="text-[8px] font-bold uppercase tracking-widest text-slate-500 mb-2">Rendering Pipeline</p>
-            <div className="flex flex-wrap items-center gap-1.5 text-[9px] font-mono">
-              {[
-                { label: "Reply Engine", sub: "produces RxAgentOutput" },
-                { label: "ChatBubble", sub: "receives { kind, data }" },
-                { label: "CardRenderer", sub: "switch(kind) → component" },
-                { label: "CardShell", sub: "universal wrapper" },
-                { label: "Feedback Row", sub: "👍👎 + Source + Donut" },
-              ].map((step, i) => (
-                <span key={step.label} className="flex items-center gap-1.5">
-                  {i > 0 && <span className="text-slate-600">→</span>}
-                  <span className="rounded bg-slate-800 border border-slate-700 px-2 py-1">
-                    <span className="text-emerald-400 font-semibold">{step.label}</span>
-                    <span className="text-slate-500 ml-1 text-[8px]">{step.sub}</span>
-                  </span>
-                </span>
-              ))}
-            </div>
-            <p className="mt-2 text-[8px] text-slate-500">
-              Every card is a member of a <strong className="text-emerald-400">discriminated union</strong> — the <code className="text-violet-400">kind</code> field picks the data shape. <strong className="text-emerald-400">63 card kinds.</strong>
-            </p>
-          </div>
+
 
           {/* ── Step 2: Card structure + Live preview ── */}
           <div className="mb-3 grid gap-4 lg:grid-cols-2">
