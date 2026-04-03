@@ -238,7 +238,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed 
         {activeSections.map((section) => (
           <div key={section.id}>
             {/* Section header bar with hover copy icon */}
-            <div className="group/section-header flex items-center gap-[5px] rounded-[4px] bg-tp-slate-50 px-2 py-[3px]">
+            <div className="group/section-header flex items-center gap-1 rounded-[4px] bg-tp-slate-100 px-1.5 py-[0.5px]">
               {section.id === "questionsToDoctor" ? (
                 <MessageQuestion size={12} variant="Bulk" color="var(--tp-slate-500, #64748B)" />
               ) : (
@@ -249,7 +249,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed 
                   color="var(--tp-slate-500, #64748B)"
                 />
               )}
-              <span className="flex-1 text-[12px] font-medium text-tp-slate-600">
+              <span className="flex-1 text-[12px] font-medium text-tp-slate-500">
                 {section.title}
               </span>
               <span className={cn("transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/section-header:opacity-100")}>

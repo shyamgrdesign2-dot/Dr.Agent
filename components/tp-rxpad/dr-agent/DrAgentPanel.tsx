@@ -270,6 +270,7 @@ export function DrAgentPanel({ onClose, initialPatientId, mode = "rxpad", active
     "Patient's detailed summary": ["patient_summary", "sbar_overview"],
     "Patient summary": ["sbar_overview", "patient_summary"],
     "Reported by patient": ["symptom_collector"],
+    "Show reported intake": ["symptom_collector"],
     "Last visit": ["last_visit"],
     "Last visit details": ["last_visit"],
     "Past visit summaries": ["last_visit"],

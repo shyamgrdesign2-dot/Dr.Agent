@@ -87,6 +87,7 @@ const V0_ALLOWED_KINDS = new Set([
 
 const PILL_TO_CARD_KINDS: Record<string, string[]> = {
   "Reported by patient": ["symptom_collector"],
+  "Show reported intake": ["symptom_collector"],
   "Patient reported details": ["symptom_collector"],
   "Patient summary": ["sbar_overview", "patient_summary"],
   "Patient's detailed summary": ["patient_summary", "sbar_overview"],
@@ -107,7 +108,6 @@ const PILL_TO_CARD_KINDS: Record<string, string[]> = {
   "Vaccination & growth history": ["pediatric_summary"],
   "Vision summary": ["ophthal_summary"],
   "Vision history": ["ophthal_summary"],
-  "Reported by patient": ["symptom_collector"],
 }
 
 // ═══════════════ V0 CANNED ACTIONS — Smart Priority System ═══════════════
