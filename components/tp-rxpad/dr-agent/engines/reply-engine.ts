@@ -230,6 +230,18 @@ export function buildReply(
     }
   }
 
+  // === SYMPTOM COLLECTOR — DIRECT MATCH (highest priority after guardrail) ===
+  // Handles: "Show reported intake", "Reported by patient", "Pre-visit intake", "Show intake"
+  if (normalized.includes("intake") || normalized === "reported by patient" || normalized.includes("show reported") || normalized.includes("patient reported") || normalized.includes("symptom collector")) {
+    if (summary.symptomCollectorData) {
+      return {
+        text: `Here's the patient-reported data from ${summary.symptomCollectorData.reportedAt}.`,
+        rxOutput: { kind: "symptom_collector", data: summary.symptomCollectorData },
+      }
+    }
+    return { text: "No patient-reported data available for this visit yet." }
+  }
+
   // === EXTERNAL EXPORT CTA (Excel / Word) ===
   if (
     normalized.includes("excel")
@@ -558,17 +570,6 @@ export function buildReply(
       text: "Here's the ophthalmology summary for your review.",
       rxOutput: { kind: "ophthal_summary", data: summary.ophthalData },
     }
-  }
-
-  // === SYMPTOM COLLECTOR / PATIENT-REPORTED DATA (must be before generic patient/summary matchers) ===
-  if (normalized.includes("intake") || normalized.includes("collector") || normalized.includes("reported by patient") || (normalized.includes("reported") && !normalized.includes("summary"))) {
-    if (summary.symptomCollectorData) {
-      return {
-        text: `Here's the patient-reported data from ${summary.symptomCollectorData.reportedAt}.`,
-        rxOutput: { kind: "symptom_collector", data: summary.symptomCollectorData },
-      }
-    }
-    return { text: "No patient-reported data available for this visit yet." }
   }
 
   // === PATIENT'S DETAILED SUMMARY (pill-triggered) ===
