@@ -29,7 +29,7 @@ export const CATALOG: CatalogEntry[] = [
     family: "Summary",
     label: "Patient Overview (SBAR)",
     output: {
-      kind: "patient_summary",
+      kind: "sbar_overview", // Renders SbarOverviewCard — the unified patient summary following SBAR protocol
       data: {
         specialtyTags: ["Hypertension", "Type 2 DM"],
         followUpOverdueDays: 12,
