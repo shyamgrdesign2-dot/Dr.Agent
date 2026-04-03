@@ -10,7 +10,7 @@ import { FeedbackRow } from "../cards/FeedbackRow"
 import { CopyIcon } from "../cards/CopyIcon"
 import { ActionableTooltip } from "../cards/ActionableTooltip"
 import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
-// AiGradientBg removed — agent icon now uses solid AI gradient directly
+import { AiGradientBg } from "../shared/AiGradientBg"
 import { Edit2, DocumentText1 } from "iconsax-reactjs"
 import { DocumentAttachmentBubble } from "./DocumentAttachmentBubble"
 import { DataCompletenessDonut } from "../cards/DataCompletenessDonut"
@@ -834,23 +834,11 @@ export function ChatBubble({
       <div className="flex w-full flex-col items-start">
         {/* Top row: AI icon + text (typewriter reveal for new messages) */}
         {message.text && (
-          <div className={cn(
-            "flex items-center gap-[6px]",
-            /* Center-align when it's a short one-liner above a card */
-            message.rxOutput && message.text.length < 80 ? "justify-center w-full" : "items-start"
-          )}>
-            {/* AI Spark icon — solid gradient background */}
-            <div
-              className="shrink-0 flex items-center justify-center mt-0.5"
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: 6,
-                background: "linear-gradient(135deg, #D565EA 0%, #673AAC 45%, #1A1994 100%)",
-              }}
-            >
+          <div className="flex items-start gap-[6px]">
+            {/* AI Spark icon */}
+            <AiGradientBg size={20} borderRadius={6} className="mt-0.5">
               <AiBrandSparkIcon size={13} />
-            </div>
+            </AiGradientBg>
 
             {/* Plain text with streaming reveal */}
             <p className="text-[14px] leading-[18px] text-tp-slate-700 whitespace-pre-wrap break-words">
@@ -863,17 +851,9 @@ export function ChatBubble({
         {/* If there is no text but we have a card, still show the icon row */}
         {!message.text && message.rxOutput && (
           <div className="flex items-start gap-[6px]">
-            <div
-              className="shrink-0 flex items-center justify-center mt-0.5"
-              style={{
-                width: 20,
-                height: 20,
-                borderRadius: 6,
-                background: "linear-gradient(135deg, #D565EA 0%, #673AAC 45%, #1A1994 100%)",
-              }}
-            >
+            <AiGradientBg size={20} borderRadius={6} className="mt-0.5">
               <AiBrandSparkIcon size={13} />
-            </div>
+            </AiGradientBg>
           </div>
         )}
 

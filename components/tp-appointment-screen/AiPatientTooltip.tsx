@@ -14,9 +14,9 @@ import { highlightClinicalText } from "@/components/tp-rxpad/dr-agent/shared/hig
 // ─────────────────────────────────────────────────────────────
 
 const LOADING_MESSAGES = [
-  "Fetching patient data...",
-  "Analyzing clinical history...",
-  "Preparing summary...",
+  "Fetching patient data",
+  "Analyzing clinical history",
+  "Preparing summary",
 ]
 
 interface AiPatientTooltipProps {
