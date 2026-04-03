@@ -1036,15 +1036,14 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                 </tr></thead>
                 <tbody>
                   {[
-                    { hex: "#C8102E", role: "Critical", icon: "tp-error-600", text: "tp-error-700 #9F1239", bg: "tp-error-50 #FFF1F2", usage: "Abnormal labs, safety alerts, SBAR critical", dotClass: "bg-[#C8102E]" },
-                    { hex: "#D97706", role: "Warning", icon: "tp-warning-600", text: "tp-warning-700 #B45309", bg: "tp-warning-50 #FFFBEB", usage: "Borderline, AI-extracted, overdue", dotClass: "bg-[#D97706]" },
-                    { hex: "#059669", role: "Success", icon: "tp-success-600", text: "tp-success-700 #047857", bg: "tp-success-50 #ECFDF5", usage: "Normal values, EMR-verified, improving", dotClass: "bg-[#059669]" },
-                    { hex: "#717179", role: "Neutral", icon: "tp-slate-500", text: "tp-slate-700 #454551", bg: "tp-slate-50 #FAFAFB", usage: "Labels, secondary text, dividers", dotClass: "bg-[#717179]" },
-                    { hex: "#4B4AD5", role: "Action", icon: "tp-blue-500", text: "tp-blue-600 #3C3BB5", bg: "tp-blue-50 #EEEEFF", usage: "CTAs, pills, links, interactive", dotClass: "bg-[#4B4AD5]" },
-                    { hex: "#8A4DBB", role: "AI", icon: "tp-violet-600", text: "tp-violet-800 #572A81", bg: "tp-violet-50 #FAF5FE", usage: "Narratives, agent-generated content", dotClass: "bg-[#8A4DBB]" },
+                    { role: "Critical", icon: "tp-error-600 #C8102E", text: "tp-error-700 #9F1239", bg: "tp-error-50 #FFF1F2", usage: "Abnormal labs, safety alerts, SBAR critical", dot: "#C8102E" },
+                    { role: "Warning", icon: "tp-warning-600 #D97706", text: "tp-warning-700 #B45309", bg: "tp-warning-50 #FFFBEB", usage: "Borderline, AI-extracted, overdue", dot: "#D97706" },
+                    { role: "Success", icon: "tp-success-600 #059669", text: "tp-success-700 #047857", bg: "tp-success-50 #ECFDF5", usage: "Normal values, EMR-verified, improving", dot: "#059669" },
+                    { role: "Neutral", icon: "tp-slate-500 #717179", text: "tp-slate-700 #454551", bg: "tp-slate-50 #FAFAFB", usage: "Labels, secondary text, dividers", dot: "#717179" },
+                    { role: "Action", icon: "tp-blue-500 #4B4AD5", text: "tp-blue-600 #3C3BB5", bg: "tp-blue-50 #EEEEFF", usage: "CTAs, pills, links, interactive", dot: "#4B4AD5" },
                   ].map(item => (
                     <tr key={item.role} className="border-b border-slate-50">
-                      <td className="px-2 py-1"><span className={`inline-block h-3 w-3 rounded-full ${item.dotClass}`} /></td>
+                      <td className="px-2 py-1"><span className="inline-block h-3 w-3 rounded-full" style={{ background: item.dot }} /></td>
                       <td className="px-2 py-1 font-semibold text-slate-700">{item.role}</td>
                       <td className="px-2 py-1 font-mono text-[8px] text-slate-500">{item.icon}</td>
                       <td className="px-2 py-1 font-mono text-[8px] text-slate-500">{item.text}</td>
@@ -1052,69 +1051,147 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                       <td className="px-2 py-1 text-slate-600">{item.usage}</td>
                     </tr>
                   ))}
+                  {/* AI row — gradient, not a single color */}
+                  <tr className="border-b border-slate-50">
+                    <td className="px-2 py-1"><span className="inline-block h-3 w-3 rounded-full" style={{ background: "linear-gradient(135deg, #D565EA 0%, #673AAC 45%, #1A1994 100%)" }} /></td>
+                    <td className="px-2 py-1 font-semibold text-slate-700">AI</td>
+                    <td className="px-2 py-1 font-mono text-[8px] text-slate-500">AI Gradient</td>
+                    <td className="px-2 py-1 font-mono text-[8px] text-slate-500">tp-violet-800 #572A81</td>
+                    <td className="px-2 py-1 font-mono text-[8px] text-slate-500">tp-violet-50 #FAF5FE</td>
+                    <td className="px-2 py-1 text-slate-600">Agent icon, narratives, AI-generated content</td>
+                  </tr>
                 </tbody>
               </table>
+              {/* AI Gradient spec inline */}
+              <div className="border-t border-slate-100 px-2.5 py-1.5 flex items-center gap-2">
+                <div className="h-3 w-16 rounded-full" style={{ background: "linear-gradient(91deg, #D565EA 3%, #673AAC 67%, #1A1994 130%)" }} />
+                <p className="font-mono text-[8px] text-slate-400">#D565EA → #673AAC → #1A1994</p>
+                <p className="text-[8px] text-slate-500 ml-auto">Used for: agent icon bg, pill text, shimmer animation</p>
+              </div>
             </div>
 
-            <div className="grid gap-3 lg:grid-cols-3">
-              {/* Typography */}
-              <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
-                <p className="text-[9px] font-bold text-slate-700 mb-1.5">Typography</p>
-                <div className="space-y-1">
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-[8px] font-semibold text-slate-500 w-14">Headings</span>
-                    <span className="text-[8px] text-slate-600">Mulish 600-700wt</span>
-                  </div>
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-[8px] font-semibold text-slate-500 w-14">Body/UI</span>
-                    <span className="text-[8px] text-slate-600">Inter 400-500wt</span>
-                  </div>
-                  <div className="mt-1.5 pt-1 border-t border-slate-100 space-y-0.5">
-                    <p className="text-[8px] text-slate-600"><strong className="font-mono text-[#454551]">tp-slate-700</strong> — primary text, key terms</p>
-                    <p className="text-[8px] text-slate-600"><strong className="font-mono text-[#A2A2A8]">tp-slate-400</strong> — (parenthetical details)</p>
-                    <p className="text-[8px] text-slate-600"><strong className="font-mono text-[#E2E2EA]">tp-slate-200</strong> — dividers &middot; | separators</p>
+            <div className="grid gap-3 lg:grid-cols-2">
+              {/* Typography Scale */}
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                <div className="border-b border-slate-100 bg-slate-50 px-2.5 py-1.5">
+                  <p className="text-[10px] font-bold text-slate-700">Typography Scale</p>
+                  <p className="text-[8px] text-slate-400">Headings: Mulish 600-700wt &middot; Body/UI: Inter 400-500wt</p>
+                </div>
+                <table className="min-w-full text-[8px]">
+                  <thead><tr className="border-b border-slate-100 bg-slate-50/40 text-left text-[7px] text-slate-400">
+                    <th className="px-2 py-0.5 font-semibold w-20">Token</th>
+                    <th className="px-2 py-0.5 font-semibold w-14">Size</th>
+                    <th className="px-2 py-0.5 font-semibold w-10">Wt</th>
+                    <th className="px-2 py-0.5 font-semibold">Usage</th>
+                  </tr></thead>
+                  <tbody>
+                    {[
+                      { token: "card-title", size: "16px", wt: "600", usage: "Card header titles" },
+                      { token: "card-subtitle", size: "12px", wt: "400", usage: "Dates, meta under title" },
+                      { token: "body", size: "14px", wt: "400", usage: "Card body text, data values" },
+                      { token: "body-semibold", size: "14px", wt: "600", usage: "Labels, section headers" },
+                      { token: "badge", size: "12px", wt: "600", usage: "Status badges, tags" },
+                      { token: "chip", size: "12px", wt: "500", usage: "Copy-all chips, secondary info" },
+                      { token: "pill-label", size: "13px", wt: "400", usage: "AI action pill text" },
+                      { token: "stat-value", size: "18px", wt: "700", usage: "Dashboard stat numbers" },
+                      { token: "stat-label", size: "12px", wt: "500", usage: "Dashboard stat labels" },
+                      { token: "section-header", size: "14px", wt: "600", usage: "Inline section headers" },
+                      { token: "tooltip", size: "12px", wt: "400", usage: "Hover tooltips" },
+                      { token: "micro", size: "10px", wt: "500", usage: "Chart axis labels (minimum)" },
+                    ].map(item => (
+                      <tr key={item.token} className="border-b border-slate-50">
+                        <td className="px-2 py-0.5 font-mono text-violet-600">{item.token}</td>
+                        <td className="px-2 py-0.5 font-mono text-slate-600">{item.size}</td>
+                        <td className="px-2 py-0.5 text-slate-500">{item.wt}</td>
+                        <td className="px-2 py-0.5 text-slate-600">{item.usage}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {/* Inline data color hierarchy */}
+                <div className="border-t border-slate-100 px-2.5 py-1.5">
+                  <p className="text-[8px] font-semibold text-slate-600 mb-0.5">Inline Data Row Color Hierarchy</p>
+                  <div className="flex items-center gap-3 text-[8px]">
+                    <span><strong style={{ color: "#454551" }}>Primary text</strong> <span className="font-mono text-slate-400">tp-slate-700</span></span>
+                    <span style={{ color: "#A2A2A8" }}>(details) <span className="font-mono text-slate-400">tp-slate-400</span></span>
+                    <span style={{ color: "#E2E2EA" }}>&middot; | <span className="font-mono text-slate-400">tp-slate-200</span></span>
                   </div>
                 </div>
               </div>
 
-              {/* Spacing & Radius */}
-              <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
-                <p className="text-[9px] font-bold text-slate-700 mb-1.5">Spacing &amp; Radius</p>
-                <div className="space-y-0.5">
-                  {[
-                    ["Card padding", "12-16px"],
-                    ["Section gap", "8px"],
-                    ["Row gap", "4-6px"],
-                    ["Card radius", "12px"],
-                    ["Inner radius", "8px"],
-                    ["Border", "1px tp-slate-200 (#E2E2EA)"],
-                  ].map(([k, v]) => (
-                    <div key={k} className="flex items-baseline gap-1.5 text-[8px]">
-                      <span className="font-semibold text-slate-500 w-20">{k}</span>
-                      <span className="font-mono text-slate-600">{v}</span>
-                    </div>
-                  ))}
+              {/* Spacing, Radius & Card Shell Visual */}
+              <div className="space-y-3">
+                <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                  <div className="border-b border-slate-100 bg-slate-50 px-2.5 py-1.5">
+                    <p className="text-[10px] font-bold text-slate-700">Spacing &amp; Radius Tokens</p>
+                  </div>
+                  <table className="min-w-full text-[8px]">
+                    <tbody>
+                      {[
+                        ["card-radius", "12px", "Outer card container"],
+                        ["card-header-px", "12px", "Header horizontal padding"],
+                        ["card-header-py", "10px", "Header vertical padding"],
+                        ["card-body-px", "12px", "Body horizontal padding"],
+                        ["card-body-py", "8px", "Body vertical padding"],
+                        ["icon-container", "24x24px", "Header icon box"],
+                        ["icon-radius", "8px", "Header icon rounded corners"],
+                        ["icon-size", "14px", "Icon glyph inside container"],
+                        ["gap-header", "7px", "Between icon, title, badge"],
+                        ["gap-body", "8px", "Between body sections"],
+                        ["gap-pills", "4px", "Between action pills"],
+                        ["pill-height", "26px", "Action pill button height"],
+                        ["pill-radius", "full (9999px)", "Fully rounded pills"],
+                        ["section-bar-py", "3px", "Section header bar padding"],
+                        ["collapse-btn", "22x22px", "Collapse toggle button"],
+                      ].map(([token, val, usage]) => (
+                        <tr key={token} className="border-b border-slate-50">
+                          <td className="px-2 py-0.5 font-mono text-violet-600 w-28">{token}</td>
+                          <td className="px-2 py-0.5 font-mono text-slate-600 w-20">{val}</td>
+                          <td className="px-2 py-0.5 text-slate-500">{usage}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
 
-              {/* Trust signals — compact */}
-              <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
-                <p className="text-[9px] font-bold text-slate-700 mb-1.5">Trust Signals</p>
-                <div className="space-y-1.5">
-                  <div>
-                    <p className="text-[8px] font-semibold text-slate-600 mb-0.5">Data Provenance Dots</p>
-                    <div className="flex items-center gap-2">
-                      <span className="flex items-center gap-1 text-[8px] text-slate-500"><span className="h-[5px] w-[5px] rounded-full bg-[#059669]" />EMR <span className="font-mono text-[7px] text-slate-400">tp-success-600</span></span>
-                      <span className="flex items-center gap-1 text-[8px] text-slate-500"><span className="h-[5px] w-[5px] rounded-full bg-[#D97706]" />AI <span className="font-mono text-[7px] text-slate-400">tp-warning-600</span></span>
+                {/* Card Shell Visual Spec */}
+                <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                  <p className="text-[9px] font-bold text-slate-700 mb-1.5">Card Shell Visual Spec</p>
+                  <div className="space-y-0.5 text-[8px]">
+                    {[
+                      ["Background", "tp-slate-0 #FFFFFF (white)"],
+                      ["Border", "1px solid tp-slate-200 (#E2E2EA)"],
+                      ["Corner radius", "12px outer, 8px inner elements"],
+                      ["Shadow", "0 1px 2px rgba(0,0,0,0.04)"],
+                      ["Header divider", "0.5px tp-slate-100 (#F1F1F5)"],
+                      ["Footer divider", "0.5px tp-slate-100 (#F1F1F5)"],
+                      ["Collapse icon", "tp-slate-400, 22px container, 6px radius"],
+                      ["AI icon bg", "AI gradient (animated 6s flow)"],
+                    ].map(([k, v]) => (
+                      <div key={k} className="flex items-baseline gap-1.5">
+                        <span className="font-semibold text-slate-500 w-24 shrink-0">{k}</span>
+                        <span className="font-mono text-slate-600">{v}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Trust Signals */}
+                <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+                  <p className="text-[9px] font-bold text-slate-700 mb-1.5">Trust Signals</p>
+                  <div className="space-y-1">
+                    <div>
+                      <p className="text-[8px] font-semibold text-slate-600 mb-0.5">Data Provenance Dots</p>
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1 text-[8px] text-slate-500"><span className="h-[5px] w-[5px] rounded-full bg-[#059669]" />EMR <span className="font-mono text-[7px] text-slate-400">tp-success-600</span></span>
+                        <span className="flex items-center gap-1 text-[8px] text-slate-500"><span className="h-[5px] w-[5px] rounded-full bg-[#D97706]" />AI-extracted <span className="font-mono text-[7px] text-slate-400">tp-warning-600</span></span>
+                        <span className="flex items-center gap-1 text-[8px] text-slate-500"><span className="h-[5px] w-[5px] rounded-full bg-[#C8102E]" />Critical <span className="font-mono text-[7px] text-slate-400">tp-error-600</span></span>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <p className="text-[8px] font-semibold text-slate-600 mb-0.5">Completeness Donut</p>
-                    <p className="text-[8px] text-slate-500 leading-[1.3]">POMR, SBAR, OCR only. Not on summary, labs, DDX, vitals.</p>
-                  </div>
-                  <div className="pt-1 border-t border-slate-100">
-                    <p className="text-[8px] font-semibold text-[#4B4AD5] mb-0.5">For AI/Backend</p>
-                    <p className="text-[8px] text-slate-500 leading-[1.3]">kind must match one of 63 kinds. data shape must match TypeScript interface.</p>
+                    <div>
+                      <p className="text-[8px] font-semibold text-slate-600 mb-0.5">Completeness Donut</p>
+                      <p className="text-[8px] text-slate-500 leading-[1.3]">POMR, SBAR, OCR only. Green=EMR, Amber=AI, Gray=missing.</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2053,8 +2130,8 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           </div>
         </div>
 
-        {/* ── Sub-tabs ── */}
-        <div className="flex gap-0 border-b border-slate-200">
+        {/* ── Sub-tabs (sticky below main tab bar) ── */}
+        <div className="sticky top-0 z-20 flex gap-0 border-b border-slate-200 bg-white/95 backdrop-blur-md">
           {RM_TABS.map(tab => (
             <button key={tab.id} onClick={() => setRmTab(tab.id)}
               className={`relative px-5 py-2.5 text-[12px] font-medium transition-colors ${
