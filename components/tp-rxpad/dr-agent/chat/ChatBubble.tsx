@@ -760,14 +760,12 @@ export function ChatBubble({
               value={editText}
               onChange={(e) => { setEditText(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px" }}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSaveEdit() }
                 if (e.key === "Escape") handleCancelEdit()
               }}
               className="w-full resize-none bg-transparent text-[14px] leading-[20px] text-tp-slate-700 outline-none"
               rows={1}
             />
-            <div className="mt-[8px] flex items-center justify-between">
-              <p className="text-[11px] text-tp-slate-400">Enter to send &middot; Esc to cancel</p>
+            <div className="mt-[8px] flex items-center justify-end">
               <div className="flex gap-[6px]">
                 <button type="button" onClick={handleCancelEdit} className="rounded-[6px] px-[10px] py-[4px] text-[12px] font-medium text-tp-slate-500 transition-colors hover:bg-tp-slate-50">Cancel</button>
                 <button type="button" onClick={handleSaveEdit} disabled={!editText.trim() || editText.trim() === message.text} className="rounded-[6px] px-[10px] py-[4px] text-[12px] font-medium text-white transition-colors disabled:opacity-40" style={{ background: "var(--tp-blue-500, #4B4AD5)" }}>Send</button>
