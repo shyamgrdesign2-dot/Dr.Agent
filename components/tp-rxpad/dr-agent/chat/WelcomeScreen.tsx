@@ -149,7 +149,7 @@ const CONTEXT_ACTIONS: Record<PageContext, QuickAction[]> = {
  *
  * 5 candidate cards, pick best 4 based on available patient data:
  *
- *   1. INTAKE    — "Details from patient"       (only if symptom collector data exists)
+ *   1. INTAKE    — "Reported by patient"         (only if symptom collector data exists)
  *   2. SUMMARY   — "Patient summary"            (always available)
  *   3. HISTORY   — "Medical history"            (past visits, prescriptions)
  *   4. SPECIALTY — Specialty-specific history    (obstetric / gynec / pediatric / ophthal)
@@ -168,8 +168,8 @@ const CONTEXT_ACTIONS: Record<PageContext, QuickAction[]> = {
 // Individual action definitions for dynamic composition
 const PATIENT_ACTION_INTAKE: QuickAction = {
   icon: <ClipboardText size={ICON_SIZE} variant="Bulk" />,
-  title: "Details from patient",
-  subtitle: "Symptoms and history reported before the visit",
+  title: "Reported by patient",
+  subtitle: "Symptoms & history shared before the visit",
   message: "Show pre-visit intake",
 }
 const PATIENT_ACTION_SUMMARY: QuickAction = {
