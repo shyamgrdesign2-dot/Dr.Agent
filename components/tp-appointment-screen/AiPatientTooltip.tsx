@@ -122,6 +122,8 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
   // Phase: idle → hover (desktop) → loading (click) → summary (loaded)
   const [phase, setPhase] = useState<"idle" | "hover" | "loading" | "summary">("idle")
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0)
+  // Track if summary was ever generated — once true, hover shows summary directly
+  const [summaryGenerated, setSummaryGenerated] = useState(false)
 
   const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -268,16 +270,24 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
     if (!supportsHover.current) return
     if (phase === "loading" || phase === "summary") return // don't override expanded state
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
-    showTimerRef.current = setTimeout(() => setPhase("hover"), 400)
-  }, [phase])
+    // If summary was previously generated, show it directly on hover (no dark pill)
+    if (summaryGenerated) {
+      showTimerRef.current = setTimeout(() => setPhase("summary"), 300)
+    } else {
+      showTimerRef.current = setTimeout(() => setPhase("hover"), 400)
+    }
+  }, [phase, summaryGenerated])
 
   const handleMouseLeave = useCallback(() => {
     if (showTimerRef.current) clearTimeout(showTimerRef.current)
     if (phase === "hover") {
       setPhase("idle")
     }
-    // Summary and loading phases stay open — closed only by click-outside, icon re-click, or Escape
-  }, [phase])
+    // If showing summary via hover (after first generation), auto-hide on leave
+    if (phase === "summary" && summaryGenerated) {
+      hideTimerRef.current = setTimeout(() => setPhase("idle"), 200)
+    }
+  }, [phase, summaryGenerated])
 
   /* ── Click handler → Phase 2 (loading → summary) ───── */
 
@@ -296,6 +306,7 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
     // Simulate data fetch — transition to summary after 1.5s
     loadTimerRef.current = setTimeout(() => {
       setPhase("summary")
+      setSummaryGenerated(true)
     }, 1500)
   }, [phase, clearTimers])
 
@@ -364,6 +375,12 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
             onMouseEnter={() => {
               // Keep tooltip alive while hovering over it
               if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
+            }}
+            onMouseLeave={() => {
+              // When mouse leaves tooltip, hide if this is a hover-triggered summary
+              if (phase === "summary" && summaryGenerated) {
+                hideTimerRef.current = setTimeout(() => setPhase("idle"), 200)
+              }
             }}
           >
             {/* Inject shimmer + ellipsis keyframes */}

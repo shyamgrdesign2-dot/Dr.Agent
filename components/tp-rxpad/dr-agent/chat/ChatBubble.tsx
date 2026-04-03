@@ -834,9 +834,13 @@ export function ChatBubble({
       <div className="flex w-full flex-col items-start">
         {/* Top row: AI icon + text (typewriter reveal for new messages) */}
         {message.text && (
-          <div className="flex items-start gap-[6px]">
+          <div className={cn(
+            "flex gap-[6px]",
+            // Single-line text: vertically center icon with text. Multi-line: top-align.
+            message.text.includes("\n") || message.text.length > 60 ? "items-start" : "items-center"
+          )}>
             {/* AI Spark icon */}
-            <AiGradientBg size={20} borderRadius={6} className="mt-0.5">
+            <AiGradientBg size={20} borderRadius={6}>
               <AiBrandSparkIcon size={13} />
             </AiGradientBg>
 
