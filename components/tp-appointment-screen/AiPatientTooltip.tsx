@@ -366,15 +366,23 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
               if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
             }}
           >
-            {/* Inject shimmer + bounce keyframes */}
+            {/* Inject shimmer + ellipsis keyframes */}
             <style>{`
               @keyframes tooltipShimmer {
                 0% { background-position: -200% 0; }
                 100% { background-position: 200% 0; }
               }
-              @keyframes dotBounce {
-                0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-                40% { transform: translateY(-4px); opacity: 1; }
+              @keyframes tooltipSlideIn {
+                0% { transform: translateY(8px); opacity: 0; }
+                100% { transform: translateY(0); opacity: 1; }
+              }
+              @keyframes tooltipSlideOut {
+                0% { transform: translateY(0); opacity: 1; }
+                100% { transform: translateY(-8px); opacity: 0; }
+              }
+              @keyframes tooltipEllipsisFade {
+                0%, 100% { opacity: 0.2; }
+                50% { opacity: 1; }
               }
             `}</style>
 
@@ -406,28 +414,23 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
                       <ShimmerLine width="50%" />
                     </div>
 
-                    {/* Loading indicator: rotating message + three-dot bounce after text */}
-                    <div className="flex items-center justify-center gap-[5px] py-[2px]">
-                      {/* Rotating status text */}
-                      <p
-                        className="text-[10px] text-tp-slate-400"
+                    {/* Carousel loader — same pattern as TypingIndicator */}
+                    <div className="flex items-center justify-center overflow-hidden h-[14px]">
+                      <span
                         key={loadingMsgIndex}
+                        className="inline-flex items-center whitespace-nowrap text-[10px] font-medium"
+                        style={{
+                          color: "#8B8B96",
+                          animation: "tooltipSlideIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+                        }}
                       >
                         {LOADING_MESSAGES[loadingMsgIndex]}
-                      </p>
-                      {/* Three bouncing dots after text */}
-                      <div className="flex items-center gap-[3px]">
-                        {[0, 1, 2].map(i => (
-                          <div
-                            key={i}
-                            className="h-[4px] w-[4px] rounded-full"
-                            style={{
-                              background: "#8B5CF6",
-                              animation: `dotBounce 1.2s ease-in-out ${i * 0.15}s infinite`,
-                            }}
-                          />
-                        ))}
-                      </div>
+                        <span className="inline ml-0" style={{ letterSpacing: "0.5px" }}>
+                          <span className="inline-block" style={{ animation: "tooltipEllipsisFade 1.4s ease-in-out infinite", animationDelay: "0ms", opacity: 0.3 }}>.</span>
+                          <span className="inline-block" style={{ animation: "tooltipEllipsisFade 1.4s ease-in-out infinite", animationDelay: "180ms", opacity: 0.3 }}>.</span>
+                          <span className="inline-block" style={{ animation: "tooltipEllipsisFade 1.4s ease-in-out infinite", animationDelay: "360ms", opacity: 0.3 }}>.</span>
+                        </span>
+                      </span>
                     </div>
                   </div>
                 ) : (

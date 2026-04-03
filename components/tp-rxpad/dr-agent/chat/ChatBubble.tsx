@@ -10,7 +10,7 @@ import { FeedbackRow } from "../cards/FeedbackRow"
 import { CopyIcon } from "../cards/CopyIcon"
 import { ActionableTooltip } from "../cards/ActionableTooltip"
 import { AiBrandSparkIcon } from "@/components/doctor-agent/ai-brand"
-import { AiGradientBg } from "../shared/AiGradientBg"
+// AiGradientBg removed — agent icon now uses solid AI gradient directly
 import { Edit2, DocumentText1 } from "iconsax-reactjs"
 import { DocumentAttachmentBubble } from "./DocumentAttachmentBubble"
 import { DataCompletenessDonut } from "../cards/DataCompletenessDonut"
@@ -834,11 +834,23 @@ export function ChatBubble({
       <div className="flex w-full flex-col items-start">
         {/* Top row: AI icon + text (typewriter reveal for new messages) */}
         {message.text && (
-          <div className="flex items-start gap-[6px]">
-            {/* AI Spark icon */}
-            <AiGradientBg size={20} borderRadius={6} className="mt-0.5">
+          <div className={cn(
+            "flex items-center gap-[6px]",
+            /* Center-align when it's a short one-liner above a card */
+            message.rxOutput && message.text.length < 80 ? "justify-center w-full" : "items-start"
+          )}>
+            {/* AI Spark icon — solid gradient background */}
+            <div
+              className="shrink-0 flex items-center justify-center mt-0.5"
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 6,
+                background: "linear-gradient(135deg, #D565EA 0%, #673AAC 45%, #1A1994 100%)",
+              }}
+            >
               <AiBrandSparkIcon size={13} />
-            </AiGradientBg>
+            </div>
 
             {/* Plain text with streaming reveal */}
             <p className="text-[14px] leading-[18px] text-tp-slate-700 whitespace-pre-wrap break-words">
@@ -851,29 +863,21 @@ export function ChatBubble({
         {/* If there is no text but we have a card, still show the icon row */}
         {!message.text && message.rxOutput && (
           <div className="flex items-start gap-[6px]">
-            <AiGradientBg size={20} borderRadius={6} className="mt-0.5">
+            <div
+              className="shrink-0 flex items-center justify-center mt-0.5"
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 6,
+                background: "linear-gradient(135deg, #D565EA 0%, #673AAC 45%, #1A1994 100%)",
+              }}
+            >
               <AiBrandSparkIcon size={13} />
-            </AiGradientBg>
-          </div>
-        )}
-
-        {/* Inline suggestion pills — horizontal scrollable, below text */}
-        {message.suggestions && message.suggestions.length > 0 && (
-          <div className="ml-[26px] mt-[8px] w-[calc(100%-26px)]">
-            <div className="da-suggestion-scroll flex gap-[6px] overflow-x-auto pb-[2px]">
-              {message.suggestions.map((s, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => onPillTap?.(s.message)}
-                  className="flex-shrink-0 rounded-full border border-tp-slate-200 bg-white px-[10px] py-[5px] text-[12px] font-medium text-tp-slate-600 transition-all duration-150 hover:border-[var(--tp-blue-400,#6C6BDE)] hover:bg-[var(--tp-blue-50,#EEEEFF)] hover:text-[var(--tp-blue-600,#3C3BB5)] active:scale-[0.97]"
-                >
-                  {s.label}
-                </button>
-              ))}
             </div>
           </div>
         )}
+
+        {/* Inline suggestion pills removed — pills only appear in SuggestionBar (above input) or inside card bodies */}
 
         {/* Card output -- offset to align under text (past the 20px icon + 6px gap) */}
         {/* Phased reveal: card slides in after text finishes streaming */}
