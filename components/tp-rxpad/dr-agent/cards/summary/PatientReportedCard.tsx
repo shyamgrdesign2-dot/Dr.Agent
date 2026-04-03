@@ -249,7 +249,7 @@ export function PatientReportedCard({ data, onCopy, onPillTap, defaultCollapsed 
                   color="var(--tp-slate-500, #64748B)"
                 />
               )}
-              <span className="flex-1 text-[14px] font-semibold text-tp-slate-600">
+              <span className="flex-1 text-[12px] font-medium text-tp-slate-600">
                 {section.title}
               </span>
               <span className={cn("transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/section-header:opacity-100")}>

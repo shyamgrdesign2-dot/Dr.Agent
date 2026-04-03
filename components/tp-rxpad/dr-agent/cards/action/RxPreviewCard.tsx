@@ -29,7 +29,7 @@ function Section({ label, items }: { label: string; items: string[] }) {
             color="var(--tp-slate-500, #64748B)"
           />
         )}
-        <span className="flex-1 text-[14px] font-semibold text-tp-slate-600">
+        <span className="flex-1 text-[12px] font-medium text-tp-slate-600">
           {label}
         </span>
       </div>
@@ -80,7 +80,7 @@ export function RxPreviewCard({ data, onPillTap }: Props) {
               size={12}
               color="var(--tp-slate-500, #64748B)"
             />
-            <span className="flex-1 text-[14px] font-semibold text-tp-slate-600">
+            <span className="flex-1 text-[12px] font-medium text-tp-slate-600">
               Follow-up
             </span>
           </div>
