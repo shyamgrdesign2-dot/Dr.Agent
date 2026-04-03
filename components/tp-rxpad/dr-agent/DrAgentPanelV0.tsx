@@ -141,7 +141,7 @@ const ACTION_INTAKE: V0QuickAction = {
   icon: <ClipboardText size={ICON_SIZE} variant="Bulk" />,
   title: "Reported by patient",
   subtitle: "Symptoms & history shared before the visit",
-  message: "Show patient-reported details",
+  message: "Show reported intake",
 }
 
 const ACTION_SUMMARY: V0QuickAction = {
