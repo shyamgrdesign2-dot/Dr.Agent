@@ -23,7 +23,7 @@ export function VitalsSummaryCard({ data }: VitalsSummaryCardProps) {
       title={data.title}
       badge={
         data.recordedAt
-          ? { label: data.recordedAt, color: "#6D28D9", bg: "#EDE9FE" }
+          ? { label: data.recordedAt, color: "var(--tp-violet-600, #6D28D9)", bg: "var(--tp-violet-50, #EDE9FE)" }
           : undefined
       }
       collapsible

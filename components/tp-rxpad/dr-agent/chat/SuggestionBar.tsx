@@ -38,7 +38,7 @@ export function SuggestionBar({ suggestions, onTap, disabled = false, className 
           disabled={disabled}
           className={cn(
             "flex-shrink-0 rounded-full border border-tp-slate-200 bg-white px-[10px] py-[4px] text-[12px] font-medium text-tp-slate-600 transition-all duration-150",
-            "hover:border-[var(--tp-blue-400,#6C6BDE)] hover:bg-[var(--tp-blue-50,#EEEEFF)] hover:text-[var(--tp-blue-600,#3C3BB5)]",
+            "hover:border-tp-blue-400 hover:bg-tp-blue-50 hover:text-tp-blue-600",
             "active:scale-[0.97]",
             disabled && "opacity-50 cursor-not-allowed",
           )}

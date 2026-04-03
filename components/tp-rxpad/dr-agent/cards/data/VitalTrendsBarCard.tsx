@@ -120,9 +120,9 @@ function VitalTrendsTable({ series }: { series: VitalTrendSeries[] }) {
   const longest = series.reduce((a, b) => (a.dates.length >= b.dates.length ? a : b))
 
   const toneColor = (tone: "ok" | "warn" | "critical", value: number, threshold?: number) => {
-    if (tone === "critical") return "text-red-500 font-semibold"
-    if (tone === "warn") return "text-amber-500 font-semibold"
-    if (threshold != null && value < threshold) return "text-red-500 font-semibold"
+    if (tone === "critical") return "text-tp-error-600 font-semibold"
+    if (tone === "warn") return "text-tp-warning-600 font-semibold"
+    if (threshold != null && value < threshold) return "text-tp-error-600 font-semibold"
     return "text-tp-slate-700"
   }
 

@@ -16,7 +16,7 @@ export function DuePatientsCard({ data }: Props) {
       title={data.title}
       sidebarLink={<SidebarLink text={data.ctaLabel} />}
     >
-      <div className="rounded-[10px] border border-tp-warning-100 bg-tp-warning-50/45 px-[8px] py-[7px]">
+      <div className="rounded-[12px] border border-tp-warning-100 bg-tp-warning-50/45 px-[8px] py-[7px]">
         <p className="text-[12px] font-semibold text-tp-warning-700">{data.periodLabel}</p>
         <p className="mt-[3px] text-[14px] text-tp-slate-700">
           <span className="font-semibold text-tp-warning-700">{data.patientCount}</span> patients with dues

@@ -3609,14 +3609,14 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
         <div className="flex justify-center gap-0">
         {([
           { id: "intent-classification" as MainTab, label: "Intent Classification" },
-          { id: "card-anatomy" as MainTab, label: "Card Anatomy & Patterns" },
-          { id: "card-catalog" as MainTab, label: "Card Catalog" },
+          { id: "card-anatomy" as MainTab, label: "UI Card Anatomy & Patterns" },
+          { id: "card-catalog" as MainTab, label: "UI Card Catalog" },
           { id: "response-management" as MainTab, label: "Response Management" },
           { id: "user-scenarios" as MainTab, label: "User Scenarios" },
         ]).map(tab => (
-          <button key={tab.id} onClick={() => setMainTab(tab.id)}
+          <button key={tab.id} onClick={() => { setMainTab(tab.id); window.scrollTo({ top: 0 }); }}
             className={`relative px-5 py-2.5 text-[12px] font-medium transition-colors ${
-              mainTab === tab.id ? "text-[#4B4AD5]" : "text-slate-400 hover:text-slate-600"
+              mainTab === tab.id ? "text-[#4B4AD5]" : "text-tp-slate-400 hover:text-tp-slate-600"
             }`}>
             {tab.label}
             {mainTab === tab.id && <span className="absolute bottom-0 left-2 right-2 h-[2px] rounded-t-full bg-[#4B4AD5]" />}

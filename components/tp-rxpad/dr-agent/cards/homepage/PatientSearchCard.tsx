@@ -13,9 +13,8 @@ export function PatientSearchCard({ data, onPatientSelect }: Props) {
   const [query, setQuery] = useState(data.query)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
+  // Note: removed auto-focus on mount — it caused unwanted scroll in catalog previews.
+  // Focus is handled by the parent when the card is used in the live agent chat.
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -42,7 +41,7 @@ export function PatientSearchCard({ data, onPatientSelect }: Props) {
     >
       {/* Search input */}
       <div className="relative">
-        <div className="flex items-center gap-[6px] rounded-[8px] border border-tp-slate-200 bg-white px-[8px] py-[6px]">
+        <div className="flex items-center gap-[6px] rounded-[8px] border border-tp-slate-200 bg-white px-[8px] py-[6px] focus-within:border-tp-blue-400 focus-within:shadow-[0_0_0_2px_rgba(75,74,213,0.08)]">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -87,7 +86,7 @@ export function PatientSearchCard({ data, onPatientSelect }: Props) {
                   <p className="text-[12px] text-tp-slate-400">{r.meta}</p>
                 </div>
                 {r.hasAppointmentToday && (
-                  <span className="rounded-[4px] bg-[#EDF8F1] px-[6px] py-[1px] text-[12px] font-semibold text-[#1B8C54]">
+                  <span className="rounded-[4px] bg-tp-success-50 px-[6px] py-[1px] text-[12px] font-semibold text-tp-success-700">
                     Today
                   </span>
                 )}

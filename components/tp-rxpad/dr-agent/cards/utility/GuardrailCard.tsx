@@ -11,7 +11,7 @@ interface GuardrailCardProps {
 
 export function GuardrailCard({ data, onPillTap }: GuardrailCardProps) {
   return (
-    <div className="guardrail-card overflow-hidden rounded-[10px] border border-[rgba(217,165,32,0.2)]">
+    <div className="guardrail-card overflow-hidden rounded-[12px] border border-[rgba(217,165,32,0.2)]">
       {/* Subtle amber top accent */}
       <div
         className="h-[2px]"

@@ -329,9 +329,9 @@ export function WelcomeScreen({
         {greeting}, {displayName}!
       </h2>
       {/* Subtitle — 13px with relaxed line height */}
-      <p className="relative z-[1] mt-[4px] text-[14px] text-center leading-[18px]" style={{ color: "#A2A2A8" }}>
+      <p className="relative z-[1] mt-[4px] text-[14px] text-center leading-[18px]" style={{ color: "var(--tp-slate-400, #A2A2A8)" }}>
         {isPatientContext && patientName
-          ? <>What would you like to know about patient <span className="font-semibold" style={{ color: "#6B7280" }}>{patientName.split(" ")[0]}</span> today?</>
+          ? <>What would you like to know about patient <span className="font-semibold" style={{ color: "var(--tp-slate-500, #717179)" }}>{patientName.split(" ")[0]}</span> today?</>
           : "What can I assist you with today?"
         }
       </p>
@@ -366,12 +366,12 @@ export function WelcomeScreen({
             </span>
 
             {/* Title — 12px semibold */}
-            <span className="relative z-[1] text-[12px] font-semibold leading-[15px] w-full" style={{ color: "#3D3D4E" }}>
+            <span className="relative z-[1] text-[12px] font-semibold leading-[15px] w-full" style={{ color: "var(--tp-slate-700, #454551)" }}>
               {action.title}
             </span>
 
             {/* Subtitle — 11px with 2-line clamp */}
-            <span className="relative z-[1] mt-[4px] text-[11px] font-normal leading-[15px] w-full welcome-card-subtitle" style={{ color: "#9E9EA8" }}>
+            <span className="relative z-[1] mt-[4px] text-[11px] font-normal leading-[15px] w-full welcome-card-subtitle" style={{ color: "var(--tp-slate-400, #A2A2A8)" }}>
               {action.subtitle}
             </span>
           </button>
@@ -399,7 +399,7 @@ export function WelcomeScreen({
         .welcome-canned-card:hover {
           transform: translateY(-1px) scale(1.01);
           box-shadow: 0 3px 12px rgba(0,0,0,0.06) !important;
-          border-color: rgba(139,92,246,0.25) !important;
+          border-color: rgba(138,77,187,0.25) !important;
         }
         .welcome-canned-card:active {
           transform: translateY(0) scale(0.99);

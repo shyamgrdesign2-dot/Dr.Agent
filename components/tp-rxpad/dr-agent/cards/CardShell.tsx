@@ -168,7 +168,7 @@ export function CardShell({
           <button
             type="button"
             onClick={() => setCollapsed(!collapsed)}
-            className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-[6px] bg-tp-slate-50 text-tp-slate-600 transition-colors hover:bg-tp-slate-100"
+            className="flex h-[22px] w-[22px] flex-shrink-0 items-center justify-center rounded-[6px] bg-tp-slate-100 text-tp-slate-600 transition-colors hover:bg-tp-slate-200"
           >
             {collapsed ? <ArrowDown2 size={12} variant="Linear" /> : <ArrowUp2 size={12} variant="Linear" />}
           </button>

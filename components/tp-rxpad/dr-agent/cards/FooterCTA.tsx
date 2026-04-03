@@ -57,8 +57,8 @@ const tertiaryTones: Record<string, string> = {
 // Secondary/bordered tones (border + white bg)
 const borderedTones: Record<string, string> = {
   secondary: "border-tp-blue-200 text-tp-blue-500 hover:border-tp-blue-300 hover:bg-tp-blue-50/60",
-  danger: "border-red-200 text-red-600 hover:border-red-300 hover:bg-red-50/70",
-  success: "border-emerald-200 text-emerald-600 hover:border-emerald-300 hover:bg-emerald-50/70",
+  danger: "border-tp-error-200 text-tp-error-600 hover:border-tp-error-300 hover:bg-tp-error-50",
+  success: "border-tp-success-200 text-tp-success-600 hover:border-tp-success-300 hover:bg-tp-success-50",
 }
 
 function isBorderedTone(tone: string): boolean {

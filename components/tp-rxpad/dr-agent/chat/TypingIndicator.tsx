@@ -96,7 +96,7 @@ export function TypingIndicator({ className, queryHint }: TypingIndicatorProps) 
           font-size: 12.5px;
           font-weight: 500;
           line-height: 16px;
-          color: #8B8B96;
+          color: var(--tp-slate-500, #717179);
           white-space: nowrap;
           will-change: transform, opacity;
         }

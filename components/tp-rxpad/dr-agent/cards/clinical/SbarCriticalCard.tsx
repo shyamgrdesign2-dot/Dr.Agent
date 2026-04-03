@@ -14,7 +14,7 @@ interface SbarCriticalCardProps {
 
 const SEVERITY_STYLES: Record<string, string> = {
   critical: "bg-tp-error-50 text-tp-error-700 font-bold",
-  high: "bg-amber-50 text-amber-700 font-semibold",
+  high: "bg-tp-warning-50 text-tp-warning-700 font-semibold",
 }
 
 export function SbarCriticalCard({ data }: SbarCriticalCardProps) {

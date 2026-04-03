@@ -410,13 +410,13 @@ export function ChatInput({
               "flex h-[36px] flex-1 items-center gap-[10px] rounded-[10px] border px-[12px]",
               isPaused
                 ? "border-tp-slate-300 bg-tp-slate-50"
-                : "border-purple-300/60 bg-gradient-to-r from-purple-50/40 to-blue-50/40",
+                : "border-tp-violet-300 bg-gradient-to-r from-tp-violet-50 to-tp-blue-50",
             )}
           >
             <span
               className={cn(
                 "h-[6px] w-[6px] shrink-0 rounded-full",
-                isPaused ? "bg-tp-slate-400" : "bg-red-500 animate-pulse",
+                isPaused ? "bg-tp-slate-400" : "bg-tp-error-500 animate-pulse",
               )}
             />
             {isPaused ? (
@@ -464,15 +464,15 @@ export function ChatInput({
         >
           <style jsx>{`
             .chat-input-border {
-              border: 1px solid #E2E2EA;
+              border: 1px solid var(--tp-slate-200, #E2E2EA);
               transition: border-color 0.2s ease, box-shadow 0.2s ease;
             }
             .chat-input-border:focus-within {
-              border-color: #A78BFA;
-              box-shadow: 0 0 0 2px rgba(167,139,250,0.10);
+              border-color: var(--tp-violet-400, #BA7DE9);
+              box-shadow: 0 0 0 2px rgba(75,74,213,0.08);
             }
             .chat-input-border textarea::placeholder {
-              color: #D0D5DD;
+              color: var(--tp-slate-300, #D0D5DD);
               line-height: 16px;
             }
             /* Animated AI gradient border for pre-filled state */
