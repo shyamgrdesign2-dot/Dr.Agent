@@ -751,7 +751,31 @@ export function ChatBubble({
   // ---- USER bubble ----
   if (isUser) {
     return (
-      <div className="group/msg flex w-full justify-end">
+      <div className="group/msg flex w-full flex-col">
+        {isEditing ? (
+          /* ── Edit mode — full-width within chat area ── */
+          <div className="w-full rounded-[12px] border border-tp-blue-200 bg-white px-3 py-2.5" style={{ boxShadow: "0 0 0 2px rgba(75,74,213,0.08)" }}>
+            <textarea
+              ref={editRef}
+              value={editText}
+              onChange={(e) => { setEditText(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px" }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSaveEdit() }
+                if (e.key === "Escape") handleCancelEdit()
+              }}
+              className="w-full resize-none bg-transparent text-[14px] leading-[20px] text-tp-slate-700 outline-none"
+              rows={1}
+            />
+            <div className="mt-[8px] flex items-center justify-between">
+              <p className="text-[11px] text-tp-slate-400">Enter to send &middot; Esc to cancel</p>
+              <div className="flex gap-[6px]">
+                <button type="button" onClick={handleCancelEdit} className="rounded-[6px] px-[10px] py-[4px] text-[12px] font-medium text-tp-slate-500 transition-colors hover:bg-tp-slate-50">Cancel</button>
+                <button type="button" onClick={handleSaveEdit} disabled={!editText.trim() || editText.trim() === message.text} className="rounded-[6px] px-[10px] py-[4px] text-[12px] font-medium text-white transition-colors disabled:opacity-40" style={{ background: "var(--tp-blue-500, #4B4AD5)" }}>Send</button>
+              </div>
+            </div>
+          </div>
+        ) : (
+        <div className="flex w-full justify-end">
         <div className="flex max-w-[85%] flex-col items-end gap-[2px]">
           {/* Attachment card (PDF) — shown above text bubble */}
           {message.attachment && (
@@ -760,50 +784,14 @@ export function ChatBubble({
             </div>
           )}
 
-          {isEditing ? (
-            /* ── Edit mode — inline textarea with Save/Cancel ── */
-            <div className="w-full min-w-[200px] rounded-[12px] border border-tp-blue-200 bg-white px-3 py-2" style={{ boxShadow: "0 0 0 2px rgba(75,74,213,0.06)" }}>
-              <textarea
-                ref={editRef}
-                value={editText}
-                onChange={(e) => { setEditText(e.target.value); e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px" }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSaveEdit() }
-                  if (e.key === "Escape") handleCancelEdit()
-                }}
-                className="w-full resize-none bg-transparent text-[14px] leading-[18px] text-tp-slate-700 outline-none"
-                rows={1}
-              />
-              <div className="mt-[6px] flex justify-end gap-[6px]">
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  className="rounded-[6px] px-[10px] py-[4px] text-[12px] font-medium text-tp-slate-500 transition-colors hover:bg-tp-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveEdit}
-                  disabled={!editText.trim() || editText.trim() === message.text}
-                  className="rounded-[6px] px-[10px] py-[4px] text-[12px] font-medium text-white transition-colors disabled:opacity-40"
-                  style={{ background: "var(--tp-blue-500, #4B4AD5)" }}
-                >
-                  Save &amp; Submit
-                </button>
-              </div>
-            </div>
-          ) : (
-            /* ── Normal display mode ── */
-            message.text ? (
+          {message.text ? (
               <div className="rounded-[12px] rounded-br-[0px] bg-tp-slate-100 px-3 py-2 text-[14px] leading-[18px] text-tp-slate-700">
                 <p className="whitespace-pre-wrap">{message.text}</p>
               </div>
-            ) : null
-          )}
+            ) : null}
 
-          {/* Hover action icons — hidden when editing */}
-          {!isEditing && message.text && (
+          {/* Hover action icons */}
+          {message.text && (
             <div className={cn("flex items-center gap-[2px] transition-opacity", isTouch ? "opacity-70" : "opacity-0 group-hover/msg:opacity-100")}>
               <ActionableTooltip
                 label="Copy to clipboard"
@@ -824,6 +812,8 @@ export function ChatBubble({
             </div>
           )}
         </div>
+        </div>
+        )}
       </div>
     )
   }
