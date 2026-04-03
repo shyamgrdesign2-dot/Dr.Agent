@@ -165,10 +165,10 @@ export default function PatientSummaryLogicTab() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {[
-                { letter: "S", name: "Situation", border: "border-l-4 border-l-violet-500", content: "Short narrative: symptoms, chronic conditions, allergies, meds, last visit", visible: "Always shown", hidden: "Never (fallback: 'New patient, no prior clinical data available')" },
-                { letter: "B", name: "Background", border: "border-l-4 border-l-blue-500", content: "Conditions list, allergies, current meds (max 6), surgical/family history", visible: "Any history data exists", hidden: "No conditions AND no allergies AND no meds" },
-                { letter: "A", name: "Assessment", border: "border-l-4 border-l-emerald-500", content: "Today's vitals (BP, SpO2, Temp, HR, Weight) + flagged labs (max 4)", visible: "Current vitals or flagged labs exist", hidden: "No vitals AND no abnormal labs" },
-                { letter: "R", name: "Recommendation", border: "border-l-4 border-l-amber-500", content: "Overdue follow-ups, critical vitals, due alerts (max 2), cross-problem flags", visible: "Any actionable item exists", hidden: "No overdue, no critical vitals, no alerts" },
+                { letter: "S", name: "Situation", border: "border-l-4 border-l-violet-500", content: "AI-generated clinical narrative — specialty lead-in, current symptoms, chronic conditions, allergies, active medications, last visit context", visible: "Always shown", hidden: "Never (fallback: 'New patient, no prior clinical data available')" },
+                { letter: "B", name: "Background", border: "border-l-4 border-l-blue-500", content: "Chronic conditions with duration, allergies (drug + environmental), current medications, surgical history, family history, lifestyle notes, additional medical history", visible: "Any history data exists", hidden: "No conditions AND no allergies AND no history" },
+                { letter: "A", name: "Assessment", border: "border-l-4 border-l-emerald-500", content: "Available today's vitals (BP, Pulse, SpO₂, Temp, Weight, RR, BMI) + all concerning lab results with flag arrows (↑ high, ↓ low)", visible: "Current vitals or any flagged labs exist", hidden: "No vitals recorded AND no abnormal labs" },
+                { letter: "R", name: "Recommendation", border: "border-l-4 border-l-amber-500", content: "Overdue follow-ups with days count, critical vital alerts, concerning trend alerts (e.g., declining SpO₂), due investigations, cross-problem interaction flags (e.g., CKD + NSAID)", visible: "Any actionable item exists", hidden: "No overdue, no critical values, no alerts" },
               ].map((s) => (
                 <tr key={s.letter} className={`align-top ${s.border}`}>
                   <Td className="font-bold whitespace-nowrap">
@@ -195,12 +195,12 @@ export default function PatientSummaryLogicTab() {
             <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-2 text-[10px]">
               <p className="text-[11px] font-bold text-slate-700">Section rendering details</p>
               {[
-                { label: "Situation", detail: "Italic text in violet-bordered quote box. Clinical terms auto-highlighted via highlightClinicalText(). ~200 char cap." },
-                { label: "Background", detail: "Rendered with formatWithHierarchy(). Conditions in tp-slate-700, brackets in tp-slate-400. Pipe separator between sub-sections. expandAbbreviation() expands DM to Diabetes etc." },
-                { label: "Assessment — Vitals", detail: "InlineDataRow with flag colors. Display order: BP, Pulse, SpO2, Temp, Weight, RR. Abnormals get red with arrow prefix." },
-                { label: "Assessment — Labs", detail: "Max 4 flagged labs. Only abnormals shown. Shortened names (HbA1c, Hb, SGPT). Up/down arrows for high/low." },
-                { label: "Last Visit", detail: "buildLastVisitLine() returns {date, diagnosis, symptoms}. Date + diagnosis in tp-slate-700, labels in tp-slate-400." },
-                { label: "Recommendations", detail: "buildRecommendations() filters: 1) Follow-up overdue, 2) Critical vitals, 3) Top 2 due alerts, 4) 1 cross-problem flag." },
+                { label: "Situation", detail: "Italic narrative in violet-bordered quote box. Clinical terms auto-highlighted via highlightClinicalText(). Specialty-aware lead-in (e.g., 'G2P1 at 26wk' for obstetric)." },
+                { label: "Background", detail: "Conditions with duration (e.g., 'Diabetes 1yr, Active'), allergies, meds, surgical/family/lifestyle history. formatWithHierarchy() applies tp-slate-700 primary, tp-slate-400 brackets. Pipe separators between sub-sections." },
+                { label: "Assessment — Vitals", detail: "InlineDataRow with flag colors. All available vitals shown: BP, Pulse, SpO₂, Temp, Weight, RR, BMI. Abnormals in tp-error-600 with ↑↓ arrow prefix." },
+                { label: "Assessment — Labs", detail: "All concerning (flagged) lab results shown — no limit. Only abnormals displayed. Shortened names (HbA1c, Hb, F.Glucose, LDL, Creat). Up/down arrows for high/low." },
+                { label: "Last Visit", detail: "buildLastVisitLine() returns {date, diagnosis, symptoms}. Date + diagnosis in tp-slate-700, labels (Sx:, Dx:, Rx:) in tp-slate-400." },
+                { label: "Recommendations", detail: "All actionable items shown: follow-up overdue (with days), critical vitals, concerning trend alerts, due investigations, cross-problem interaction flags (e.g., 'CKD + NSAID detected')." },
               ].map((r) => (
                 <div key={r.label} className="flex gap-2">
                   <span className="shrink-0 font-semibold text-violet-600 w-[120px]">{r.label}</span>

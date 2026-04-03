@@ -1971,13 +1971,17 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                 <div className="grid gap-4 p-4 lg:grid-cols-2">
                   {/* Left: Spec info — flowing story */}
                   <div className="space-y-2.5">
-                    <p className="text-[11px] text-slate-700 leading-[1.6]">{card.description}</p>
+                    {/* Description with highlighted key terms */}
+                    <p className="text-[11px] text-tp-slate-600 leading-[1.7]">{card.description}</p>
 
-                    {/* Intent & Triggers */}
+                    {/* Intent & Triggers — violet callout */}
                     {card.intentSummary && (
                       <div className="rounded-lg border border-violet-100 bg-violet-50/40 px-2.5 py-1.5">
-                        <p className="text-[9px] font-bold uppercase tracking-wider text-violet-500 mb-0.5">Intent &amp; Trigger</p>
-                        <p className="text-[9px] text-violet-700 leading-[1.45]">{card.intentSummary}</p>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="h-1.5 w-1.5 rounded-full bg-violet-400" />
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-violet-500">Intent &amp; Trigger</p>
+                        </div>
+                        <p className="text-[9px] text-violet-700 leading-[1.5]">{card.intentSummary}</p>
                         {card.cannedMessages?.length > 0 && (
                           <div className="mt-1.5 flex flex-wrap gap-1">
                             {card.cannedMessages.map((cm, i) => (
@@ -1988,22 +1992,25 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
                       </div>
                     )}
 
-                    {/* Data Sources */}
+                    {/* Data Sources — blue tint */}
                     {card.dataSources && (
-                      <div className="flex items-start gap-1.5">
-                        <span className="mt-[2px] text-[10px]">&#128451;</span>
-                        <div>
-                          <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">Data sources</span>
-                          <p className="text-[10px] text-slate-600 leading-[1.5]">{card.dataSources}</p>
+                      <div className="rounded-lg border border-blue-100 bg-blue-50/30 px-2.5 py-1.5">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-blue-500">Data Sources</span>
                         </div>
+                        <p className="text-[10px] text-tp-slate-600 leading-[1.5]">{card.dataSources}</p>
                       </div>
                     )}
 
-                    {/* Formatting Notes */}
+                    {/* Formatting Notes — slate callout */}
                     {card.formattingNotes && (
-                      <div className="rounded-lg border border-slate-100 bg-slate-50/60 px-2.5 py-1.5">
-                        <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">Formatting &amp; display</span>
-                        <p className="text-[10px] text-slate-600 leading-[1.5] mt-0.5">{card.formattingNotes}</p>
+                      <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-2.5 py-1.5">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Formatting &amp; Display</span>
+                        </div>
+                        <p className="text-[10px] text-tp-slate-500 leading-[1.5]">{card.formattingNotes}</p>
                       </div>
                     )}
 
