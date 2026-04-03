@@ -256,9 +256,14 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") setPhase("idle")
     }
-    document.addEventListener("mousedown", handleClickOutside)
-    document.addEventListener("keydown", handleEscape)
+    // Defer listener registration by one frame so the click that opened
+    // the tooltip doesn't immediately trigger the click-outside handler
+    const rafId = requestAnimationFrame(() => {
+      document.addEventListener("mousedown", handleClickOutside)
+      document.addEventListener("keydown", handleEscape)
+    })
     return () => {
+      cancelAnimationFrame(rafId)
       document.removeEventListener("mousedown", handleClickOutside)
       document.removeEventListener("keydown", handleEscape)
     }
