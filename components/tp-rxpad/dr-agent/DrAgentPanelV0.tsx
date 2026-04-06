@@ -720,6 +720,7 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
           id: `v0-auto-summary-${selectedPatientId}`,
           role: "assistant",
           text: "Here's a quick clinical snapshot.",
+          feedbackGiven: null,
           rxOutput: {
             kind: "text_quote",
             data: {
