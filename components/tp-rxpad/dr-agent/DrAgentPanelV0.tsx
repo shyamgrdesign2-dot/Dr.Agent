@@ -701,16 +701,26 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
     setPatientAllergies(summary.allergies ?? [])
   }, [summary, setPatientAllergies])
 
-  // ── Initialize patient messages ──
+  // ── Initialize patient messages with auto short summary ──
   const hasMessagesForPatient = selectedPatientId ? !!messagesByPatient[selectedPatientId] : false
   useEffect(() => {
     if (selectedPatientId && !hasMessagesForPatient) {
+      // V0: Auto-inject short summary as the first assistant response
+      const narrative = summary.patientNarrative || summary.sbarSituation
+      const autoMessages: RxAgentChatMessage[] = narrative ? [
+        {
+          id: `v0-auto-summary-${selectedPatientId}`,
+          role: "assistant",
+          text: narrative,
+          createdAt: new Date().toISOString(),
+        },
+      ] : []
       setMessagesByPatient((prev) => ({
         ...prev,
-        [selectedPatientId]: [],
+        [selectedPatientId]: autoMessages,
       }))
     }
-  }, [selectedPatientId, hasMessagesForPatient])
+  }, [selectedPatientId, hasMessagesForPatient, summary])
 
   // ── Reset specialty when patient changes ──
   useEffect(() => {
@@ -955,15 +965,8 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
             </div>
           ) : !hasPatient && animatingPatient ? (
             null
-          ) : messages.filter(m => m.role === "user").length === 0 && !isTyping ? (
-            <div className={cn("flex flex-1 flex-col", showContent ? "v0-content-reveal" : "opacity-0")}>
-              <V0WelcomeScreen
-                patientName={patient!.label}
-                summary={summary}
-                onActionClick={(msg) => handleSend(msg)}
-              />
-            </div>
           ) : (
+            // V0: Skip welcome screen — go directly to chat with auto-injected short summary
             <div className={cn("flex flex-1 flex-col", showContent ? "v0-content-reveal" : "opacity-0")}>
               <ChatThread
                 messages={messages}
@@ -982,7 +985,7 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
         </div>
       </div>
 
-      {/* ── Footer: Pills + Input — only when patient is selected ── */}
+      {/* ── Footer: Canned Messages only (V0 — no input box) ── */}
       {hasPatient && (
         <div className={cn("relative bg-white", showContent ? "v0-content-reveal" : "opacity-0")}>
           <div
@@ -992,7 +995,7 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
               background: "linear-gradient(to top, rgba(255,255,255,0.98), rgba(255,255,255,0.4) 40%, transparent)",
             }}
           />
-          {pills.length > 0 && messages.filter(m => m.role === "user").length > 0 && !isTyping && (
+          {pills.length > 0 && !isTyping && (
             <div className="px-[4px] pt-[8px] pb-[6px]">
               <PillBar
                 pills={pills}
@@ -1001,19 +1004,11 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
               />
             </div>
           )}
-          <ChatInput
-            value={inputValue}
-            onChange={(v) => setInputValue(v)}
-            onSend={() => handleSend()}
-            onAttach={undefined}
-            disabled={isTyping}
-            placeholder={`Ask about ${patient!.label}...`}
-            patientName={patient!.label}
-            patientMeta={patient!.gender && patient!.age ? `${patient!.gender}|${patient!.age}y` : undefined}
-            patientLocked
-            patientLockedMessage={isPatientDetailPage ? `You're viewing ${patient?.label?.split(" ")[0] || "this patient"}'s details — chat is focused on this patient` : "Use the floating chip above to switch patient"}
-            onLockedChipClick={handleLockedChipClick}
-          />
+          {/* Trust mark — no input box in V0 */}
+          <div className="px-3 py-2 flex items-center justify-center gap-1.5">
+            <span className="h-[5px] w-[5px] rounded-full bg-tp-slate-300" />
+            <p className="text-[10px] text-tp-slate-400">Your data stays private · AI assists, you decide</p>
+          </div>
         </div>
       )}
 

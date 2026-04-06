@@ -1457,7 +1457,7 @@ export function DrAgentPage() {
                                         dischargeData: row.dischargeData,
                                       }}
                                       onClick={() => openAgentForPatient(row)}
-                                      onViewSummary={() => openAgentForPatient(row, `View detailed patient summary of ${row.name}`)}
+                                      onViewSummary={() => openAgentForPatient(row)}
                                     />
 
                                     <button

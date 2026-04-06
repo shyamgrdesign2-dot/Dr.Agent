@@ -489,7 +489,7 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
                       <p className="text-[12px] text-tp-slate-400 mb-[10px]">No summary available for this patient.</p>
                     )}
 
-                    {/* CTA: View Detailed Summary */}
+                    {/* CTA: Open Doctor Agent */}
                     <button
                       type="button"
                       onClick={handleViewSummary}
@@ -509,7 +509,7 @@ export function AiPatientTooltip({ patientId, summary, tabVariant, rowData, onCl
                           backgroundClip: "text",
                         }}
                       >
-                        View Detailed Summary
+                        Open Doctor Agent
                       </span>
                     </button>
                   </div>
