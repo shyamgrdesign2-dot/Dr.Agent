@@ -45,6 +45,10 @@ const PRIMARY_PATTERNS = [
   /\bType\s+\d+\s+D(?:M|iabetes(?:\s+Mellitus)?)\b/gi,
   /\b(?:Hypertension|HTN|Diabetes(?:\s+Mellitus)?|Dyslipidemia|Hypothyroid(?:ism)?|Pre-?Diabetes|PCOS|Migraine|URTI|AUB|Primigravida|COPD|Asthma|Bronchial\s+Asthma|IHD|Ischemic\s+Heart\s+Disease|Diabetic\s+Nephropathy|Renal\s+Anemia|Hyperparathyroidism|Pre-?eclampsia|Gestational\s+DM|GDM|Anemia|Conjunctivitis|Viral\s+Fever|Pharyngitis|Otitis|Sinusitis|Pneumonia|UTI|Gastritis|Vertigo|Sciatica|Arthritis|Gout|Cellulitis|Fibroid\s+Uterus|Iron\s+Deficiency\s+Anemia|Fatigue\s+Syndrome|AUB-Ovulatory\s+Dysfunction|Migraine\s+without\s+Aura|Acute\s+URTI|Routine\s+ANC|Stable\s+Angina|Reactive\s+Airways)\b/gi,
   /\bpost-?(?:MI|CABG|angioplasty)\b/gi,
+  // Common symptoms
+  /\b(?:Fever|Headache|Cough|Dry\s+Cough|Fatigue|Dizziness|Nausea|Vomiting|Chest\s+Pain|Back\s+Pain|Pedal\s+(?:Edema|Oedema)|Eye\s+Redness|Breathlessness|Palpitations|Abdominal\s+Pain|Joint\s+Pain|Weight\s+(?:Loss|Gain)|Leg\s+Swelling|Heavy\s+(?:Menstrual\s+)?Bleeding|Irregular\s+Cycles|Reduced\s+Appetite|Poor\s+Sleep|Braxton-?Hicks)\b/gi,
+  // Durations as standalone (e.g., "3 days", "2 weeks", "6 months", "18 years")
+  /\b\d+\s*(?:days?|weeks?|months?|years?|yr|wk|mo)\b/gi,
   /\b(?:peritoneal|hemo)\s*dialysis\b/gi,
   // Medications
   /\b(?:Telma|Metsmall|Metsmail|Metformin|Paracetamol|Azithromycin|Sumatriptan|Naproxen|Vitamin\s+D\d*|Rosuvastatin|Melatonin|CoQ10|Thyronorm|Folic\s+Acid|Calcium|Amoxicillin|Salbutamol|Autrin|Tranexamic\s+Acid|Iron\+Folic|Amlodipine|Atorvastatin|Telmisartan|Erythropoietin|EPO|Calcitriol|Sevelamer|Pantoprazole|Insulin(?:\s+Glargine)?|Glimepiride|Aspirin|Clopidogrel|Levocetrizine|Budecort|Furosemide|Sulfonamides)\s*\d*\w*\b/gi,

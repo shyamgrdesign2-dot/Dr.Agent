@@ -9,7 +9,7 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
   "__patient__": {
     specialtyTags: ["General Medicine", "Diabetology"],
     followUpOverdueDays: 5,
-    patientNarrative: "Fever since 3 days with evening spikes, dry cough 2 days, eye redness bilateral",
+    patientNarrative: "25-year-old male presenting with Fever since 3 days with evening spikes, Dry Cough 2 days, and Eye Redness bilateral. Known Diabetes (1yr) and Hypertension (6mo), on Telma 20mg and Metsmail 500mg. Allergic to Dust and Egg.",
     sbarSituation: "25M, 3-day fever with evening spikes, dry cough, bilateral conjunctivitis. Known Diabetes 1yr + Hypertension 6mo. BP 70/60, SpO2 93%, Temp 104°F. Working Dx: Viral fever, conjunctivitis.",
     familyHistory: ["Thyroid (Mom, Aunt)", "Diabetes (Father)"],
     lifestyleNotes: ["Smoking (2yr, Active)", "Alcohol (occasional, Active)"],
@@ -160,7 +160,7 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
   "apt-anjali": {
     specialtyTags: ["General Medicine", "Ophthalmology"],
     followUpOverdueDays: 0,
-    patientNarrative: "Headache since 4 days with eye strain, history of migraine",
+    patientNarrative: "28-year-old female with Headache since 4 days with eye strain. Known Migraine without Aura, on Sumatriptan and Naproxen. Mild Myopia (stable). Last seen 22 Jan for routine eye check.",
     familyHistory: ["Migraine (Mother)"],
     lifestyleNotes: ["Screen time >8hr/day (Active)", "No exercise (Active)"],
     allergies: [],
@@ -220,7 +220,7 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
   "apt-vikram": {
     specialtyTags: ["General Medicine", "Cardiology"],
     followUpOverdueDays: 12,
-    patientNarrative: "Fatigue since 2 weeks, poor sleep quality, late meals",
+    patientNarrative: "42-year-old male with Fatigue since 2 weeks, Poor Sleep quality, and late meals. Known Hypertension (3yr) and Dyslipidemia (2yr), on Amlodipine 5mg and Atorvastatin 10mg. Follow-up overdue by 12 days.",
     familyHistory: ["CAD (Father)", "DM (Mother)"],
     lifestyleNotes: ["Sedentary (Active)", "Late dinners (Active)", "Alcohol (weekends, Active)"],
     allergies: ["Sulfa drugs"],
@@ -259,7 +259,7 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
   "apt-priya": {
     specialtyTags: ["Obstetrics", "High-risk Pregnancy"],
     followUpOverdueDays: 0,
-    patientNarrative: "Pedal edema since 3 days, lower back pain 2 days, occasional Braxton-Hicks",
+    patientNarrative: "26-year-old Primigravida at 38 weeks gestation. Pedal Edema since 3 days, Back Pain 2 days, occasional Braxton-Hicks. BP trending high (138/88). Known Hypothyroid, on Thyronorm 50mcg. High-risk: advanced gestation with edema.",
     familyHistory: ["Pre-eclampsia (Mother)", "GDM (Sister)"],
     lifestyleNotes: [],
     allergies: ["Sulfa drugs"],
@@ -315,7 +315,7 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
   "apt-arjun": {
     specialtyTags: ["Pediatrics"],
     followUpOverdueDays: 0,
-    patientNarrative: "Dry cough 3 days, reduced appetite, not eating well since 1 week",
+    patientNarrative: "4-year-old male with Dry Cough 3 days and Reduced Appetite since 1 week. Weight at 25th percentile, Height at 15th percentile — growth monitoring in progress. Vaccine: MMR-2 overdue.",
     familyHistory: ["Asthma (Father)"],
     lifestyleNotes: ["Picky eater", "Screen time 3hr/day"],
     allergies: [],
@@ -355,7 +355,7 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
   "apt-lakshmi": {
     specialtyTags: ["Gynecology", "Endocrinology"],
     followUpOverdueDays: 0,
-    patientNarrative: "Heavy menstrual bleeding since 6 months, increasing fatigue, irregular cycles",
+    patientNarrative: "45-year-old female with Heavy Menstrual Bleeding since 6 months, increasing Fatigue, and Irregular Cycles (35-40 days). Known Hypothyroid and Iron Deficiency Anemia, on Thyronorm 75mcg and Autrin. Perimenopause evaluation needed.",
     familyHistory: ["Breast cancer (Aunt)", "Thyroid (Mother)"],
     lifestyleNotes: ["Vegetarian (Active)", "Walks 20min/day (Active)"],
     allergies: ["Ibuprofen"],
@@ -397,6 +397,7 @@ export const SMART_SUMMARY_BY_CONTEXT: Record<string, SmartSummaryData> = {
   "apt-zerodata": {
     specialtyTags: [],
     followUpOverdueDays: 0,
+    patientNarrative: "New patient. Patient reports Joint Pain and morning stiffness since 1 week. Allergic to Sulfonamides. No prior clinical history available.",
     allergies: ["Sulfonamides"],
     chronicConditions: [],
     labFlagCount: 0,
