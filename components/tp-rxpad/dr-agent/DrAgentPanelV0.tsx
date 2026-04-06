@@ -1022,8 +1022,11 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
           )}
           {/* Trust mark — no input box in V0 */}
           <div className="px-3 py-2 flex items-center justify-center gap-1.5">
-            <span className="h-[5px] w-[5px] rounded-full bg-tp-slate-300" />
-            <p className="text-[10px] text-tp-slate-400">Your data stays private · AI assists, you decide</p>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-tp-slate-400 flex-shrink-0">
+              <path d="M10.49 2.23l-5.18 2.3c-1.48.66-2.69 2.5-2.69 4.1v6.16c0 1.54 1.02 3.57 2.27 4.51l3.84 2.88c1.85 1.39 4.88 1.39 6.73 0l3.84-2.88c1.25-.94 2.27-2.97 2.27-4.51V8.63c0-1.6-1.21-3.44-2.69-4.1l-5.18-2.3c-.91-.41-2.4-.41-3.21 0z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M12 12.5a2 2 0 100-4 2 2 0 000 4zM12 12.5v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <p className="text-[10px] text-tp-slate-400">Data stays private · AI-assisted, you decide</p>
           </div>
         </div>
       )}

@@ -618,7 +618,7 @@ export function ChatInput({
       <div className="mt-[4px] mb-[14px] flex items-center justify-center gap-[4px]">
         <SecuritySafe size={12} variant="Bulk" className="shrink-0 text-tp-slate-300" />
         <span className="text-[11px] leading-[1.4] text-tp-slate-300">
-          Your data stays private · AI assists, you decide
+          Data stays private · AI-assisted, you decide
         </span>
       </div>
     </div>
