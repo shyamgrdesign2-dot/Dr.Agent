@@ -25,7 +25,7 @@ import { buildReply } from "./engines/reply-engine"
 import { SearchNormal1 } from "iconsax-reactjs"
 import {
   DocumentText, ClipboardText, Health, Calendar2,
-  Activity, Clock,
+  Activity, Clock, SecuritySafe,
 } from "iconsax-reactjs"
 import { AgentHeader } from "./shell/AgentHeader"
 import { ChatThread } from "./chat/ChatThread"
@@ -80,7 +80,7 @@ function UserBulkIcon({ size = 12, className }: { size?: number; className?: str
 const V0_ALLOWED_KINDS = new Set([
   "sbar_overview", "patient_summary", "symptom_collector", "last_visit",
   "obstetric_summary", "gynec_summary", "pediatric_summary", "ophthal_summary",
-  "vitals_summary", "medical_history",
+  "vitals_summary", "medical_history", "text_quote",
 ])
 
 // ═══════════════ V0 PILL-TO-CARD MAP ═══════════════
@@ -681,7 +681,7 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
 
     const tone: PillTone = "primary"
     const candidates: CannedPill[] = [
-      { id: "v0-summary", label: "Patient summary", priority: 10, layer: 3, tone },
+      // Patient summary pill removed — short summary is auto-shown on patient select
       ...(hasIntake ? [{ id: "v0-intake", label: "Reported by patient", priority: 15, layer: 3, tone } as CannedPill] : []),
       { id: "v0-history", label: "Medical history", priority: 20, layer: 3, tone },
       ...(summary.chronicConditions?.length ? [{ id: "v0-chronic", label: "Chronic conditions", priority: 21, layer: 3, tone } as CannedPill] : []),
@@ -781,6 +781,18 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
       }
 
       let reply = buildReply(msg, summary, newPhase, intent)
+
+      // V0 override: "Patient summary" always returns short text_quote, never SBAR card
+      const normalizedMsg = msg.toLowerCase()
+      if (normalizedMsg.includes("patient summary") || normalizedMsg.includes("summary") || normalizedMsg.includes("snapshot")) {
+        const narrative = summary.patientNarrative || summary.sbarSituation
+        if (narrative) {
+          reply = {
+            text: "Here's the clinical snapshot.",
+            rxOutput: { kind: "text_quote", data: { quote: narrative, source: "" } },
+          }
+        }
+      }
 
       // V0 guard: only allow summary card kinds, strip unsupported cards
       if (reply.rxOutput && !V0_ALLOWED_KINDS.has(reply.rxOutput.kind)) {
@@ -1022,11 +1034,8 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
           )}
           {/* Trust mark — no input box in V0 */}
           <div className="px-3 py-2 flex items-center justify-center gap-1.5">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-tp-slate-400 flex-shrink-0">
-              <path d="M10.49 2.23l-5.18 2.3c-1.48.66-2.69 2.5-2.69 4.1v6.16c0 1.54 1.02 3.57 2.27 4.51l3.84 2.88c1.85 1.39 4.88 1.39 6.73 0l3.84-2.88c1.25-.94 2.27-2.97 2.27-4.51V8.63c0-1.6-1.21-3.44-2.69-4.1l-5.18-2.3c-.91-.41-2.4-.41-3.21 0z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M12 12.5a2 2 0 100-4 2 2 0 000 4zM12 12.5v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <p className="text-[10px] text-tp-slate-400">Data stays private · AI-assisted, you decide</p>
+            <SecuritySafe size={12} variant="Bulk" className="shrink-0 text-tp-slate-300" />
+            <p className="text-[10px] text-tp-slate-300">Data stays private · AI-assisted, you decide</p>
           </div>
         </div>
       )}
