@@ -705,13 +705,21 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
   const hasMessagesForPatient = selectedPatientId ? !!messagesByPatient[selectedPatientId] : false
   useEffect(() => {
     if (selectedPatientId && !hasMessagesForPatient) {
-      // V0: Auto-inject short summary as the first assistant response
+      // V0: Auto-inject short summary as a text_fact card with highlighted clinical terms
       const narrative = summary.patientNarrative || summary.sbarSituation
       const autoMessages: RxAgentChatMessage[] = narrative ? [
         {
           id: `v0-auto-summary-${selectedPatientId}`,
           role: "assistant",
-          text: narrative,
+          text: "Here's a quick clinical snapshot.",
+          rxOutput: {
+            kind: "text_fact",
+            data: {
+              value: narrative,
+              context: summary.specialtyTags?.join(", ") || "General Medicine",
+              source: "EMR + AI Summary",
+            },
+          },
           createdAt: new Date().toISOString(),
         },
       ] : []
