@@ -4,9 +4,10 @@ import React, { useState } from "react"
 
 // ═══════════════════════════════════════════════════════════════
 // DR. AGENT V0 — SCOPE & SPECIFICATION
-// Documents the simplified V0 variant: what's included,
-// what's excluded, pill filtering, guard behavior,
-// and the default-on mode toggle.
+// Canned-message-driven, summary-only agent variant.
+// No free-text input. Doctors interact exclusively through
+// pre-built message pills. A short clinical narrative is
+// auto-surfaced the moment a patient is selected.
 // ═══════════════════════════════════════════════════════════════
 
 // ── Shared helpers ──
@@ -69,12 +70,12 @@ function SpecTable({ headers, rows }: { headers: string[]; rows: (string | React
 // ── Data ──
 
 const V0_ALLOWED_CARDS: { kind: string; label: string; category: string }[] = [
+  { kind: "text_fact", label: "Short Summary (auto)", category: "Summary" },
   { kind: "sbar_overview", label: "SBAR Clinical Overview", category: "Summary" },
   { kind: "patient_summary", label: "Patient Summary Snapshot", category: "Summary" },
   { kind: "symptom_collector", label: "Reported by Patient", category: "Intake" },
   { kind: "last_visit", label: "Past Visit Summaries", category: "History" },
   { kind: "medical_history", label: "Medical History (Expanded)", category: "History" },
-
   { kind: "vitals_summary", label: "Today's Vitals Table", category: "Assessment" },
   { kind: "obstetric_summary", label: "Obstetric Summary", category: "Specialty" },
   { kind: "gynec_summary", label: "Gynecology Summary", category: "Specialty" },
@@ -102,6 +103,15 @@ const V0_PILLS = [
   { label: "Vision summary", kind: "ophthal_summary", condition: "Ophthal patient" },
 ]
 
+const SHORT_SUMMARY_SCENARIOS = [
+  { scenario: "Full data + intake", history: "Yes", symptoms: "Yes", result: "Complete narrative with symptoms lead" },
+  { scenario: "Full data, no intake", history: "Yes", symptoms: "No", result: "Chronic conditions + meds focus" },
+  { scenario: "Specialty patient", history: "Yes", symptoms: "Varies", result: "Specialty lead-in (obstetric/gynec/peds/ophthal)" },
+  { scenario: "Minimal data", history: "Partial", symptoms: "No", result: "Available data only, no stubs" },
+  { scenario: "New patient + intake", history: "No", symptoms: "Yes", result: "\"New patient. Presents with [symptoms]\"" },
+  { scenario: "Zero data", history: "No", symptoms: "No", result: "\"New patient, no prior clinical data available\"" },
+]
+
 // ── Sub-sections ──
 
 type SubTab = "overview" | "scope" | "pills" | "guard"
@@ -123,16 +133,16 @@ export default function AgentV0ScopeTab() {
       <div className="mb-6 rounded-xl border border-violet-200/60 bg-gradient-to-br from-violet-50/80 to-blue-50/40 p-5">
         <div className="flex items-center gap-2 mb-2">
           <span className="flex h-6 w-6 items-center justify-center rounded-md bg-violet-600 text-[10px] font-bold text-white">V0</span>
-          <h2 className="text-[16px] font-bold text-slate-800">Dr. Agent V0 — Simplified Variant</h2>
+          <h2 className="text-[16px] font-bold text-slate-800">Dr. Agent V0 — Canned-Message Summary Agent</h2>
         </div>
         <p className="text-[12px] leading-relaxed text-slate-600">
-          V0 is a <strong>summary-only variant</strong> of Dr. Agent. It provides patient context intelligence — summaries, history, vitals — but strips away all clinical action features (DDX, protocol meds, drug interactions, investigations). Designed for clinics that need a lightweight AI co-pilot focused on <strong>context surfacing</strong>, not clinical decision support.
+          V0 is a <strong>summary-only, canned-message-driven</strong> agent variant. There is no free-text input — doctors interact exclusively through pre-built message pills. When a patient is selected, a short clinical narrative is auto-surfaced as the first response, giving the doctor immediate context before they tap a single pill. Designed for clinics that want AI-assisted <strong>context surfacing</strong> without clinical decision support.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <span className="rounded-full bg-violet-100 px-2.5 py-1 text-[10px] font-semibold text-violet-700">Default: ON</span>
-          <span className="rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-semibold text-blue-700">10 Card Types</span>
-          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">Summary-Only Pills</span>
-          <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold text-amber-700">No Clinical Actions</span>
+          <span className="rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-semibold text-blue-700">No Free-Text Input</span>
+          <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">Auto Short Summary</span>
+          <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-semibold text-amber-700">Canned Pills Only</span>
         </div>
       </div>
 
@@ -168,22 +178,28 @@ export default function AgentV0ScopeTab() {
 function OverviewSection() {
   return (
     <div className="space-y-8">
-      <DocSection number="1" title="What V0 Does" subtitle="Summary-only AI co-pilot — context surfacing without clinical actions.">
+      <DocSection number="1" title="What V0 Does" subtitle="A canned-message-driven co-pilot that surfaces patient context — no free-text, no clinical actions.">
+        <p className="text-[11px] text-slate-600 leading-relaxed mb-4">
+          V0 strips the agent down to its most essential behavior: showing the doctor what they need to know about a patient, using only pre-built message pills. There is no input box. The doctor never types a question — they tap a pill, and the agent responds with the relevant summary card. The moment a patient is selected, V0 auto-generates a short clinical narrative so the doctor has immediate context without pressing anything.
+        </p>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">
             <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-2">What V0 Includes</p>
             <ul className="space-y-1 text-[11px] text-emerald-800">
-              <li>• Patient summary narratives (SBAR-based)</li>
+              <li>• Auto short summary on patient select</li>
+              <li>• Canned message pills (the only interaction)</li>
               <li>• Medical history overview</li>
               <li>• Today{"'"}s vitals display</li>
-              <li>• Past visit summaries (any specific date)</li>
-              <li>• Reported by patient from patient app</li>
+              <li>• Past visit summaries</li>
+              <li>• Patient-reported symptoms (intake)</li>
               <li>• Specialty summaries (OB/GYN/Peds/Ophthal)</li>
+              <li>• Trust mark: &ldquo;Your data stays private&rdquo;</li>
             </ul>
           </div>
           <div className="rounded-lg border border-rose-200 bg-rose-50/50 p-3">
             <p className="text-[10px] font-bold text-rose-700 uppercase tracking-wider mb-2">What V0 Excludes</p>
             <ul className="space-y-1 text-[11px] text-rose-800">
+              <li>• Free-text input box</li>
               <li>• Differential diagnosis (DDX)</li>
               <li>• Protocol medication suggestions</li>
               <li>• Drug interaction checks</li>
@@ -196,44 +212,117 @@ function OverviewSection() {
         </div>
       </DocSection>
 
-      <DocSection number="2" title="Default Mode" subtitle="V0 is enabled by default — the user must explicitly switch to the full variant.">
+      <DocSection number="2" title="The Doctor Flow" subtitle="From appointment list to V0 panel — every step the doctor takes.">
+        <div className="space-y-3">
+          {[
+            { step: "1", title: "Appointment list", desc: "Doctor sees today's appointments. Each row has a small AI icon on the right side." },
+            { step: "2", title: "Hover on AI icon", desc: "A short tooltip appears showing the patient's clinical narrative (the same short summary text). The CTA reads \"Open Doctor Agent\"." },
+            { step: "3", title: "Click \"Open Doctor Agent\"", desc: "The V0 panel slides open on the right. If the agent panel was already open for a different patient, it switches context to the clicked patient." },
+            { step: "4", title: "Short summary auto-shown", desc: "A text_fact card with the patient's short narrative is automatically rendered as the first response — no pill tap required." },
+            { step: "5", title: "Canned pills visible below chat", desc: "Below the conversation area, a row of canned message pills is always visible. The doctor taps one to explore deeper." },
+            { step: "6", title: "Trust mark at bottom", desc: "Below the pills, a subtle trust line reads: \"Your data stays private · AI assists, you decide\"." },
+          ].map((item) => (
+            <div key={item.step} className="flex gap-3 rounded-lg border border-slate-200 bg-white p-3">
+              <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-violet-100 text-[10px] font-bold text-violet-700">{item.step}</span>
+              <div>
+                <p className="text-[11px] font-semibold text-slate-800">{item.title}</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </DocSection>
+
+      <DocSection number="3" title="Patient Short Summary Generation" subtitle="The auto-generated clinical narrative — the heart of V0's first impression.">
+        <Callout tone="blue" label="What is the short summary?">
+          <p>A <strong>1-3 sentence clinical narrative</strong> auto-generated from SmartSummaryData. This exact text appears in two places: the appointment AI icon tooltip and the V0 panel{"'"}s first auto-response. It gives the doctor immediate patient context — chief concern, chronic conditions, active medications — without requiring any interaction.</p>
+        </Callout>
+
+        <div className="mt-4 mb-4">
+          <p className="text-[11px] font-semibold text-slate-700 mb-2">Composition Pipeline (5 steps)</p>
+          <div className="space-y-2">
+            {[
+              { step: "1", title: "Specialty lead-in", desc: "If the patient is obstetric, gynec, pediatric, or ophthal, the summary opens with a specialty-specific lead. Example: \"G2P1 at 26wk\" for obstetric patients." },
+              { step: "2", title: "Chief concern", desc: "Current symptoms or reason for visit. Pulled from intake data when available. Self-reported data is prefixed with \"Patient reports\"." },
+              { step: "3", title: "Chronic conditions", desc: "Top 2-3 conditions with duration. Example: \"Known case of Type 2 Diabetes (1yr), Hypertension (3yr)\". First mention uses full name — no abbreviations." },
+              { step: "4", title: "Drug allergies", desc: "Listed only when present. If absent, the summary skips this entirely — it never says \"No known allergies\"." },
+              { step: "5", title: "Active medications", desc: "Top 2-3 medications listed with overflow. Example: \"On Metformin, Amlodipine + 4 others\". Maximum 3 named, the rest collapsed." },
+            ].map((item) => (
+              <div key={item.step} className="flex gap-3 rounded-lg border border-slate-200 bg-white p-3">
+                <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-[10px] font-bold text-blue-700">{item.step}</span>
+                <div>
+                  <p className="text-[11px] font-semibold text-slate-800">{item.title}</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <Callout tone="amber" label="Character Limits">
+            <p><strong>Target range:</strong> 150-300 characters. <strong>Hard cap:</strong> 400 characters. The summary is meant to be scanned in under 5 seconds — if it gets longer, the pipeline truncates at the medication step.</p>
+          </Callout>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-[11px] font-semibold text-slate-700 mb-2">Data Sources</p>
+          <p className="text-[11px] text-slate-600 leading-relaxed">
+            Primary source is the <code className="rounded bg-slate-100 px-1 py-0.5 text-[10px] font-mono">patientNarrative</code> field in SmartSummaryData. If unavailable, the system falls back to <code className="rounded bg-slate-100 px-1 py-0.5 text-[10px] font-mono">sbarSituation</code> from the SBAR engine.
+          </p>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-[11px] font-semibold text-slate-700 mb-2">Permutations — 6 Scenarios</p>
+          <SpecTable
+            headers={["Scenario", "History", "Symptoms", "Result"]}
+            rows={SHORT_SUMMARY_SCENARIOS.map((s) => [
+              <span key={s.scenario} className="font-medium">{s.scenario}</span>,
+              <span key={`h-${s.scenario}`} className={s.history === "Yes" ? "text-emerald-600 font-medium" : s.history === "No" ? "text-rose-500 font-medium" : "text-amber-600 font-medium"}>{s.history}</span>,
+              <span key={`sy-${s.scenario}`} className={s.symptoms === "Yes" ? "text-emerald-600 font-medium" : s.symptoms === "No" ? "text-rose-500 font-medium" : "text-amber-600 font-medium"}>{s.symptoms}</span>,
+              s.result,
+            ])}
+          />
+        </div>
+
+        <div className="mb-4">
+          <Callout tone="emerald" label="Formatting Rules">
+            <ul className="space-y-1 ml-2">
+              <li>• <strong>Bold:</strong> condition names, drug names, critical values</li>
+              <li>• <strong>No abbreviations</strong> for primary conditions on first mention (use &ldquo;Diabetes&rdquo; not &ldquo;DM&rdquo;)</li>
+              <li>• <strong>Max 3 medications</strong> listed, excess as &ldquo;+ N others&rdquo;</li>
+              <li>• <strong>Never say &ldquo;No allergies&rdquo;</strong> — skip the allergy line entirely if absent</li>
+              <li>• <strong>Self-reported data</strong> prefixed with &ldquo;Patient reports&rdquo;</li>
+            </ul>
+          </Callout>
+        </div>
+
+        <div>
+          <p className="text-[11px] font-semibold text-slate-700 mb-2">Display Format</p>
+          <p className="text-[11px] text-slate-600 leading-relaxed mb-2">
+            Rendered as a <code className="rounded bg-slate-100 px-1 py-0.5 text-[10px] font-mono">text_fact</code> card with clinical term highlighting via <code className="rounded bg-slate-100 px-1 py-0.5 text-[10px] font-mono">highlightClinicalText</code>.
+          </p>
+          <SpecTable
+            headers={["Card Field", "Value"]}
+            rows={[
+              ["kind", <code key="k" className="text-[10px] font-mono text-violet-700">text_fact</code>],
+              ["value", "The narrative text (highlighted via highlightClinicalText)"],
+              ["context", "Specialty tags when applicable"],
+              ["source", <span key="src" className="font-medium">&ldquo;EMR + AI Summary&rdquo;</span>],
+            ]}
+          />
+        </div>
+      </DocSection>
+
+      <DocSection number="4" title="Default Mode & Welcome Screen" subtitle="V0 is enabled by default — the welcome screen only appears when no patient is selected.">
         <Callout tone="blue" label="Mode Toggle">
           <p>The <code className="rounded bg-blue-100 px-1 py-0.5 text-[10px] font-mono">useV0Mode()</code> hook manages state:</p>
           <ul className="mt-2 space-y-1 ml-2">
             <li>• <strong>Default:</strong> V0 ON (simplified experience)</li>
             <li>• <strong>Storage:</strong> <code className="rounded bg-blue-100 px-1 py-0.5 text-[10px] font-mono">localStorage</code> key <code className="rounded bg-blue-100 px-1 py-0.5 text-[10px] font-mono">dr-agent-v0-mode</code></li>
-            <li>• <strong>Cross-page sync:</strong> Custom event <code className="rounded bg-blue-100 px-1 py-0.5 text-[10px] font-mono">v0-mode-change</code> fires on toggle</li>
-            <li>• <strong>Persistence:</strong> Survives refresh — only changes when user explicitly toggles</li>
+            <li>• <strong>Welcome screen:</strong> Only shown in homepage mode (no patient selected). Once a patient is selected, the short summary replaces the welcome screen.</li>
           </ul>
         </Callout>
-      </DocSection>
-
-      <DocSection number="3" title="Entry Points" subtitle="Where V0 appears across the app.">
-        <SpecTable
-          headers={["Entry Point", "V0 Behavior", "Notes"]}
-          rows={[
-            ["RxPad Panel", "V0 agent panel", "Summary-only experience within prescription workflow"],
-            ["Patient Details Page", "V0 agent panel via FAB", "Floating action button opens V0 panel"],
-            [<span key="hp" className="font-semibold text-amber-700">Homepage</span>, <span key="hpv" className="font-semibold text-slate-800">Full panel (NOT V0)</span>, "Operational features always available on homepage"],
-          ]}
-        />
-      </DocSection>
-
-      <DocSection number="4" title="Component Architecture" subtitle="V0 uses a standalone panel component.">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: "Component", value: "DrAgentPanelV0", desc: "Standalone, separate from DrAgentPanel" },
-            { label: "Patient Search", value: "Built-in", desc: "Own search within V0 panel" },
-            { label: "Patient Selector", value: "Shared", desc: "Same bottom sheet as full variant" },
-            { label: "Floating Chip", value: "Scroll-aware", desc: "Patient context chip floats on scroll" },
-          ].map((item) => (
-            <div key={item.label} className="rounded-lg border border-slate-200 bg-white p-3">
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{item.label}</p>
-              <p className="mt-1 text-[12px] font-bold text-slate-800">{item.value}</p>
-              <p className="mt-0.5 text-[10px] text-slate-500">{item.desc}</p>
-            </div>
-          ))}
-        </div>
       </DocSection>
     </div>
   )
@@ -245,6 +334,9 @@ function ScopeSection() {
   return (
     <div className="space-y-8">
       <DocSection number="1" title="Allowed Card Types (11)" subtitle="Only these card kinds are rendered in V0 — everything else is stripped.">
+        <p className="text-[11px] text-slate-600 leading-relaxed mb-3">
+          The <code className="rounded bg-slate-100 px-1 py-0.5 text-[10px] font-mono">text_fact</code> card is new in V0 — it auto-appears as the first response when a patient is selected, showing the short clinical narrative. All other cards are triggered by canned message pills.
+        </p>
         <SpecTable
           headers={["Card Kind", "Description", "Category"]}
           rows={V0_ALLOWED_CARDS.map((c) => [
@@ -276,11 +368,14 @@ function ScopeSection() {
         <SpecTable
           headers={["UI Element", "Full Variant", "V0 Variant"]}
           rows={[
-            ["Gradient PillBar (above input)", <span key="f1" className="font-medium text-emerald-600">All pills</span>, <span key="v1" className="font-medium text-emerald-600">Summary pills only</span>],
-            ["SidebarPillBar (secondary sidebar)", <span key="f2" className="font-medium text-emerald-600">Visible</span>, <span key="v2" className="font-medium text-rose-500">Hidden</span>],
+            ["Free-text input box", <span key="f0" className="font-medium text-emerald-600">Present</span>, <span key="v0" className="font-medium text-rose-500">Removed entirely</span>],
+            ["Auto short summary", <span key="f0b" className="font-medium text-rose-500">Not present</span>, <span key="v0b" className="font-medium text-emerald-600">Auto on patient select</span>],
+            ["Canned message pills", <span key="f1" className="font-medium text-emerald-600">Above input + sidebar</span>, <span key="v1" className="font-medium text-emerald-600">Below chat, always visible</span>],
+            ["SidebarPillBar", <span key="f2" className="font-medium text-emerald-600">Visible</span>, <span key="v2" className="font-medium text-rose-500">Hidden</span>],
             ["RxPad AiTriggerChips", <span key="f3" className="font-medium text-emerald-600">Visible</span>, <span key="v3" className="font-medium text-rose-500">Hidden</span>],
-            ["Inline suggestion chips (below messages)", <span key="f4" className="font-medium text-emerald-600">Below messages</span>, <span key="v4" className="font-medium text-rose-500">Hidden</span>],
-            ["Clinical action cards", <span key="f5" className="font-medium text-emerald-600">45+ card types</span>, <span key="v5" className="font-medium text-rose-500">10 summary types only</span>],
+            ["Inline suggestion chips", <span key="f4" className="font-medium text-emerald-600">Below messages</span>, <span key="v4" className="font-medium text-rose-500">Hidden</span>],
+            ["Trust mark", <span key="f5" className="font-medium text-rose-500">Not shown</span>, <span key="v5" className="font-medium text-emerald-600">&ldquo;Your data stays private&rdquo;</span>],
+            ["Clinical action cards", <span key="f6" className="font-medium text-emerald-600">45+ card types</span>, <span key="v6" className="font-medium text-rose-500">11 summary types only</span>],
           ]}
         />
       </DocSection>
@@ -293,10 +388,15 @@ function ScopeSection() {
 function PillSystemSection() {
   return (
     <div className="space-y-8">
-      <DocSection number="1" title="V0 Pill Generation" subtitle="V0 uses a dedicated pill list — not the generic pill-engine.">
-        <Callout tone="blue" label="Why dedicated pills?">
-          <p>The generic <code className="rounded bg-blue-100 px-1 py-0.5 text-[10px] font-mono">generatePills()</code> from pill-engine produces labels like &ldquo;Vital trends&rdquo;, &ldquo;Flagged lab results&rdquo;, &ldquo;Lab overview&rdquo; — none of which map to V0-allowed card kinds. V0 builds its own pill list using labels that are known to exist in <code className="rounded bg-blue-100 px-1 py-0.5 text-[10px] font-mono">PILL_TO_CARD_KINDS</code> and map to <code className="rounded bg-blue-100 px-1 py-0.5 text-[10px] font-mono">V0_ALLOWED_KINDS</code>.</p>
+      <DocSection number="1" title="Pills Are the Only Interaction" subtitle="V0 has no input box — canned message pills are how doctors navigate patient data.">
+        <Callout tone="rose" label="No Free-Text Input">
+          <p>Unlike the full variant, V0 completely removes the text input box. Doctors cannot type questions or commands. Every interaction flows through pre-built message pills displayed below the chat area. This deliberate constraint keeps the experience focused and prevents out-of-scope queries that V0 cannot answer.</p>
         </Callout>
+        <div className="mt-3">
+          <Callout tone="blue" label="Why dedicated pills?">
+            <p>The generic <code className="rounded bg-blue-100 px-1 py-0.5 text-[10px] font-mono">generatePills()</code> from pill-engine produces labels like &ldquo;Vital trends&rdquo;, &ldquo;Flagged lab results&rdquo; — none of which map to V0-allowed card kinds. V0 builds its own pill list using labels known to exist in <code className="rounded bg-blue-100 px-1 py-0.5 text-[10px] font-mono">PILL_TO_CARD_KINDS</code> and map to <code className="rounded bg-blue-100 px-1 py-0.5 text-[10px] font-mono">V0_ALLOWED_KINDS</code>.</p>
+          </Callout>
+        </div>
       </DocSection>
 
       <DocSection number="2" title="Available Pills" subtitle="Each pill maps to a V0-allowed card kind and appears conditionally.">
@@ -310,14 +410,15 @@ function PillSystemSection() {
         />
       </DocSection>
 
-      <DocSection number="3" title="Pill Lifecycle" subtitle="How pills appear, disappear, and interact with loading state.">
+      <DocSection number="3" title="Pill Lifecycle" subtitle="How pills appear, get used, and disappear from the conversation.">
         <div className="space-y-3">
           {[
-            { step: "1", title: "Generated on patient select", desc: "When a patient is selected, the V0 pill list is computed from available data (vitals, past visits, intake, specialty)." },
-            { step: "2", title: "Hidden during loading", desc: "While the AI is generating a response (isTyping = true), the PillBar is completely hidden — no grayed-out/disabled pills." },
-            { step: "3", title: "Shown after response", desc: "Once the response is complete, pills reappear above the input box." },
-            { step: "4", title: "Filtered by shown cards", desc: "If a pill's card kind has already been rendered in the conversation, that pill is removed from the list." },
-            { step: "5", title: "Tap triggers card", desc: "Tapping a pill sends it as a user message. The intent engine maps it to the corresponding card kind." },
+            { step: "1", title: "Auto short summary first", desc: "When a patient is selected, the short summary text_fact card auto-renders as the first response. No pill tap needed — the doctor sees context immediately." },
+            { step: "2", title: "Pills always visible below chat", desc: "Canned message pills are displayed below the conversation area, always visible. They do not sit inside or above an input box (there is no input box)." },
+            { step: "3", title: "Tap triggers card", desc: "Tapping a pill sends it as a user message. The intent engine maps it to the corresponding card kind, and the response appears in the chat." },
+            { step: "4", title: "Used pills are removed", desc: "Once a pill has been tapped and its card rendered, that pill is removed from the visible list. This prevents duplicate requests and gives the doctor a clear sense of what they have not yet explored." },
+            { step: "5", title: "Hidden during loading", desc: "While the AI is generating a response (isTyping = true), the pill area is hidden — no grayed-out or disabled pills." },
+            { step: "6", title: "Reappear after response", desc: "Once the response is complete, remaining (unused) pills reappear below the chat." },
           ].map((item) => (
             <div key={item.step} className="flex gap-3 rounded-lg border border-slate-200 bg-white p-3">
               <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-violet-100 text-[10px] font-bold text-violet-700">{item.step}</span>
@@ -357,7 +458,10 @@ function GuardBehaviorSection() {
         </div>
       </DocSection>
 
-      <DocSection number="2" title="Welcome Screen — Canned Action Priority" subtitle="V0 shows 4 canned actions on the welcome screen using smart selection.">
+      <DocSection number="2" title="Welcome Screen — Homepage Only" subtitle="The welcome screen with canned actions only appears when no patient is selected.">
+        <p className="text-[11px] text-slate-600 leading-relaxed mb-3">
+          In V0, the welcome screen is strictly a homepage-mode concept. Once a patient is selected (via the appointment list AI icon or the patient search), the welcome screen is replaced by the auto-generated short summary. The welcome screen is never shown alongside patient data.
+        </p>
         <SpecTable
           headers={["Priority", "Candidate", "Title", "Condition"]}
           rows={[
@@ -368,26 +472,19 @@ function GuardBehaviorSection() {
             ["5 (fallback)", <span key="c5" className="font-semibold">Vitals</span>, "\"Today's vitals\"", "Always available as fallback"],
           ]}
         />
-        <div className="mt-3">
-          <Callout tone="amber" label="Selection Rules (pick 4)">
-            <ul className="space-y-1 ml-2">
-              <li>• <strong>With intake + specialty:</strong> Intake → Summary → History → Specialty</li>
-              <li>• <strong>With intake + no specialty:</strong> Intake → Summary → History → Vitals</li>
-              <li>• <strong>No intake + specialty:</strong> Summary → History → Specialty → Vitals</li>
-              <li>• <strong>No intake + no specialty:</strong> Summary → History → Vitals → Past visit details</li>
-            </ul>
-          </Callout>
-        </div>
       </DocSection>
 
       <DocSection number="3" title="V0 Conditional Elements" subtitle="How other UI components respond to V0 mode.">
         <SpecTable
           headers={["Component", "File", "V0 Behavior"]}
           rows={[
+            [<span key="ip" className="font-medium">Input Box</span>, <code key="ipf" className="text-[10px] font-mono text-slate-500">DrAgentPanelV0.tsx</code>, "Completely removed — not hidden, not disabled"],
             [<span key="sb" className="font-medium">SidebarPillBar</span>, <code key="sbf" className="text-[10px] font-mono text-slate-500">ContentPanel.tsx</code>, "Hidden via !isV0Mode guard"],
             [<span key="ai" className="font-medium">AiTriggerChip</span>, <code key="aif" className="text-[10px] font-mono text-slate-500">RxPadFunctional.tsx</code>, "All 5 chips hidden via !isV0Mode"],
             [<span key="sg" className="font-medium">Inline Suggestions</span>, <code key="sgf" className="text-[10px] font-mono text-slate-500">DrAgentPanelV0.tsx</code>, "suggestions field omitted from messages"],
-            [<span key="pb" className="font-medium">PillBar</span>, <code key="pbf" className="text-[10px] font-mono text-slate-500">DrAgentPanelV0.tsx</code>, "Dedicated V0 pill list, hidden during loading"],
+            [<span key="pb" className="font-medium">Canned Pills</span>, <code key="pbf" className="text-[10px] font-mono text-slate-500">DrAgentPanelV0.tsx</code>, "Below chat, always visible, removed after use"],
+            [<span key="tt" className="font-medium">AI Icon Tooltip</span>, <code key="ttf" className="text-[10px] font-mono text-slate-500">AppointmentRow.tsx</code>, "Shows short summary + \"Open Doctor Agent\" CTA"],
+            [<span key="tm" className="font-medium">Trust Mark</span>, <code key="tmf" className="text-[10px] font-mono text-slate-500">DrAgentPanelV0.tsx</code>, "\"Your data stays private · AI assists, you decide\""],
           ]}
         />
       </DocSection>
