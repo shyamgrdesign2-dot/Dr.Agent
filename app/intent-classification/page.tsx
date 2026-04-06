@@ -902,65 +902,69 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">1</span>
             <h4 className="text-[15px] font-bold text-slate-800">Card Architecture</h4>
           </div>
-          <p className="mb-4 ml-9 text-[11px] text-slate-400">How a card is built — from the rendering pipeline through the universal CardShell to shared primitives.</p>
+          <p className="mb-4 ml-9 text-[11px] text-tp-slate-400">Every UI card is built from <strong className="text-tp-slate-600">4 zones</strong> stacked top-to-bottom inside a universal <strong className="text-tp-slate-600">CardShell</strong> wrapper.</p>
 
+          <div className="grid gap-5 lg:grid-cols-2">
+            {/* Left: 4 zone cards + ASCII reference */}
+            <div className="space-y-3">
+              {/* 4 Zone Cards — visual, not just bullets */}
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { zone: "Header", color: "border-l-blue-500 bg-blue-50/30", icon: "1", desc: "Identity layer — icon, title, date badge, copy button, collapse toggle" },
+                  { zone: "Content", color: "border-l-violet-500 bg-violet-50/30", icon: "2", desc: "Main payload — inline rows, charts, tables, section tags, data grids" },
+                  { zone: "Canned Messages", color: "border-l-amber-500 bg-amber-50/30", icon: "3", desc: "Next-step pill suggestions — max 4, contextual to the card content" },
+                  { zone: "Footer", color: "border-l-emerald-500 bg-emerald-50/30", icon: "4", desc: "0, 1, or 2 CTAs — secondary (actions) or tertiary (navigation)" },
+                ].map(z => (
+                  <div key={z.zone} className={`rounded-lg border-l-[3px] ${z.color} px-3 py-2.5`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-700 text-[9px] font-bold text-white">{z.icon}</span>
+                      <p className="text-[12px] font-semibold text-tp-slate-700">{z.zone}</p>
+                    </div>
+                    <p className="text-[11px] leading-[1.5] text-tp-slate-500">{z.desc}</p>
+                  </div>
+                ))}
+              </div>
 
-
-          {/* ── Step 2: Card structure + Live preview ── */}
-          <div className="mb-3 grid gap-4 lg:grid-cols-2">
-            <div className="space-y-2">
-              <div className="overflow-x-auto rounded-[10px] bg-slate-900 px-3 py-3 font-mono text-[9px] leading-[1.5] text-emerald-300">
+              {/* Compact ASCII reference */}
+              <div className="overflow-x-auto rounded-[10px] bg-slate-900 px-3 py-2.5 font-mono text-[9px] leading-[1.4] text-emerald-300">
                 <pre>{`┌─ CardShell ──────────────────────────────┐
-│ HEADER                                  │
-│ [icon] [title/subtitle] [copy] [tag] [^]│
+│ HEADER   [icon] [title] [copy] [tag] [^]│
 ├─────────────────────────────────────────┤
-│ CONTENT                                 │
-│ rows / tags / tables / charts / lists   │
+│ CONTENT  rows / tags / charts / lists   │
 ├─────────────────────────────────────────┤
-│ CANNED MESSAGES                         │
-│ [Compare prev] [Show trend] [Next]      │
+│ PILLS    [Compare] [Trend] [Next steps] │
 ├─────────────────────────────────────────┤
-│ FOOTER                                  │
-│ 0 / 1 / 2 CTAs                         │
+│ FOOTER   0 / 1 / 2 CTAs                │
 └─────────────────────────────────────────┘`}</pre>
               </div>
-              <ul className="space-y-0.5 px-1">
-                {[
-                  "Header — identity layer: icon, title, metadata, shared controls (copy, collapse).",
-                  "Content — main payload: structured rows, tags, charts, tables, or sectioned text.",
-                  "Canned Messages — next-step suggestion pills between content and footer.",
-                  "Footer — 0, 1, or 2 CTAs. Always the final zone.",
-                ].map((t, i) => (
-                  <li key={i} className="flex items-start gap-1.5 text-[10px] leading-[1.6] text-slate-600">
-                    <span className="mt-[5px] h-1 w-1 flex-shrink-0 rounded-full bg-violet-400" />{t}
-                  </li>
-                ))}
-              </ul>
             </div>
 
+            {/* Right: Live preview */}
             <div className="rounded-xl bg-[#F1F1F5] p-4">
               <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Live Preview</p>
               <LiveCardPreview kind="lab_panel" label="Full Card — all 4 zones" />
             </div>
           </div>
-
         </section>
 
-        {/* ═══ 2. CARD DESIGN PRINCIPLES ═══ */}
+        {/* ═══ 2. DESIGN SYSTEM ═══ */}
         <section>
           <div className="mb-1 flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100 text-[13px] font-bold text-violet-600">2</span>
-            <h4 className="text-[15px] font-bold text-slate-800">Card Design Principles</h4>
+            <h4 className="text-[15px] font-bold text-slate-800">Design System</h4>
           </div>
           <p className="mb-4 ml-9 text-[11px] text-tp-slate-400">CardShell props, shared primitives, typography, color system, spacing tokens, and trust signals.</p>
+
+          <p className="mb-4 ml-9 text-[11px] text-tp-slate-400">Every card inherits these design tokens from the <strong className="text-tp-slate-600">TP Design System</strong> — colors, typography, spacing, and trust signals.</p>
 
           {/* ── CardShell Props + Shared Primitives (side by side) ── */}
           <div className="mb-3 grid gap-3 lg:grid-cols-2">
             <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-              <div className="border-b border-slate-100 bg-slate-50 px-2.5 py-1.5">
-                <p className="text-[10px] font-bold text-slate-700">CardShell Props</p>
+              <div className="border-b border-slate-100 bg-slate-50 px-3 py-2">
+                <p className="text-[11px] font-bold text-slate-700">CardShell Props</p>
+                <p className="text-[10px] text-tp-slate-400">What controls each card&apos;s appearance and behavior</p>
               </div>
-              <table className="min-w-full text-[9px]">
+              <table className="min-w-full text-[10px]">
                 <tbody>
                   {[
                     { prop: "icon / tpIconName", ctrl: "Left icon in header (SVG or TP icon name)" },
@@ -982,10 +986,11 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
             </div>
 
             <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-              <div className="border-b border-slate-100 bg-slate-50 px-2.5 py-1.5">
-                <p className="text-[10px] font-bold text-slate-700">Shared Primitives</p>
+              <div className="border-b border-slate-100 bg-slate-50 px-3 py-2">
+                <p className="text-[11px] font-bold text-slate-700">Shared Primitives</p>
+                <p className="text-[10px] text-tp-slate-400">Atomic components every card reuses</p>
               </div>
-              <div className="divide-y divide-slate-50 text-[9px]">
+              <div className="divide-y divide-slate-50 text-[10px]">
                 {[
                   { name: "InlineDataRow", desc: "Key-value with provenance dots and flags" },
                   { name: "SectionTag", desc: "Section heading with icon — never text-only" },
@@ -1299,15 +1304,15 @@ function ComprehensiveRef({ embedded = false }: { embedded?: boolean }) {
           </div>
 
           {/* Detailed zone grid */}
-          <div className="mb-4 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mb-4 grid gap-2 sm:grid-cols-2">
             {CONTENT_ZONE_TYPES_FOR_ANATOMY.map((cz) => (
-              <div key={cz.zone} className="rounded-lg border border-slate-100 bg-white px-2.5 py-2 hover:shadow-sm transition-shadow">
-                <div className="mb-0.5 flex items-center gap-1.5">
-                  <span className="text-[11px]">{cz.icon}</span>
-                  <span className="text-[9px] font-bold text-slate-800">{cz.zone}</span>
+              <div key={cz.zone} className="rounded-lg border border-slate-100 bg-white px-3 py-2.5 hover:border-violet-200 hover:shadow-sm transition-all">
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="text-[13px]">{cz.icon}</span>
+                  <span className="text-[11px] font-semibold text-tp-slate-700">{cz.zone}</span>
                 </div>
-                <p className="mb-0.5 text-[8px] leading-snug text-slate-500">{cz.description}</p>
-                <p className="text-[8px] text-slate-400 leading-snug"><strong className="text-slate-500">Used in:</strong> {cz.usedIn}</p>
+                <p className="mb-1 text-[10px] leading-[1.5] text-tp-slate-500">{cz.description}</p>
+                <p className="text-[10px] text-tp-slate-400"><strong className="text-tp-slate-500">Used in:</strong> {cz.usedIn}</p>
               </div>
             ))}
           </div>
