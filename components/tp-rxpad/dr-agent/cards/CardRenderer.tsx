@@ -444,7 +444,7 @@ function renderCard(
           <div className="rounded-[6px] px-[10px] py-[8px] text-[14px] italic leading-[1.6] text-tp-slate-600" style={{ borderLeft: "3px solid var(--tp-violet-200, #DDD6FE)" }}>
             &ldquo;{output.data.quote}&rdquo;
           </div>
-          <p className="mt-[4px] text-[14px] text-tp-slate-400">— {output.data.source}</p>
+          {output.data.source && <p className="mt-[4px] text-[14px] text-tp-slate-400">— {output.data.source}</p>}
         </div>
       )
 

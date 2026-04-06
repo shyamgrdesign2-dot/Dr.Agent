@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import { TPSplitButton } from "@/components/tp-ui/button-system/TPSplitButton"
 import {
   ArrowDown2,
   Calendar2,
@@ -179,25 +180,20 @@ export default function RxpadHeader({ className, onBack, onVisitSummary, patient
               <Eye color="#454551" size={24} strokeWidth={1.5} variant="Linear" />
               <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#454551] text-[14.7px] text-center whitespace-nowrap">Preview</p>
             </button>
-            <button
-              type="button"
-              aria-label="Save as Draft"
-              className="content-stretch flex gap-[6.3px] items-center justify-center px-[16px] py-[8px] relative rounded-[10.5px] shrink-0 transition-colors hover:bg-tp-blue-50/40"
-              data-name="Save as Draft"
-            >
-              <div aria-hidden="true" className="absolute border-[#4b4ad5] border-[1.05px] border-solid inset-[-0.525px] pointer-events-none rounded-[11.025px]" />
-              <DocumentSketch color="#4B4AD5" size={24} strokeWidth={1.5} variant="Linear" />
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[#4b4ad5] text-[14.7px] text-center whitespace-nowrap">Draft</p>
-            </button>
-            <button
-              type="button"
-              aria-label="End Visit"
-              className="bg-[#4b4ad5] content-stretch flex gap-[6.3px] items-center justify-center px-[16px] py-[8px] relative rounded-[10.5px] shrink-0 transition-colors hover:bg-[#3f3ec7]"
-              data-name="End Visit"
-            >
-              <Login color="white" size={24} strokeWidth={1.5} variant="Linear" />
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[normal] not-italic relative shrink-0 text-[14.7px] text-center text-white whitespace-nowrap">End</p>
-            </button>
+            <TPSplitButton
+              primaryAction={{
+                label: "End Visit",
+                onClick: () => {},
+                icon: <Login color="white" size={18} strokeWidth={1.5} variant="Linear" />,
+              }}
+              secondaryActions={[
+                { label: "End Visit", onClick: () => {} },
+                { label: "Save as Draft", onClick: () => {}, icon: <DocumentSketch size={16} strokeWidth={1.5} variant="Linear" /> },
+              ]}
+              variant="solid"
+              theme="primary"
+              size="md"
+            />
             <button
               type="button"
               aria-label="More options"
