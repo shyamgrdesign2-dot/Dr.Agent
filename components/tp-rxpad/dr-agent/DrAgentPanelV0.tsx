@@ -93,6 +93,10 @@ const PILL_TO_CARD_KINDS: Record<string, string[]> = {
   "Patient's detailed summary": ["patient_summary", "sbar_overview"],
   "Medical history": ["medical_history"],
   "Medical history summary": ["medical_history"],
+  "Chronic conditions": ["medical_history"],
+  "Allergies": ["medical_history"],
+  "Family history": ["medical_history"],
+  "Lifestyle": ["medical_history"],
   "Last visit": ["last_visit"],
   "Last visit details": ["last_visit"],
   "Past visit details": ["last_visit"],
@@ -680,6 +684,10 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
       { id: "v0-summary", label: "Patient summary", priority: 10, layer: 3, tone },
       ...(hasIntake ? [{ id: "v0-intake", label: "Reported by patient", priority: 15, layer: 3, tone } as CannedPill] : []),
       { id: "v0-history", label: "Medical history", priority: 20, layer: 3, tone },
+      ...(summary.chronicConditions?.length ? [{ id: "v0-chronic", label: "Chronic conditions", priority: 21, layer: 3, tone } as CannedPill] : []),
+      ...(summary.allergies?.length ? [{ id: "v0-allergies", label: "Allergies", priority: 22, layer: 3, tone } as CannedPill] : []),
+      ...(summary.familyHistory?.length ? [{ id: "v0-family", label: "Family history", priority: 23, layer: 3, tone } as CannedPill] : []),
+      ...(summary.lifestyleNotes?.length ? [{ id: "v0-lifestyle", label: "Lifestyle", priority: 24, layer: 3, tone } as CannedPill] : []),
       ...(hasVitals ? [{ id: "v0-vitals", label: "Today's vitals", priority: 25, layer: 3, tone } as CannedPill] : []),
       ...(hasLastVisit ? [{ id: "v0-past-visits", label: "Past visit summaries", priority: 30, layer: 3, tone } as CannedPill] : []),
       ...(summary.obstetricData ? [{ id: "v0-obstetric", label: "Obstetric summary", priority: 35, layer: 3, tone } as CannedPill] : []),
@@ -705,7 +713,7 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
   const hasMessagesForPatient = selectedPatientId ? !!messagesByPatient[selectedPatientId] : false
   useEffect(() => {
     if (selectedPatientId && !hasMessagesForPatient) {
-      // V0: Auto-inject short summary as a text_fact card with highlighted clinical terms
+      // V0: Auto-inject short summary as a text_quote card — just the narrative, no header/footer
       const narrative = summary.patientNarrative || summary.sbarSituation
       const autoMessages: RxAgentChatMessage[] = narrative ? [
         {
@@ -713,11 +721,10 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
           role: "assistant",
           text: "Here's a quick clinical snapshot.",
           rxOutput: {
-            kind: "text_fact",
+            kind: "text_quote",
             data: {
-              value: narrative,
-              context: summary.specialtyTags?.join(", ") || "General Medicine",
-              source: "EMR + AI Summary",
+              quote: narrative,
+              source: "",
             },
           },
           createdAt: new Date().toISOString(),

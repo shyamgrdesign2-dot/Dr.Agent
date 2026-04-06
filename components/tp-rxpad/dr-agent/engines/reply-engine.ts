@@ -712,6 +712,48 @@ export function buildReply(
   }
 
   // === MEDICAL HISTORY (patient's clinical background) ===
+  // === INDIVIDUAL HISTORY SUB-SECTIONS ===
+  if (normalized === "chronic conditions" || (normalized.includes("chronic") && normalized.includes("condition"))) {
+    if (summary.chronicConditions?.length) {
+      return {
+        text: `${summary.chronicConditions.length} chronic condition${summary.chronicConditions.length > 1 ? "s" : ""} on record.`,
+        rxOutput: { kind: "medical_history", data: { sections: [{ tag: "Chronic Conditions", items: summary.chronicConditions }] } },
+      }
+    }
+    return { text: "No chronic conditions on record for this patient." }
+  }
+
+  if (normalized === "allergies" || (normalized.includes("allerg") && !normalized.includes("conflict"))) {
+    if (summary.allergies?.length) {
+      return {
+        text: `${summary.allergies.length} allerg${summary.allergies.length > 1 ? "ies" : "y"} on record.`,
+        rxOutput: { kind: "medical_history", data: { sections: [{ tag: "Allergies", items: summary.allergies }] } },
+      }
+    }
+    return { text: "No allergies recorded for this patient." }
+  }
+
+  if (normalized === "family history" || (normalized.includes("family") && normalized.includes("history"))) {
+    if (summary.familyHistory?.length) {
+      return {
+        text: `Family history — ${summary.familyHistory.length} entries.`,
+        rxOutput: { kind: "medical_history", data: { sections: [{ tag: "Family History", items: summary.familyHistory }] } },
+      }
+    }
+    return { text: "No family history on record." }
+  }
+
+  if (normalized === "lifestyle" || normalized.includes("lifestyle note")) {
+    if (summary.lifestyleNotes?.length) {
+      return {
+        text: `Lifestyle notes — ${summary.lifestyleNotes.length} entries.`,
+        rxOutput: { kind: "medical_history", data: { sections: [{ tag: "Lifestyle", items: summary.lifestyleNotes }] } },
+      }
+    }
+    return { text: "No lifestyle notes on record." }
+  }
+
+  // === FULL MEDICAL HISTORY ===
   if (normalized.includes("medical history") || normalized.includes("med history") || normalized.includes("clinical history") || normalized.includes("past history") || normalized.includes("patient history")) {
     const sections: Array<{ tag: string; icon?: string; items: string[] }> = []
 
@@ -727,9 +769,7 @@ export function buildReply(
     if (summary.lifestyleNotes?.length) {
       sections.push({ tag: "Lifestyle", items: summary.lifestyleNotes })
     }
-    if (summary.activeMeds?.length) {
-      sections.push({ tag: "Active Meds", items: summary.activeMeds })
-    }
+    // Active medications NOT included in medical history — separate card
     // Surgical history from symptom collector
     if (summary.symptomCollectorData?.medicalHistory?.length) {
       sections.push({ tag: "History", items: summary.symptomCollectorData.medicalHistory })
