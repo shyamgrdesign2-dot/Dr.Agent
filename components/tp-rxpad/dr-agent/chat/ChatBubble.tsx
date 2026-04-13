@@ -845,24 +845,6 @@ export function ChatBubble({
           </div>
         )}
 
-        {/* Inline suggestion pills — shown only on the first assistant message (quick snapshot) */}
-        {message.suggestions && message.suggestions.length > 0 && (
-          <div className="ml-[26px] mt-[8px] w-[calc(100%-26px)]">
-            <div className="da-suggestion-scroll flex gap-[6px] overflow-x-auto pb-[2px]">
-              {message.suggestions.map((s, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => onPillTap?.(s.message)}
-                  className="flex-shrink-0 rounded-full border border-tp-slate-200 bg-white px-[10px] py-[5px] text-[12px] font-medium text-tp-slate-600 transition-all duration-150 hover:border-tp-blue-400 hover:bg-tp-blue-50 hover:text-tp-blue-600 active:scale-[0.97]"
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Card output -- offset to align under text (past the 20px icon + 6px gap) */}
         {/* Phased reveal: card slides in after text finishes streaming */}
         {message.rxOutput && (
@@ -882,6 +864,33 @@ export function ChatBubble({
               activeSpecialty={activeSpecialty}
               onPatientSelect={onPatientSelect}
             />
+          </div>
+        )}
+
+        {/* Inline AI gradient pills — below card, only on first message with suggestions */}
+        {message.suggestions && message.suggestions.length > 0 && (
+          <div className="ml-[26px] mt-[8px] w-[calc(100%-26px)]">
+            <div className="da-suggestion-scroll flex gap-[6px] overflow-x-auto pb-[2px]">
+              {message.suggestions.map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => onPillTap?.(s.message)}
+                  className="flex-shrink-0 rounded-full px-[10px] py-[5px] text-[12px] font-medium transition-all duration-150 active:scale-[0.97]"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(213,101,234,0.08) 0%, rgba(103,58,172,0.08) 50%, rgba(26,25,148,0.08) 100%)",
+                    border: "1px solid rgba(103,58,172,0.15)",
+                  }}
+                >
+                  <span style={{
+                    background: "linear-gradient(91deg, #D565EA 3%, #673AAC 67%, #1A1994 130%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}>{s.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

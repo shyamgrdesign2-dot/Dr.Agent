@@ -757,6 +757,12 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
     const msg = text || inputValue.trim()
     if (!msg || !selectedPatientId) return
 
+    // Clear inline suggestions from first message (so bottom pill bar reappears)
+    setMessagesByPatient((prev) => ({
+      ...prev,
+      [selectedPatientId]: (prev[selectedPatientId] || []).map(m => m.suggestions ? { ...m, suggestions: undefined } : m),
+    }))
+
     const userMsg: RxAgentChatMessage = {
       id: uid(),
       role: "user",
@@ -1029,7 +1035,7 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
               background: "linear-gradient(to top, rgba(255,255,255,0.98), rgba(255,255,255,0.4) 40%, transparent)",
             }}
           />
-          {pills.length > 0 && !isTyping && (
+          {pills.length > 0 && !isTyping && !messages.some(m => m.suggestions?.length) && (
             <div className="px-[4px] pt-[8px] pb-[6px]">
               <PillBar
                 pills={pills}
