@@ -174,7 +174,7 @@ function buildRecommendations(data: SmartSummaryData): string[] {
     }
   }
 
-  return recs
+  return recs.slice(0, 4) // Max 4 recommendations shown
 }
 
 /**
@@ -314,7 +314,7 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
         {hasHistory && (
           <div>
             <div className="flex items-center gap-1.5 rounded-[4px] bg-tp-slate-100 px-2 py-[3px] mb-[4px]">
-              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["History"] || "clipboard-text"} variant="bulk" size={14} color="var(--tp-slate-500, #64748B)" />
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["History"] || "clipboard-text"} variant="bulk" size={16} color="var(--tp-slate-500, #64748B)" />
               <span className="flex-1 text-[12px] font-medium text-tp-slate-500">History</span>
             </div>
             <div className="text-[14px] leading-[1.65] text-tp-slate-800 pl-[4px] space-y-[2px]">
@@ -348,7 +348,7 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
         {vitalEntries.length > 0 && (
           <div>
             <div className="flex items-center gap-1.5 rounded-[4px] bg-tp-slate-100 px-2 py-[3px] mb-[4px]">
-              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Today's Vitals"] || "activity"} variant="bulk" size={14} color="var(--tp-slate-500, #64748B)" />
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Today's Vitals"] || "activity"} variant="bulk" size={16} color="var(--tp-slate-500, #64748B)" />
               <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Today&apos;s Vitals</span>
             </div>
             <div className="pl-[4px]">
@@ -366,7 +366,7 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
         {labEntries.length > 0 && (
           <div>
             <div className="flex items-center gap-1.5 rounded-[4px] bg-tp-slate-100 px-2 py-[3px] mb-[4px]">
-              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Key Labs"] || "microscope"} variant="bulk" size={14} color="var(--tp-slate-500, #64748B)" />
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Key Labs"] || "microscope"} variant="bulk" size={16} color="var(--tp-slate-500, #64748B)" />
               <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Key Labs</span>
             </div>
             <div className="pl-[4px]">
@@ -384,7 +384,7 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
         {lastVisit && (
           <div>
             <div className="flex items-center gap-1.5 rounded-[4px] bg-tp-slate-100 px-2 py-[3px] mb-[4px]">
-              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Last Visit"] || "calendar-2"} variant="bulk" size={14} color="var(--tp-slate-500, #64748B)" />
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Last Visit"] || "calendar-2"} variant="bulk" size={16} color="var(--tp-slate-500, #64748B)" />
               <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Last Visit</span>
             </div>
             <div className="text-[14px] leading-[1.7] text-tp-slate-800 pl-[4px]">
@@ -439,7 +439,7 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
         {recommendations.length > 0 && (
           <div>
             <div className="flex items-center gap-1.5 rounded-[4px] bg-tp-slate-100 px-2 py-[3px] mb-[4px]">
-              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Due Alerts"] || "notification-status"} variant="bulk" size={14} color="var(--tp-slate-500, #64748B)" />
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Due Alerts"] || "notification-status"} variant="bulk" size={16} color="var(--tp-slate-500, #64748B)" />
               <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Recommendations</span>
             </div>
             <div className="text-[14px] leading-[1.7] pl-[4px]">
