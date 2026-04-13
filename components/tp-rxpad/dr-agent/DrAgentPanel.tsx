@@ -84,11 +84,29 @@ function buildIntroMessages(
   const hasData = summary.specialtyTags.length > 0
   const messages: RxAgentChatMessage[] = []
 
-  // ── RxPad + Homepage patient context: no pre-loaded messages ──
-  // The WelcomeScreen handles the first-time experience. When the doctor
-  // clicks a canned action (e.g. "Patient Summary"), only that response appears.
-  // No auto-generated pre-intake or summary cards — show only what the doctor asks for.
-  if (panelMode === "rxpad" || panelMode === "homepage") {
+  // ── RxPad mode: no pre-loaded messages — WelcomeScreen handles first-time ──
+  if (panelMode === "rxpad") {
+    return messages
+  }
+
+  // ── Homepage mode WITH specific patient: show short summary as text_quote ──
+  if (panelMode === "homepage" && hasData) {
+    const narrative = summary.patientNarrative || summary.sbarSituation
+    if (narrative) {
+      messages.push({
+        id: uid(),
+        role: "assistant",
+        text: "Here's a quick clinical snapshot.",
+        createdAt: new Date().toISOString(),
+        rxOutput: { kind: "text_quote", data: { quote: narrative, source: "" } },
+        feedbackGiven: null,
+      })
+      return messages
+    }
+  }
+
+  // ── Homepage mode WITHOUT patient data: no messages, WelcomeScreen handles ──
+  if (panelMode === "homepage") {
     return messages
   }
 

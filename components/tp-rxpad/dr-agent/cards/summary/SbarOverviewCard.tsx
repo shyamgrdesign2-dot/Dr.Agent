@@ -7,6 +7,7 @@ import { SectionTag, SECTION_TAG_ICON_MAP } from "../SectionTag"
 import { VITAL_META } from "../../constants"
 import type { SmartSummaryData, SpecialtyTabId } from "../../types"
 import { highlightClinicalText } from "../../shared/highlightClinicalText"
+import { TPMedicalIcon } from "@/components/tp-ui/medical-icons/TPMedicalIcon"
 import { formatWithHierarchy } from "../../shared/formatWithHierarchy"
 import { buildCoreNarrative, narrativeToPlainText, expandAbbreviation as expandAbbr } from "../../shared/buildCoreNarrative"
 
@@ -310,60 +311,85 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
           </p>
         </div>
 
-        {/* ── B — History: conditions, allergies, current meds ── */}
-        {/* Rendered manually (not via InlineDataRow) to ensure proper color hierarchy
-            for each item — "Diabetes (1yr, Active)" → dark name + lighter brackets.
-            InlineDataRow's compound split breaks on commas inside parentheses. */}
-        {hasHistory && (
-          <div className="text-[14px] leading-[1.65] text-tp-slate-800">
-            <SectionTag
-              label="History"
-              icon={SECTION_TAG_ICON_MAP["History"]}
-              onClick={onSidebarNav ? () => onSidebarNav("history") : undefined}
-            />{" "}
-            {hasConditions && (
-              <HistorySubSection label="Conditions" items={data.chronicConditions!} />
-            )}
-            {hasConditions && hasAllergies && (
-              <span className="mx-[6px] text-tp-slate-200">|</span>
-            )}
-            {hasAllergies && (
-              <HistorySubSection label="Allergies" items={data.allergies!} />
-            )}
+        {/* ── B — History: conditions, allergies — full-width section headers ── */}
+        {hasConditions && (
+          <div>
+            <div className="flex items-center gap-1 rounded-[4px] bg-tp-slate-100 px-1.5 py-[0.5px] mb-[4px]">
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["History"] || "clipboard-text"} variant="bulk" size={12} color="var(--tp-slate-500, #64748B)" />
+              <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Conditions</span>
+            </div>
+            <div className="text-[14px] leading-[1.65] text-tp-slate-800 pl-[4px]">
+              {data.chronicConditions!.map((c, i, arr) => (
+                <React.Fragment key={i}>
+                  {formatWithHierarchy(c, "font-medium text-tp-slate-700", "font-normal text-tp-slate-400")}
+                  {i < arr.length - 1 && <span className="text-tp-slate-400">, </span>}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        )}
+        {hasAllergies && (
+          <div>
+            <div className="flex items-center gap-1 rounded-[4px] bg-tp-slate-100 px-1.5 py-[0.5px] mb-[4px]">
+              <TPMedicalIcon name="shield-cross" variant="bulk" size={12} color="var(--tp-slate-500, #64748B)" />
+              <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Allergies</span>
+            </div>
+            <div className="text-[14px] leading-[1.65] text-tp-slate-800 pl-[4px]">
+              {data.allergies!.map((a, i, arr) => (
+                <React.Fragment key={i}>
+                  {formatWithHierarchy(a, "font-medium text-tp-slate-700", "font-normal text-tp-slate-400")}
+                  {i < arr.length - 1 && <span className="text-tp-slate-400">, </span>}
+                </React.Fragment>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* ── A — Today's Vitals ── */}
+        {/* ── A — Today's Vitals (full-width header) ── */}
         {vitalEntries.length > 0 && (
-          <InlineDataRow
-            tag="Today's Vitals"
-            tagIcon={SECTION_TAG_ICON_MAP["Today's Vitals"]}
-            values={vitalEntries}
-            source="existing"
-            onTagClick={onSidebarNav ? () => onSidebarNav("vitals") : undefined}
-          />
+          <div>
+            <div className="flex items-center gap-1 rounded-[4px] bg-tp-slate-100 px-1.5 py-[0.5px] mb-[4px]">
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Today's Vitals"] || "activity"} variant="bulk" size={12} color="var(--tp-slate-500, #64748B)" />
+              <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Today&apos;s Vitals</span>
+            </div>
+            <div className="pl-[4px]">
+              <InlineDataRow
+                tag=""
+                values={vitalEntries}
+                source="existing"
+                onTagClick={onSidebarNav ? () => onSidebarNav("vitals") : undefined}
+              />
+            </div>
+          </div>
         )}
 
-        {/* ── A — Key Labs ── */}
+        {/* ── A — Key Labs (full-width header) ── */}
         {labEntries.length > 0 && (
-          <InlineDataRow
-            tag="Key Labs"
-            tagIcon={SECTION_TAG_ICON_MAP["Key Labs"]}
-            values={labEntries}
-            source="existing"
-            onTagClick={onSidebarNav ? () => onSidebarNav("lab-results") : undefined}
-          />
+          <div>
+            <div className="flex items-center gap-1 rounded-[4px] bg-tp-slate-100 px-1.5 py-[0.5px] mb-[4px]">
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Key Labs"] || "microscope"} variant="bulk" size={12} color="var(--tp-slate-500, #64748B)" />
+              <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Key Labs</span>
+            </div>
+            <div className="pl-[4px]">
+              <InlineDataRow
+                tag=""
+                values={labEntries}
+                source="existing"
+                onTagClick={onSidebarNav ? () => onSidebarNav("lab-results") : undefined}
+              />
+            </div>
+          </div>
         )}
 
-        {/* ── Last Visit — with color hierarchy ── */}
+        {/* ── Last Visit (full-width header) ── */}
         {lastVisit && (
-          <div className="text-[14px] leading-[1.7] text-tp-slate-800">
-            <SectionTag
-              label="Last Visit"
-              icon={SECTION_TAG_ICON_MAP["Last Visit"]}
-              onClick={onSidebarNav ? () => onSidebarNav("past-visits") : undefined}
-            />
-            {" "}
+          <div>
+            <div className="flex items-center gap-1 rounded-[4px] bg-tp-slate-100 px-1.5 py-[0.5px] mb-[4px]">
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Last Visit"] || "calendar-2"} variant="bulk" size={12} color="var(--tp-slate-500, #64748B)" />
+              <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Last Visit</span>
+            </div>
+            <div className="text-[14px] leading-[1.7] text-tp-slate-800 pl-[4px]">
+
             {lastVisit.date && (
               <span className="font-medium text-tp-slate-700">{lastVisit.date}</span>
             )}
@@ -406,13 +432,18 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
                 })}
               </>
             )}
+            </div>
           </div>
         )}
 
-        {/* ── R — Recommendations ── */}
+        {/* ── R — Recommendations (full-width header) ── */}
         {recommendations.length > 0 && (
-          <div className="text-[14px] leading-[1.7]">
-            <SectionTag label="Recommendations" icon={SECTION_TAG_ICON_MAP["Due Alerts"]} />
+          <div>
+            <div className="flex items-center gap-1 rounded-[4px] bg-tp-slate-100 px-1.5 py-[0.5px] mb-[4px]">
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Due Alerts"] || "notification-status"} variant="bulk" size={12} color="var(--tp-slate-500, #64748B)" />
+              <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Recommendations</span>
+            </div>
+            <div className="text-[14px] leading-[1.7] pl-[4px]">
             <ul className="mt-[2px] flex flex-col gap-[2px] ml-[4px]">
               {recommendations.map((rec, i) => {
                 // Use warning dot for overdue, error dot for critical
@@ -427,6 +458,7 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
                 )
               })}
             </ul>
+            </div>
           </div>
         )}
       </div>
