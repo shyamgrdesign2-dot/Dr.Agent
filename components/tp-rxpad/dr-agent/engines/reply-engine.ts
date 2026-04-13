@@ -669,13 +669,13 @@ export function buildReply(
       }
       return {
         text: "Patient's detailed summary:",
-        rxOutput: { kind: "patient_summary", data: modifiedSummary, hideNarrative: !intakeNarrative },
+        rxOutput: { kind: "sbar_overview", data: modifiedSummary },
       }
     }
-    // No intake — hide narrative (already shown as quick snapshot in intro)
+    // No intake — show SBAR detailed summary
     return {
       text: "Patient's detailed summary:",
-      rxOutput: { kind: "patient_summary", data: summary, hideNarrative: true },
+      rxOutput: { kind: "sbar_overview", data: summary },
       suggestions: [
         { label: "Today's vitals", message: "Today's vitals" },
         { label: "Medical history", message: "Medical history" },

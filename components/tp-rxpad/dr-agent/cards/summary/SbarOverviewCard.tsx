@@ -303,43 +303,43 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
     >
       <div className="flex flex-col gap-[8px]">
 
-        {/* ── S — Situation: short narrative ── */}
-        <div className="rounded-[8px] bg-tp-slate-50 border-l-[3px] border-tp-violet-300 px-3 py-2">
-          <p className="text-[14px] italic leading-[1.6] text-tp-slate-500">
-            &ldquo;{highlightClinicalText(situation)}&rdquo;
+        {/* ── S — Situation: short narrative (plain text, no quotes) ── */}
+        <div className="rounded-[8px] border-l-[3px] border-tp-violet-300 px-3 py-2">
+          <p className="text-[14px] leading-[1.6] text-tp-slate-500">
+            {highlightClinicalText(situation)}
           </p>
         </div>
 
-        {/* ── B — History: conditions, allergies — full-width section headers ── */}
-        {hasConditions && (
+        {/* ── B — History: conditions + allergies merged ── */}
+        {hasHistory && (
           <div>
-            <div className="flex items-center gap-1 rounded-[4px] bg-tp-slate-100 px-1.5 py-[0.5px] mb-[4px]">
-              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["History"] || "clipboard-text"} variant="bulk" size={12} color="var(--tp-slate-500, #64748B)" />
-              <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Conditions</span>
+            <div className="flex items-center gap-1.5 rounded-[4px] bg-tp-slate-100 px-2 py-[3px] mb-[4px]">
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["History"] || "clipboard-text"} variant="bulk" size={14} color="var(--tp-slate-500, #64748B)" />
+              <span className="flex-1 text-[12px] font-medium text-tp-slate-500">History</span>
             </div>
-            <div className="text-[14px] leading-[1.65] text-tp-slate-800 pl-[4px]">
-              {data.chronicConditions!.map((c, i, arr) => (
-                <React.Fragment key={i}>
-                  {formatWithHierarchy(c, "font-medium text-tp-slate-700", "font-normal text-tp-slate-400")}
-                  {i < arr.length - 1 && <span className="text-tp-slate-400">, </span>}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-        )}
-        {hasAllergies && (
-          <div>
-            <div className="flex items-center gap-1 rounded-[4px] bg-tp-slate-100 px-1.5 py-[0.5px] mb-[4px]">
-              <TPMedicalIcon name="shield-cross" variant="bulk" size={12} color="var(--tp-slate-500, #64748B)" />
-              <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Allergies</span>
-            </div>
-            <div className="text-[14px] leading-[1.65] text-tp-slate-800 pl-[4px]">
-              {data.allergies!.map((a, i, arr) => (
-                <React.Fragment key={i}>
-                  {formatWithHierarchy(a, "font-medium text-tp-slate-700", "font-normal text-tp-slate-400")}
-                  {i < arr.length - 1 && <span className="text-tp-slate-400">, </span>}
-                </React.Fragment>
-              ))}
+            <div className="text-[14px] leading-[1.65] text-tp-slate-800 pl-[4px] space-y-[2px]">
+              {hasConditions && (
+                <div>
+                  <span className="text-tp-slate-400 text-[13px]">Chronic:&nbsp;</span>
+                  {data.chronicConditions!.map((c, i, arr) => (
+                    <React.Fragment key={i}>
+                      {formatWithHierarchy(c, "font-medium text-tp-slate-700", "font-normal text-tp-slate-400")}
+                      {i < arr.length - 1 && <span className="text-tp-slate-400">, </span>}
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
+              {hasAllergies && (
+                <div>
+                  <span className="text-tp-slate-400 text-[13px]">Allergies:&nbsp;</span>
+                  {data.allergies!.map((a, i, arr) => (
+                    <React.Fragment key={i}>
+                      <span className="font-medium text-tp-slate-700">{a}</span>
+                      {i < arr.length - 1 && <span className="text-tp-slate-400">, </span>}
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -347,8 +347,8 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
         {/* ── A — Today's Vitals (full-width header) ── */}
         {vitalEntries.length > 0 && (
           <div>
-            <div className="flex items-center gap-1 rounded-[4px] bg-tp-slate-100 px-1.5 py-[0.5px] mb-[4px]">
-              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Today's Vitals"] || "activity"} variant="bulk" size={12} color="var(--tp-slate-500, #64748B)" />
+            <div className="flex items-center gap-1.5 rounded-[4px] bg-tp-slate-100 px-2 py-[3px] mb-[4px]">
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Today's Vitals"] || "activity"} variant="bulk" size={14} color="var(--tp-slate-500, #64748B)" />
               <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Today&apos;s Vitals</span>
             </div>
             <div className="pl-[4px]">
@@ -365,8 +365,8 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
         {/* ── A — Key Labs (full-width header) ── */}
         {labEntries.length > 0 && (
           <div>
-            <div className="flex items-center gap-1 rounded-[4px] bg-tp-slate-100 px-1.5 py-[0.5px] mb-[4px]">
-              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Key Labs"] || "microscope"} variant="bulk" size={12} color="var(--tp-slate-500, #64748B)" />
+            <div className="flex items-center gap-1.5 rounded-[4px] bg-tp-slate-100 px-2 py-[3px] mb-[4px]">
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Key Labs"] || "microscope"} variant="bulk" size={14} color="var(--tp-slate-500, #64748B)" />
               <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Key Labs</span>
             </div>
             <div className="pl-[4px]">
@@ -383,8 +383,8 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
         {/* ── Last Visit (full-width header) ── */}
         {lastVisit && (
           <div>
-            <div className="flex items-center gap-1 rounded-[4px] bg-tp-slate-100 px-1.5 py-[0.5px] mb-[4px]">
-              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Last Visit"] || "calendar-2"} variant="bulk" size={12} color="var(--tp-slate-500, #64748B)" />
+            <div className="flex items-center gap-1.5 rounded-[4px] bg-tp-slate-100 px-2 py-[3px] mb-[4px]">
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Last Visit"] || "calendar-2"} variant="bulk" size={14} color="var(--tp-slate-500, #64748B)" />
               <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Last Visit</span>
             </div>
             <div className="text-[14px] leading-[1.7] text-tp-slate-800 pl-[4px]">
@@ -438,8 +438,8 @@ export function SbarOverviewCard({ data, onSidebarNav }: SbarOverviewCardProps) 
         {/* ── R — Recommendations (full-width header) ── */}
         {recommendations.length > 0 && (
           <div>
-            <div className="flex items-center gap-1 rounded-[4px] bg-tp-slate-100 px-1.5 py-[0.5px] mb-[4px]">
-              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Due Alerts"] || "notification-status"} variant="bulk" size={12} color="var(--tp-slate-500, #64748B)" />
+            <div className="flex items-center gap-1.5 rounded-[4px] bg-tp-slate-100 px-2 py-[3px] mb-[4px]">
+              <TPMedicalIcon name={SECTION_TAG_ICON_MAP["Due Alerts"] || "notification-status"} variant="bulk" size={14} color="var(--tp-slate-500, #64748B)" />
               <span className="flex-1 text-[12px] font-medium text-tp-slate-500">Recommendations</span>
             </div>
             <div className="text-[14px] leading-[1.7] pl-[4px]">
