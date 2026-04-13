@@ -230,6 +230,62 @@ export function buildReply(
     }
   }
 
+  // === ACTION FLOWS — Write RX, Create Bill, Schedule Follow-up, Book Appointment ===
+
+  // Write RX / Prescription
+  if (normalized.includes("write rx") || normalized.includes("write prescription") || normalized.includes("prescribe") || normalized.includes("create rx") || normalized.includes("draft rx")) {
+    const meds = summary.activeMeds || []
+    return {
+      text: `Prescription draft for ${meds.length > 0 ? `current medications (${meds.slice(0, 3).join(", ")}${meds.length > 3 ? ` + ${meds.length - 3} more` : ""})` : "this patient"}. Review and confirm below.`,
+      rxOutput: {
+        kind: "follow_up_question",
+        data: {
+          question: "How would you like to proceed with the prescription?",
+          options: [
+            "Save prescription for patient",
+            "Add more medications",
+            "Copy to RxPad for editing",
+          ],
+          multiSelect: false,
+        },
+      },
+    }
+  }
+
+  // Create Bill
+  if (normalized.includes("create bill") || normalized.includes("generate bill") || normalized.includes("billing") || normalized.includes("create invoice") || normalized.includes("bill for")) {
+    return {
+      text: "Bill summary for today's consultation:\n\n• **Consultation Fee** — ₹800\n\nWould you like to add any additional services?",
+      rxOutput: {
+        kind: "follow_up_question",
+        data: {
+          question: "Select additional services to include in the bill:",
+          options: [
+            "Lab tests conducted",
+            "Procedure / Minor surgery",
+            "Pharmacy items",
+            "No additional services — generate bill",
+          ],
+          multiSelect: true,
+        },
+      },
+    }
+  }
+
+  // Schedule Follow-up
+  if (normalized.includes("schedule follow") || normalized.includes("book follow") || normalized.includes("plan follow") || normalized.includes("set follow")) {
+    return {
+      text: "Follow-up scheduling confirmation:\n\n• **Patient**: will be scheduled for a follow-up\n• **Suggested interval**: based on current diagnosis\n\nThe follow-up has been scheduled. The patient will receive a reminder via the TatvaPractice app.",
+    }
+  }
+
+  // Book Appointment
+  if (normalized.includes("book appointment") || normalized.includes("schedule appointment") || normalized.includes("new appointment") || normalized.includes("add appointment")) {
+    return {
+      text: "Appointment booking:\n\n• Use **+ Add Appointment** in the header to book a new appointment\n• Or use **Start Walk-In** for immediate consultations\n\nI can help you with patient summaries and clinical data — appointment booking is handled through the appointment module.",
+    }
+  }
+
   // === SYMPTOM COLLECTOR — DIRECT MATCH (highest priority after guardrail) ===
   // Handles: "Show reported intake", "Reported by patient", "Pre-visit intake", "Show intake"
   if (normalized.includes("intake") || normalized === "reported by patient" || normalized.includes("show reported") || normalized.includes("patient reported") || normalized.includes("symptom collector")) {

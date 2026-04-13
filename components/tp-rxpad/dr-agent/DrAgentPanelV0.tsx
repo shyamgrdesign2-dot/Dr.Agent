@@ -728,6 +728,12 @@ export function DrAgentPanelV0({ onClose, initialPatientId, isPatientDetailPage 
               source: "",
             },
           },
+          suggestions: [
+            ...(summary.symptomCollectorData ? [{ label: "Reported by patient", message: "Show reported intake" }] : []),
+            { label: "Medical history", message: "Medical history" },
+            ...(summary.todayVitals && Object.keys(summary.todayVitals).length > 0 ? [{ label: "Today's vitals", message: "Today's vitals" }] : []),
+            ...(summary.lastVisit ? [{ label: "Last visit", message: "Last visit details" }] : []),
+          ],
           createdAt: new Date().toISOString(),
         },
       ] : []

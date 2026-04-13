@@ -100,6 +100,12 @@ function buildIntroMessages(
         createdAt: new Date().toISOString(),
         rxOutput: { kind: "text_quote", data: { quote: narrative, source: "" } },
         feedbackGiven: null,
+        suggestions: [
+          { label: "Detailed summary", message: "Patient's detailed summary" },
+          ...(summary.symptomCollectorData ? [{ label: "Reported by patient", message: "Show reported intake" }] : []),
+          { label: "Medical history", message: "Medical history" },
+          ...(summary.lastVisit ? [{ label: "Last visit", message: "Last visit details" }] : []),
+        ],
       })
       return messages
     }

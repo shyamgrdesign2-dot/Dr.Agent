@@ -4,7 +4,7 @@ import React from "react"
 
 import { CardShell } from "../CardShell"
 import { InlineDataRow } from "../InlineDataRow"
-import { InsightBox } from "../InsightBox"
+// InsightBox removed — cross-problem flags now rendered inline
 
 import { SidebarLink } from "../SidebarLink"
 import { EmbeddedSpecialtyBox } from "./EmbeddedSpecialtyBox"
@@ -537,11 +537,12 @@ export function GPSummaryCard({ data, onPillTap, onSidebarNav, defaultCollapsed,
           </div>
         )}
 
-        {/* Cross-problem flags — using InsightBox design system */}
+        {/* Cross-problem flags — inline text with severity dot */}
         {highSeverityFlags.map((flag, i) => (
-          <InsightBox key={i} variant={flag.severity === "high" ? "red" : "amber"} className="mt-0">
-            {flag.text}
-          </InsightBox>
+          <div key={i} className="flex items-start gap-[6px] text-[14px] leading-[1.6]">
+            <span className={`mt-[6px] h-[6px] w-[6px] rounded-full flex-shrink-0 ${flag.severity === "high" ? "bg-tp-error-500" : "bg-tp-warning-500"}`} />
+            <span className="text-tp-slate-600">{flag.text}</span>
+          </div>
         ))}
       </div>
     </CardShell>

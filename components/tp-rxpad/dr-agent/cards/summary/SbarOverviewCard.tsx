@@ -160,18 +160,17 @@ function buildRecommendations(data: SmartSummaryData): string[] {
     }
   }
 
-  // 3. Due alerts (max 2)
+  // 3. All due alerts
   if (data.dueAlerts?.length) {
-    for (const alert of data.dueAlerts.slice(0, 2)) {
+    for (const alert of data.dueAlerts) {
       recs.push(alert)
     }
   }
 
-  // 4. Critical cross-problem flags only (max 1)
+  // 4. All cross-problem flags
   if (data.crossProblemFlags?.length) {
-    const critical = data.crossProblemFlags.find(f => f.severity === "critical")
-    if (critical) {
-      recs.push(critical.text)
+    for (const flag of data.crossProblemFlags) {
+      recs.push(flag.text)
     }
   }
 

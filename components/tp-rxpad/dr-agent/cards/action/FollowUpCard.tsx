@@ -1,7 +1,7 @@
 "use client"
 
 import { CardShell } from "../CardShell"
-import { InsightBox } from "../InsightBox"
+// InsightBox removed
 import { ChatPillButton } from "../ActionRow"
 import type { FollowUpOption } from "../../types"
 
