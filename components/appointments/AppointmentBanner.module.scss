@@ -1,0 +1,78 @@
+// Appointments hero banner — pairs with DrAgentPage card overlap (-mt layout)
+
+$bp-sm: 640px;
+$bp-lg: 1024px;
+
+.root {
+  position: relative;
+  height: 149px;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0 0 16px 16px;
+}
+
+.pattern {
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: auto;
+  object-fit: fill;
+  opacity: 0.75;
+}
+
+.noiseSvg {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  mix-blend-mode: overlay;
+  opacity: 0.06;
+}
+
+.inner {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+  padding: 24px 12px 0;
+
+  @media (min-width: $bp-sm) {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  @media (min-width: $bp-lg) {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  min-width: 0;
+  flex: 1;
+  font-family: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #fff;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+
+  @media (min-width: $bp-sm) {
+    gap: 12px;
+  }
+}

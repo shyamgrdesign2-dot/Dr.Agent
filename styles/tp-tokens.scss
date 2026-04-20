@@ -1,0 +1,38 @@
+// Shared token aliases for CSS Modules (see app/globals.css :root / @theme).
+// Use from any *.module.scss:
+//   @use '../styles/tp-tokens' as tp;
+//   color: tp.$slate-900;
+
+$background: var(--background);
+$foreground: var(--foreground);
+$border: var(--border);
+$primary: var(--primary);
+$radius: var(--radius);
+
+$slate-0: var(--tp-slate-0);
+$slate-50: var(--tp-slate-50);
+$slate-100: var(--tp-slate-100);
+$slate-200: var(--tp-slate-200);
+$slate-300: var(--tp-slate-300);
+$slate-400: var(--tp-slate-400);
+$slate-500: var(--tp-slate-500);
+$slate-600: var(--tp-slate-600);
+$slate-700: var(--tp-slate-700);
+$slate-800: var(--tp-slate-800);
+$slate-900: var(--tp-slate-900);
+
+$blue-50: var(--tp-blue-50);
+$blue-100: var(--tp-blue-100);
+$blue-500: var(--tp-blue-500);
+$blue-600: var(--tp-blue-600);
+$blue-700: var(--tp-blue-700);
+
+$warning-600: var(--tp-warning-600);
+$warning-700: var(--tp-warning-700);
+
+$success-500: var(--tp-success-500);
+
+$violet-50: var(--tp-violet-50);
+$violet-500: var(--tp-violet-500);
+$violet-700: var(--tp-violet-700);
+$violet-800: var(--tp-violet-800);
