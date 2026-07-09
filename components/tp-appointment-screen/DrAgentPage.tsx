@@ -2532,9 +2532,8 @@ function TopHeader({
       </div>
 
       <div className="flex items-center gap-3.5">
-        {/* Dr. Agent mode — 3-segment control: Dr. Agent | V0 | Velora.
-            Selecting V0 opens the V0 panel; selecting Velora opens the Velora panel;
-            selecting Dr. Agent closes both overlays (FAB opens regular panel). */}
+        {/* Dr. Agent mode — legacy build: only the Dr. Agent segment is shown.
+            The V0 and Velora toggle options have been removed. */}
         <div
           role="tablist"
           aria-label="Dr. Agent mode"
@@ -2548,29 +2547,6 @@ function TopHeader({
               setIsV0Mode(false)
               setIsV0PanelOpen(false)
               setIsVeloraMode(false)
-            }}
-          />
-          <AgentModeSegment
-            label="V0"
-            active={isV0Mode}
-            tone="v0"
-            onClick={() => {
-              setIsV0Mode(true)
-              setIsVeloraMode(false)
-              setIsAgentWindowOpen(false)
-              setIsV0PanelOpen(true)
-            }}
-          />
-          <AgentModeSegment
-            label="Velora"
-            active={isVeloraMode}
-            tone="velora"
-            onClick={() => {
-              setIsVeloraMode(true)
-              setIsV0Mode(false)
-              setIsV0PanelOpen(false)
-              // FAB opens the regular Dr. Agent panel — Velora mode just swaps the
-              // appointment list + seeds demo threads.
             }}
           />
         </div>
